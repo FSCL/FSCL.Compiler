@@ -1,0 +1,411 @@
+[0.9.1] ------------------------------------------------------------------------
+Breaking changes:
+Removed ComputeKernel.SetArgument methods that accept a tracking argument.
+Renamed Tools to ComputeTools.
+Removed the Config dialog from Clootils.
+
+Additions:
+Added DebuggerBrowsableAttribute to non-public fields.
+More sanity checks to Clootils console allocation procedure.
+
+Bugfixes:
+DllNotFoundException was thrown on systems without any OpenCL installed.
+Event callback didn't trigger on devices displaying only OpenCL 1.0 support.
+
+Deprecated:
+None.
+
+Internals:
+Changed letter case of the "OpenCL.dll" string in the P/Invoke layer.
+Renamed Tools.ExtractHandles methods.
+Updated Trace logging information.
+Significantly reduced the number of compiler warnings.
+
+Documentation and other:
+Microsoft Visual Studio 2008 solution and project files are no longer provided.
+Added "Documentation" to Visual Studio solution files.
+Minor additions, clarifications and fixes.
+
+
+[0.9.0] ------------------------------------------------------------------------
+Breaking changes:
+ComputeEventBase.Aborted and ComputeEventBase.Completed event fields are now private.
+
+Bugfixes:
+Passing a read-only collection of events to command queue methods would cause a memory leak.
+The event callback would not trigger under certain circumstances.
+
+Deprecated:
+ComputeKernel.SetArgument methods that accept a "tracking" argument.
+
+Internals:
+Removed ToString methods from all classes but ComputeObject.
+
+Documentation:
+Fixed an error regarding OpenGL/OpenCL contexts and other minor clarifications.
+
+
+[0.9.alpha2] -------------------------------------------------------------------
+Breaking changes:
+Every OpenCL object handle in the bindings is represented by a new type, replacing the old IntPtr types.
+Every Compute class Handle had its type changed.
+ReadFromBuffer arrays don't allow for a null array to be passed in.
+AcquireGLOBjects and ReleaseGLObjects memObjs type restricted to ICollection<ComputeMemory> (was generic type). 
+Notifier delegates moved to Cloo.Bindings namespace.
+
+Additions:
+A whole new set of OpenCL objects and bindings which operate on them.
+
+Bugfixes:
+Event self-disposing, when some command queue methods were called with non null event list.
+Added check to ensure event callback being fired even if the hook was installed after command finished execution.
+
+Deprecated:
+None.
+
+Internals:
+Extensive modifications to accomodate for the new OpenCL handle types.
+
+Documentation:
+Some updates and typo fixes.
+
+
+[0.9.alpha1] -------------------------------------------------------------------
+Breaking changes:
+Removed all code that was marked [Obsolete] in the previous versions.
+Modified the bindings to avoid the need for unsafe code.
+
+Additions:
+None.
+
+Bugfixes:
+None.
+
+Deprecated:
+None.
+
+Internals:
+Lots of modifications as a result of the changes in the bindings.
+Removed all the unsafe blocks.
+
+Documentation:
+None.
+
+                                                                                
+[0.8.2] ------------------------------------------------------------------------
+Breaking changes:
+None.
+
+Additions:
+cl_ext_device_fission support.
+         
+Bugfixes:
+ComputeCommandQueue.ReadFromImage/WriteToImage/CopyImage misbehaviour when ComputeImage2D is involved.
+CLx unsuccessfully querying for clIcdGetPlatformIDsKHR.
+Some ComputeObject.GetInfo methods missing OpenCL error code checks.
+ComputeProgram.Build crashes when a callback function is specified as its argument.
+ProgramTest not working with Intel OpenCL.
+MappingTest prints wrong test name.
+ComputeEvent not being disposed when its associated command finishes execution/aborts.
+Added workaround to prevent Clootils from freezing with latest Nvidia drivers (2xx). This is a driver bug.  
+Possible ComputePlatform constructor bug when multiple threads attempt to initialize Cloo at the same time.
+
+Deprecated:
+None.
+
+Internals:
+Added trace prints that show the creation and disposal of OpenCL objects.
+Added DEBUG symbol to Cloo.VS2010 project file.
+Removed struct BufferRegion.
+
+Documentation:
+A text file that tracks supported OpenCL versions and extensions.
+Added <value> tags to all properties.
+Added element references wherever possible. 
+
+
+[0.8.1] ------------------------------------------------------------------------
+Breaking changes:
+None.
+
+Additions:
+None.
+
+Bugfixes:
+(Critical) Cloo not initializing on platforms without cl_khr_fp64 or cl_khr_fp16 support.
+ComputeEvent printing debug info after Console is closed.
+
+Deprecated:
+None.
+
+Internals:
+Both VS 2010 and VS 2008 solution and project files now available.
+
+Documentation:
+None.
+
+
+[0.8.0] ------------------------------------------------------------------------
+Breaking changes:
+All ComputeCommandQueue methods require an ICollection<ComputeEventBase> events argument instead of ICollection<ComputeEvent>.
+ComputeEventList now implements ICollection<ComputeEventBase> instead of IList<ComputeEvent>.
+Renamed Clx to CLx.
+Modified some CL10 functions to take arrays instead of pointers.
+Modified some CL11 functions to take SysIntX3* instead of IntPtr*.
+ComputeDevice.Version returns a System.Version instead of string.
+
+New functionality:
+Types - ComputeBufferBase, ComputeSubBuffer, ComputeEventBase, ComputeUserEvent, SysIntX2, SysIntX3, ComputeCommandStatusArgs.
+ComputeCommandQueue.{CopyBuffer|CopyBufferToImage|CopyImage|CopyImageToBuffer|ReadFromBuffer|ReadFromImage|WriteToBuffer|WriteToImage} methods.
+ComputeDevice.{NativeVectorWidth*|HostUnifiedMemory|OpenCLCVersion|OpenCLCVersionString|VersionString}
+ComputeEvent(Base) properties - Context, EnqueueTime, SubmitTime, StartTime, FinishTime, Type, Status.
+                   events - Completed, Aborted.
+ComputeEventList.{Wait|Last}
+ComputeKernel.GetPreferredWorkGroupSizeMultiple.
+Tools.ParseVersionString.
+
+Bugfixes:
+ComputeCommandQueue.ToString returns wrongly formatted string.
+Clootils.ConfigForm accepts an empty device list.
+
+Deprecated bits:
+Most of ComputeCommandQueue.{Read|Write|Copy|Map} methods that accept a long[3] argument.
+All of long name ComputeEvent(Base).Command* properties.
+CL11.SetCommandQueueProperty.
+
+Internals:
+Common ComputeEvent and ComputeUserEvent code moved to ComputeEventBase.
+Common ComputeBuffer and ComputeSubBuffer code moved to ComputeBufferBase.
+Removed ComputeCommandQueue.SetProperty.
+Clootils tests refactored and tweaked.
+
+Documentation:
+Synced with latest additions, changes and removals.
+
+
+[0.7.4] ------------------------------------------------------------------------
+As per community request: allow usage of deprecated ComputeCommandQueue methods.
+
+[0.7.3] ------------------------------------------------------------------------
+Breaking changes:
+Renamed ComputeDevice.ComputeCommmandQueueFlags to CommandQueueFlags.
+Renamed MemoryObjectAllocationComputeException to MemoryObjectAllocationFailureComputeException.
+
+New functionality:
+Added OpenCL 1.1 raw bindings and enum tokens.
+Added OpenCL error code to ComputeException.Message.
+Added ComputePlatform.QueryDevices.
+ComputeContextPropertyList now implements ICollection<ComputeContextProperty>.
+Added ComputeKernel.SetLocalArgument.
+Added ComputeSampler.ToString.
+Added check to prevent modifying of read-only event collections of events passed as arguments to ComputeCommandQueue methods.
+Added extensions cl_khr_migrate_memobject and cl_khr_icd.
+
+Bugfixes:
+CL10.CreateImage3D calls clCreateImage2D.
+Missing Cloo.xml documentation file.
+
+Deprecated bits:
+Some of the ComputeCommandQueue methods are marked as deprecated and shouldn't be used any more. Starting with 0.8.0 they will be removed in order to avoid confusion with the new OpenCL 1.1 related CommandQueue functionality.  
+ 
+Internals:
+Reformatted Clootils code to match Visual Studio default formatting.
+ComputeProgram.Build won't prevent from building the same program multiple times anymore.   
+
+Documentation:
+Revised documentation for most of the public bits of the library.
+Added doxygen generated documentation.
+
+
+[0.7.2] ------------------------------------------------------------------------
+Breaking changes:
+None.
+
+New functionality:
+None.
+
+Bugfixes:
+Changing platform in Clootils configuration doesn't update device list.
+Clootils crash on certain device selections for multidevice platforms.
+Clootils syntax checking cripples source before sending it to the compiler.
+
+Internals:
+Reformatted Cloo source to match Visual Studio default formatting.
+
+Documentation:
+None.
+
+
+[0.7.1] ------------------------------------------------------------------------
+Breaking changes:
+Removed ComputeContextPropertyList.Platform property.
+Renamed ComputeCommandQueue.Execute( kernel, events ) to ExecuteTask.
+
+New functionality:
+Added a bunch of overload methods to ComputeCommandQueue that default hidden parameters to safe values.
+Added ComputeBuffer contstructor that accepts a pointer to the data to initialize the buffer with.
+Added ComputeContext.Platform property.
+Added ComputeContextPropertyList.GetByName method.
+Added ComputeMemoryFlags.None token.
+
+Bugfixes:
+ComputeContextPropertyList.properties field stays null after constructor run.
+ComputeBuffer constructor creates zero-sized buffer.
+
+Internals:
+None.
+
+Documentation:
+Documented new overloads in ComputeCommandQueue.
+
+
+[0.7.0] ------------------------------------------------------------------------
+Breaking changes:
+Changes affecting ComputeCommandQueue.Read/Write methods in order to fix a bug concerning non-blocking calls. The responsibility of allocating/freeing memory or GC Handles is now up to the application. See VectorAddTest.cs for an example of use.
+
+New functionality:
+Enabled public access to the raw OpenCL bindings.
+Added enum tokens for the cl_khr_icd extension.
+
+Bugfixes:
+ComputeCommandQueue.Read returns invalid data if invoked as non-blocking.
+ComputeCommandQueue.Unmap doesn't append the event to the list. 
+
+Internals:
+The bindings no longer have "out" parameters. Everything converted to pointers for consistency.
+
+Documentation:
+None.
+
+
+[0.6.2] ------------------------------------------------------------------------
+Breaking changes:
+Renamed ComputeImage.PixelSize to ElementSize.
+
+New functionality:
+Track kernel arguments until kernel execution. Added new Set*Arguments methods for this purpose.
+New ComputeProgram constructor with a single source string.
+
+Bugfixes:
+ComputeCommandQueue.Wait calls CL10.WaitForEvents.
+ComputeCommandQueue.Read( ComputeImage... ) allocates wrong amount of memory.
+ComputeCommandQueue..ctor misintereprets the flags argument.
+
+Internals:
+Existing ComputeKernel.Set*Arguments will automatically track the arguments since this is the safe option. In order to block this behaviour you can use the overloads with a bool parameter.
+
+Documentation:
+None.
+
+
+[0.6.1] ------------------------------------------------------------------------
+Breaking changes:
+Renamed ComputeDeviceMemoryCacheType to ComputeDeviceGlobalMemoryCacheType.
+Changed signature of ComputeCommandQueue.Read( ComputeImage ).
+Changed return type of ComputeCommandQueue.Read( ComputeImage... ) from IntPtr to byte[].
+
+New functionality:
+ComputeImage.ToString.
+ComputeProgram..ctor that takes a single string as an argument.
+
+Bugfixes:
+ComputeCommandQueue methods causing memory leaks by creating (and not releasing) unnecessary event objects.
+ComputeCommandQueue.Read ignores "count" parameter.
+CommandQueue.Flush calls CL10.Finish.
+Clootils not working with ATI Stream on Windows.
+
+Internals:
+Added workaround to prevent a program being built multiple times. Fixes memory leak in the drivers.
+
+Documentation:
+Added or modified: ComputeBuffer.CreateFromGLBuffer, ComputeCommandQueue.AcquireGLObjects, ComputeCommandQueue.Execute,
+ComputeCommandQueue.ReleaseGLObjects, ComputeCommandQueue.Read, ComputeCommandQueue.Unmap, ComputeCommandQueue.Wait,
+ComputeContext..ctor, ComputeContextNotifier.
+
+	
+[0.6.0] ------------------------------------------------------------------------
+Breaking changes:
+Replaced all OpenTK enums with new ones.
+Restructured ComputeMemory and its dependents' architecture.
+Modified ComputeContext constructors. Added ComputeContextProperty and ComputeContextPropertyList for this purpose.
+Project Clootils replaced ClooInfo and ClooTester.
+
+New functionality:
+Image support.
+Added ComputeCommandQueueFlags.None.
+Added delegates for callback functions.
+OpenCL/OpenGL sharing API.
+Extension loading mechanism.
+Config file for out-of-the-box Linux and MacOS support.
+
+Bugfixes:
+ComputeImage2D.GetSupportedFormats returns a list of 3D image formats.
+
+Internals:
+Replaced OpenTK DllImports and enums with a new layer of bindings. Removes dependency on OpenTK.
+
+Documentation:
+Added comments for some of the new public bits.
+Added/modified missing comments around existing bits.
+
+
+[0.5.1] ------------------------------------------------------------------------
+Breaking changes:
+ComputeJobQueue renamed to ComputeCommandQueue. Avoids confusion for new users.
+All ComputeEvent properties that included "Job" in their names are renamed as well.
+AddBarrier, AddMarker and WaitFor of ComputeCommandQueue renamed to Barrier, Marker and Wait respectively.
+
+New functionality:
+None.
+
+New overloads/helpers:
+GetByName and GetByVendor methods in ComputePlatform.
+
+Inner changes:
+Extension queries modified in order to give an empty list of tokens instead of a list containing one empty token in case no extensions are supported.
+
+Bugfixes:
+Enumeration of devices of an OpenCL platform.
+Fixed bug that prevented creation of ComputeContext on ATI Stream 1.0 final in 64bit OS's.
+ComputeCommandQueue.Read(ComputeBuffer...) now reads the specified count of items and not the whole buffer.
+Crash on ComputeCommandQueue.Wait. 
+
+Documentation:
+A lot of small tweaks, fixes and new lines.
+
+
+[0.4.1] ------------------------------------------------------------------------
+~ changed: Public IntPtrs replaced by longs
+~ changed: Fixed CLS-Compliancy related warnings
+~ changed: ComputeObject.GetInfo methods no longer provide conversion between native type and queried type
+~ changed: Most fields converted to readonly
++ added: Missing comments on public methods and properties
++ added: ComputeKernel.SetSamplerArg for setting sampler_t kernel arguments
+
+[0.3.1] ------------------------------------------------------------------------
+~ changed: GetInfo string queries are now parsed with regexes
+* fixed: kernel signature for the ray-triangle intersection
++ added: a general ComputeKernel.SetArg method that closely follows clSetKernelArg.
++ added: an internal test for kernel args passing
++ added: ClooInfo, a winforms based app for printing CL related info
+
+[0.2.1] ------------------------------------------------------------------------
+~ changed: ComputeDevice now exposes properties instead of fields
+~ changed: ComputeDevice fields refactoring
+~ changed: error checking method moved to ComputeException
+* fixed: ComputeProgram.Build(...) reading binary after unsuccessful build
++ added: Ray-Triangle intersection test
++ added: compute exception classes for all the error codes
+
+[0.1.1.100] --------------------------------------------------------------------
+- removed: unmanaged allocs and unnecessary transfers between managed <-> unmanaged memory areas
+~ changed: ComputeQueue to ComputeCommandQueue
+~ changed: ComputeProgram binaries and all related logic now represented by byte[] instead of string
+* fixed: garbage in ComputeProgram binary readback
++ added: mapping ComputeBuffer's content into host memory
++ added: setting ComputeKernel's value type arguments
++ added: execution of a single kernel through clEnqueueTask
+
+[0.1-alpha-1] ------------------------------------------------------------------
+The first experimental release of Cloo. This is an alpha release, so expect bugs and missing features.
+Only for testing purposes!

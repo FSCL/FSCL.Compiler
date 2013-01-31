@@ -1,0 +1,9 @@
+OpenCL versions:
+OpenCL 1.0
+OpenCL 1.1
+
+OpenCL extensions:
+cl_khr_gl_sharing
+cl_khr_icd
+cl_ext_migrate_memobject
+cl_ext_device_fission

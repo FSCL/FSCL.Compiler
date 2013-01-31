@@ -1,0 +1,68 @@
+[0.9.1] ------------------------------------------------------------------------
+This is a maintenance release (with a small breaking change).
+0.9.1 incorporates some recommendations and tips from the community like the DebuggerBrowsableAttribute hint (thanks vicviper) and a Cloo initialization improvement if OpenCL is not installed in the system. The later can now be checked through the ComputePlatform.Platforms collection, which contains no platforms if OpenCL is not present (instead of crashing with DllNotFoundException).
+Deprecated ComputeKernel.SetArgument methods were removed. You are now responsible for kernel argument tracking until the kernel finishes execution.
+As always, you can find more info in ChangeLog.txt.
+Upgrading from 0.9.0 is recommended.
+
+[0.9.0] ------------------------------------------------------------------------
+Cloo 0.9 is finally out.
+This is a minor upgrade over the previous alpha release bringing some small updates, bugfixes and documentation edits.
+The most notable change is the deprecation of some of the ComputeKernel.SetArgument methods, which will be removed in the near future. These so called "tracking" variants used to keep track of kernel arguments to prevent them from being garbage collected until kernel execution. This is problematic however, because at the library level it is impossible to determine, when the kernel finishes. The application is now responsible for tracking these objects.
+Asynchronous command queue calls are now more robust and carry a bit less overhead. The ComputeEvent callback mechanism has been much improved. Unlike in previous versions the ComputeEventBase.Completed and ComputeEventBase.Aborted events are now guaranteed to trigger under all circumstances.
+
+[0.9.alpha2] -------------------------------------------------------------------
+The second 0.9 preview is out.
+The major feature is a whole new set of OpenCL object handles, which can be used with the redesigned bindings. This final major change is the result of the efforts aiming at bringing the low level part of the library up to par with the rest of the code. So, if you wanted a basic set of fast, type safe and still very friendly OpenCL bindings that completely bypasses the object oriented layer, you're finally served!
+As for some bad news, in order to take advantage of the new handle types the ComputeObject handles now use them as well. Which means you'll have to upgrade your code if you were working directly with handles in previous versions. However, it is very unlikely that this will affect many applications (if any).
+Some other, but much smaller changes have shaped the new interface as well (acquiring and releasing OpenGL objects, ReadFromBuffer methods). As always checking the Changelog in the documentation folder is heartily recommended. 
+This was the last large set of the planned features for Cloo. So, what you see here is basically what Cloo 1.0 will look like!
+Stay tuned!
+
+[0.9.alpha1] -------------------------------------------------------------------
+This is the first of the (two or possibly three) alpha releases that precede Cloo 0.9. It is an experimental release which brings three major changes:
+
+1) The library is now CLS-compliant and contains no unsafe code including the low-level bindings. This means it is fully usable from every CLI-compatible language out there.
+2) Deprecated bits from the previous versions have been removed. Those of you considering upgrade to Cloo 0.9 will need to check their compiler warnings for obsoleted methods/properties. Fear not, though. Every feature can be replaced by a better and more solid one.
+3) Clootils have been completely redesigned. The editor is gone but what's left is a bit more usable and much more extensible (at least from a programmer's point of view).
+
+Apart from the deprecated features the interface hasn't changed (a simple Cloo.dll switch should be sufficient). However, the changes under the hood are quite extensive so, I would really appreciate some user feedback!
+
+[0.8.2] ------------------------------------------------------------------------
+Welcome to another maintenance release in the 0.8 series.
+This version fixes some discovered bugs affecting extension loading, asynchronous program build, command-queue methods handling ComputeImage2Ds and error checking in some of the ComputeObject.Get*Info methods. It also adds a workaround to prevent Clootils from hanging with the latest Nvidia drivers and another one to help prevent Cloo initialization errors in a multithreaded environment.
+New functionality includes support for the cl_ext_device_fission extension.
+For the first time ever, Cloo was tested against the Intel OpenCL SDK. Although alpha, Intel's implementation is the first of the lot to successfully pass all the current Clootils tests! Kudos to Intel! 
+Upgrade from 0.8.1 or 0.8.0 is recommended.
+ 
+[0.8.1] ------------------------------------------------------------------------
+This is a maintenance release which fixes a highly critical bug on OpenCL platforms that make use of a device without cl_krh_fp16 or cl_khr_fp64 support. The bug prevented 0.8.0 from initializing in such environments. This release also gets rid of the occasional IOException in the ComputeEvent bowels. Upgrade from 0.8.0 is strongly recommended.
+
+[0.8.0] ------------------------------------------------------------------------
+Cloo 0.8 is finally out! Since the initial plans three months have passed. During this time Khronos updated the OpenCL specification and, as it happens, some (actually a lot) of the new OpenCL functions do exactly what I was going to implement myself. So, a big thank you to those guys is in place.
+
+These are some of the new bits you can expect in this version:
+- Massive rewrite of the ComputeCommandQueue class. More than 40 new methods with a consistent interface for seamless and safe data transitions between .NET arrays (1, 2, and 3 dimensional) and OpenCL buffers and images were added. Most of them provide automatic argument tracking (pinning, referencing and releasing on completion) if invoked as non-blocking calls.
+- Events fitted with... well... events, which are fired on command completion or abortion.
+- OpenCL 1.1 user events (ComputeUserEvent)
+- OpenCL 1.1 sub buffers (ComputeSubBuffer)
+- OpenCL 1.1 related ComputeKernel queries (GetPreferredWorkGroupSizeMultiple, GetPrivateMemorySize)
+- OpenCL 1.1 related ComputeDevice properties (NativeVectorWidth*, HostUnifiedMemory, OpenCLCVersion, OpenCLCVersionString, VersionString)
+- Two new data types: SysIntX2 and SysIntX3. They are used (and can be enforced) wherever a size_t[3] is expected in the OpenCL API.
+- Added new OpenCL 1.1 test to Clootils.
+
+Speaking of testing. It wasn't possible for me to test each and every single new method. Although, I did test the core ones, bugs might have gone unnoticed in the others. Therefore, a sane HOWTO upgrade could look like this:
+0) Update your drivers to support OpenCL 1.1.
+1) BACK UP YOUR CODE before upgrading to Cloo 0.8 (or use source control).
+2) Upgrade.
+3) Report any problems you find.
+4) Other messages are also welcome (no penis enlargement ads, please).
+
+Note that Cloo 0.8 is NOT compatible with older releases. The main cause is the new event type which forced a change to the existing command queue methods. They now require an ICollection<ComputeEventBase> instead of an ICollection<ComputeEvent> argument (Find&Replace should be enough for this). A related change affected ComputeEventList, which now implements IList<ComputeEventBase> instead of IList<ComputeEvent>. Changes also affected the raw bindings (note that they aren't the primary focus of Cloo and shouldn't be used outside testing or edge cases. Their interface may change at any time without much warning).
+
+Some of the existing command queue methods were deprecated. Especially methods with long[3] arguments were obsoleted in favour of methods with SysIntX3 typed arguments.
+Also, aiming for a bit of practicality, some of the event properties were replaced with shortly named ones (the originals are deprecated but still there).
+
+Last but not least: Given the amount of changes in 0.8, I will continue to maintain the 0.7 branch for those of you not willing to upgrade (either because it's too complicated or you just happen to like the previous version more). Naturally, I will focus on the newer releases, so, if you want me digging in older code you'll have to tell me (see readme.txt on how to do that). On the other hand, the deprecated parts will continue to be available across the whole 0.8.x series.
+
+Happy coding!

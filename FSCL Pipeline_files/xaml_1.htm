@@ -1,0 +1,187 @@
+<html xmlns="http://www.w3.org/TR/REC-html40">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+<meta name="vs_targetSchema" content="http://schemas.microsoft.com/intellisense/ie5"/>
+<link rel="stylesheet" type="text/css" href="visio.css"/>
+<title>FSCL Pipeline</title>
+<script src="Silverlight.js" type="text/javascript"></script>
+<script src="Silverlight.supportedUserAgent.js" type="text/javascript"></script>
+<script src="xaml_1.js" type="text/javascript"></script>
+</head>
+
+<script type="text/javascript">	
+	var pageID = 0;
+	var drawing;			
+	function keyhandler(event)
+	{
+		switch(event.keyCode)
+		{
+			case 9: //Tab
+			{
+				var foundShape;
+				if (event.shiftKey)
+					foundShape = (window.SilverlightObj.selectPrevShape() != null);
+				else
+					foundShape = (window.SilverlightObj.selectNextShape() != null);
+					
+				if (foundShape)
+				{
+					event.cancelBubble = false;
+					event.returnValue = false;
+				}
+			}
+			break;
+			case 13: //Enter
+			{
+				if(window.SilverlightObj.shapeSel != null)
+				{
+					var shape = window.SilverlightObj.shapeSel;
+					var shapeID = parseInt(shape.Name.substring(1, shape.Name.length));
+					parent.OnShapeClick(pageID, shapeID, event);
+				}
+			}
+			break;
+		}
+	}
+	function createDrawing()
+	{
+		drawing = new SilverlightDisplay.Drawing();
+		window.SilverlightObj = drawing;
+		Silverlight.createObjectEx({
+			source: 'xaml_1.xaml',
+			parentElement: document.getElementById('SilverlightPlugInHost'),
+			id: 'SilverlightPlugIn',
+			properties: {
+				width: '841',
+				height: '595',
+				background:'#ffffff',
+				isWindowless: 'true',
+				version: '1.0'
+			},
+			events: {
+				onError: null,
+				onLoad: Silverlight.createDelegate(drawing, drawing.handleLoad)
+			},
+			context: null 
+		});
+	}
+	
+	function createPNZ(divThumb, windowWidth, windowHeight)
+	{
+		var pnz = new SilverlightDisplay.Thumbnail();
+		pnz.callbackIndex = '__slEvent' + Silverlight._silverlightCount;
+		
+		Silverlight.createObjectEx({
+			source: 'xaml_1.xaml',
+			parentElement: divThumb,
+			id: 'thumbnailHost',
+			properties: {
+				width: (windowWidth).toString(),
+				height: (windowHeight).toString(),
+				background:'#ffffff',
+				isWindowless: 'true',
+				version: '1.0'
+			},
+			events: {
+				onError: null,
+				onLoad: Silverlight.createDelegate(pnz, pnz.handleLoad)	// Won't be registered correctly
+			},		
+			context: null 
+		});   
+		
+		
+		return pnz;
+	}
+	
+	function PostZoomProcessing (newZoomLevel)
+	{
+		parent.viewMgr.PostZoomProcessing = null;
+		var pageIndex = parent.PageIndexFromID (pageID);
+		parent.viewMgr.createPNZ = createPNZ;
+		parent.CurPageUpdate (pageIndex);
+	}
+	
+	if (!window.Silverlight) 
+		window.Silverlight = {};
+
+	Silverlight.createDelegate = function(instance, method) {
+		return function() {
+			return method.apply(instance, arguments);
+		}
+	}
+	
+	function unload()
+	{
+		viewMgr = null;
+		parent.viewMgr = null;
+	}
+
+	function fit()
+	{
+		if(parent.frmToolbar)
+		{
+			if (parent.g_WidgetsLoaded && plugin)
+			{
+				var zoom100 = parent.frmToolbar.document.getElementById('a100');
+				if (zoom100)
+				{
+					parent.viewMgr.PostZoomProcessing = PostZoomProcessing;
+					if (zoom100.click)
+						zoom100.click();
+					else
+						viewMgr.Zoom(100);
+				}
+				else
+				{
+					parent.viewMgr.PostZoomProcessing = PostZoomProcessing;
+					viewMgr.Zoom(100);
+				}
+			}
+			else
+			{
+				window.setTimeout("fit()", 500);
+			}
+		}	
+		else
+		{
+			parent.viewMgr.PostZoomProcessing = PostZoomProcessing;
+			viewMgr.Zoom(100);
+		}
+	}
+
+	function load()
+	{
+		viewMgr = new parent.CViewMgr();
+		parent.viewMgr = viewMgr;
+
+		viewMgr.SupportsDetails = true;
+		viewMgr.SupportsSearch = true;
+
+		viewMgr.put_Location = SetXAMLLocation;
+		viewMgr.Zoom = XAMLZoomChange;
+		viewMgr.setView = XAMLSetView;
+		
+		createDrawing();
+		
+		fit();
+	}
+	window.onload = load;
+	window.unload = unload;
+	
+	var OnShapeClick = parent.OnShapeClick;
+	var OnShapeKey = parent.OnShapeKey;
+	var UpdateTooltip = parent.UpdateTooltip;
+	var clickMenu = parent.clickMenu;
+	var toggleMenuDiv = parent.toggleMenuDiv;
+	var toggleMenuLink = parent.toggleMenuLink;
+	
+</script>
+
+<body style="margin:10px" onresize="XAMLOnResize();" onscroll="XAMLOnScroll();">
+	<div id="SilverlightPlugInHost" onkeydown="keyhandler(event)">		
+	</div>
+	<div id="menu1" onclick="parent.clickMenu(event)" class="hlMenu">
+    </div>
+</body>
+</html>
+
