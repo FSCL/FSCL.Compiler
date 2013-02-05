@@ -49,8 +49,8 @@
       <Project>{7635ade1-ac00-4587-8117-3faa15be9318}</Project>
       <Private>True</Private>
     </ProjectReference>
-    <ProjectReference Include="..\FSCL.Compiler.Plugin\FSCL.Compiler.Plugin.fsproj">
-      <Name>FSCL.Compiler.Plugin</Name>
+    <ProjectReference Include="..\FSCL.Compiler.PluginManager\FSCL.Compiler.PluginManager.fsproj">
+      <Name>FSCL.Compiler.PluginManager</Name>
       <Project>{4ce26ad2-8f56-4bdf-91fa-021c96c48294}</Project>
       <Private>True</Private>
     </ProjectReference>

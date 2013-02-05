@@ -5,12 +5,12 @@
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>05d3d829-9eef-411d-bbf7-fe966b2d379b</ProjectGuid>
-    <OutputType>Exe</OutputType>
-    <RootNamespace>Sample</RootNamespace>
-    <AssemblyName>Sample</AssemblyName>
+    <ProjectGuid>898f5ec0-3903-40e0-98bd-ee2e5746620f</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <RootNamespace>FSCL.Compiler.ModuleBuilding</RootNamespace>
+    <AssemblyName>FSCL.Compiler.ModuleBuilding</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
-    <Name>Sample</Name>
+    <Name>FSCL.Compiler.Processors.ModulePreprocessing</Name>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -20,9 +20,7 @@
     <OutputPath>bin\Debug\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <WarningLevel>3</WarningLevel>
-    <PlatformTarget>AnyCPU</PlatformTarget>
-    <DocumentationFile>bin\Debug\Sample.XML</DocumentationFile>
-    <Prefer32Bit>true</Prefer32Bit>
+    <DocumentationFile>bin\Debug\FSCL.Compiler.ModuleBuilding.XML</DocumentationFile>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -31,9 +29,7 @@
     <OutputPath>bin\Release\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
     <WarningLevel>3</WarningLevel>
-    <PlatformTarget>AnyCPU</PlatformTarget>
-    <DocumentationFile>bin\Release\Sample.XML</DocumentationFile>
-    <Prefer32Bit>true</Prefer32Bit>
+    <DocumentationFile>bin\Release\FSCL.Compiler.ModuleBuilding.XML</DocumentationFile>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="mscorlib" />
@@ -45,26 +41,19 @@
     <Reference Include="System.Numerics" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="SimpleAlgorithms.fs" />
-    <Compile Include="AdvancedFeatures.fs" />
-    <Compile Include="Program.fs" />
-    <None Include="App.config" />
-    <None Include="Testing.fsx" />
+    <Compile Include="ModulePreprocessing.fs" />
+    <Compile Include="GenericInstantiator.fs" />
+    <Compile Include="FunctionReferenceDiscover.fs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\FSCL.Compiler.Core.Language\FSCL.Compiler.Core.Language.fsproj">
-      <Name>FSCL.Compiler.Core.Language</Name>
-      <Project>{02cc39bd-a326-49f6-b5e6-2987eada1ba2}</Project>
+    <ProjectReference Include="..\FSCL.Compiler.Core.Util\FSCL.Compiler.Core.Util.fsproj">
+      <Name>FSCL.Compiler.Core.Util</Name>
+      <Project>{2089ba93-e786-42e3-b717-58105c53bb7a}</Project>
       <Private>True</Private>
     </ProjectReference>
     <ProjectReference Include="..\FSCL.Compiler.Core\FSCL.Compiler.Core.fsproj">
       <Name>FSCL.Compiler.Core</Name>
       <Project>{7635ade1-ac00-4587-8117-3faa15be9318}</Project>
-      <Private>True</Private>
-    </ProjectReference>
-    <ProjectReference Include="..\FSCL.Compiler\FSCL.Compiler.fsproj">
-      <Name>FSCL.Compiler</Name>
-      <Project>{5d7c3db1-3300-455e-bf2a-3fb52bdc0595}</Project>
       <Private>True</Private>
     </ProjectReference>
   </ItemGroup>
