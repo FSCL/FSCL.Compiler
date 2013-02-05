@@ -1,0 +1,3 @@
+[submodule "FSCL.Compiler.Core"]
+	path = FSCL.Compiler.Core
+	url = https://github.com/GabrieleCocco/FSCL.Compiler.Core.git
