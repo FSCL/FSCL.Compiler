@@ -41,6 +41,8 @@ Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "GraphUtil", "GraphUtil\Grap
 EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "FSCL.Compiler.Language", "FSCL.Compiler.Language\FSCL.Compiler.Language.fsproj", "{AC3A5D28-9206-41DC-B546-4D91217253A5}"
 EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "FSCL.Compiler.Core", "FSCL.Compiler.Core\FSCL.Compiler.Core.fsproj", "{7635ADE1-AC00-4587-8117-3FAA15BE9318}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -111,6 +113,10 @@ Global
 		{AC3A5D28-9206-41DC-B546-4D91217253A5}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{AC3A5D28-9206-41DC-B546-4D91217253A5}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{AC3A5D28-9206-41DC-B546-4D91217253A5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7635ADE1-AC00-4587-8117-3FAA15BE9318}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7635ADE1-AC00-4587-8117-3FAA15BE9318}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7635ADE1-AC00-4587-8117-3FAA15BE9318}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7635ADE1-AC00-4587-8117-3FAA15BE9318}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

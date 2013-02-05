@@ -44,6 +44,11 @@
     <Compile Include="ModulePrettyPrintingStep.fs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\FSCL.Compiler.Core\FSCL.Compiler.Core.fsproj">
+      <Name>FSCL.Compiler.Core</Name>
+      <Project>{7635ade1-ac00-4587-8117-3faa15be9318}</Project>
+      <Private>True</Private>
+    </ProjectReference>
     <Reference Include="mscorlib" />
     <Reference Include="FSharp.Core, Version=4.3.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
       <Private>True</Private>
@@ -51,11 +56,6 @@
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Numerics" />
-    <ProjectReference Include="..\Cloo\Cloo\Cloo.VS2010.csproj">
-      <Name>Cloo.VS2010</Name>
-      <Project>{656e96ce-2587-4ccc-a4db-06d36267133a}</Project>
-      <Private>True</Private>
-    </ProjectReference>
     <ProjectReference Include="..\CombinationGenerator\CombinationGenerator.fsproj">
       <Name>CombinationGenerator</Name>
       <Project>{b1a8f578-ba62-456e-8806-59247833eed8}</Project>

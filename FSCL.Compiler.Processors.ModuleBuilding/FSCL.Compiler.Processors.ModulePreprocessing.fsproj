@@ -50,6 +50,11 @@
       <Project>{b1a8f578-ba62-456e-8806-59247833eed8}</Project>
       <Private>True</Private>
     </ProjectReference>
+    <ProjectReference Include="..\FSCL.Compiler.Core\FSCL.Compiler.Core.fsproj">
+      <Name>FSCL.Compiler.Core</Name>
+      <Project>{7635ade1-ac00-4587-8117-3faa15be9318}</Project>
+      <Private>True</Private>
+    </ProjectReference>
     <ProjectReference Include="..\FSCL.Compiler.Steps\FSCL.Compiler.Steps.fsproj">
       <Name>FSCL.Compiler.Steps</Name>
       <Project>{6f2d7edf-4116-4048-bcac-781ef1a90afa}</Project>

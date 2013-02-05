@@ -61,6 +61,11 @@
     <None Include="Testing.fsx" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\FSCL.Compiler.Core\FSCL.Compiler.Core.fsproj">
+      <Name>FSCL.Compiler.Core</Name>
+      <Project>{7635ade1-ac00-4587-8117-3faa15be9318}</Project>
+      <Private>True</Private>
+    </ProjectReference>
     <ProjectReference Include="..\FSCL.Compiler.Language\FSCL.Compiler.Language.fsproj">
       <Name>FSCL.Compiler.Language</Name>
       <Project>{ac3a5d28-9206-41dc-b546-4d91217253a5}</Project>
