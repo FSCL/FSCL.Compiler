@@ -10,111 +10,121 @@ open System.Xml.Linq
 
 exception CompilerPluginException of string
 
-type PluginManager() =      
+type CompilerPluginManager() =      
     let mutable compilerKernelModuleType = typeof<KernelModule>
     let mutable defaultPipeline = None
-       
     let pipelineBuilder = new CompilerPipelineBuilder()
+    // Trick to guarantee the default components assemblies are loaded
+    let defAssemblyComponents = [
+                                    typeof<SignaturePreprocessor>;
+                                    typeof<SignaturePrinter>;
+                                    typeof<ReturnLifting>;
+                                    typeof<KernelReferenceParser>;
+                                    typeof<GenericInstantiator>;
+                                    typeof<ModulePrettyPrinter>;
+                                    typeof<DefaultTypeHandler>;
+                                    typeof<ModuleParsingStep>;
+                                ]
+    
+    member this.Load(assembly: Assembly) =
+        // Analyze assembly content
+        for t in assembly.GetTypes() do
+            let thAttribute = t.GetCustomAttribute<TypeHandlerAttribute>()
+            if thAttribute <> null then
+                pipelineBuilder.AddTypeHandler(thAttribute, t)
 
+            let stepAttribute = t.GetCustomAttribute<StepAttribute>()
+            if stepAttribute <> null then
+                pipelineBuilder.AddCompilerStep(stepAttribute, t)
+
+            let procAttribute = t.GetCustomAttribute<StepProcessorAttribute>()
+            if procAttribute <> null then
+                pipelineBuilder.AddCompilerStepProcessor(procAttribute, t)
+                
+    member this.LoadDefault() =
+        // Analyze assembly content
+        let sources = Assembly.GetExecutingAssembly().GetReferencedAssemblies()
+        for s in sources do
+            let assembly = Assembly.Load(s)
+            for t in assembly.GetTypes() do
+                let thAttribute = t.GetCustomAttribute<TypeHandlerAttribute>()
+                if thAttribute <> null then
+                    pipelineBuilder.AddTypeHandler(thAttribute, t)
+
+                let stepAttribute = t.GetCustomAttribute<StepAttribute>()
+                if stepAttribute <> null then
+                    pipelineBuilder.AddCompilerStep(stepAttribute, t)
+
+                let procAttribute = t.GetCustomAttribute<StepProcessorAttribute>()
+                if procAttribute <> null then
+                    pipelineBuilder.AddCompilerStepProcessor(procAttribute, t)
+
+                (*
     member this.Load(file: string) =
         let document = XDocument.Load(file)
-
-        // Check if compiler pipeline should be init to default or not
-        let compilerInit = List.ofSeq (document.Descendants(XName.Get("FSCLCompilerPipelineInit")))
-        let mutable shouldInitPipelineToDefault = true
-        if compilerInit.[0].Value = "None" then
-            shouldInitPipelineToDefault <- false
-        match defaultPipeline with
-        | None ->
-            defaultPipeline <- Some(shouldInitPipelineToDefault)
-        | Some(v) ->
-            if v <> shouldInitPipelineToDefault then
-                raise (CompilerPluginException("Cannot load " + file + " because it requires a pipeline initialization mode that differs from the one set by a plugin previously loaded"))
-
-        // Load kernel module is any
-        let kmodule = List.ofSeq (document.Descendants(XName.Get("FSCLCompilerKernelModule")))
-        if not kmodule.IsEmpty then
-            let kSource = kmodule.[0].Attribute(XName.Get("source"))
-            let kModuleClass = kmodule.[0].Attribute(XName.Get("class"))
+        let source = document.Root.Attribute(XName.Get("source"))
+        let dll = Assembly.LoadFile(source.Value)
+        
+        // Load kernel module extensions if any
+        let kmodule = List.ofSeq (document.Descendants(XName.Get("FSCLCompilerKernelModuleExtension")))
+        for kextension in kmodule do
+            let kModuleId = kextension.Attribute(XName.Get("id"))
+            let kModuleClass = kextension.Attribute(XName.Get("class"))
             
-            // Load dll and instantiate factory
-            let dll = Assembly.LoadFile(kSource.Value)
+            // Instantiate module extension
             let kModuleType = dll.GetType(kModuleClass.Value)
-            compilerKernelModuleType <- kModuleType
-        else
-            compilerKernelModuleType <- typeof<KernelModule>
+            pipelineBuilder.AddTypeHandler(kModuleId.Value, kModuleType)
             
+        // Load type handlers if any
+        let mutable typeHandlers = [];
+        let handlers = List.ofSeq (document.Descendants(XName.Get("FSCLCompilerTypeHandler")))
+        for handler in handlers do
+            let handlerId = handler.Attribute(XName.Get("id"))
+            let handlerClass = handler.Attribute(XName.Get("class"))
+            
+            // Instantiate handler
+            let handlerType = dll.GetType(handlerClass.Value)
+            pipelineBuilder.AddTypeHandler(handlerId.Value, handlerType)
+        
+        // Load processors if any
+        let processors = List.ofSeq (document.Descendants(XName.Get("FSCLCompilerStepProcessor")))
+        for processor in processors do
+            let processorClass = processor.Attribute(XName.Get("class"))
+            let processorStepID = processor.Attribute(XName.Get("stepId"))
+            let processorID = processor.Attribute(XName.Get("id"))
+            let before = processor.Attribute(XName.Get("before"))
+            let after = processor.Attribute(XName.Get("after"))
+            
+            // Store processor instance
+            let processorType = dll.GetType(processorClass.Value)
+            let processorInfo = new CompilerPluginStepProcessorInfo(processorID.Value,
+                                                                    processorStepID.Value,
+                                                                    processorType,
+                                                                    before.Value,
+                                                                    after.Value,
+                                                                    [])
+
+            pipelineBuilder.AddCompilerStepProcessor(processorInfo)
+
         // Load steps if any
         let steps = List.ofSeq (document.Descendants(XName.Get("FSCLCompilerStep")))
         for step in steps do
             let stepClass = step.Attribute(XName.Get("class"))
-            let stepSource = step.Attribute(XName.Get("source"))
             let stepID = step.Attribute(XName.Get("id"))
+            let before = step.Attribute(XName.Get("before"))
+            let after = step.Attribute(XName.Get("after"))
             
             // Load dll and store processor instance
-            let dll = Assembly.LoadFile(stepSource.Value)
-            let stepInstance = dll.CreateInstance(stepClass.Value) :?> ICompilerStep
-            compilerSteps.Add(stepID.Value, stepInstance)
-
-        // Load processors if any
-        let processors = List.ofSeq (document.Descendants(XName.Get("FSCLCompilerStepProcessor")))
-        for processor in processors do
-            let processorsClass = processor.Attribute(XName.Get("class"))
-            let processorSource = processor.Attribute(XName.Get("source"))
-            let processorStepID = processor.Attribute(XName.Get("stepId"))
-            let processorID = processor.Attribute(XName.Get("id"))
-            
-            // Load dll and store processor instance
-            let dll = Assembly.LoadFile(processorSource.Value)
-            let procInstance = dll.CreateInstance(processorsClass.Value)
-            compilerStepProcessors.Add(processorID.Value, (procInstance, processorStepID.Value))
-
-    member private this.DefaultPipeline() =
-        let compilerSteps = new Dictionary<string, ICompilerStep>()
-        let compilerStepProcessors = new Dictionary<string, obj * string>()        
-        let parser = new ModuleParsingStep(typeManager, [ new KernelReferenceParser();
-                                                            new KernelMethodInfoParser() ], typeof<KernelModule>)
-
-        let moduleBuilder = new ModulePreprocessingStep(typeManager, [ new GenericInstantiator();
-                                                                        new FunctionReferenceDiscover() ])
-
-        let preprocessor = new FunctionPreprocessingStep(typeManager, [ new SignaturePreprocessor();
-                                                                        new RefVariablePreprocessor() ])
-        
-        let transformation = new FunctionTransformationStep(typeManager, [ new ReturnTypeTransformation();
-                                                                            new GlobalVarRefTransformation();
-                                                                            new ConditionalAssignmentTransformation();
-                                                                            new ArrayAccessTransformation();
-                                                                            new RefVariableTransformationProcessor();
-                                                                            new ReturnLifting() ])
-
-        let printer = new FunctionPrettyPrintingStep(typeManager, [ new SignaturePrinter() ],
-                                                                    [
-        // ArrayAccess -> ArithmeticOperation -> Call order is important (to be fixed)
-                                                                    new ArrayAccessPrinter();
-                                                                    new ArithmeticOperationPrinter();
-                                                                    new ForInPrinter();
-                                                                    new CallPrinter();
-                                                                    new ValuePrinter();
-                                                                    new VarPrinter();
-                                                                    new IfThenElsePrinter();
-                                                                    new WhileLoopPrinter();
-                                                                    new VarSetPrinter();
-                                                                    new UnionCasePrinter();
-                                                                    new DeclarationPrinter();
-                                                                    new SequentialPrinter();
-                                                                    new IntegerRangeLoopPrinter() ])
-                                                                    
-        let finalizer = new ModulePrettyPrintingStep(typeManager, [ new ModulePrettyPrinter() ])
-        ()
-        
-    member this.GetPipeline() =
-        
-
-         
-
-        // Build steps dependency graph
-
+            let stepType = dll.GetType(stepClass.Value)
+            let stepInfo = new CompilerPluginStepInfo(stepID.Value,
+                                                      stepType,
+                                                      before.Value,
+                                                      after.Value,
+                                                      [])
+            pipelineBuilder.AddCompilerStep(stepInfo)
+            *)
+    member this.Build() =
+        pipelineBuilder.Build()
 
         
         (*

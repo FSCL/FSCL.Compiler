@@ -46,6 +46,7 @@
     <Compile Include="KernelModule.fs" />
     <Compile Include="TypeManager.fs" />
     <Compile Include="CompilerStep.fs" />
+    <Compile Include="CompilerAttributes.fs" />
   </ItemGroup>
   <PropertyGroup>
     <MinimumVisualStudioVersion Condition="'$(MinimumVisualStudioVersion)' == ''">11</MinimumVisualStudioVersion>

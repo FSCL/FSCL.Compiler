@@ -7,6 +7,7 @@ open Microsoft.FSharp.Quotations
 open System
 open System.Reflection.Emit
 
+[<StepProcessor("FSCL_GENERIC_INSTANTIATION_PROCESSOR", "FSCL_MODULE_PREPROCESSING_STEP")>]
 type GenericInstantiator() =      
     let InstantiateGenericKernel(mi:MethodInfo, tm:TypeManager) =
         let mutable kernelInstances = [ ]

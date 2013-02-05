@@ -6,6 +6,9 @@ open System.Reflection
 open System
 open Microsoft.FSharp.Quotations
 
+[<StepProcessor("FSCL_CONDITIONAL_ASSIGN_TRANSFORMATION_PROCESSOR", "FSCL_FUNCTION_TRANSFORMATION_STEP",
+                [| "FSCL_RETURN_TYPE_TRANSFORMATION_PROCESSOR";
+                   "FSCL_GLOBAL_VAR_REF_TRANSFORMATION_PROCESSOR" |])>]
 type ConditionalAssignmentTransformation() =   
     let rec MoveAssignmentIntoBody(var:Var, expr, engine:FunctionTransformationStep) =
         match expr with

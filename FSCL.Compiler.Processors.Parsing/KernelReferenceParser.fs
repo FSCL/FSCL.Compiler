@@ -5,6 +5,7 @@ open System.Collections.Generic
 open System.Reflection
 open Microsoft.FSharp.Quotations
 
+[<StepProcessor("FSCL_KERNEL_REF_PARSING_PROCESSOR", "FSCL_MODULE_PARSING_STEP")>]
 type KernelReferenceParser() =      
     let rec GetKernelFromName(expr, k:ModuleParsingStep) =                    
         match expr with
@@ -26,7 +27,7 @@ type KernelReferenceParser() =
             if (expr.GetType() = typeof<Expr>) then
                 match GetKernelFromName(expr :?> Expr, engine) with
                 | Some(mi, b) -> 
-                    let km = engine.NewKernelModule()
+                    let km = new KernelModule()
                     km.Source <- new KernelInfo(mi, b)
                     Some(km)
                 | _ ->

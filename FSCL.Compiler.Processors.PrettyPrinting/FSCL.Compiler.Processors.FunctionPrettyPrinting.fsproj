@@ -41,20 +41,20 @@
     <Reference Include="System.Numerics" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="CallPrinter.fs" />
-    <Compile Include="ArithmeticOperationPrinter.fs" />
     <Compile Include="SignaturePrinter.fs" />
+    <Compile Include="ArrayAccessPrinter.fs" />
+    <Compile Include="ArithmeticOperationPrinter.fs" />
+    <Compile Include="ForInPrinter.fs" />
+    <Compile Include="CallPrinter.fs" />
     <Compile Include="ValuePrinter.fs" />
+    <Compile Include="VarPrinter.fs" />
     <Compile Include="IfThenElsePrinter.fs" />
     <Compile Include="WhileLoopPrinter.fs" />
     <Compile Include="VarSetPrinter.fs" />
-    <Compile Include="VarPrinter.fs" />
     <Compile Include="UnionCasePrinter.fs" />
-    <Compile Include="DeclarationPrinter.fs" />
     <Compile Include="SequentialPrinter.fs" />
     <Compile Include="IntegerRangeLoopPrinter.fs" />
-    <Compile Include="ArrayAccessPrinter.fs" />
-    <Compile Include="ForInPrinter.fs" />
+    <Compile Include="DeclarationPrinter.fs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\FSCL.Compiler.Core\FSCL.Compiler.Core.fsproj">

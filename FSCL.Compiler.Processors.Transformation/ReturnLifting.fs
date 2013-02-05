@@ -7,6 +7,12 @@ open System.Reflection.Emit
 open Microsoft.FSharp.Quotations
 open System
 
+[<StepProcessor("FSCL_RETURN_LIFTING_TRANSFORMATION_PROCESSOR", "FSCL_FUNCTION_TRANSFORMATION_STEP",
+                [| "FSCL_RETURN_TYPE_TRANSFORMATION_PROCESSOR";
+                   "FSCL_GLOBAL_VAR_REF_TRANSFORMATION_PROCESSOR";
+                   "FSCL_CONDITIONAL_ASSIGN_TRANSFORMATION_PROCESSOR";
+                   "FSCL_ARRAY_ACCESS_TRANSFORMATION_PROCESSOR";
+                   "FSCL_REF_VAR_TRANSFORMATION_PROCESSOR" |])>]
 type ReturnLifting() =       
     let rec LiftReturn (expr:Expr, retV:Quotations.Var, potentialReturn, engine:FunctionTransformationStep) =
         match expr with

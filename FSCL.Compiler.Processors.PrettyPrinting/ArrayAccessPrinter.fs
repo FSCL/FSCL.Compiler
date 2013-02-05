@@ -5,6 +5,7 @@ open Microsoft.FSharp.Quotations
 open System.Collections.Generic
 open System.Reflection
 
+[<StepProcessor("FSCL_ARRAY_ACCESS_PRETTY_PRINTING_PROCESSOR", "FSCL_FUNCTION_PRETTY_PRINTING_STEP")>]
 type ArrayAccessPrinter() =                 
     interface FunctionBodyPrettyPrintingProcessor with
         member this.Handle(expr, engine:FunctionPrettyPrintingStep) =

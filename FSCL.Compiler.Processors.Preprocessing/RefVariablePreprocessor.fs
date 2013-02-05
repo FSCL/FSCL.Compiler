@@ -8,6 +8,8 @@ open Microsoft.FSharp.Quotations
 open Microsoft.FSharp.Reflection
 open System
 
+[<StepProcessor("FSCL_REF_VAR_PREPROCESSING_PROCESSOR", "FSCL_FUNCTION_PREPROCESSING_STEP",
+                [|"FSCL_SIGNATURE_PREPROCESSING_PROCESSOR"|])>] 
 type RefVariablePreprocessor() =        
     let IsRef(t:Type) =
         if (t.IsGenericType && (t.GetGenericTypeDefinition() = typeof<Ref<_>>.GetGenericTypeDefinition())) then

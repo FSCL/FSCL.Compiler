@@ -43,6 +43,7 @@
     <Reference Include="System.Xml.Linq" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="PluginUtil.fs" />
     <Compile Include="PipelineBuilder.fs" />
     <Compile Include="PluginManager.fs" />
   </ItemGroup>

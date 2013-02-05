@@ -8,9 +8,13 @@ open Microsoft.FSharp.Quotations
 type FunctionTransformationProcessor =    
     abstract member Handle : Expr * FunctionTransformationStep -> Expr
 
-and FunctionTransformationStep(pipeline: ICompilerPipeline, 
+and [<Step("FSCL_FUNCTION_TRANSFORMATION_STEP",
+           [| "FSCL_FUNCTION_PREPROCESSING_STEP";
+              "FSCL_MODULE_PREPROCESSING_STEP"; 
+              "FSCL_MODULE_PARSING_STEP" |])>]
+    FunctionTransformationStep(tm: TypeManager, 
                                processors:FunctionTransformationProcessor list) = 
-    inherit CompilerStep<KernelModule, KernelModule>(pipeline)
+    inherit CompilerStep<KernelModule, KernelModule>(tm)
 
     member val private currentFunction = null with get, set
     member val private currentProcessor = processors.[0] with get, set

@@ -8,9 +8,12 @@ open Microsoft.FSharp.Quotations
 type FunctionPreprocessingProcessor =    
     abstract member Handle: FunctionInfo * FunctionPreprocessingStep -> unit
 
-and FunctionPreprocessingStep(pipeline: ICompilerPipeline, 
+and [<Step("FSCL_FUNCTION_PREPROCESSING_STEP",
+           [| "FSCL_MODULE_PREPROCESSING_STEP"; 
+              "FSCL_MODULE_PARSING_STEP" |])>]
+    FunctionPreprocessingStep(tm: TypeManager, 
                               processors: FunctionPreprocessingProcessor list) = 
-    inherit CompilerStep<KernelModule, KernelModule>(pipeline)
+    inherit CompilerStep<KernelModule, KernelModule>(tm)
 
     member private this.Process(k) =
         for p in processors do

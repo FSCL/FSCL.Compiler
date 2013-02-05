@@ -8,12 +8,10 @@ open Microsoft.FSharp.Quotations
 type ModuleParsingProcessor =
     abstract member Handle : obj * ModuleParsingStep -> KernelModule option
 
-and ModuleParsingStep(pipeline: ICompilerPipeline,
+and [<Step("FSCL_MODULE_PARSING_STEP")>] 
+    ModuleParsingStep(tm: TypeManager,
                       processors: ModuleParsingProcessor list) = 
-    inherit CompilerStep<obj, KernelModule>(pipeline)
-               
-    member this.NewKernelModule() = 
-        pipeline.KernelModuleType.GetConstructor([||]).Invoke([||]) :?> KernelModule
+    inherit CompilerStep<obj, KernelModule>(tm)
 
     member this.Process(expr:obj) =
         let mutable index = 0

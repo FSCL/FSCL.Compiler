@@ -17,16 +17,21 @@ and FunctionBodyPrettyPrintingProcessor =
     inherit IFunctionPrettyPrintingProcessor  
     abstract member Handle: Expr * FunctionPrettyPrintingStep -> String option
 
-and FunctionPrettyPrintingStep(pipeline: ICompilerPipeline,
+and [<Step("FSCL_FUNCTION_PRETTY_PRINTING_STEP",
+           [| "FSCL_FUNCTION_TRANSFORMATION_STEP";
+              "FSCL_FUNCTION_PREPROCESSING_STEP";
+              "FSCL_MODULE_PREPROCESSING_STEP";
+              "FSCL_MODULE_PARSING_STEP" |])>]
+    FunctionPrettyPrintingStep(tm: TypeManager,
                                processors: IFunctionPrettyPrintingProcessor list) = 
-    inherit CompilerStep<KernelModule, KernelModule>(pipeline)
+    inherit CompilerStep<KernelModule, KernelModule>(tm)
     
     let signatureProcessors = List.map(fun (p:IFunctionPrettyPrintingProcessor) ->
-                                p :?> FunctionSignaturePrettyPrintingProcessor) (List.filter (fun (p:IFunctionPrettyPrintingProcessor) -> 
-                                                                                p.GetType() = typeof<FunctionSignaturePrettyPrintingProcessor>) processors)
+                                        p :?> FunctionSignaturePrettyPrintingProcessor) (List.filter (fun (p:IFunctionPrettyPrintingProcessor) -> 
+                                                                                 typeof<FunctionSignaturePrettyPrintingProcessor>.IsAssignableFrom(p.GetType())) processors)
     let bodyProcessors = List.map(fun (p:IFunctionPrettyPrintingProcessor) ->
-                            p :?> FunctionBodyPrettyPrintingProcessor) (List.filter (fun (p:IFunctionPrettyPrintingProcessor) -> 
-                                                                            p.GetType() = typeof<FunctionBodyPrettyPrintingProcessor>) processors)
+                                        p :?> FunctionBodyPrettyPrintingProcessor) (List.filter (fun (p:IFunctionPrettyPrintingProcessor) -> 
+                                                                            typeof<FunctionBodyPrettyPrintingProcessor>.IsAssignableFrom(p.GetType())) processors)
             
     member val private currentFunction = null with get, set
     

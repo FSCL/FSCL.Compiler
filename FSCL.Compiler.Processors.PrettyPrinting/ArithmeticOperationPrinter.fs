@@ -4,6 +4,7 @@ open FSCL.Compiler
 open Microsoft.FSharp.Quotations
 open System.Reflection
 
+[<StepProcessor("FSCL_ARITH_OP_PRETTY_PRINTING_PROCESSOR", "FSCL_FUNCTION_PRETTY_PRINTING_STEP")>]
 type ArithmeticOperationPrinter() =
     let HandleBinaryOp (op, a:Expr list, engine:FunctionPrettyPrintingStep) =
         "(" + engine.Continue(a.[0]) + ")" + op + "(" + engine.Continue(a.[1]) + ")"

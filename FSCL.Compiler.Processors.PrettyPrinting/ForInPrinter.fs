@@ -5,6 +5,7 @@ open System.Collections.Generic
 open System.Reflection
 open Microsoft.FSharp.Quotations
 
+[<StepProcessor("FSCL_FOR_RANGE_PRETTY_PRINTING_PROCESSOR", "FSCL_FUNCTION_PRETTY_PRINTING_STEP")>]
 type ForInPrinter() =   
     interface FunctionBodyPrettyPrintingProcessor with
         member this.Handle(expr, engine:FunctionPrettyPrintingStep) =

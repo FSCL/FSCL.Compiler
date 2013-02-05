@@ -41,12 +41,12 @@
     <Reference Include="System.Numerics" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="GlobalVarRefTransformation.fs" />
-    <Compile Include="ArrayAccessTransformation.fs" />
-    <Compile Include="ConditionalAssignmentTransformation.fs" />
     <Compile Include="ReturnTypeTransformation.fs" />
-    <Compile Include="ReturnLifting.fs" />
+    <Compile Include="GlobalVarRefTransformation.fs" />
+    <Compile Include="ConditionalAssignmentTransformation.fs" />
+    <Compile Include="ArrayAccessTransformation.fs" />
     <Compile Include="RefVariableTransformationProcessor.fs" />
+    <Compile Include="ReturnLifting.fs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\FSCL.Compiler.Core\FSCL.Compiler.Core.fsproj">

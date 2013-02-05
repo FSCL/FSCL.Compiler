@@ -5,6 +5,8 @@ open System.Collections.Generic
 open System.Reflection
 open Microsoft.FSharp.Quotations
 
+[<StepProcessor("FSCL_FUNCTIONS_DISCOVERY_PROCESSOR", "FSCL_MODULE_PREPROCESSING_STEP",
+                [| "FSCL_GENERIC_INSTANTIATION_PROCESSOR" |])>] 
 type FunctionReferenceDiscover() =      
     let InstantiateGenericKernel(mi:MethodInfo, tm:TypeManager) =
         let mutable kernelInstances = [ ]

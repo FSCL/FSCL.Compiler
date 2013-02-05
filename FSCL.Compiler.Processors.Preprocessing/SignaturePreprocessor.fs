@@ -1,20 +1,7 @@
-﻿namespace FSCL
-
-open System 
-
-[<AllowNullLiteral>]
-type ConstantAttribute =
-    inherit Attribute
-    new() =  { }
-    
-[<AllowNullLiteral>]
-type LocalAttribute =
-    inherit Attribute
-    new() =  { }
-
-namespace FSCL.Compiler.Processors
+﻿namespace FSCL.Compiler.Processors
 
 open FSCL.Compiler
+open FSCL.Compiler.KernelLanguage
 open System.Collections.Generic
 open System.Reflection
 open System.Reflection.Emit
@@ -24,6 +11,7 @@ open System
 type internal TemporaryKernelParameterTable = Dictionary<String, TemporaryKernelParameterInfo>
 type internal KernelParameterTable = Dictionary<String, KernelParameterInfo>
 
+[<StepProcessor("FSCL_SIGNATURE_PREPROCESSING_PROCESSOR", "FSCL_FUNCTION_PREPROCESSING_STEP")>] 
 type SignaturePreprocessor() =        
     let GetArrayDimensions (t:Type) =
         // Any better way to do this?
@@ -58,8 +46,8 @@ type SignaturePreprocessor() =
                     parameterEntry.SizeParameters <- List.ofSeq (seq { for d = 0 to dimensions - 1 do yield GenerateSizeAdditionalArg(p.Name, d) })
 
                     // If the parameters is tagged with Contant attribute, prepend constant keyword, else global
-                    let constantAttribute = p.GetCustomAttribute<FSCL.ConstantAttribute>()
-                    let localAttribute = p.GetCustomAttribute<FSCL.LocalAttribute>()
+                    let constantAttribute = p.GetCustomAttribute<ConstantAttribute>()
+                    let localAttribute = p.GetCustomAttribute<LocalAttribute>()
                     if constantAttribute <> null then
                         parameterEntry.AddressSpace <- KernelParameterAddressSpace.ConstantSpace
                     elif localAttribute <> null then

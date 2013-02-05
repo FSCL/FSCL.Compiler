@@ -3,6 +3,9 @@
 open FSCL.Compiler
 open Microsoft.FSharp.Quotations
 
+[<StepProcessor("FSCL_CALL_PRETTY_PRINTING_PROCESSOR", "FSCL_FUNCTION_PRETTY_PRINTING_STEP",
+                [| "FSCL_ARRAY_ACCESS_PRETTY_PRINTING_PROCESSOR";
+                   "FSCL_ARITH_OP_PRETTY_PRINTING_PROCESSOR" |])>]
 type CallPrinter() =
     interface FunctionBodyPrettyPrintingProcessor with
         member this.Handle(expr, engine:FunctionPrettyPrintingStep) =

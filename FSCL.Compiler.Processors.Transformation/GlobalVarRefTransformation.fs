@@ -6,6 +6,8 @@ open System.Reflection
 open Microsoft.FSharp.Quotations
 open Microsoft.FSharp.Linq.QuotationEvaluation
 
+[<StepProcessor("FSCL_GLOBAL_VAR_REF_TRANSFORMATION_PROCESSOR", "FSCL_FUNCTION_TRANSFORMATION_STEP",
+                [| "FSCL_RETURN_TYPE_TRANSFORMATION_PROCESSOR" |])>] 
 type GlobalVarRefTransformation() =   
     interface FunctionTransformationProcessor with
         member this.Handle(expr, engine:FunctionTransformationStep) =

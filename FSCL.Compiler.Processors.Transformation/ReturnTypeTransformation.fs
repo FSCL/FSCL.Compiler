@@ -6,6 +6,7 @@ open System.Reflection.Emit
 open System
 open System.Reflection
 
+[<StepProcessor("FSCL_RETURN_TYPE_TRANSFORMATION_PROCESSOR", "FSCL_FUNCTION_TRANSFORMATION_STEP")>]
 type ReturnTypeTransformation() =
     let GetArrayDimensions (t:Type) =
         // Any better way to do this?

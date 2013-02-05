@@ -9,6 +9,10 @@ open Microsoft.FSharp.Core.LanguagePrimitives
 
 type internal KernelParameterTable = Dictionary<String, KernelParameterInfo>
 
+[<StepProcessor("FSCL_ARRAY_ACCESS_TRANSFORMATION_PROCESSOR", "FSCL_FUNCTION_TRANSFORMATION_STEP",
+                [| "FSCL_RETURN_TYPE_TRANSFORMATION_PROCESSOR";
+                   "FSCL_GLOBAL_VAR_REF_TRANSFORMATION_PROCESSOR";
+                   "FSCL_CONDITIONAL_ASSIGN_TRANSFORMATION_PROCESSOR" |])>]
 type ArrayAccessTransformation() =     
     let GetGenericMethodInfoFromExpr (q, ty:System.Type) = 
         let gminfo = 

@@ -74,6 +74,7 @@ type FunctionInfo(source: MethodInfo, expr:Expr) =
     member val Body = expr with get, set
     member val PrettyPrinting = "" with get, set
     member val ParameterInfo = new Dictionary<String, KernelParameterInfo>() with get
+    member val CustomInfo = new Dictionary<String, Object>() with get
     
 [<AllowNullLiteral>]
 type KernelInfo(methodInfo: MethodInfo, expr:Expr) =
@@ -97,4 +98,5 @@ type KernelModule() =
     member val Kernels = ([]:KernelInfo list) with get, set
     member val Directives = ([]:string list) with get, set
     member val Source:KernelInfo = null with get, set
+    member val CustomInfo = new Dictionary<String, Object>() with get
     

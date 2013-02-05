@@ -5,6 +5,7 @@ open System.Collections.Generic
 open System.Reflection
 open Microsoft.FSharp.Quotations
 
+[<StepProcessor("FSCL_IF_ELSE_PRETTY_PRINTING_PROCESSOR", "FSCL_FUNCTION_PRETTY_PRINTING_STEP")>]
 type IfThenElsePrinter() =   
     let rec LiftAndOrOperator(expr:Expr, engine:FunctionPrettyPrintingStep) =
         match expr with

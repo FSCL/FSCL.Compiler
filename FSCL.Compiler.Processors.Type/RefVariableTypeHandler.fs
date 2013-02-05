@@ -6,6 +6,7 @@ open Microsoft.FSharp.Quotations
 open System.Collections.Generic
 open System.Reflection
 
+[<TypeHandler("FSCL_REF_VAR_TYPE_HANDLER")>]
 type RefVariableTypeHandler() =       
     inherit TypeHandler() with
 

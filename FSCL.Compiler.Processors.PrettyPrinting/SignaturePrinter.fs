@@ -8,6 +8,7 @@ open System
 
 type internal KernelParameterTable = Dictionary<String, KernelParameterInfo>
 
+[<StepProcessor("FSCL_SIGNATURE_PRETTY_PRINTING_PROCESSOR", "FSCL_FUNCTION_PRETTY_PRINTING_STEP")>]
 type SignaturePrinter() =        
     let rec LiftArgExtraction (expr, parameters: Reflection.ParameterInfo[]) =
         match expr with

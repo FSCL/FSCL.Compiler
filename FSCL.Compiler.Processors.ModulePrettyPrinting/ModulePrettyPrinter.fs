@@ -6,6 +6,7 @@ open System.Reflection
 open Microsoft.FSharp.Quotations
 open System
 
+[<StepProcessor("FSCL_MODULE_PRETTY_PRINTING_PROCESSOR", "FSCL_MODULE_PRETTY_PRINTING_STEP")>]
 type ModulePrettyPrinter() =      
     interface ModulePrettyPrintingProcessor with
         member this.Handle(km, currOut, engine:ModulePrettyPrintingStep) =
