@@ -24,7 +24,8 @@ type SignaturePrinter() =
             expr
             
     interface FunctionSignaturePrettyPrintingProcessor with
-        member this.Handle(fi, engine:FunctionPrettyPrintingStep) =
+        member this.Process(fi, en) =
+            let engine = en :?> FunctionPrettyPrintingStep
             // Convert params and produce additional params
             let kernelParams = fi.GetParameters()
             let kernelInfo = engine.FunctionInfo :?> KernelInfo

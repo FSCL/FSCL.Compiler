@@ -35,7 +35,8 @@ type IfThenElsePrinter() =
             None              
 
     interface FunctionBodyPrettyPrintingProcessor with
-        member this.Handle(expr, engine:FunctionPrettyPrintingStep) =
+        member this.Process(expr, en) =
+            let engine = en :?> FunctionPrettyPrintingStep
             match expr with
             | Patterns.IfThenElse(cond, ifb, elseb) ->
                 let checkBoolOp = LiftAndOrOperator(expr, engine)

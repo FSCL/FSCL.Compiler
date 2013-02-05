@@ -8,7 +8,8 @@ open Microsoft.FSharp.Quotations
                    "FSCL_ARITH_OP_PRETTY_PRINTING_PROCESSOR" |])>]
 type CallPrinter() =
     interface FunctionBodyPrettyPrintingProcessor with
-        member this.Handle(expr, engine:FunctionPrettyPrintingStep) =
+        member this.Process(expr, en) =
+            let engine = en :?> FunctionPrettyPrintingStep
             match expr with
             | Patterns.Call (o, mi, a) ->
                 let args = String.concat ", " (List.map (fun (e:Expr) -> engine.Continue(e)) a)

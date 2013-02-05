@@ -9,7 +9,8 @@ open Microsoft.FSharp.Quotations
                 [| "FSCL_FOR_RANGE_PRETTY_PRINTING_PROCESSOR" |])>]
 type DeclarationPrinter() =   
     interface FunctionBodyPrettyPrintingProcessor with
-        member this.Handle(expr, engine:FunctionPrettyPrintingStep) =
+        member this.Process(expr, en) =
+            let engine = en :?> FunctionPrettyPrintingStep
             match expr with
             | Patterns.Let(v, value, body) ->
                 Some(engine.TypeManager.Print(v.Type) + " " + v.Name + " = " + engine.Continue(value) + ";\n" + engine.Continue(body))

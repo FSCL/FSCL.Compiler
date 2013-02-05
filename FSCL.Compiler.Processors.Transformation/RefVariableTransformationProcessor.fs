@@ -25,7 +25,7 @@ type RefVariableTransformationProcessor() =
         let set = GetGenericMethodInfoFromExpr(<@@ LanguagePrimitives.IntrinsicFunctions.SetArray<int> null 0 0 @@>, ty)
         (get, set)
 
-    let UpdateArrayAccessMode(var:string, mode:KernelParameterAccessMode, engine:FunctionTransformationStep) =        
+    let UpdateArrayAccessMode(var:string, mode:KernelParameterAccessMode, engine:FunctionTransformationStep) =  
         let data = engine.FunctionInfo :?> KernelInfo
         for pInfo in data.ParameterInfo do
             if pInfo.Key = var then
@@ -54,7 +54,8 @@ type RefVariableTransformationProcessor() =
         placeholder.Value
 
     interface FunctionTransformationProcessor with
-        member this.Handle(expr, engine:FunctionTransformationStep) =
+        member this.Process(expr, en) =
+            let engine = en :?> FunctionTransformationStep
             match expr with
             | DerivedPatterns.SpecificCall (<@ (!) @>) (e, tl, args) ->
                 match args.[0] with

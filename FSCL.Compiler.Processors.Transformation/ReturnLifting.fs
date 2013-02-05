@@ -21,7 +21,7 @@ type ReturnLifting() =
             let pb = engine.Continue(body)
             match pb with
             | Patterns.Var(var) ->
-                let (retV, args) = engine.GlobalData.["KERNEL_RETURN_TYPE"] :?> (Var * Expr list)
+                let (retV, args) = engine.FunctionInfo.CustomInfo.["KERNEL_RETURN_TYPE"] :?> (Var * Expr list)
                 if var.Name = retV.Name then
                     Expr.Let(v, pv, Expr.Value(()))
                 else
@@ -52,10 +52,11 @@ type ReturnLifting() =
             ExprShape.RebuildShapeCombination(o, List.map (fun el -> LiftReturn(el, retV, false, engine)) processed)
             
     interface FunctionTransformationProcessor with
-        member this.Handle(expr, engine:FunctionTransformationStep) =
-            if not (engine.GlobalData.ContainsKey("KERNEL_RETURN_TYPE")) then
+        member this.Process(expr, en) =
+            let engine = en :?> FunctionTransformationStep
+            if not (engine.FunctionInfo.CustomInfo.ContainsKey("KERNEL_RETURN_TYPE")) then
                 engine.Default(expr)
             else
-                let retV, _ = engine.GlobalData.["KERNEL_RETURN_TYPE"] :?> (Var * Expr list)
+                let retV, _ = engine.FunctionInfo.CustomInfo.["KERNEL_RETURN_TYPE"] :?> (Var * Expr list)
                 LiftReturn(expr, retV, true, engine)
 

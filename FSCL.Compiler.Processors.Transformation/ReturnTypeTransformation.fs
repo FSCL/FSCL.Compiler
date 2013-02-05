@@ -23,8 +23,8 @@ type ReturnTypeTransformation() =
     member private this.SetReturnTypeVar(engine:FunctionTransformationStep, var:Var, args:Expr list) =
         if (var.IsMutable) then
             raise (new CompilerException("A kernel returned variable must be immutable"))            
-        if not (engine.GlobalData.ContainsKey("KERNEL_RETURN_TYPE")) then
-            engine.GlobalData.Add("KERNEL_RETURN_TYPE", (var, args))
+        if not (engine.FunctionInfo.CustomInfo.ContainsKey("KERNEL_RETURN_TYPE")) then
+            engine.FunctionInfo.CustomInfo.Add("KERNEL_RETURN_TYPE", (var, args))
             
             let varType = var.Type.GetElementType().MakeArrayType()
 
@@ -72,7 +72,8 @@ type ReturnTypeTransformation() =
             raise (new CompilerException("A kernel can declare one only variable as a return variable"))
         
     interface FunctionTransformationProcessor with
-        member this.Handle(expr, engine:FunctionTransformationStep) =
+        member this.Process(expr, en) =
+            let engine = en :?> FunctionTransformationStep
             match expr with
             | Patterns.Let(var, value, body) ->
                 match value with

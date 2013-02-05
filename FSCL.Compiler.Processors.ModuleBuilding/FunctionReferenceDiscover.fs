@@ -46,7 +46,8 @@ type FunctionReferenceDiscover() =
         DiscoverFunctionRefInner(k.Body)
 
     interface ModulePreprocessingProcessor with
-        member this.Handle(m, engine) =
+        member this.Process(m, en) =
+            let engine = en :?> ModulePreprocessingStep
             for k in m.Kernels do
                 DiscoverFunctionRef(k)
             

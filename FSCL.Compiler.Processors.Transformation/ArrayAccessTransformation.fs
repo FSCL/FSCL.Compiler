@@ -67,7 +67,8 @@ type ArrayAccessTransformation() =
         placeholder.Value
 
     interface FunctionTransformationProcessor with
-        member this.Handle(expr, engine:FunctionTransformationStep) =
+        member this.Process(expr, en) =
+            let engine = en :?> FunctionTransformationStep
             match expr with
             | Patterns.Call(o, methodInfo, args) ->
                 if methodInfo.DeclaringType.Name = "IntrinsicFunctions" then

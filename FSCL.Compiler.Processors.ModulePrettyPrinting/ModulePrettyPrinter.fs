@@ -9,7 +9,7 @@ open System
 [<StepProcessor("FSCL_MODULE_PRETTY_PRINTING_PROCESSOR", "FSCL_MODULE_PRETTY_PRINTING_STEP")>]
 type ModulePrettyPrinter() =      
     interface ModulePrettyPrintingProcessor with
-        member this.Handle(km, currOut, engine:ModulePrettyPrintingStep) =
+        member this.Process((km, currOut), en) =
             let directives = String.concat "\n\n" km.Directives
             let functions = String.concat "\n\n" (List.map (fun (f: FunctionInfo) -> f.PrettyPrinting) km.Functions) 
             let kernels = String.concat "\n\n" (List.map (fun (f: KernelInfo) -> f.PrettyPrinting) km.Kernels)

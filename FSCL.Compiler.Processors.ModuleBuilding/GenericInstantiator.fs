@@ -50,7 +50,8 @@ type GenericInstantiator() =
             expr
 
     interface ModulePreprocessingProcessor with
-        member this.Handle(m, engine) =
+        member this.Process(m, en) =
+            let engine = en :?> ModulePreprocessingStep
             let (genericKernel, instances) = InstantiateGenericKernel(m.Source.Signature, engine.TypeManager)
             for (instance, newName) in instances do    
                 match instance with

@@ -15,7 +15,8 @@ type KernelMethodInfoParser() =
             None
         
     interface ModuleParsingProcessor with
-        member this.Handle(mi, engine:ModuleParsingStep) =
+        member this.Process(mi, en) =
+            let engine = en :?> ModuleParsingStep
             if (mi.GetType() = typeof<MethodInfo>) then
                 match GetKernelFromName(mi :?> MethodInfo, engine) with
                 | Some(mi, b) -> 

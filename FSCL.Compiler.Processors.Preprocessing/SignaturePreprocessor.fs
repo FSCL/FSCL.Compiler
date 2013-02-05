@@ -24,7 +24,7 @@ type SignaturePreprocessor() =
          String.Format("{0}_length_{1}", name, n.ToString())
 
     interface FunctionPreprocessingProcessor with
-        member this.Handle(fInfo, engine:FunctionPreprocessingStep) =
+        member this.Process(fInfo, en) =
             // Get kernel info
             let kernelInfo = fInfo :?> KernelInfo
             // Get kernel signature

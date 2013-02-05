@@ -18,7 +18,7 @@ type RefVariablePreprocessor() =
             false
 
     interface FunctionPreprocessingProcessor with
-        member this.Handle(fi, engine:FunctionPreprocessingStep) =
+        member this.Process(fi, en) =
             // Get kernel info
             let kernelInfo = fi :?> KernelInfo
             // Get kernel signature

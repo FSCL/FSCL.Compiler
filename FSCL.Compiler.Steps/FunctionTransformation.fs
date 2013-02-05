@@ -5,15 +5,12 @@ open System.Reflection
 open System.Collections.Generic
 open Microsoft.FSharp.Quotations
 
-type FunctionTransformationProcessor =    
-    abstract member Handle : Expr * FunctionTransformationStep -> Expr
-
-and [<Step("FSCL_FUNCTION_TRANSFORMATION_STEP",
-           [| "FSCL_FUNCTION_PREPROCESSING_STEP";
-              "FSCL_MODULE_PREPROCESSING_STEP"; 
-              "FSCL_MODULE_PARSING_STEP" |])>]
-    FunctionTransformationStep(tm: TypeManager, 
-                               processors:FunctionTransformationProcessor list) = 
+[<Step("FSCL_FUNCTION_TRANSFORMATION_STEP",
+       [| "FSCL_FUNCTION_PREPROCESSING_STEP";
+          "FSCL_MODULE_PREPROCESSING_STEP"; 
+          "FSCL_MODULE_PARSING_STEP" |])>]
+type FunctionTransformationStep(tm: TypeManager, 
+                                processors:FunctionTransformationProcessor list) = 
     inherit CompilerStep<KernelModule, KernelModule>(tm)
 
     member val private currentFunction = null with get, set
@@ -30,22 +27,22 @@ and [<Step("FSCL_FUNCTION_TRANSFORMATION_STEP",
         | ExprShape.ShapeVar(v) ->
             Expr.Var(v)
         | ExprShape.ShapeLambda(v, e) ->
-            let r = this.currentProcessor.Handle(e, this)
+            let r = this.currentProcessor.Process(e, this)
             Expr.Lambda(v, r)
         | ExprShape.ShapeCombination(o, args) ->
-            let filtered = List.map (fun el -> this.currentProcessor.Handle(el, this)) args
+            let filtered = List.map (fun el -> this.currentProcessor.Process(el, this)) args
             // Process the expression
             let newExpr = ExprShape.RebuildShapeCombination(o, filtered)
             newExpr
 
     member this.Continue(expression: Expr) =
-        this.currentProcessor.Handle(expression, this)
+        this.currentProcessor.Process(expression, this)
          
     member private this.Process(f:FunctionInfo) =
         this.FunctionInfo <- f
         for p in processors do
             this.currentProcessor <- p
-            this.FunctionInfo.Body <- p.Handle(this.FunctionInfo.Body, this) 
+            this.FunctionInfo.Body <- p.Process(this.FunctionInfo.Body, this) 
                                   
     override this.Run(km: KernelModule) =
         for kernel in km.Kernels do

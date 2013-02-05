@@ -3,8 +3,6 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2012
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "FSCL.Compiler", "FSCL.Compiler\FSCL.Compiler.fsproj", "{5D7C3DB1-3300-455E-BF2A-3FB52BDC0595}"
 EndProject
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "FSCL.Compiler.Core", "FSCL.Compiler.Core\FSCL.Compiler.Core.fsproj", "{7635ADE1-AC00-4587-8117-3FAA15BE9318}"
-EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "FSCL.Compiler.Processors.ModulePreprocessing", "FSCL.Compiler.Processors.ModuleBuilding\FSCL.Compiler.Processors.ModulePreprocessing.fsproj", "{898F5EC0-3903-40E0-98BD-EE2E5746620F}"
 EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "FSCL.Compiler.Processors.ModulePrettyPrinting", "FSCL.Compiler.Processors.ModulePrettyPrinting\FSCL.Compiler.Processors.ModulePrettyPrinting.fsproj", "{431CB9ED-C613-46BE-AD84-B4A0D8532487}"
@@ -41,8 +39,6 @@ Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "FSCL.Compiler.Plugin", "FSC
 EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "GraphUtil", "GraphUtil\GraphUtil.fsproj", "{2581B89A-F555-48A7-94BE-9B21654901A7}"
 EndProject
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "FSCL", "FSCL\FSCL.fsproj", "{57A5E768-A0AA-4B4F-B538-2BEA1B4E5895}"
-EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "FSCL.Compiler.Language", "FSCL.Compiler.Language\FSCL.Compiler.Language.fsproj", "{AC3A5D28-9206-41DC-B546-4D91217253A5}"
 EndProject
 Global
@@ -55,10 +51,6 @@ Global
 		{5D7C3DB1-3300-455E-BF2A-3FB52BDC0595}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5D7C3DB1-3300-455E-BF2A-3FB52BDC0595}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{5D7C3DB1-3300-455E-BF2A-3FB52BDC0595}.Release|Any CPU.Build.0 = Release|Any CPU
-		{7635ADE1-AC00-4587-8117-3FAA15BE9318}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{7635ADE1-AC00-4587-8117-3FAA15BE9318}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{7635ADE1-AC00-4587-8117-3FAA15BE9318}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{7635ADE1-AC00-4587-8117-3FAA15BE9318}.Release|Any CPU.Build.0 = Release|Any CPU
 		{898F5EC0-3903-40E0-98BD-EE2E5746620F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{898F5EC0-3903-40E0-98BD-EE2E5746620F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{898F5EC0-3903-40E0-98BD-EE2E5746620F}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -115,10 +107,6 @@ Global
 		{2581B89A-F555-48A7-94BE-9B21654901A7}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2581B89A-F555-48A7-94BE-9B21654901A7}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2581B89A-F555-48A7-94BE-9B21654901A7}.Release|Any CPU.Build.0 = Release|Any CPU
-		{57A5E768-A0AA-4B4F-B538-2BEA1B4E5895}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{57A5E768-A0AA-4B4F-B538-2BEA1B4E5895}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{57A5E768-A0AA-4B4F-B538-2BEA1B4E5895}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{57A5E768-A0AA-4B4F-B538-2BEA1B4E5895}.Release|Any CPU.Build.0 = Release|Any CPU
 		{AC3A5D28-9206-41DC-B546-4D91217253A5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{AC3A5D28-9206-41DC-B546-4D91217253A5}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{AC3A5D28-9206-41DC-B546-4D91217253A5}.Release|Any CPU.ActiveCfg = Release|Any CPU

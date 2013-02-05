@@ -54,7 +54,8 @@ type ConditionalAssignmentTransformation() =
             raise (CompilerException("Cannot determine variable assignment in if-then-else construct. Try to transform v = if .. else ..; into v; if .. v <- .. else .. v <- .."))
                                                  
     interface FunctionTransformationProcessor with
-        member this.Handle(expr, engine:FunctionTransformationStep) =
+        member this.Process(expr, en) =
+            let engine = en :?> FunctionTransformationStep
             match expr with
             | Patterns.Let(v, e, body) ->
                 match e with

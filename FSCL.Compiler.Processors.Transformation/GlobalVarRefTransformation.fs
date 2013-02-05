@@ -10,7 +10,8 @@ open Microsoft.FSharp.Linq.QuotationEvaluation
                 [| "FSCL_RETURN_TYPE_TRANSFORMATION_PROCESSOR" |])>] 
 type GlobalVarRefTransformation() =   
     interface FunctionTransformationProcessor with
-        member this.Handle(expr, engine:FunctionTransformationStep) =
+        member this.Process(expr, en) =
+            let engine = en :?> FunctionTransformationStep
             match expr with
             | Patterns.PropertyGet(o, pi, value) ->
                 // A property get can be handled only if the property has a constant value and has a reflected definition attribute

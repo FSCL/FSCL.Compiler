@@ -8,7 +8,8 @@ open Microsoft.FSharp.Quotations
 [<StepProcessor("FSCL_VAR_PRETTY_PRINTING_PROCESSOR", "FSCL_FUNCTION_PRETTY_PRINTING_STEP")>]
 type VarPrinter() =   
     interface FunctionBodyPrettyPrintingProcessor with
-        member this.Handle(expr, engine:FunctionPrettyPrintingStep) =
+        member this.Process(expr, en) =
+            let engine = en :?> FunctionPrettyPrintingStep
             match expr with
             | Patterns.Var(v) ->
                 Some(v.Name)

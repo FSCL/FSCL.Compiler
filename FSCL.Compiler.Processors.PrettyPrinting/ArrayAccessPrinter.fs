@@ -8,7 +8,8 @@ open System.Reflection
 [<StepProcessor("FSCL_ARRAY_ACCESS_PRETTY_PRINTING_PROCESSOR", "FSCL_FUNCTION_PRETTY_PRINTING_STEP")>]
 type ArrayAccessPrinter() =                 
     interface FunctionBodyPrettyPrintingProcessor with
-        member this.Handle(expr, engine:FunctionPrettyPrintingStep) =
+        member this.Process(expr, en) =        
+            let engine = en :?> FunctionPrettyPrintingStep
             match expr with
             | Patterns.Call(o, methodInfo, args) ->
                 if methodInfo.DeclaringType.Name = "IntrinsicFunctions" then

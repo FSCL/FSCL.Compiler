@@ -23,7 +23,8 @@ type KernelReferenceParser() =
             None
         
     interface ModuleParsingProcessor with
-        member this.Handle(expr, engine:ModuleParsingStep) =
+        member this.Process(expr, en) =
+            let engine = en :?> ModuleParsingStep
             if (expr.GetType() = typeof<Expr>) then
                 match GetKernelFromName(expr :?> Expr, engine) with
                 | Some(mi, b) -> 

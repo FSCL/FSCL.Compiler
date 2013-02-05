@@ -5,32 +5,20 @@ open System.Reflection
 open System.Collections.Generic
 open Microsoft.FSharp.Quotations
 
-type IFunctionPrettyPrintingProcessor =
-    interface
-    end
-
-type FunctionSignaturePrettyPrintingProcessor =    
-    inherit IFunctionPrettyPrintingProcessor
-    abstract member Handle: MethodInfo * FunctionPrettyPrintingStep -> String option
-
-and FunctionBodyPrettyPrintingProcessor =  
-    inherit IFunctionPrettyPrintingProcessor  
-    abstract member Handle: Expr * FunctionPrettyPrintingStep -> String option
-
-and [<Step("FSCL_FUNCTION_PRETTY_PRINTING_STEP",
-           [| "FSCL_FUNCTION_TRANSFORMATION_STEP";
-              "FSCL_FUNCTION_PREPROCESSING_STEP";
-              "FSCL_MODULE_PREPROCESSING_STEP";
-              "FSCL_MODULE_PARSING_STEP" |])>]
-    FunctionPrettyPrintingStep(tm: TypeManager,
-                               processors: IFunctionPrettyPrintingProcessor list) = 
+[<Step("FSCL_FUNCTION_PRETTY_PRINTING_STEP",
+       [| "FSCL_FUNCTION_TRANSFORMATION_STEP";
+          "FSCL_FUNCTION_PREPROCESSING_STEP";
+          "FSCL_MODULE_PREPROCESSING_STEP";
+          "FSCL_MODULE_PARSING_STEP" |])>]
+type FunctionPrettyPrintingStep(tm: TypeManager,
+                                processors: ICompilerStepProcessor list) = 
     inherit CompilerStep<KernelModule, KernelModule>(tm)
     
-    let signatureProcessors = List.map(fun (p:IFunctionPrettyPrintingProcessor) ->
-                                        p :?> FunctionSignaturePrettyPrintingProcessor) (List.filter (fun (p:IFunctionPrettyPrintingProcessor) -> 
+    let signatureProcessors = List.map(fun (p:ICompilerStepProcessor) ->
+                                        p :?> FunctionSignaturePrettyPrintingProcessor) (List.filter (fun (p:ICompilerStepProcessor) -> 
                                                                                  typeof<FunctionSignaturePrettyPrintingProcessor>.IsAssignableFrom(p.GetType())) processors)
-    let bodyProcessors = List.map(fun (p:IFunctionPrettyPrintingProcessor) ->
-                                        p :?> FunctionBodyPrettyPrintingProcessor) (List.filter (fun (p:IFunctionPrettyPrintingProcessor) -> 
+    let bodyProcessors = List.map(fun (p:ICompilerStepProcessor) ->
+                                        p :?> FunctionBodyPrettyPrintingProcessor) (List.filter (fun (p:ICompilerStepProcessor) -> 
                                                                             typeof<FunctionBodyPrettyPrintingProcessor>.IsAssignableFrom(p.GetType())) processors)
             
     member val private currentFunction = null with get, set
@@ -46,7 +34,7 @@ and [<Step("FSCL_FUNCTION_PRETTY_PRINTING_STEP",
         let mutable index = 0
         let mutable output = None        
         while (output.IsNone) && (index < bodyProcessors.Length) do
-            output <- bodyProcessors.[index].Handle(expression, this)
+            output <- bodyProcessors.[index].Process(expression, this)
             index <- index + 1
         // If no suitable generic processor, use specific ones
         if (output.IsNone) then
@@ -58,7 +46,7 @@ and [<Step("FSCL_FUNCTION_PRETTY_PRINTING_STEP",
         let mutable index = 0
         let mutable output = None        
         while (output.IsNone) && (index < signatureProcessors.Length) do
-            output <- signatureProcessors.[index].Handle(mi, this)
+            output <- signatureProcessors.[index].Process(mi, this)
             index <- index + 1
         // If no suitable generic processor, use specific ones
         if (output.IsNone) then

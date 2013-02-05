@@ -12,7 +12,8 @@ type ArithmeticOperationPrinter() =
         op + engine.Continue(a.[0])
 
     interface FunctionBodyPrettyPrintingProcessor with
-        member this.Handle(expr, engine) =
+        member this.Process(expr, en) =
+            let engine = en :?> FunctionPrettyPrintingStep
             match expr with 
             | Patterns.Call(o, mi, args) ->
                 match expr with

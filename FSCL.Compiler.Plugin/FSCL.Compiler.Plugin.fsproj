@@ -48,11 +48,6 @@
     <Compile Include="PluginManager.fs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\FSCL.Compiler.Core\FSCL.Compiler.Core.fsproj">
-      <Name>FSCL.Compiler.Core</Name>
-      <Project>{7635ade1-ac00-4587-8117-3faa15be9318}</Project>
-      <Private>True</Private>
-    </ProjectReference>
     <ProjectReference Include="..\FSCL.Compiler.Processors.ModuleBuilding\FSCL.Compiler.Processors.ModulePreprocessing.fsproj">
       <Name>FSCL.Compiler.Processors.ModulePreprocessing</Name>
       <Project>{898f5ec0-3903-40e0-98bd-ee2e5746620f}</Project>
