@@ -35,6 +35,10 @@ Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "FSCL.Compiler.Core.Util", "
 EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "FSCL.Compiler.Core.ModulePrettyPrinting", "FSCL.Compiler.Core.ModulePrettyPrinting\FSCL.Compiler.Core.ModulePrettyPrinting.fsproj", "{431CB9ED-C613-46BE-AD84-B4A0D8532487}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Plugins", "Plugins", "{73546544-3F81-43B3-A834-0D508776E740}"
+EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "FSCL.Compiler.Plugins.StructHandling", "FSCL.Compiler.Plugins\FSCL.Compiler.Plugins.StructHandling\FSCL.Compiler.Plugins.StructHandling.fsproj", "{976E744D-2342-4AB3-8EF0-A641642FA95E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -97,6 +101,10 @@ Global
 		{431CB9ED-C613-46BE-AD84-B4A0D8532487}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{431CB9ED-C613-46BE-AD84-B4A0D8532487}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{431CB9ED-C613-46BE-AD84-B4A0D8532487}.Release|Any CPU.Build.0 = Release|Any CPU
+		{976E744D-2342-4AB3-8EF0-A641642FA95E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{976E744D-2342-4AB3-8EF0-A641642FA95E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{976E744D-2342-4AB3-8EF0-A641642FA95E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{976E744D-2342-4AB3-8EF0-A641642FA95E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -114,5 +122,6 @@ Global
 		{431CB9ED-C613-46BE-AD84-B4A0D8532487} = {E1CF796E-53C6-4FC7-B8EB-35C7CF28B84B}
 		{2581B89A-F555-48A7-94BE-9B21654901A7} = {91BA3570-706A-45EC-BCCB-51BB45CCFE5C}
 		{05D3D829-9EEF-411D-BBF7-FE966B2D379B} = {9FEBDD4B-5407-4E9F-92A5-DA6728EDCA59}
+		{976E744D-2342-4AB3-8EF0-A641642FA95E} = {73546544-3F81-43B3-A834-0D508776E740}
 	EndGlobalSection
 EndGlobal
