@@ -20,7 +20,7 @@ type RefVariablePreprocessor() =
     interface FunctionPreprocessingProcessor with
         member this.Process(fi, en) =
             // Get kernel info
-            let kernelInfo = fi :?> KernelInfo
+            let kernelInfo = fi
             // Get kernel signature
             let methodInfo = kernelInfo.Signature
             let oldParams = methodInfo.GetParameters()

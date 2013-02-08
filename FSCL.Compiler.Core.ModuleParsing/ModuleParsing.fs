@@ -17,6 +17,7 @@ type ModuleParsingStep(tm: TypeManager,
         let mutable output = None
         while (output.IsNone) && (index < processors.Length) do
             output <- processors.[index].Process(expr, this)
+            index <- index + 1
         if output.IsNone then
             raise (CompilerException("The engine is not able to parse a kernel inside the expression [" + expr.ToString() + "]"))
         output.Value

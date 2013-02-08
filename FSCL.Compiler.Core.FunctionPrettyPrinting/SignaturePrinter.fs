@@ -28,23 +28,33 @@ type SignaturePrinter() =
             let engine = en :?> FunctionPrettyPrintingStep
             // Convert params and produce additional params
             let kernelParams = fi.GetParameters()
-            let kernelInfo = engine.FunctionInfo :?> KernelInfo
-            let kernelParamsInfo = kernelInfo.ParameterInfo
-            // Create KERNEL_PARAMETER_TABLE
-            let paramsPrint = Array.map(fun (p:ParameterInfo) ->
-                if p.ParameterType.IsArray then
-                    // If the parameters is tagged with Contant attribute, prepend constant keyword, else global
-                    let addressSpace = kernelParamsInfo.[p.Name].AddressSpace
-                    if addressSpace = KernelParameterAddressSpace.LocalSpace then
-                        "local " + engine.TypeManager.Print(p.ParameterType) + p.Name
-                    elif addressSpace = KernelParameterAddressSpace.ConstantSpace then
-                        "constant " + engine.TypeManager.Print(p.ParameterType) + p.Name
-                    else
-                        "global " + engine.TypeManager.Print(p.ParameterType) + p.Name
-                 else
+            if engine.FunctionInfo.GetType() = typeof<KernelInfo> then
+                let kernelInfo = engine.FunctionInfo :?> KernelInfo
+                let kernelParamsInfo = kernelInfo.ParameterInfo
+                // Create KERNEL_PARAMETER_TABLE
+                let paramsPrint = Array.map(fun (p:ParameterInfo) ->
+                    if p.ParameterType.IsArray then
+                        // If the parameters is tagged with Contant attribute, prepend constant keyword, else global
+                        let addressSpace = kernelParamsInfo.[p.Name].AddressSpace
+                        if addressSpace = KernelParameterAddressSpace.LocalSpace then
+                            "local " + engine.TypeManager.Print(p.ParameterType) + p.Name
+                        elif addressSpace = KernelParameterAddressSpace.ConstantSpace then
+                            "constant " + engine.TypeManager.Print(p.ParameterType) + p.Name
+                        else
+                            "global " + engine.TypeManager.Print(p.ParameterType) + p.Name
+                     else
+                        engine.TypeManager.Print(p.ParameterType) + " " + p.Name) kernelParams
+            
+                let signature = Some("kernel void " + fi.Name + "(" + (String.concat ", " paramsPrint) + ")")
+                signature
+            else
+                let kernelInfo = engine.FunctionInfo
+                let kernelParamsInfo = kernelInfo.ParameterInfo
+                // Create KERNEL_PARAMETER_TABLE
+                let paramsPrint = Array.map(fun (p:ParameterInfo) ->
                     engine.TypeManager.Print(p.ParameterType) + " " + p.Name) kernelParams
             
-            let signature = Some("kernel void " + fi.Name + "(" + (String.concat ", " paramsPrint) + ")")
-            signature
+                let signature = Some(engine.TypeManager.Print(kernelInfo.Signature.ReturnType) + " " + fi.Name + "(" + (String.concat ", " paramsPrint) + ")")
+                signature
 
            

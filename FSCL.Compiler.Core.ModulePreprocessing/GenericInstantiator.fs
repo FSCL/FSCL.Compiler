@@ -29,50 +29,32 @@ type GenericInstantiator() =
             kernelInstances <- [ (mi, "") ] 
         (methodInfo, kernelInstances)
         
-    let rec LiftArgExtraction (expr, parameters: ParameterInfo[]) =
-        match expr with
-        | Patterns.Lambda(v, e) ->
-            if v.Name = "tupledArg" then
-                LiftArgExtraction(e, parameters)
-            else
-                let el = Array.tryFind (fun (p:ParameterInfo) -> p.Name = v.Name) parameters
-                if el.IsSome then
-                    LiftArgExtraction (e, parameters)
-                else
-                    expr
-        | Patterns.Let(v, value, body) ->
-            let el = Array.tryFind (fun (p:ParameterInfo) -> p.Name = v.Name) parameters
-            if el.IsSome then
-                LiftArgExtraction (body, parameters)
-            else
-                expr
-        | _ ->
-            expr
-
     interface ModulePreprocessingProcessor with
         member this.Process(m, en) =
             let engine = en :?> ModulePreprocessingStep
-            let (genericKernel, instances) = InstantiateGenericKernel(m.Source.Signature, engine.TypeManager)
-            for (instance, newName) in instances do    
-                match instance with
-                | DerivedPatterns.MethodWithReflectedDefinition(b) ->  
-                    // If a new name is set then the method was generic and instances must be renamed
-                    if (newName <> "") then
-                        let newSignature = new DynamicMethod(newName, instance.ReturnType, Array.map (fun (p:ParameterInfo) -> p.ParameterType) (instance.GetParameters()))
-                        // Define parameters
-                        Array.iteri (fun i (p:ParameterInfo) ->
-                            newSignature.DefineParameter(i + 1, p.Attributes, p.Name) |> ignore) (instance.GetParameters())  
-                        // Add new element to the instances
-                        let paramVarList = new List<Var * ParameterInfo>() 
-                        let cleanBody = LiftArgExtraction(b, newSignature.GetParameters())
-                        let kInfo = new KernelInfo(newSignature, cleanBody)
-                        m.Kernels <- m.Kernels @ [ kInfo ]
-                    else
-                        // Add new element to the instances
-                        let paramVarList = new List<Var * ParameterInfo>() 
-                        let cleanBody = LiftArgExtraction(b, instance.GetParameters())
-                        let kInfo = new KernelInfo(instance, cleanBody)
-                        m.Kernels <- m.Kernels @ [ kInfo ]
-                | _ ->
-                    ()
+            if(m.Source.Signature.IsGenericMethodDefinition) then  
+                let (genericKernel, instances) = InstantiateGenericKernel(m.Source.Signature, engine.TypeManager)
+                for (instance, newName) in instances do    
+                    match instance with
+                    | DerivedPatterns.MethodWithReflectedDefinition(b) ->  
+                        // If a new name is set then the method was generic and instances must be renamed
+                        if (newName <> "") then
+                            let newSignature = new DynamicMethod(newName, instance.ReturnType, Array.map (fun (p:ParameterInfo) -> p.ParameterType) (instance.GetParameters()))
+                            // Define parameters
+                            Array.iteri (fun i (p:ParameterInfo) ->
+                                newSignature.DefineParameter(i + 1, p.Attributes, p.Name) |> ignore) (instance.GetParameters())  
+                            // Add new element to the instances
+                            let paramVarList = new List<Var * ParameterInfo>() 
+                            let kInfo = new KernelInfo(newSignature, b)
+                            m.Kernels <- m.Kernels @ [ kInfo ]
+                        else
+                            // Add new element to the instances
+                            let paramVarList = new List<Var * ParameterInfo>() 
+                            let kInfo = new KernelInfo(instance, b)
+                            m.Kernels <- m.Kernels @ [ kInfo ]
+                    | _ ->
+                        ()
+            else            
+                let kInfo = m.Source
+                m.Kernels <- m.Kernels @ [ kInfo ]
             
