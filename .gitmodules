@@ -4,3 +4,6 @@
 [submodule "Plugins/FSCL.Compiler.Plugins.AcceleratedCollections"]
 	path = Plugins/FSCL.Compiler.Plugins.AcceleratedCollections
 	url = https://github.com/GabrieleCocco/FSCL.Compiler.Plugins.AcceleratedCollections.git
+[submodule "FSCL.Compiler.Plugins.AcceleratedCollections"]
+	path = FSCL.Compiler.Plugins.AcceleratedCollections
+	url = https://github.com/GabrieleCocco/FSCL.Compiler.Plugins.AcceleratedCollections.git
