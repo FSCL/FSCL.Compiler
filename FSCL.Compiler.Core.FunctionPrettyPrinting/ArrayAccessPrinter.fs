@@ -13,9 +13,17 @@ type ArrayAccessPrinter() =
             match expr with
             | Patterns.Call(o, methodInfo, args) ->
                 if methodInfo.DeclaringType.Name = "IntrinsicFunctions" then
+                    let returnTags = engine.FunctionInfo.CustomInfo.["RETURN_EXPRESSIONS"] :?> Expr list
+                    let returnPrefix = 
+                        if (List.tryFind(fun (e:Expr) -> e = expr) returnTags).IsSome then
+                            "return "
+                        else
+                            ""
+                    let returnPostfix = if returnPrefix.Length > 0 then ";\n" else ""
+
                     let arrayName = engine.Continue(args.[0])
                     if methodInfo.Name = "GetArray" then
-                        Some(arrayName + "[" + engine.Continue(args.[1]) + "]")
+                        Some(returnPrefix  + arrayName + "[" + engine.Continue(args.[1]) + "]" + returnPostfix)
                     elif methodInfo.Name = "SetArray" then
                         Some(arrayName + "[" + engine.Continue(args.[1]) + "] = " + engine.Continue(args.[2]) + ";\n")
                     else

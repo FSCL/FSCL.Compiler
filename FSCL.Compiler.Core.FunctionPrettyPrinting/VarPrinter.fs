@@ -12,6 +12,13 @@ type VarPrinter() =
             let engine = en :?> FunctionPrettyPrintingStep
             match expr with
             | Patterns.Var(v) ->
-                Some(v.Name)
+                let returnTags = engine.FunctionInfo.CustomInfo.["RETURN_EXPRESSIONS"] :?> Expr list
+                let returnPrefix = 
+                    if (List.tryFind(fun (e:Expr) -> e = expr) returnTags).IsSome then
+                        "return "
+                    else
+                        ""
+                let returnPostfix = if returnPrefix.Length > 0 then ";\n" else ""
+                Some(returnPrefix + v.Name + returnPostfix)
             | _ ->
                 None

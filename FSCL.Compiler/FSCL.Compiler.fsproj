@@ -39,19 +39,70 @@
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Numerics" />
+    <Reference Include="System.Xml" />
+    <Reference Include="System.Xml.Linq" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="CompilerPipeline.fs" />
+    <Compile Include="ConfigurationUtil.fs" />
+    <Compile Include="CompilerConfiguration.fs" />
+    <Compile Include="CompilerBuilder.fs" />
+    <Compile Include="CompilerConfigurationManager.fs" />
+    <Compile Include="Compiler.fs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\FSCL.Compiler.Core.FunctionPreprocessing\FSCL.Compiler.Core.FunctionPreprocessing.fsproj">
+      <Name>FSCL.Compiler.Core.FunctionPreprocessing</Name>
+      <Project>{ed8c50cd-4155-4d3a-a682-76757fb2b8d7}</Project>
+      <Private>True</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\FSCL.Compiler.Core.FunctionPrettyPrinting\FSCL.Compiler.Core.FunctionPrettyPrinting.fsproj">
+      <Name>FSCL.Compiler.Core.FunctionPrettyPrinting</Name>
+      <Project>{a0eb369a-a29e-4bb9-8b16-cf406e42f534}</Project>
+      <Private>True</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\FSCL.Compiler.Core.FunctionTransformation\FSCL.Compiler.Core.FunctionTransformation.fsproj">
+      <Name>FSCL.Compiler.Core.FunctionTransformation</Name>
+      <Project>{76611cb9-7f4f-4842-bee6-03eecaf79894}</Project>
+      <Private>True</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\FSCL.Compiler.Core.Language\FSCL.Compiler.Core.Language.fsproj">
+      <Name>FSCL.Compiler.Core.Language</Name>
+      <Project>{02cc39bd-a326-49f6-b5e6-2987eada1ba2}</Project>
+      <Private>True</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\FSCL.Compiler.Core.ModuleParsing\FSCL.Compiler.Core.ModuleParsing.fsproj">
+      <Name>FSCL.Compiler.Core.ModuleParsing</Name>
+      <Project>{a42da267-4d0e-4f14-a7e0-f2f9ab587005}</Project>
+      <Private>True</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\FSCL.Compiler.Core.ModulePreprocessing\FSCL.Compiler.Core.ModulePreprocessing.fsproj">
+      <Name>FSCL.Compiler.Core.ModulePreprocessing</Name>
+      <Project>{898f5ec0-3903-40e0-98bd-ee2e5746620f}</Project>
+      <Private>True</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\FSCL.Compiler.Core.ModulePrettyPrinting\FSCL.Compiler.Core.ModulePrettyPrinting.fsproj">
+      <Name>FSCL.Compiler.Core.ModulePrettyPrinting</Name>
+      <Project>{431cb9ed-c613-46be-ad84-b4a0d8532487}</Project>
+      <Private>True</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\FSCL.Compiler.Core.Types\FSCL.Compiler.Core.Types.fsproj">
+      <Name>FSCL.Compiler.Core.Types</Name>
+      <Project>{ec288651-4f88-44d7-9206-7a0260552ecc}</Project>
+      <Private>True</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\FSCL.Compiler.Core.Util\FSCL.Compiler.Core.Util.fsproj">
+      <Name>FSCL.Compiler.Core.Util</Name>
+      <Project>{2089ba93-e786-42e3-b717-58105c53bb7a}</Project>
+      <Private>True</Private>
+    </ProjectReference>
     <ProjectReference Include="..\FSCL.Compiler.Core\FSCL.Compiler.Core.fsproj">
       <Name>FSCL.Compiler.Core</Name>
       <Project>{7635ade1-ac00-4587-8117-3faa15be9318}</Project>
       <Private>True</Private>
     </ProjectReference>
-    <ProjectReference Include="..\FSCL.Compiler.PluginManager\FSCL.Compiler.PluginManager.fsproj">
-      <Name>FSCL.Compiler.PluginManager</Name>
-      <Project>{4ce26ad2-8f56-4bdf-91fa-021c96c48294}</Project>
+    <ProjectReference Include="..\GraphUtil\GraphUtil.fsproj">
+      <Name>GraphUtil</Name>
+      <Project>{2581b89a-f555-48a7-94be-9b21654901a7}</Project>
       <Private>True</Private>
     </ProjectReference>
   </ItemGroup>

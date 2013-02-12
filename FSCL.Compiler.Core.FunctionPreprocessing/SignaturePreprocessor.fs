@@ -12,7 +12,7 @@ type internal TemporaryKernelParameterTable = Dictionary<String, TemporaryKernel
 type internal KernelParameterTable = Dictionary<String, KernelParameterInfo>
 
 [<StepProcessor("FSCL_SIGNATURE_PREPROCESSING_PROCESSOR", "FSCL_FUNCTION_PREPROCESSING_STEP", 
-                [|"FSCL_ARG_EXTRACTION_PREPROCESSING_PROCESSOR"|])>] 
+                Dependencies = [|"FSCL_ARG_EXTRACTION_PREPROCESSING_PROCESSOR"|])>] 
 type SignaturePreprocessor() =        
     let GetArrayDimensions (t:Type) =
         // Any better way to do this?

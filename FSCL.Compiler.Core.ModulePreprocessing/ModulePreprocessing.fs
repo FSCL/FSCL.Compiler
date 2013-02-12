@@ -7,7 +7,7 @@ open Microsoft.FSharp.Quotations
 open FSCL.Compiler
 
 [<Step("FSCL_MODULE_PREPROCESSING_STEP", 
-      [| "FSCL_MODULE_PARSING_STEP" |])>]
+      Dependencies = [| "FSCL_MODULE_PARSING_STEP" |])>]
 type ModulePreprocessingStep(tm: TypeManager,
                              processors: ModulePreprocessingProcessor list) = 
     inherit CompilerStep<KernelModule, KernelModule>(tm)

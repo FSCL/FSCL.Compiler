@@ -7,9 +7,9 @@ open System.Collections.Generic
 open Microsoft.FSharp.Quotations
 
 [<Step("FSCL_FUNCTION_TRANSFORMATION_STEP",
-       [| "FSCL_FUNCTION_PREPROCESSING_STEP";
-          "FSCL_MODULE_PREPROCESSING_STEP"; 
-          "FSCL_MODULE_PARSING_STEP" |])>]
+       Dependencies = [| "FSCL_FUNCTION_PREPROCESSING_STEP";
+                         "FSCL_MODULE_PREPROCESSING_STEP"; 
+                         "FSCL_MODULE_PARSING_STEP" |])>]
 type FunctionTransformationStep(tm: TypeManager, 
                                 processors:FunctionTransformationProcessor list) = 
     inherit CompilerStep<KernelModule, KernelModule>(tm)

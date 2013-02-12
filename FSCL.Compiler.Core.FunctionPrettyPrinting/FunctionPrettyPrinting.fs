@@ -7,10 +7,10 @@ open Microsoft.FSharp.Quotations
 open FSCL.Compiler
 
 [<Step("FSCL_FUNCTION_PRETTY_PRINTING_STEP",
-       [| "FSCL_FUNCTION_TRANSFORMATION_STEP";
-          "FSCL_FUNCTION_PREPROCESSING_STEP";
-          "FSCL_MODULE_PREPROCESSING_STEP";
-          "FSCL_MODULE_PARSING_STEP" |])>]
+      Dependencies = [| "FSCL_FUNCTION_TRANSFORMATION_STEP";
+                        "FSCL_FUNCTION_PREPROCESSING_STEP";
+                        "FSCL_MODULE_PREPROCESSING_STEP";
+                        "FSCL_MODULE_PARSING_STEP" |])>]
 type FunctionPrettyPrintingStep(tm: TypeManager,
                                 processors: ICompilerStepProcessor list) = 
     inherit CompilerStep<KernelModule, KernelModule>(tm)

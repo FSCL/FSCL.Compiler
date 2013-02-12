@@ -6,23 +6,8 @@ open System.Reflection
 open Microsoft.FSharp.Quotations
 
 [<StepProcessor("FSCL_FUNCTIONS_DISCOVERY_PROCESSOR", "FSCL_MODULE_PREPROCESSING_STEP",
-                [| "FSCL_GENERIC_INSTANTIATION_PROCESSOR" |])>] 
+                Dependencies = [| "FSCL_GENERIC_INSTANTIATION_PROCESSOR" |])>] 
 type FunctionReferenceDiscover() =      
-    let InstantiateGenericKernel(mi:MethodInfo, tm:TypeManager) =
-        let mutable kernelInstances = [ ]
-        let mutable methodInfo = mi
-        if mi.IsGenericMethod then
-            methodInfo <- mi.GetGenericMethodDefinition()
-            // Instantiate kernel for each combination of generic parameters
-            let genMi = mi.GetGenericMethodDefinition()
-            let types = genMi.GetGenericArguments()
-            let combinations = CombinationGenerator.Generator.getPerms (types.Length) (tm.ManagedGenericInstances)
-            for combination in combinations do                   
-                kernelInstances <- kernelInstances @ [ genMi.MakeGenericMethod(Array.ofSeq combination) ] 
-        else           
-            kernelInstances <- [ mi ] 
-        (methodInfo, kernelInstances)
-        
     let DiscoverFunctionRef(k:KernelInfo) =
         let foundFunctions = Dictionary<MethodInfo, FunctionInfo>()
 
@@ -44,10 +29,13 @@ type FunctionReferenceDiscover() =
                 ()
 
         DiscoverFunctionRefInner(k.Body)
+        foundFunctions
 
     interface ModulePreprocessingProcessor with
         member this.Process(m, en) =
             let engine = en :?> ModulePreprocessingStep
             for k in m.Kernels do
-                DiscoverFunctionRef(k)
+                let found = DiscoverFunctionRef(k)
+                for item in found do
+                    m.Functions <- m.Functions @ [ item.Value ]
             

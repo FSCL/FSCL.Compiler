@@ -48,6 +48,7 @@
     <Compile Include="ArrayAccessTransformation.fs" />
     <Compile Include="RefVariableTransformationProcessor.fs" />
     <Compile Include="ReturnLifting.fs" />
+    <Compile Include="ReturnTagProcessor.fs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\FSCL.Compiler.Core.Util\FSCL.Compiler.Core.Util.fsproj">

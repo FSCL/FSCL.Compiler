@@ -1,8 +1,8 @@
-﻿namespace FSCL.Compiler.Plugin
+﻿namespace FSCL.Compiler.Configuration
 
 open System.Collections.Generic
 
-type PluginUtil() =
+type ConfigurationUtil() =
     static member FlattenList<'T>(t: obj) =
         List.ofSeq(t :?> IEnumerable<'T>)
 

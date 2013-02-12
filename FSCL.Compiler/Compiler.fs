@@ -1,32 +1,36 @@
 ﻿namespace FSCL.Compiler
 
 open System
+open System.IO
 open System.Reflection
 open FSCL.Compiler
-open FSCL.Compiler.Plugin
+open FSCL.Compiler.Configuration
 
-type CompilerPipeline(def, components: Assembly list) =  
-    let pluginManager = new CompilerPluginManager()
-    let steps = ref []
-    do
-        if def then
-            pluginManager.LoadDefault()
-        for comp in components do
-            pluginManager.Load(comp)
-        steps := pluginManager.Build()
+type Compiler =  
+    val mutable private pluginManager : CompilerConfigurationManager
+    val mutable private steps : ICompilerStep list
         
-    member val IsDefault = def with get
-    member val ComponentsAssemblies = components with get
-    member val Steps = !steps with get
+    new() as this = { pluginManager = new CompilerConfigurationManager(); steps = []; }   
+                    then
+                        this.pluginManager.FromStorage()
+                        this.steps <- this.pluginManager.Build()
     
-    member this.Run(input) =
+    new(file: string) as this = { pluginManager = new CompilerConfigurationManager(); steps = []; }   
+                                then
+                                    this.pluginManager.FromFile(file)
+                                    this.steps <- this.pluginManager.Build()
+    
+    new(conf: CompilerConfiguration) as this = { pluginManager = new CompilerConfigurationManager(); steps = []; }   
+                                                then
+                                                    this.pluginManager.FromConfiguration(conf)
+                                                    this.steps <- this.pluginManager.Build()
+                                                    
+    member this.Compile(input) =
         let mutable state = input
-        for step in this.Steps do
+        for step in this.steps do
             state <- step.Execute(state)
         state
-        
-    static member Default() =  
-        new CompilerPipeline(true, [])
+          
     (*
         let typeManager = new TypeManager([ new DefaultTypeHandler();
                                             new RefVariableTypeHandler()])

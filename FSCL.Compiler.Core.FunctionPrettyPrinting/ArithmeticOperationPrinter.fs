@@ -16,47 +16,55 @@ type ArithmeticOperationPrinter() =
             let engine = en :?> FunctionPrettyPrintingStep
             match expr with 
             | Patterns.Call(o, mi, args) ->
+                let returnTags = engine.FunctionInfo.CustomInfo.["RETURN_EXPRESSIONS"] :?> Expr list
+                let returnPrefix = 
+                    if (List.tryFind(fun (e:Expr) -> e = expr) returnTags).IsSome then
+                        "return "
+                    else
+                        ""
+                let returnPostfix = if returnPrefix.Length > 0 then ";\n" else ""
+
                 match expr with
                 | DerivedPatterns.SpecificCall <@ (>) @> (e, t, a) -> 
-                    Some(HandleBinaryOp(" > ", a, engine))
+                    Some(returnPrefix + HandleBinaryOp(" > ", a, engine) + returnPostfix)
                 | DerivedPatterns.SpecificCall <@ (<) @> (e, t, a)  -> 
-                    Some(HandleBinaryOp(" < ", a, engine))
+                    Some(returnPrefix + HandleBinaryOp(" < ", a, engine) + returnPostfix)
                 | DerivedPatterns.SpecificCall <@ (>=) @> (e, t, a)  -> 
-                    Some(HandleBinaryOp(" >= ", a, engine))
+                    Some(returnPrefix + HandleBinaryOp(" >= ", a, engine) + returnPostfix)
                 | DerivedPatterns.SpecificCall <@ (<=) @> (e, t, a)  -> 
-                    Some(HandleBinaryOp(" <= ", a, engine))
+                    Some(returnPrefix + HandleBinaryOp(" <= ", a, engine) + returnPostfix)
                 | DerivedPatterns.SpecificCall <@ (=) @> (e, t, a) -> 
-                    Some(HandleBinaryOp(" == ", a, engine))
+                    Some(returnPrefix + HandleBinaryOp(" == ", a, engine) + returnPostfix)
                 | DerivedPatterns.SpecificCall <@ (<>) @> (e, t, a) -> 
-                    Some(HandleBinaryOp(" != ", a, engine))
+                    Some(returnPrefix + HandleBinaryOp(" != ", a, engine) + returnPostfix)
                 | DerivedPatterns.SpecificCall <@ (+) @> (e, t, a) -> 
-                    Some(HandleBinaryOp(" + ", a, engine))
+                    Some(returnPrefix + HandleBinaryOp(" + ", a, engine) + returnPostfix)
                 | DerivedPatterns.SpecificCall <@ (*) @> (e, t, a) -> 
-                    Some(HandleBinaryOp(" * ", a, engine))
+                    Some(returnPrefix + HandleBinaryOp(" * ", a, engine) + returnPostfix)
                 | DerivedPatterns.SpecificCall <@ (-) @> (e, t, a) -> 
-                    Some(HandleBinaryOp(" - ", a, engine))
+                    Some(returnPrefix + HandleBinaryOp(" - ", a, engine) + returnPostfix)
                 | DerivedPatterns.SpecificCall <@ (/) @> (e, t, a) -> 
-                    Some(HandleBinaryOp(" / ", a, engine))
+                    Some(HandleBinaryOp(" / ", a, engine) + returnPostfix)
                 | DerivedPatterns.SpecificCall <@ (%) @> (e, t, a) -> 
-                    Some(HandleBinaryOp(" % ", a, engine))
+                    Some(returnPrefix + returnPrefix + HandleBinaryOp(" % ", a, engine) + returnPostfix)
                 | DerivedPatterns.SpecificCall <@ (&&) @> (e, t, a) -> 
-                    Some(HandleBinaryOp(" && ", a, engine))
+                    Some(returnPrefix + HandleBinaryOp(" && ", a, engine) + returnPostfix)
                 | DerivedPatterns.SpecificCall <@ (||) @> (e, t, a) ->
-                    Some(HandleBinaryOp(" || ", a, engine))
+                    Some(returnPrefix + HandleBinaryOp(" || ", a, engine) + returnPostfix)
                 | DerivedPatterns.SpecificCall <@ (&&&) @> (e, t, a) -> 
-                    Some(HandleBinaryOp(" & ", a, engine))
+                    Some(returnPrefix + HandleBinaryOp(" & ", a, engine) + returnPostfix)
                 | DerivedPatterns.SpecificCall <@ (|||) @> (e, t, a) -> 
-                    Some(HandleBinaryOp(" | ", a, engine))
+                    Some(returnPrefix + HandleBinaryOp(" | ", a, engine) + returnPostfix)
                 | DerivedPatterns.SpecificCall <@ (^^^) @> (e, t, a) -> 
-                    Some(HandleBinaryOp(" ^ ", a, engine))
+                    Some(returnPrefix + HandleBinaryOp(" ^ ", a, engine) + returnPostfix)
                 | DerivedPatterns.SpecificCall <@ (~~~) @> (e, t, a) -> 
-                    Some(HandleUnaryOp(" ~ ", a, engine))
+                    Some(returnPrefix + HandleUnaryOp(" ~ ", a, engine) + returnPostfix)
                 | DerivedPatterns.SpecificCall <@ (not) @> (e, t, a) -> 
-                    Some(HandleUnaryOp(" ! ", a, engine))
+                    Some(returnPrefix + HandleUnaryOp(" ! ", a, engine) + returnPostfix)
                 | DerivedPatterns.SpecificCall <@ (>>>) @> (e, t, a) -> 
-                    Some(HandleBinaryOp(" >> ", a, engine))
+                    Some(returnPrefix + HandleBinaryOp(" >> ", a, engine) + returnPostfix)
                 | DerivedPatterns.SpecificCall <@ (<<<) @> (e, t, a) -> 
-                    Some(HandleBinaryOp(" << ", a, engine))
+                    Some(returnPrefix + HandleBinaryOp(" << ", a, engine) + returnPostfix)
                 | _ ->
                     None
             | _ ->

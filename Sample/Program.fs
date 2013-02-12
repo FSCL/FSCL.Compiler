@@ -86,9 +86,9 @@ let testVectorAddEnergy() =
     *)
 [<EntryPoint>]
 let main argv =
-    let compiler = CompilerPipeline.Default()
+    let compiler = new Compiler()
 
-    let r = compiler.Run(<@@ Convolution @@>)
+    let r = compiler.Compile(<@@ VectorAddWithUtility @@>)
 
              
     // Test Generic types and operator overloading

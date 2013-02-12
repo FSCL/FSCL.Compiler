@@ -7,7 +7,7 @@ open System.Reflection
 open Microsoft.FSharp.Quotations
 
 [<StepProcessor("FSCL_DECLARATION_PRETTY_PRINTING_PROCESSOR", "FSCL_FUNCTION_PRETTY_PRINTING_STEP",
-                [| "FSCL_FOR_RANGE_PRETTY_PRINTING_PROCESSOR" |])>]
+                Dependencies =[| "FSCL_FOR_RANGE_PRETTY_PRINTING_PROCESSOR" |])>]
 type DeclarationPrinter() =   
     interface FunctionBodyPrettyPrintingProcessor with
         member this.Process(expr, en) =
