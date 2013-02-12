@@ -87,8 +87,10 @@ let testVectorAddEnergy() =
 [<EntryPoint>]
 let main argv =
     let compiler = new Compiler()
-
-    let r = compiler.Compile(<@@ VectorAddWithUtility @@>)
+    let a = Array.create 1000 1.0f
+    let b = Array.create 1000 2.0f
+    let c = Array.create 1000 2.0f
+    let r = compiler.Compile(<@@ VectorAddWithUtility(a,b,c) @@>)
 
              
     // Test Generic types and operator overloading

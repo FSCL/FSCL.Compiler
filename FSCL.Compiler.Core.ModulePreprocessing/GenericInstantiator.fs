@@ -55,6 +55,6 @@ type GenericInstantiator() =
                     | _ ->
                         ()
             else            
-                let kInfo = m.Source
+                let kInfo = new KernelInfo(m.Source.Signature, m.Source.Body)
                 m.Kernels <- m.Kernels @ [ kInfo ]
             

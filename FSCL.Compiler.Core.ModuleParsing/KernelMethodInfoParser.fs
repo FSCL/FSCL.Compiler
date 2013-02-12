@@ -17,7 +17,7 @@ type KernelMethodInfoParser() =
     interface ModuleParsingProcessor with
         member this.Process(mi, en) =
             let engine = en :?> ModuleParsingStep
-            if (mi.GetType() = typeof<MethodInfo>) then
+            if (mi :? MethodInfo) then
                 match GetKernelFromName(mi :?> MethodInfo, engine) with
                 | Some(mi, b) -> 
                     let km = new KernelModule()

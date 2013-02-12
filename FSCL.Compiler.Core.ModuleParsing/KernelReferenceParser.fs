@@ -1,5 +1,6 @@
 ﻿namespace FSCL.Compiler.ModuleParsing
 
+open System
 open FSCL.Compiler
 open System.Collections.Generic
 open System.Reflection
@@ -10,16 +11,23 @@ type KernelReferenceParser() =
     let rec GetKernelFromName(expr, k:ModuleParsingStep) =                    
         match expr with
         | Patterns.Lambda(v, e) -> 
+            Console.Write("Lambda\n")
             GetKernelFromName (e, k)
         | Patterns.Let (v, e1, e2) ->
+            Console.Write("Let\n")
             GetKernelFromName (e2, k)
         | Patterns.Call (e, mi, a) ->
+            Console.Write("Call\n")
             match mi with
             | DerivedPatterns.MethodWithReflectedDefinition(b) ->
+                Console.Write("Reflected definition\n")
                 Some(mi, b)
             | _ ->
+                Console.Write("Normal call\n")
+                raise (CompilerException("The engine is not able to parse a kernel inside the expression [" + expr.ToString() + "]"))
                 None
         | _ ->
+            raise (CompilerException("The engine is not able to parse a kernel inside the expression [" + expr.ToString() + "]"))
             None
         
     interface ModuleParsingProcessor with

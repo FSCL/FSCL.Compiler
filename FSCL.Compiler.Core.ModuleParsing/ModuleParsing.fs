@@ -6,7 +6,6 @@ open System.Collections.Generic
 open Microsoft.FSharp.Quotations
 open FSCL.Compiler
 
-
 [<Step("FSCL_MODULE_PARSING_STEP")>] 
 type ModuleParsingStep(tm: TypeManager,
                        processors: ModuleParsingProcessor list) = 
