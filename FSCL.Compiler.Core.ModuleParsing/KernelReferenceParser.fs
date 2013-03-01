@@ -6,6 +6,9 @@ open System.Collections.Generic
 open System.Reflection
 open Microsoft.FSharp.Quotations
 
+[<assembly:DefaultComponentAssembly>]
+do()
+
 [<StepProcessor("FSCL_KERNEL_REF_PARSING_PROCESSOR", "FSCL_MODULE_PARSING_STEP")>]
 type KernelReferenceParser() =      
     let rec GetKernelFromName(expr, k:ModuleParsingStep) =                    

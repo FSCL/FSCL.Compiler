@@ -8,7 +8,7 @@
     <ProjectGuid>431cb9ed-c613-46be-ad84-b4a0d8532487</ProjectGuid>
     <OutputType>Library</OutputType>
     <RootNamespace>FSCL.Compiler.Processors.ModulePrettyPrinting</RootNamespace>
-    <AssemblyName>FSCL.Compiler.Processors.ModulePrettyPrinting</AssemblyName>
+    <AssemblyName>FSCL.Compiler.Core.ModulePrettyPrinting</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <Name>FSCL.Compiler.Processors.ModulePrettyPrinting</Name>
   </PropertyGroup>

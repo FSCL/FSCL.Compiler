@@ -25,6 +25,9 @@ type TypeHandlerAttribute(i: string) =
     
     member val ID = i with get
     member val Before: string array = [||] with get, set
-
     
+[<AllowNullLiteral>]          
+[<AttributeUsage(AttributeTargets.Assembly)>]
+type DefaultComponentAssembly() =
+    inherit Attribute()
   

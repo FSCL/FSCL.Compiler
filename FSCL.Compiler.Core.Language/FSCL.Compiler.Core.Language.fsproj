@@ -8,7 +8,7 @@
     <ProjectGuid>{02cc39bd-a326-49f6-b5e6-2987eada1ba2}</ProjectGuid>
     <OutputType>Library</OutputType>
     <RootNamespace>FSCL.Compiler.Language</RootNamespace>
-    <AssemblyName>FSCL.Compiler.Language</AssemblyName>
+    <AssemblyName>FSCL.Compiler.Core.Language</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <Name>FSCL.Compiler.Language</Name>
   </PropertyGroup>

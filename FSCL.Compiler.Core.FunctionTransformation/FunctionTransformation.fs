@@ -6,6 +6,9 @@ open System.Reflection
 open System.Collections.Generic
 open Microsoft.FSharp.Quotations
 
+[<assembly:DefaultComponentAssembly>]
+do()
+
 [<Step("FSCL_FUNCTION_TRANSFORMATION_STEP",
        Dependencies = [| "FSCL_FUNCTION_PREPROCESSING_STEP";
                          "FSCL_MODULE_PREPROCESSING_STEP"; 

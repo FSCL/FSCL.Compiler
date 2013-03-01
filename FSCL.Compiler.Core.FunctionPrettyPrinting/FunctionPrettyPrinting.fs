@@ -6,6 +6,9 @@ open System.Collections.Generic
 open Microsoft.FSharp.Quotations
 open FSCL.Compiler
 
+[<assembly:DefaultComponentAssembly>]
+do()
+
 [<Step("FSCL_FUNCTION_PRETTY_PRINTING_STEP",
       Dependencies = [| "FSCL_FUNCTION_TRANSFORMATION_STEP";
                         "FSCL_FUNCTION_PREPROCESSING_STEP";

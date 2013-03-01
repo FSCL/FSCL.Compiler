@@ -7,24 +7,25 @@ open FSCL.Compiler
 open FSCL.Compiler.Configuration
 
 type Compiler =  
-    val mutable private pluginManager : CompilerConfigurationManager
     val mutable private steps : ICompilerStep list
-        
-    new() as this = { pluginManager = new CompilerConfigurationManager(); steps = []; }   
+    val mutable private configuration: CompilerConfiguration
+
+    new() as this = { steps = []; configuration = CompilerConfigurationManager.LoadConfiguration() }   
                     then
-                        this.pluginManager.FromStorage()
-                        this.steps <- this.pluginManager.Build()
+                        this.steps <- CompilerConfigurationManager.Build()
     
-    new(file: string) as this = { pluginManager = new CompilerConfigurationManager(); steps = []; }   
+    new(file: string) as this = { steps = []; configuration = CompilerConfigurationManager.LoadConfiguration(file) }   
                                 then
-                                    this.pluginManager.FromFile(file)
-                                    this.steps <- this.pluginManager.Build()
+                                    this.steps <- CompilerConfigurationManager.Build(file)
     
-    new(conf: CompilerConfiguration) as this = { pluginManager = new CompilerConfigurationManager(); steps = []; }   
+    new(conf: CompilerConfiguration) as this = { steps = []; configuration = conf }   
                                                 then
-                                                    this.pluginManager.FromConfiguration(conf)
-                                                    this.steps <- this.pluginManager.Build()
+                                                    this.steps <- CompilerConfigurationManager.Build(conf)
                                                     
+    member this.Configuration 
+        with get() =
+            this.configuration
+
     member this.Compile(input) =
         let mutable state = input
         for step in this.steps do

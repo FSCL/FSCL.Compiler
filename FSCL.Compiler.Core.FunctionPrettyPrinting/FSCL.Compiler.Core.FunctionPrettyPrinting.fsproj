@@ -8,7 +8,7 @@
     <ProjectGuid>a0eb369a-a29e-4bb9-8b16-cf406e42f534</ProjectGuid>
     <OutputType>Library</OutputType>
     <RootNamespace>FSCL.Compiler.Processors.PrettyPrinting</RootNamespace>
-    <AssemblyName>FSCL.Compiler.Processors.PrettyPrinting</AssemblyName>
+    <AssemblyName>FSCL.Compiler.Core.FunctionPrettyPrinting</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <Name>FSCL.Compiler.Processors.FunctionPrettyPrinting</Name>
   </PropertyGroup>

@@ -8,7 +8,7 @@
     <ProjectGuid>76611cb9-7f4f-4842-bee6-03eecaf79894</ProjectGuid>
     <OutputType>Library</OutputType>
     <RootNamespace>FSCL.Compiler.Processors.Transformation</RootNamespace>
-    <AssemblyName>FSCL.Compiler.Processors.Transformation</AssemblyName>
+    <AssemblyName>FSCL.Compiler.Core.FunctionTransformation</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <Name>FSCL.Compiler.Processors.FunctionTransformation</Name>
   </PropertyGroup>

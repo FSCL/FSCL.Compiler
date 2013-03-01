@@ -8,7 +8,7 @@
     <ProjectGuid>ec288651-4f88-44d7-9206-7a0260552ecc</ProjectGuid>
     <OutputType>Library</OutputType>
     <RootNamespace>FSCL.Compiler.Processors.Type</RootNamespace>
-    <AssemblyName>FSCL.Compiler.Processors.Type</AssemblyName>
+    <AssemblyName>FSCL.Compiler.Core.Types</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <Name>FSCL.Compiler.Processors.Type</Name>
   </PropertyGroup>

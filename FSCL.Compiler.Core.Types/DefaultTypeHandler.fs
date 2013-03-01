@@ -6,6 +6,9 @@ open Microsoft.FSharp.Quotations
 open System.Collections.Generic
 open System.Reflection
 
+[<assembly:DefaultComponentAssembly>]
+do()
+
 [<TypeHandler("FSCL_DEFAULT_TYPE_HANDLER")>]
 type DefaultTypeHandler() =       
     inherit TypeHandler() with

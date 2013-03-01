@@ -8,7 +8,7 @@
     <ProjectGuid>{2089ba93-e786-42e3-b717-58105c53bb7a}</ProjectGuid>
     <OutputType>Library</OutputType>
     <RootNamespace>QuotationEvaluation</RootNamespace>
-    <AssemblyName>QuotationEvaluation</AssemblyName>
+    <AssemblyName>FSCL.Compiler.Core.Util</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <Name>QuotationEvaluation</Name>
   </PropertyGroup>

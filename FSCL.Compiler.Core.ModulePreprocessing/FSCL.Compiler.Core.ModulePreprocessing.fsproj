@@ -8,7 +8,7 @@
     <ProjectGuid>898f5ec0-3903-40e0-98bd-ee2e5746620f</ProjectGuid>
     <OutputType>Library</OutputType>
     <RootNamespace>FSCL.Compiler.ModuleBuilding</RootNamespace>
-    <AssemblyName>FSCL.Compiler.ModuleBuilding</AssemblyName>
+    <AssemblyName>FSCL.Compiler.Core.ModulePreprocessing</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <Name>FSCL.Compiler.Processors.ModulePreprocessing</Name>
   </PropertyGroup>
