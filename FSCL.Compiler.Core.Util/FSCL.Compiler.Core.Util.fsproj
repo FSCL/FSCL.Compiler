@@ -41,7 +41,6 @@
     <Reference Include="System.Numerics" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Script.fsx" />
     <Compile Include="QuotationEvaluation.fs" />
     <Compile Include="CombinationGenerator.fs" />
   </ItemGroup>

@@ -277,7 +277,10 @@ type CompilerConfiguration(defSteps, sources: SourceConfiguration list) =
         
     member this.IsDefault 
         with get() =
-            this.Sources |> List.map(fun (el:SourceConfiguration) -> el.IsDefault) |> List.reduce(fun (el1:bool) (el2:bool) -> el1 && el2)
+            if this.Sources.IsEmpty then
+                false
+            else
+                this.Sources |> List.map(fun (el:SourceConfiguration) -> el.IsDefault) |> List.reduce(fun (el1:bool) (el2:bool) -> el1 && el2)
             
     member this.LoadDefaultSteps 
         with get() = 

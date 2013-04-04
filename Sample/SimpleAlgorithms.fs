@@ -8,16 +8,6 @@ open FSCL.Compiler.KernelLanguage
 let VectorAdd(a: float32[], b: float32[], c: float32[]) =
     let gid = get_global_id(0)
     c.[gid] <- a.[gid] + b.[gid]
-    
-// Vector addition with utility function
-[<ReflectedDefinition>]
-let sum(a:float32, b:float32) =
-    a + b
-
-[<ReflectedDefinition>]
-let VectorAddWithUtility(a: float32[], b: float32[], c: float32[]) =
-    let gid = get_global_id(0)
-    c.[gid] <- sum(a.[gid], b.[gid])
 
 // Matrix convolution
 [<ReflectedDefinition>]
