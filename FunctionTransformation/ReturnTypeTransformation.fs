@@ -77,8 +77,8 @@ type ReturnTypeTransformation() =
             let engine = en :?> FunctionTransformationStep
             match expr with
             | Patterns.Let(var, value, body) ->
-                match value with                    
-                | Patterns.Call(o, methodInfo, args) ->
+                match value with
+                | Patterns.Call(o, methodInfo, args) ->               
                     if (methodInfo.DeclaringType.Name = "ArrayModule" && methodInfo.Name = "ZeroCreate") ||
                         (methodInfo.DeclaringType.Name = "Array2DModule" && methodInfo.Name = "ZeroCreate") ||
                         (methodInfo.DeclaringType.Name = "Array3DModule" && methodInfo.Name = "ZeroCreate") then

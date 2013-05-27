@@ -28,7 +28,7 @@ type AcceleratedArrayParser() =
     let handlers = new Dictionary<MethodInfo, IAcceleratedCollectionHandler>()
     do 
         handlers.Add(FilterCall(<@ Array.map @>, fun(e, mi, a) -> mi.GetGenericMethodDefinition()).Value, new AcceleratedArrayMapHandler())
-        handlers.Add(FilterCall(<@ Array.reduce @>, fun(e, mi, a) -> mi.GetGenericMethodDefinition()).Value, new AcceleratedArrayReduceHandler())
+        //handlers.Add(FilterCall(<@ Array.reduce @>, fun(e, mi, a) -> mi.GetGenericMethodDefinition()).Value, new AcceleratedArrayReduceHandler())
     
     interface ModuleParsingProcessor with
         member this.Process(o, en) =

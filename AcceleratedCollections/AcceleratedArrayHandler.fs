@@ -111,7 +111,7 @@ type AcceleratedArrayMapHandler() =
                     None
             | _ ->
                 None
-                        
+                        (*
 type AcceleratedArrayReduceHandler() =
     let placeholderComp(a:int, b:int) =
         a + b
@@ -175,3 +175,4 @@ type AcceleratedArrayReduceHandler() =
             | _ ->
                 None
             
+            *)

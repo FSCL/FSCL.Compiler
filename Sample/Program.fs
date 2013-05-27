@@ -12,6 +12,7 @@ let VectorAdd(a: float32[], b: float32[], c: float32[]) =
 [<EntryPoint>]
 let main argv =
     let compiler = new Compiler()
-    compiler.Compile(<@@ VectorAdd @@>)
+    compiler.Compile(<@@ VectorAdd @@>) |> ignore
+    0
 
 
