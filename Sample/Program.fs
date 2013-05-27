@@ -1,14 +1,17 @@
-﻿// Learn more about F# at http://fsharp.net
-// See the 'F# Tutorial' project for more help.
+﻿// Compiler user interface
 open FSCL.Compiler
+// Kernel language library
 open FSCL.Compiler.KernelLanguage
-open SimpleAlgorithms
-open AdvancedFeatures
-open Microsoft.FSharp.Collections
-open Microsoft.FSharp.Quotations
     
+// Vector addition
+[<ReflectedDefinition>]
+let VectorAdd(a: float32[], b: float32[], c: float32[]) =
+    let gid = get_global_id(0)
+    c.[gid] <- a.[gid] + b.[gid]
+
 [<EntryPoint>]
 let main argv =
     let compiler = new Compiler()
-    let result = compiler.Compile(<@@ VectorAddRecord @@>)
-    0
+    compiler.Compile(<@@ VectorAdd @@>)
+
+

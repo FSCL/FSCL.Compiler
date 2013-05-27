@@ -1,58 +1,57 @@
-﻿
-// See the 'F# Tutorial' project for more help.
+﻿// See the 'F# Tutorial' project for more help.
 open FSCL.Compiler
 open FSCL.Compiler.KernelLanguage
 open Microsoft.FSharp.Collections
 open Microsoft.FSharp.Quotations
 open System.Collections.Generic
 open System
-open CombinationGenerator
+
+// Vector addition
+[<ReflectedDefinition>]
+let Vector4DAdd(a: float4[], b: float4[], c: float4[]) =
+    let gid = get_global_id(0)
+    c.[gid] <- a.[gid] + b.[gid]
+    
+[<ReflectedDefinition>]
+let Vector4DInvert(a: float4[], b: float4[], c: float4[]) =
+    let gid = get_global_id(0)
+    c.[gid].zwyx <- a.[gid].zwyx + b.[gid].zwyw
+    
+[<ReflectedDefinition>]
+let Vector4DManipulation(a: float4[], b: float4[], c: float2[]) =
+    let gid = get_global_id(0)
+    let first = (a.[gid].xy + b.[gid].xy)
+    let second = (a.[gid].wz + b.[gid].wz)
+    c.[gid].x <- first.x + first.y
+    c.[gid].y <- second.x + second.y
 
 [<EntryPoint>]
 let main argv =
-    let a = FSCL.Compiler.Float4D()
-    let b = FSCL.Compiler.Float2D()
-    let c = FSCL.Compiler.Float4D()
-    b.xy <- a.xx
-    let d = a + c
-    let e = a >>= c
-    0
-    // Test Generic types and operator overloading
-    //runner.Run (<@ a + b @>, [| a.Length |], [| 128 |])
-    (*
-    // Test conversion with new pipeline
-    //let oldel1 = FSCL.KernelBinding.Compile(<@ MatrixMult @>)
-    //let oldel = FSCL.KernelBinding.Compile(<@ Reduce @>)
-        
-    // Dump memory transfer energy profiling
-    let transferMetric = TransferEnergyMetric("131.114.88.115") 
-    transferMetric.Validate <- true
-    transferMetric.DumpFolder <- Some("Dump")
-    transferMetric.MinSize <- (1 <<< 10)
-    transferMetric.MaxSize <- (32 <<< 20)
-    transferMetric.Step <- (1 <<< 20)
-    transferMetric.PerStepDuration <- 20000
-    transferMetric.SrcInfo <- TransferEnergy.Data.TransferEndpoint()
-    transferMetric.DstInfo <- TransferEnergy.Data.TransferEndpoint()
-    transferMetric.SrcInfo.IsHostPtr <- true
-    transferMetric.DstInfo.IsHostPtr <- false
-    for device in ComputePlatform.Platforms.[0].Devices do
-        transferMetric.Profile(device) |> ignore
-        
-    // Test vector addition
+    let compiler = Compiler()
+    let mutable result = compiler.Compile(<@ Vector4DAdd @>)
+    result <- compiler.Compile(<@ Vector4DInvert @>)
+    result <- compiler.Compile(<@ Vector4DManipulation @>)
     
-               
-    // Test vector reduction
-    let redA = Array.create 1024 10
-    let redB = Array.zeroCreate<int> 128
-    let redC = Array.zeroCreate<int> 1024
-    runner.Run(<@ Reduce(redA, redB, 1024, redC) @>, [| 1024 |], [| 128 |])
+    let template = 
+        <@
+            fun(g_idata:int[], [<Local>]sdata:int[], n, g_odata:int[]) ->
+                let tid = get_local_id(0)
+                let i = get_group_id(0) * (get_local_size(0) * 2) + get_local_id(0)
 
-    // Test matrix multiplication
-    let matA = Array2D.create 64 64 2.0f 
-    let matB = Array2D.create 64 64 2.0f
-    let matC = Array2D.zeroCreate<float32> 64 64
-    runner.Run(<@ MatrixMult(matA, matB, matC) @>, 
-               [| matA.GetLength(0); matA.GetLength(1) |], [| 8; 8 |])
-    *)
+                sdata.[tid] <- if(i < n) then g_idata.[i] else 0
+                if (i + get_local_size(0) < n) then 
+                    sdata.[tid] <- sdata.[tid] + g_idata.[i + get_local_size(0)]
+
+                barrier(CLK_LOCAL_MEM_FENCE)
+                // do reduction in shared mem
+                let mutable s = get_local_size(0) >>> 1
+                while (s > 0) do 
+                    if (tid < s) then
+                        sdata.[tid] <- sdata.[tid] + sdata.[tid + s]
+                    barrier(CLK_LOCAL_MEM_FENCE)
+                    s <- s >>> 1
+
+                if (tid = 0) then 
+                    g_odata.[get_group_id(0)] <- sdata.[0]
+        @>
     0

@@ -36,9 +36,6 @@
     <Prefer32Bit>true</Prefer32Bit>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="FSCL.Compiler.Core.VectorTypes">
-      <HintPath>..\FSCL.Compiler.Core.VectorTypes\FSCL.Compiler.Core.VectorTypes\bin\Debug\FSCL.Compiler.Core.VectorTypes.dll</HintPath>
-    </Reference>
     <Reference Include="mscorlib" />
     <Reference Include="FSharp.Core, Version=4.3.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
       <Private>True</Private>
@@ -50,32 +47,21 @@
   <ItemGroup>
     <Compile Include="Program.fs" />
     <None Include="App.config" />
-    <None Include="Script1.fsx" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\FSCL.Compiler.Core.Language\FSCL.Compiler.Core.Language.fsproj">
+    <ProjectReference Include="..\Compiler\FSCL.Compiler.fsproj">
+      <Name>FSCL.Compiler</Name>
+      <Project>{5d7c3db1-3300-455e-bf2a-3fb52bdc0595}</Project>
+      <Private>True</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\Language\FSCL.Compiler.Core.Language.fsproj">
       <Name>FSCL.Compiler.Core.Language</Name>
       <Project>{02cc39bd-a326-49f6-b5e6-2987eada1ba2}</Project>
       <Private>True</Private>
     </ProjectReference>
-    <ProjectReference Include="..\FSCL.Compiler.Core.Types\FSCL.Compiler.Core.Types.fsproj">
-      <Name>FSCL.Compiler.Core.Types</Name>
-      <Project>{ec288651-4f88-44d7-9206-7a0260552ecc}</Project>
-      <Private>True</Private>
-    </ProjectReference>
-    <ProjectReference Include="..\FSCL.Compiler.Core.Util\FSCL.Compiler.Core.Util.fsproj">
-      <Name>FSCL.Compiler.Core.Util</Name>
-      <Project>{2089ba93-e786-42e3-b717-58105c53bb7a}</Project>
-      <Private>True</Private>
-    </ProjectReference>
-    <ProjectReference Include="..\FSCL.Compiler.Core\FSCL.Compiler.Core.fsproj">
-      <Name>FSCL.Compiler.Core</Name>
-      <Project>{7635ade1-ac00-4587-8117-3faa15be9318}</Project>
-      <Private>True</Private>
-    </ProjectReference>
-    <ProjectReference Include="..\FSCL.Compiler\FSCL.Compiler.fsproj">
-      <Name>FSCL.Compiler</Name>
-      <Project>{5d7c3db1-3300-455e-bf2a-3fb52bdc0595}</Project>
+    <ProjectReference Include="..\VectorTypes\FSCL.Compiler.Core.VectorTypes.fsproj">
+      <Name>FSCL.Compiler.Core.VectorTypes</Name>
+      <Project>{4e60e123-e793-4fed-a316-b0d6039764e8}</Project>
       <Private>True</Private>
     </ProjectReference>
   </ItemGroup>
