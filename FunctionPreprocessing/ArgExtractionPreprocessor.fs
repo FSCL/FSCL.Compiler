@@ -10,6 +10,7 @@ open System
 
 [<StepProcessor("FSCL_ARG_EXTRACTION_PREPROCESSING_PROCESSOR", "FSCL_FUNCTION_PREPROCESSING_STEP")>] 
 type ArgExtractionPreprocessor() =
+    inherit FunctionPreprocessingProcessor()
     let rec LiftArgExtraction (expr, parameters: ParameterInfo[]) =
         match expr with
         | Patterns.Lambda(v, e) ->
@@ -29,9 +30,8 @@ type ArgExtractionPreprocessor() =
                 expr
         | _ ->
             expr
-
-    interface FunctionPreprocessingProcessor with
-        member this.Process(fi, en) =
-            fi.Body <- LiftArgExtraction(fi.Body, fi.Signature.GetParameters())
+        
+    override this.Run(fi, en) =
+        fi.Body <- LiftArgExtraction(fi.Body, fi.Signature.GetParameters())
             
 

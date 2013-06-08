@@ -11,6 +11,7 @@ open System
     
 [<StepProcessor("FSCL_STRUCT_DISCOVERY_PROCESSOR", "FSCL_MODULE_PREPROCESSING_STEP")>] 
 type StructDiscover() = 
+    inherit ModulePreprocessingProcessor()
     let rec CollectStructs(e: Expr, structs: Dictionary<Type, unit>) =
         let t = e.Type
         // If the type of the expression is a struct not already added to the collection, add it
@@ -33,12 +34,11 @@ type StructDiscover() =
                     structs.Add(t, ())
             List.iter(fun (e:Expr) -> CollectStructs(e, structs)) l
 
-    interface ModulePreprocessingProcessor with
-        member this.Process(km, en) =
-            let engine = en :?> ModulePreprocessingStep
-            let structsDict = new Dictionary<Type, unit>()
-            CollectStructs(km.Source.Body, structsDict)
-            // Store the struct types inside kernel module as a flat list
-            km.GlobalTypes <- km.GlobalTypes @ List.ofSeq(seq { for item in structsDict.Keys do yield item })
+    override this.Run(km, en) =
+        let engine = en :?> ModulePreprocessingStep
+        let structsDict = new Dictionary<Type, unit>()
+        CollectStructs(km.Source.Body, structsDict)
+        // Store the struct types inside kernel module as a flat list
+        km.GlobalTypes <- km.GlobalTypes @ List.ofSeq(seq { for item in structsDict.Keys do yield item })
              
             

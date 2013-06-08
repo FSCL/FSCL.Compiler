@@ -1,10 +1,10 @@
 ﻿// Begin sample
 open FSCL.Compiler.FunctionPreprocessing
-open FSCL.Compiler.FunctionPrettyPrinting
+open FSCL.Compiler.FunctionCodegen
 open FSCL.Compiler.FunctionTransformation
 open FSCL.Compiler.ModuleParsing
 open FSCL.Compiler.ModulePreprocessing
-open FSCL.Compiler.ModulePrettyPrinting
+open FSCL.Compiler.ModuleCodegen
 open FSCL.Compiler.Types
 
 open FSCL.Compiler
@@ -87,13 +87,13 @@ let main argv =
                                                 SourceConfiguration(
                                                     AssemblySource(typeof<FunctionTransformationStep>.Assembly));
                                                 SourceConfiguration(
-                                                    AssemblySource(typeof<FunctionPrettyPrintingStep>.Assembly));
+                                                    AssemblySource(typeof<FunctionCodegenStep>.Assembly));
                                                 SourceConfiguration(
                                                     AssemblySource(typeof<ModuleParsingStep>.Assembly));
                                                 SourceConfiguration(
                                                     AssemblySource(typeof<ModulePreprocessingStep>.Assembly));
                                                 SourceConfiguration(
-                                                    AssemblySource(typeof<ModulePrettyPrintingStep>.Assembly));
+                                                    AssemblySource(typeof<ModuleCodegenStep>.Assembly));
                                                 SourceConfiguration(
                                                     AssemblySource(typeof<DefaultTypeHandler>.Assembly))
                                               ])
@@ -128,13 +128,13 @@ let main argv =
                                                 SourceConfiguration(
                                                     AssemblySource(typeof<FunctionTransformationStep>.Assembly));
                                                 SourceConfiguration(
-                                                    AssemblySource(typeof<FunctionPrettyPrintingStep>.Assembly));
+                                                    AssemblySource(typeof<FunctionCodegenStep>.Assembly));
                                                 SourceConfiguration(
                                                     AssemblySource(typeof<ModuleParsingStep>.Assembly));
                                                 SourceConfiguration(
                                                     AssemblySource(typeof<ModulePreprocessingStep>.Assembly));
                                                 SourceConfiguration(
-                                                    AssemblySource(typeof<ModulePrettyPrintingStep>.Assembly));
+                                                    AssemblySource(typeof<ModuleCodegenStep>.Assembly));
                                                 SourceConfiguration(
                                                     AssemblySource(typeof<DefaultTypeHandler>.Assembly))
                                               ])

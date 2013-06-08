@@ -10,6 +10,8 @@ open Microsoft.FSharp.Quotations
                 Dependencies = [| "FSCL_RETURN_TYPE_TRANSFORMATION_PROCESSOR";
                                   "FSCL_GLOBAL_VAR_REF_TRANSFORMATION_PROCESSOR" |])>]
 type ConditionalAssignmentTransformation() =   
+    inherit FunctionTransformationProcessor()
+
     let rec MoveAssignmentIntoBody(var:Var, expr, engine:FunctionTransformationStep) =
         match expr with
         | Patterns.Sequential (e1, e2) ->
@@ -53,40 +55,39 @@ type ConditionalAssignmentTransformation() =
         | _ ->
             raise (CompilerException("Cannot determine variable assignment in if-then-else construct. Try to transform v = if .. else ..; into v; if .. v <- .. else .. v <- .."))
                                                  
-    interface FunctionTransformationProcessor with
-        member this.Process(expr, en) =
-            let engine = en :?> FunctionTransformationStep
-            match expr with
-            | Patterns.Let(v, e, body) ->
-                match e with
-                | Patterns.IfThenElse(cond, ib, eb) ->                    
-                    let fixedExpr = MoveAssignmentIntoBody(v, e, engine)
-                    Expr.Sequential(
-                        Expr.Let(v, e, Expr.Value(0)),
-                        engine.Continue(fixedExpr))
-                | _ ->
-                    engine.Default(expr)
-            | Patterns.VarSet (v, e) ->
-                match e with
-                | Patterns.IfThenElse(cond, ib, eb) ->                    
-                    let fixedExpr = MoveAssignmentIntoBody(v, e, engine)
-                    engine.Continue(fixedExpr)
-                | _ ->
-                    engine.Default(expr)                 
-            | Patterns.Call (e, mi, a) ->
-                if mi.DeclaringType.Name = "IntrinsicFunctions" then                    
-                    if mi.Name.StartsWith "SetArray" then
-                        let substituteIndex = a.Length - 1
+    override this.Run(expr, en) =
+        let engine = en :?> FunctionTransformationStep
+        match expr with
+        | Patterns.Let(v, e, body) ->
+            match e with
+            | Patterns.IfThenElse(cond, ib, eb) ->                    
+                let fixedExpr = MoveAssignmentIntoBody(v, e, engine)
+                Expr.Sequential(
+                    Expr.Let(v, e, Expr.Value(0)),
+                    engine.Continue(fixedExpr))
+            | _ ->
+                engine.Default(expr)
+        | Patterns.VarSet (v, e) ->
+            match e with
+            | Patterns.IfThenElse(cond, ib, eb) ->                    
+                let fixedExpr = MoveAssignmentIntoBody(v, e, engine)
+                engine.Continue(fixedExpr)
+            | _ ->
+                engine.Default(expr)                 
+        | Patterns.Call (e, mi, a) ->
+            if mi.DeclaringType.Name = "IntrinsicFunctions" then                    
+                if mi.Name.StartsWith "SetArray" then
+                    let substituteIndex = a.Length - 1
 
-                        match a.[substituteIndex] with
-                        | Patterns.IfThenElse(cond, ib, eb) ->                    
-                            let fixedExpr = MoveArraySetIntoBody(e, mi, a, substituteIndex, a.[substituteIndex], engine)
-                            engine.Continue(fixedExpr)
-                        | _ ->
-                           engine.Default(expr)
-                    else
+                    match a.[substituteIndex] with
+                    | Patterns.IfThenElse(cond, ib, eb) ->                    
+                        let fixedExpr = MoveArraySetIntoBody(e, mi, a, substituteIndex, a.[substituteIndex], engine)
+                        engine.Continue(fixedExpr)
+                    | _ ->
                         engine.Default(expr)
                 else
                     engine.Default(expr)
-            | _ ->
-                engine.Default(expr)                   
+            else
+                engine.Default(expr)
+        | _ ->
+            engine.Default(expr)                   

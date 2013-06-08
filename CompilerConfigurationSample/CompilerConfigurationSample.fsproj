@@ -71,8 +71,8 @@
       <Project>{ed8c50cd-4155-4d3a-a682-76757fb2b8d7}</Project>
       <Private>True</Private>
     </ProjectReference>
-    <ProjectReference Include="..\FunctionPrettyPrinting\FSCL.Compiler.Core.FunctionPrettyPrinting.fsproj">
-      <Name>FSCL.Compiler.Core.FunctionPrettyPrinting</Name>
+    <ProjectReference Include="..\FunctionPrettyPrinting\FSCL.Compiler.Core.FunctionCodegen.fsproj">
+      <Name>FSCL.Compiler.Core.FunctionCodegen</Name>
       <Project>{a0eb369a-a29e-4bb9-8b16-cf406e42f534}</Project>
       <Private>True</Private>
     </ProjectReference>
@@ -96,8 +96,8 @@
       <Project>{898f5ec0-3903-40e0-98bd-ee2e5746620f}</Project>
       <Private>True</Private>
     </ProjectReference>
-    <ProjectReference Include="..\ModulePrettyPrinting\FSCL.Compiler.Core.ModulePrettyPrinting.fsproj">
-      <Name>FSCL.Compiler.Core.ModulePrettyPrinting</Name>
+    <ProjectReference Include="..\ModulePrettyPrinting\FSCL.Compiler.Core.ModuleCodegen.fsproj">
+      <Name>FSCL.Compiler.Core.ModuleCodegen</Name>
       <Project>{431cb9ed-c613-46be-ad84-b4a0d8532487}</Project>
       <Private>True</Private>
     </ProjectReference>

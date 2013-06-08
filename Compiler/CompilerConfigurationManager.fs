@@ -7,11 +7,11 @@ open System.Collections.Generic
 open FSCL.Compiler
 open FSCL.Compiler.FunctionPreprocessing
 open FSCL.Compiler.ModuleParsing
-open FSCL.Compiler.FunctionPrettyPrinting
+open FSCL.Compiler.FunctionCodegen
 open FSCL.Compiler.FunctionTransformation
 open FSCL.Compiler.ModulePreprocessing
 open FSCL.Compiler.Types
-open FSCL.Compiler.ModulePrettyPrinting
+open FSCL.Compiler.ModuleCodegen
 open System.Xml
 open System.Xml.Linq
 
@@ -19,22 +19,13 @@ exception CompilerConfigurationException of string
 
 type CompilerConfigurationManager() = 
     // Trick to guarantee the default components assemblies are loaded
-    static member private defAssemblyComponents = [
-                                    typeof<SignaturePreprocessor>;
-                                    typeof<SignaturePrinter>;
-                                    typeof<ReturnLifting>;
-                                    typeof<KernelReferenceParser>;
-                                    typeof<GenericInstantiator>;
-                                    typeof<ModulePrettyPrinter>;
-                                    typeof<DefaultTypeHandler>;
-                                    typeof<VectorTypeHandler>;
-                                ]
+    static member private defAssemblyComponents = [typeof<SignaturePreprocessor>; typeof<SignatureCodegen>; typeof<ReturnLifting>; typeof<KernelReferenceParser>; typeof<GenericInstantiator>; typeof<ModuleCodegen>; typeof<DefaultTypeHandler>; typeof<VectorTypeHandler>; ]
 
     // The root where to place configuration file
     static member ConfigurationRoot = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "FSCL.Compiler")
     // The root where to place plugins and configuration file
     static member ComponentsRoot = Path.Combine(CompilerConfigurationManager.ConfigurationRoot, "Components")
-      
+    
     // Default configuration
     static member DefaultConfiguration() =
         let sources = List<SourceConfiguration>()
@@ -64,24 +55,21 @@ type CompilerConfigurationManager() =
             CompilerConfiguration(true, List.ofSeq sources)
         else
             CompilerConfiguration(true)
-
-    // Store configuration
+            
     static member StoreConfiguration(conf: CompilerConfiguration, f: string) =
         conf.MakeExplicit().ToXml().Save(f)
               
-    // Build from storage
     static member Build() =
         let conf = CompilerConfigurationManager.LoadConfiguration()
         CompilerConfigurationManager.Build(conf)
 
+
     // Build from file
     static member Build(cf: string) =
-        let i = 0
         let conf = CompilerConfigurationManager.LoadConfiguration(cf)
         CompilerConfigurationManager.Build(conf)
         
-    // Build from configuration object
     static member Build(conf: CompilerConfiguration) =
         let explicitConf = conf.MergeDefault(CompilerConfigurationManager.DefaultConfiguration())
         CompilerBuilder.Build(explicitConf)
-        
+

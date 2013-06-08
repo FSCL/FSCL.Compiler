@@ -5,42 +5,167 @@ open System.Reflection
 open System.Collections.Generic
 open Microsoft.FSharp.Quotations
 
-type [<AbstractClass>] ICompilerStep(tm: TypeManager) =
-    member val TypeManager = tm with get
+///
+///<summary>
+///The base type of every compiler step processor
+///</summary>
+///<remarks>
+///Developers of step processors should not inherit from this class but from the generic CompilerStepProcessor and provide an implementation to the method "Run"
+///</remarks>
+///
+type ICompilerStepProcessor() =   
+    ///
+    ///<summary>
+    ///The method to be called to execute the processor
+    ///</summary>
+    ///<remarks>
+    ///This method looks for a method called "Run" in the runtime time definition of this instance and invokes it using the provided parameter
+    ///</remarks>
+    ///<param name="obj">The input of the processor</param>
+    ///<param name="owner">The owner step</param>
+    ///<returns>The output produced by this processor</returns>
+    /// 
+    member this.Execute(obj, owner) =
+        let methods = this.GetType().GetMethods()
+        let meth = Array.tryFind(fun (meth: MethodInfo) -> meth.Name = "Run") methods
+        meth.Value.Invoke(this, [| obj; owner |])
+
+///
+///<summary>
+///The base type of every compiler step
+///</summary>
+///<remarks>
+///Developers of steps should not inherit from this class but from the generic CompilerStep and provide an implementation to the method "Run"
+///</remarks>
+///
+and [<AbstractClass>] ICompilerStep(tm: TypeManager, processors:ICompilerStepProcessor list) =
+    ///
+    ///<summary>
+    ///The compiler type manager
+    ///</summary>
+    /// 
+    member val TypeManager = tm with get    
+    ///
+    ///<summary>
+    ///The set of step processors
+    ///</summary>
+    /// 
+    member val Processors = processors with get
+    ///
+    ///<summary>
+    ///The method to be called to execute the step
+    ///</summary>
+    ///<remarks>
+    ///This method looks for a method called "Run" in the runtime time definition of this instance and invokes it using the provided parameter
+    ///</remarks>
+    ///<param name="obj">The input of the step</param>
+    ///<returns>The output produced by this step</returns>
+    /// 
     member this.Execute(obj) =
         let methods = this.GetType().GetMethods()
         let meth = Array.tryFind(fun (meth: MethodInfo) -> meth.Name = "Run") methods
         meth.Value.Invoke(this, [| obj |])
         
+///
+///<summary>
+///The generic base class of compiler steps
+///</summary>
+/// 
 [<AbstractClass>]
-type CompilerStep<'T,'U>(tm) =
-    inherit ICompilerStep(tm)
-
+type CompilerStep<'T,'U>(tm, processors) =
+    inherit ICompilerStep(tm, processors)    
+    ///
+    ///<summary>
+    ///The abstract method that every step must implement to define the behavior of the step
+    ///</summary>
+    ///<param>An instance of type 'T</param>
+    ///<returns>An instance of type 'U</returns>
+    /// 
     abstract member Run: 'T -> 'U
     
-type ICompilerStepProcessor =
-    interface
-    end
-
-type CompilerStepProcessor<'T,'U> =
-    inherit ICompilerStepProcessor
-
-    abstract member Process: 'T * ICompilerStep -> 'U
+///
+///<summary>
+///The generic base class of compiler step processors
+///</summary>
+/// 
+type [<AbstractClass>] CompilerStepProcessor<'T,'U>() =
+    inherit ICompilerStepProcessor()
+    
+    ///
+    ///<summary>
+    ///The abstract method that every step processors must implement to define the behavior of the processor
+    ///</summary>
+    ///<param>An instance of type 'T</param>
+    ///<param>The owner step</param>
+    ///<returns>An instance of type 'U</returns>
+    /// 
+    abstract member Run: 'T * ICompilerStep -> 'U
         
-type CompilerStepProcessor<'T> =
-    inherit ICompilerStepProcessor
+///
+///<summary>
+///The generic base class of step processors that don't produce any output
+///</summary>
+/// 
+type [<AbstractClass>] CompilerStepProcessor<'T>() =
+    inherit ICompilerStepProcessor()
+    
+    ///
+    ///<summary>
+    ///The abstract method that the step processors must implement to define their behaviour
+    ///</summary>
+    ///<param>An instance of type 'T</param>
+    ///<param>The owner step</param>
+    /// 
+    abstract member Run: 'T * ICompilerStep -> unit
 
-    abstract member Process: 'T * ICompilerStep -> unit
-
-// Alias for processors of deafult steps
+///
+///<summary>
+///Alias of unit
+///</summary>
+/// 
 type NoResult = unit
+///
+///<summary>
+///The type of the processors of the module parsing step. Alias of CompilerStepProcessor&lt;obj, KernelModule option&gt;
+///</summary>
+/// 
 type ModuleParsingProcessor = CompilerStepProcessor<obj, KernelModule option>
+///
+///<summary>
+///The type of the processors of the module preprocessing step. Alias of CompilerStepProcessor&lt;KernelModule&gt;
+///</summary>
+/// 
 type ModulePreprocessingProcessor = CompilerStepProcessor<KernelModule>
+///
+///<summary>
+///The type of the processors of the function preprocessing step. Alias of CompilerStepProcessor&lt;FunctionInfo&gt;
+///</summary>
+/// 
 type FunctionPreprocessingProcessor = CompilerStepProcessor<FunctionInfo>
+///
+///<summary>
+///The type of the processors of the function transformation step. Alias of CompilerStepProcessor&lt;Expr, Expr&gt;
+///</summary>
+/// 
 type FunctionTransformationProcessor = CompilerStepProcessor<Expr, Expr>
-type FunctionSignaturePrettyPrintingProcessor = CompilerStepProcessor<MethodInfo, String option>
-type FunctionBodyPrettyPrintingProcessor = CompilerStepProcessor<Expr, String option>
-type ModulePrettyPrintingProcessor = CompilerStepProcessor<KernelModule * String, String>
+///
+///<summary>
+///The type of the (signature) processors of the function codegen step. Alias of CompilerStepProcessor&lt;MethodInfo, String option&gt;
+///</summary>
+/// 
+type FunctionSignatureCodegenProcessor = CompilerStepProcessor<MethodInfo, String option>
+///
+///<summary>
+///The type of the (body) processors of the function codegen step. Alias of CompilerStepProcessor&lt;Expr, String option&gt;
+///</summary>
+/// 
+type FunctionBodyCodegenProcessor = CompilerStepProcessor<Expr, String option>
+///
+///<summary>
+///The type of the processors of the module codegen step. Alias of CompilerStepProcessor&lt;KernelModule * String, String&gt;
+///</summary>
+/// 
+type ModuleCodegenProcessor = CompilerStepProcessor<KernelModule * String, String>
     
     
     

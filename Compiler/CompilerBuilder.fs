@@ -80,23 +80,13 @@ type internal CompilerBuilder() =
                 let procSorted = procGraphs.[id].Sorted
                 if procSorted.IsNone then
                     raise (CompilerBuildException("Cannot build the step " + id + " using the specified processors since there is a cycle in processors dependencies"))
-                
-                // Determine the type of processors accepted by the step
-                let procType = ref typeof<Object>
-                let constructors = data.Type.GetConstructors()
-                for c in constructors do
-                    if (c.GetParameters().Length > 0 && c.GetParameters().[0].ParameterType = typeof<TypeManager>) then
-                        let procArg = c.GetParameters().[1]
-                        procType := procArg.ParameterType.GetGenericArguments().[0]
                         
                 // Instantiate a list of proper processors via reflection
-                let processors = typeof<List<_>>.GetGenericTypeDefinition().MakeGenericType([| !procType |]).GetConstructor([||]).Invoke([||])
+                let processors = new List<ICompilerStepProcessor>()
                 for (id, procNode) in procSorted.Value do
-                    processors.GetType().GetMethod("Add").Invoke(processors, [| procNode.Type.GetConstructor([||]).Invoke([||]) |]) |> ignore
+                    processors.Add(procNode.Type.GetConstructor([||]).Invoke([||]) :?> ICompilerStepProcessor) |> ignore
                         
-                let flattener = typeof<ConfigurationUtil>.GetMethod("FlattenList").GetGenericMethodDefinition().MakeGenericMethod([| !procType |])
-                let flatProcessors = flattener.Invoke(null, [| processors |])
-                yield data.Type.GetConstructors().[0].Invoke([| tm; flatProcessors |]) :?> ICompilerStep
+                yield data.Type.GetConstructors().[0].Invoke([| tm; List.ofSeq(processors) |]) :?> ICompilerStep
         }
         let flatSteps = List.ofSeq(steps)
         flatSteps

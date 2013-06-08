@@ -9,6 +9,8 @@ open System.Reflection
 
 [<StepProcessor("FSCL_RETURN_TYPE_TRANSFORMATION_PROCESSOR", "FSCL_FUNCTION_TRANSFORMATION_STEP")>]
 type ReturnTypeTransformation() =
+    inherit FunctionTransformationProcessor()
+
     let GetArrayDimensions (t:Type) =
         // Any better way to do this?
         let dimensionsString = t.FullName.Split([| '['; ']' |]).[1]
@@ -72,23 +74,22 @@ type ReturnTypeTransformation() =
         else 
             raise (new CompilerException("A kernel can declare one only variable as a return variable"))
         
-    interface FunctionTransformationProcessor with
-        member this.Process(expr, en) =
-            let engine = en :?> FunctionTransformationStep
-            match expr with
-            | Patterns.Let(var, value, body) ->
-                match value with
-                | Patterns.Call(o, methodInfo, args) ->               
-                    if (methodInfo.DeclaringType.Name = "ArrayModule" && methodInfo.Name = "ZeroCreate") ||
-                        (methodInfo.DeclaringType.Name = "Array2DModule" && methodInfo.Name = "ZeroCreate") ||
-                        (methodInfo.DeclaringType.Name = "Array3DModule" && methodInfo.Name = "ZeroCreate") then
-                        // Only zero create allocation is permitted and it must be assigned to a non mutable variable
-                        this.SetReturnTypeVar(engine, var, args)
-                        let processedBody = engine.Continue(body)
-                        processedBody
-                    else
-                        engine.Default(expr)
-                | _ ->           
+    override this.Run(expr, en) =
+        let engine = en :?> FunctionTransformationStep
+        match expr with
+        | Patterns.Let(var, value, body) ->
+            match value with
+            | Patterns.Call(o, methodInfo, args) ->               
+                if (methodInfo.DeclaringType.Name = "ArrayModule" && methodInfo.Name = "ZeroCreate") ||
+                    (methodInfo.DeclaringType.Name = "Array2DModule" && methodInfo.Name = "ZeroCreate") ||
+                    (methodInfo.DeclaringType.Name = "Array3DModule" && methodInfo.Name = "ZeroCreate") then
+                    // Only zero create allocation is permitted and it must be assigned to a non mutable variable
+                    this.SetReturnTypeVar(engine, var, args)
+                    let processedBody = engine.Continue(body)
+                    processedBody
+                else
                     engine.Default(expr)
-            | _ ->
+            | _ ->           
                 engine.Default(expr)
+        | _ ->
+            engine.Default(expr)

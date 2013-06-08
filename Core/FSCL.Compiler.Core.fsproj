@@ -41,7 +41,6 @@
     <Reference Include="System.Numerics" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Util.fs" />
     <Compile Include="Exceptions.fs" />
     <Compile Include="KernelModule.fs" />
     <Compile Include="TypeManager.fs" />

@@ -8,14 +8,14 @@ open FSCL.Compiler
 
 [<Step("FSCL_MODULE_PARSING_STEP")>] 
 type ModuleParsingStep(tm: TypeManager,
-                       processors: ModuleParsingProcessor list) = 
-    inherit CompilerStep<obj, KernelModule>(tm)
+                       processors: ICompilerStepProcessor list) = 
+    inherit CompilerStep<obj, KernelModule>(tm, processors)
 
     member this.Process(expr:obj) =
         let mutable index = 0
         let mutable output = None
         while (output.IsNone) && (index < processors.Length) do
-            output <- processors.[index].Process(expr, this)
+            output <- processors.[index].Execute(expr, this) :?> KernelModule option
             index <- index + 1
         if output.IsNone then
             raise (CompilerException("The engine is not able to parse a kernel inside the expression [" + expr.ToString() + "]"))

@@ -14,8 +14,8 @@ do()
                          "FSCL_MODULE_PREPROCESSING_STEP"; 
                          "FSCL_MODULE_PARSING_STEP" |])>]
 type FunctionTransformationStep(tm: TypeManager, 
-                                processors:FunctionTransformationProcessor list) = 
-    inherit CompilerStep<KernelModule, KernelModule>(tm)
+                                processors:ICompilerStepProcessor list) = 
+    inherit CompilerStep<KernelModule, KernelModule>(tm, processors)
 
     member val private currentFunction = null with get, set
     member val private currentProcessor = processors.[0] with get, set
@@ -31,22 +31,22 @@ type FunctionTransformationStep(tm: TypeManager,
         | ExprShape.ShapeVar(v) ->
             Expr.Var(v)
         | ExprShape.ShapeLambda(v, e) ->
-            let r = this.currentProcessor.Process(e, this)
+            let r = this.currentProcessor.Execute(e, this) :?> Expr 
             Expr.Lambda(v, r)
         | ExprShape.ShapeCombination(o, args) ->
-            let filtered = List.map (fun el -> this.currentProcessor.Process(el, this)) args
+            let filtered = List.map (fun el -> this.currentProcessor.Execute(el, this) :?> Expr) args
             // Process the expression
             let newExpr = ExprShape.RebuildShapeCombination(o, filtered)
             newExpr
 
     member this.Continue(expression: Expr) =
-        this.currentProcessor.Process(expression, this)
+        this.currentProcessor.Execute(expression, this) :?> Expr 
          
     member private this.Process(f:FunctionInfo) =
         this.FunctionInfo <- f
         for p in processors do
             this.currentProcessor <- p
-            this.FunctionInfo.Body <- p.Process(this.FunctionInfo.Body, this) 
+            this.FunctionInfo.Body <- p.Execute(this.FunctionInfo.Body, this) :?> Expr 
                                   
     override this.Run(km: KernelModule) =
         for kernel in km.Kernels do

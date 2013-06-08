@@ -8,6 +8,8 @@ open Microsoft.FSharp.Quotations
 [<StepProcessor("FSCL_FUNCTIONS_DISCOVERY_PROCESSOR", "FSCL_MODULE_PREPROCESSING_STEP",
                 Dependencies = [| "FSCL_GENERIC_INSTANTIATION_PROCESSOR" |])>] 
 type FunctionReferenceDiscover() =      
+    inherit ModulePreprocessingProcessor()
+
     let DiscoverFunctionRef(k:KernelInfo) =
         let foundFunctions = Dictionary<MethodInfo, FunctionInfo>()
 
@@ -31,11 +33,10 @@ type FunctionReferenceDiscover() =
         DiscoverFunctionRefInner(k.Body)
         foundFunctions
 
-    interface ModulePreprocessingProcessor with
-        member this.Process(m, en) =
-            let engine = en :?> ModulePreprocessingStep
-            for k in m.Kernels do
-                let found = DiscoverFunctionRef(k)
-                for item in found do
-                    m.Functions <- m.Functions @ [ item.Value ]
+    override this.Run(m, en) =
+        let engine = en :?> ModulePreprocessingStep
+        for k in m.Kernels do
+            let found = DiscoverFunctionRef(k)
+            for item in found do
+                m.Functions <- m.Functions @ [ item.Value ]
             

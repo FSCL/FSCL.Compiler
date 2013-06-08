@@ -12,12 +12,12 @@ do()
 [<Step("FSCL_FUNCTION_PREPROCESSING_STEP", 
        Dependencies = [| "FSCL_MODULE_PREPROCESSING_STEP"; "FSCL_MODULE_PARSING_STEP" |])>]
 type FunctionPreprocessingStep(tm: TypeManager, 
-                               processors: FunctionPreprocessingProcessor list) = 
-    inherit CompilerStep<KernelModule, KernelModule>(tm)
+                               processors: ICompilerStepProcessor list) = 
+    inherit CompilerStep<KernelModule, KernelModule>(tm, processors)
 
     member private this.Process(k) =
         for p in processors do
-            p.Process(k ,this) 
+            p.Execute(k ,this) |> ignore
                
     override this.Run(km: KernelModule) =
         for kernel in km.Kernels do

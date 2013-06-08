@@ -13,6 +13,8 @@ open System.Reflection
                                   "FSCL_ARRAY_ACCESS_TRANSFORMATION_PROCESSOR";
                                   "FSCL_REF_VAR_TRANSFORMATION_PROCESSOR" |])>]
 type ReturnTagProcessor() =                
+    inherit FunctionTransformationProcessor()
+
     let rec SearchReturnExpression(expr:Expr, returnExpressions: List<Expr>, engine:FunctionTransformationStep) =
         match expr with
         | Patterns.Let(v, value, body) ->
@@ -28,10 +30,9 @@ type ReturnTagProcessor() =
             if returnType <> typeof<unit> then
                 returnExpressions.Add(expr)
             
-    interface FunctionTransformationProcessor with
-        member this.Process(expr, en) =    
-            let engine = en :?> FunctionTransformationStep
-            let returnTags = new List<Expr>()
-            SearchReturnExpression(expr, returnTags, engine)
-            engine.FunctionInfo.CustomInfo.Add("RETURN_EXPRESSIONS", List.ofSeq returnTags)
-            expr
+    override this.Run(expr, en) =    
+        let engine = en :?> FunctionTransformationStep
+        let returnTags = new List<Expr>()
+        SearchReturnExpression(expr, returnTags, engine)
+        engine.FunctionInfo.CustomInfo.Add("RETURN_EXPRESSIONS", List.ofSeq returnTags)
+        expr

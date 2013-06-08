@@ -9,6 +9,8 @@ open System.Reflection.Emit
 
 [<StepProcessor("FSCL_GENERIC_INSTANTIATION_PROCESSOR", "FSCL_MODULE_PREPROCESSING_STEP", Dependencies = [| "FSCL_STRUCT_DISCOVERY_PROCESSOR" |])>]
 type GenericInstantiator() =      
+    inherit ModulePreprocessingProcessor()
+
     let InstantiateGenericKernel(mi:MethodInfo, tm:TypeManager) =
         let mutable kernelInstances = [ ]
         let mutable methodInfo = mi
@@ -29,32 +31,31 @@ type GenericInstantiator() =
             kernelInstances <- [ (mi, "") ] 
         (methodInfo, kernelInstances)
         
-    interface ModulePreprocessingProcessor with
-        member this.Process(m, en) =
-            let engine = en :?> ModulePreprocessingStep
-            if(m.Source.Signature.IsGenericMethodDefinition) then  
-                let (genericKernel, instances) = InstantiateGenericKernel(m.Source.Signature, engine.TypeManager)
-                for (instance, newName) in instances do    
-                    match instance with
-                    | DerivedPatterns.MethodWithReflectedDefinition(b) ->  
-                        // If a new name is set then the method was generic and instances must be renamed
-                        if (newName <> "") then
-                            let newSignature = new DynamicMethod(newName, instance.ReturnType, Array.map (fun (p:ParameterInfo) -> p.ParameterType) (instance.GetParameters()))
-                            // Define parameters
-                            Array.iteri (fun i (p:ParameterInfo) ->
-                                newSignature.DefineParameter(i + 1, p.Attributes, p.Name) |> ignore) (instance.GetParameters())  
-                            // Add new element to the instances
-                            let paramVarList = new List<Var * ParameterInfo>() 
-                            let kInfo = new KernelInfo(newSignature, b)
-                            m.Kernels <- m.Kernels @ [ kInfo ]
-                        else
-                            // Add new element to the instances
-                            let paramVarList = new List<Var * ParameterInfo>() 
-                            let kInfo = new KernelInfo(instance, b)
-                            m.Kernels <- m.Kernels @ [ kInfo ]
-                    | _ ->
-                        ()
-            else            
-                let kInfo = new KernelInfo(m.Source.Signature, m.Source.Body)
-                m.Kernels <- m.Kernels @ [ kInfo ]
+    override this.Run(m, en) =
+        let engine = en :?> ModulePreprocessingStep
+        if(m.Source.Signature.IsGenericMethodDefinition) then  
+            let (genericKernel, instances) = InstantiateGenericKernel(m.Source.Signature, engine.TypeManager)
+            for (instance, newName) in instances do    
+                match instance with
+                | DerivedPatterns.MethodWithReflectedDefinition(b) ->  
+                    // If a new name is set then the method was generic and instances must be renamed
+                    if (newName <> "") then
+                        let newSignature = new DynamicMethod(newName, instance.ReturnType, Array.map (fun (p:ParameterInfo) -> p.ParameterType) (instance.GetParameters()))
+                        // Define parameters
+                        Array.iteri (fun i (p:ParameterInfo) ->
+                            newSignature.DefineParameter(i + 1, p.Attributes, p.Name) |> ignore) (instance.GetParameters())  
+                        // Add new element to the instances
+                        let paramVarList = new List<Var * ParameterInfo>() 
+                        let kInfo = new KernelInfo(newSignature, b)
+                        m.Kernels <- m.Kernels @ [ kInfo ]
+                    else
+                        // Add new element to the instances
+                        let paramVarList = new List<Var * ParameterInfo>() 
+                        let kInfo = new KernelInfo(instance, b)
+                        m.Kernels <- m.Kernels @ [ kInfo ]
+                | _ ->
+                    ()
+        else            
+            let kInfo = new KernelInfo(m.Source.Signature, m.Source.Body)
+            m.Kernels <- m.Kernels @ [ kInfo ]
             

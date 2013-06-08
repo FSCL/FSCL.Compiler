@@ -14,6 +14,8 @@ open System
                                   "FSCL_ARRAY_ACCESS_TRANSFORMATION_PROCESSOR";
                                   "FSCL_REF_VAR_TRANSFORMATION_PROCESSOR" |])>]
 type ReturnLifting() =       
+    inherit FunctionTransformationProcessor()
+
     let rec LiftReturn (expr:Expr, retV:Quotations.Var, potentialReturn, engine:FunctionTransformationStep) =
         match expr with
         | Patterns.Let(v, value, body) ->
@@ -51,12 +53,11 @@ type ReturnLifting() =
             let processed = List.map (fun e -> engine.Continue(e)) args
             ExprShape.RebuildShapeCombination(o, List.map (fun el -> LiftReturn(el, retV, false, engine)) processed)
             
-    interface FunctionTransformationProcessor with
-        member this.Process(expr, en) =
-            let engine = en :?> FunctionTransformationStep
-            if not (engine.FunctionInfo.CustomInfo.ContainsKey("KERNEL_RETURN_TYPE")) then
-                engine.Default(expr)
-            else
-                let retV, _ = engine.FunctionInfo.CustomInfo.["KERNEL_RETURN_TYPE"] :?> (Var * Expr list)
-                LiftReturn(expr, retV, true, engine)
+    override this.Run(expr, en) =
+        let engine = en :?> FunctionTransformationStep
+        if not (engine.FunctionInfo.CustomInfo.ContainsKey("KERNEL_RETURN_TYPE")) then
+            engine.Default(expr)
+        else
+            let retV, _ = engine.FunctionInfo.CustomInfo.["KERNEL_RETURN_TYPE"] :?> (Var * Expr list)
+            LiftReturn(expr, retV, true, engine)
 

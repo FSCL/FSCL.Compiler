@@ -13,6 +13,8 @@ open Microsoft.FSharp.Core.LanguagePrimitives
                                   "FSCL_CONDITIONAL_ASSIGN_TRANSFORMATION_PROCESSOR";
                                   "FSCL_ARRAY_ACCESS_TRANSFORMATION_PROCESSOR" |])>]
 type RefVariableTransformationProcessor() =     
+    inherit FunctionTransformationProcessor()
+
     let GetGenericMethodInfoFromExpr (q, ty:System.Type) = 
         let gminfo = 
             match q with 
@@ -53,33 +55,32 @@ type RefVariableTransformationProcessor() =
             raise (CompilerException("Cannot determine the parameter referred by the kernel body " + var))
         placeholder.Value
 
-    interface FunctionTransformationProcessor with
-        member this.Process(expr, en) =
-            let engine = en :?> FunctionTransformationStep
-            match expr with
-            | DerivedPatterns.SpecificCall (<@ (!) @>) (e, tl, args) ->
-                match args.[0] with
-                | Patterns.Var(v) ->
-                    // Find the placeholder holding the variable of the "arrayzed" ref 
-                    let placeholder = GetPlaceholderVar(v.Name, engine)
-                    // Update the access mode of this ref
-                    UpdateArrayAccessMode(v.Name, KernelParameterAccessMode.ReadOnly, engine)
-                    // Create new array access expression
-                    let (readArr, _) = GetArrayAccessMethodInfo (placeholder.Type.GetElementType())
-                    Expr.Call(readArr, [Expr.Var(placeholder); Expr.Value(0)])
-                | _ ->
-                    engine.Default(expr)
-            | DerivedPatterns.SpecificCall (<@ (:=) @>) (e, tl, args) -> 
-                match args.[0] with
-                | Patterns.Var(v) ->
-                    // Find the placeholder holding the variable of the "arrayzed" ref 
-                    let placeholder = GetPlaceholderVar(v.Name, engine)
-                    // Update the access mode of this ref
-                    UpdateArrayAccessMode(v.Name, KernelParameterAccessMode.WriteOnly, engine)
-                    // Create new array access expression
-                    let (_, writeArr) = GetArrayAccessMethodInfo (placeholder.Type.GetElementType())
-                    Expr.Call(writeArr, [Expr.Var(placeholder); Expr.Value(0); engine.Continue(args.[1])])
-                | _ ->
-                    engine.Default(expr)
+    override this.Run(expr, en) =
+        let engine = en :?> FunctionTransformationStep
+        match expr with
+        | DerivedPatterns.SpecificCall (<@ (!) @>) (e, tl, args) ->
+            match args.[0] with
+            | Patterns.Var(v) ->
+                // Find the placeholder holding the variable of the "arrayzed" ref 
+                let placeholder = GetPlaceholderVar(v.Name, engine)
+                // Update the access mode of this ref
+                UpdateArrayAccessMode(v.Name, KernelParameterAccessMode.ReadOnly, engine)
+                // Create new array access expression
+                let (readArr, _) = GetArrayAccessMethodInfo (placeholder.Type.GetElementType())
+                Expr.Call(readArr, [Expr.Var(placeholder); Expr.Value(0)])
             | _ ->
                 engine.Default(expr)
+        | DerivedPatterns.SpecificCall (<@ (:=) @>) (e, tl, args) -> 
+            match args.[0] with
+            | Patterns.Var(v) ->
+                // Find the placeholder holding the variable of the "arrayzed" ref 
+                let placeholder = GetPlaceholderVar(v.Name, engine)
+                // Update the access mode of this ref
+                UpdateArrayAccessMode(v.Name, KernelParameterAccessMode.WriteOnly, engine)
+                // Create new array access expression
+                let (_, writeArr) = GetArrayAccessMethodInfo (placeholder.Type.GetElementType())
+                Expr.Call(writeArr, [Expr.Var(placeholder); Expr.Value(0); engine.Continue(args.[1])])
+            | _ ->
+                engine.Default(expr)
+        | _ ->
+            engine.Default(expr)

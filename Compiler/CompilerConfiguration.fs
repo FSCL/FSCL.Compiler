@@ -141,7 +141,7 @@ type SourceConfiguration(src: CompilerSource,
     
     member this.IsExplicit
         with get() =
-            (this.TypeHandlers.Length > 0) || (this.Steps.Length > 0) && (this.StepProcessors.Length > 0)
+            (this.TypeHandlers.Length > 0) || (this.Steps.Length > 0) || (this.StepProcessors.Length > 0)
             
     member internal this.IsDefault 
         with get() =

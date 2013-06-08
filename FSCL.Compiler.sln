@@ -15,7 +15,7 @@ Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "VectorTypeSample", "VectorT
 EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "FSCL.Compiler.Core.FunctionPreprocessing", "FunctionPreprocessing\FSCL.Compiler.Core.FunctionPreprocessing.fsproj", "{ED8C50CD-4155-4D3A-A682-76757FB2B8D7}"
 EndProject
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "FSCL.Compiler.Core.FunctionPrettyPrinting", "FunctionPrettyPrinting\FSCL.Compiler.Core.FunctionPrettyPrinting.fsproj", "{A0EB369A-A29E-4BB9-8B16-CF406E42F534}"
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "FSCL.Compiler.Core.FunctionCodegen", "FunctionPrettyPrinting\FSCL.Compiler.Core.FunctionCodegen.fsproj", "{A0EB369A-A29E-4BB9-8B16-CF406E42F534}"
 EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "FSCL.Compiler.Core.FunctionTransformation", "FunctionTransformation\FSCL.Compiler.Core.FunctionTransformation.fsproj", "{76611CB9-7F4F-4842-BEE6-03EECAF79894}"
 EndProject
@@ -25,7 +25,7 @@ Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "FSCL.Compiler.Core.ModulePa
 EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "FSCL.Compiler.Core.ModulePreprocessing", "ModulePreprocessing\FSCL.Compiler.Core.ModulePreprocessing.fsproj", "{898F5EC0-3903-40E0-98BD-EE2E5746620F}"
 EndProject
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "FSCL.Compiler.Core.ModulePrettyPrinting", "ModulePrettyPrinting\FSCL.Compiler.Core.ModulePrettyPrinting.fsproj", "{431CB9ED-C613-46BE-AD84-B4A0D8532487}"
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "FSCL.Compiler.Core.ModuleCodegen", "ModulePrettyPrinting\FSCL.Compiler.Core.ModuleCodegen.fsproj", "{431CB9ED-C613-46BE-AD84-B4A0D8532487}"
 EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "FSCL.Compiler.Core.Types", "Types\FSCL.Compiler.Core.Types.fsproj", "{EC288651-4F88-44D7-9206-7A0260552ECC}"
 EndProject
@@ -44,6 +44,12 @@ EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "FSCL.Compiler.AcceleratedCollections", "AcceleratedCollections\FSCL.Compiler.AcceleratedCollections.fsproj", "{5DA99AFC-09CC-4D46-9145-DDAD276BB68E}"
 EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "AcceleratedCollectionsSample", "AcceleratedCollectionsSample\AcceleratedCollectionsSample.fsproj", "{C37C4FB2-D92F-4261-9917-2AD1EF2EE2F8}"
+EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "AcceleratedArraySample", "AcceleratedArraySample\AcceleratedArraySample.fsproj", "{81C780F7-9C08-4D0C-9849-93B2C65397F9}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Documentation", "Documentation", "{104BC57D-4191-400D-A9FB-084229BE686A}"
+EndProject
+Project("{7CF6DF6D-3B04-46F8-A40B-537D21BCA0B4}") = "FSCL.Compiler.Reference", "FSCL.Compiler.Reference\FSCL.Compiler.Reference.shfbproj", "{E39FAA88-58CD-4607-8E49-455FE2386994}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -123,6 +129,14 @@ Global
 		{C37C4FB2-D92F-4261-9917-2AD1EF2EE2F8}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C37C4FB2-D92F-4261-9917-2AD1EF2EE2F8}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C37C4FB2-D92F-4261-9917-2AD1EF2EE2F8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{81C780F7-9C08-4D0C-9849-93B2C65397F9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{81C780F7-9C08-4D0C-9849-93B2C65397F9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{81C780F7-9C08-4D0C-9849-93B2C65397F9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{81C780F7-9C08-4D0C-9849-93B2C65397F9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E39FAA88-58CD-4607-8E49-455FE2386994}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E39FAA88-58CD-4607-8E49-455FE2386994}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E39FAA88-58CD-4607-8E49-455FE2386994}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E39FAA88-58CD-4607-8E49-455FE2386994}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -144,6 +158,8 @@ Global
 		{B97D9326-D6BA-4328-B015-01CA3F1C04F7} = {9FEBDD4B-5407-4E9F-92A5-DA6728EDCA59}
 		{54A68199-9FDA-4077-97F5-313594FD4A63} = {9FEBDD4B-5407-4E9F-92A5-DA6728EDCA59}
 		{C37C4FB2-D92F-4261-9917-2AD1EF2EE2F8} = {9FEBDD4B-5407-4E9F-92A5-DA6728EDCA59}
+		{81C780F7-9C08-4D0C-9849-93B2C65397F9} = {9FEBDD4B-5407-4E9F-92A5-DA6728EDCA59}
 		{5DA99AFC-09CC-4D46-9145-DDAD276BB68E} = {C6A5C3A0-AA7A-4D59-BDB2-599C2BF8ED21}
+		{E39FAA88-58CD-4607-8E49-455FE2386994} = {104BC57D-4191-400D-A9FB-084229BE686A}
 	EndGlobalSection
 EndGlobal

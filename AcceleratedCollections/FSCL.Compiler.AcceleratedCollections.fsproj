@@ -32,18 +32,6 @@
     <DocumentationFile>bin\Release\FSCL.Compiler.AcceleratedCollections.XML</DocumentationFile>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="FSCL.Compiler">
-      <HintPath>..\..\FSCL.Compiler\FSCL.Compiler\bin\Debug\FSCL.Compiler.dll</HintPath>
-    </Reference>
-    <Reference Include="FSCL.Compiler.Core">
-      <HintPath>..\..\FSCL.Compiler\FSCL.Compiler\bin\Debug\FSCL.Compiler.Core.dll</HintPath>
-    </Reference>
-    <Reference Include="FSCL.Compiler.Language">
-      <HintPath>..\..\FSCL.Compiler\FSCL.Compiler\bin\Debug\FSCL.Compiler.Language.dll</HintPath>
-    </Reference>
-    <Reference Include="FSCL.Compiler.Processors.Parsing">
-      <HintPath>..\..\FSCL.Compiler\FSCL.Compiler\bin\Debug\FSCL.Compiler.Processors.Parsing.dll</HintPath>
-    </Reference>
     <Reference Include="mscorlib" />
     <Reference Include="FSharp.Core, Version=4.3.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
       <Private>True</Private>
@@ -53,9 +41,33 @@
     <Reference Include="System.Numerics" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="TemplateAdaptor.fs" />
-    <Compile Include="AcceleratedArrayHandler.fs" />
+    <Compile Include="AcceleratedCollectionUtil.fs" />
+    <Compile Include="AcceleratedCollectionHandler.fs" />
+    <Compile Include="AcceleratedArrayMapHandler.fs" />
+    <Compile Include="AcceleratedArrayReduceHandler.fs" />
     <Compile Include="AcceleratedArrayParser.fs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Compiler\FSCL.Compiler.fsproj">
+      <Name>FSCL.Compiler</Name>
+      <Project>{5d7c3db1-3300-455e-bf2a-3fb52bdc0595}</Project>
+      <Private>True</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\Core\FSCL.Compiler.Core.fsproj">
+      <Name>FSCL.Compiler.Core</Name>
+      <Project>{7635ade1-ac00-4587-8117-3faa15be9318}</Project>
+      <Private>True</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\Language\FSCL.Compiler.Core.Language.fsproj">
+      <Name>FSCL.Compiler.Core.Language</Name>
+      <Project>{02cc39bd-a326-49f6-b5e6-2987eada1ba2}</Project>
+      <Private>True</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\ModuleParsing\FSCL.Compiler.Core.ModuleParsing.fsproj">
+      <Name>FSCL.Compiler.Core.ModuleParsing</Name>
+      <Project>{a42da267-4d0e-4f14-a7e0-f2f9ab587005}</Project>
+      <Private>True</Private>
+    </ProjectReference>
   </ItemGroup>
   <PropertyGroup>
     <MinimumVisualStudioVersion Condition="'$(MinimumVisualStudioVersion)' == ''">11</MinimumVisualStudioVersion>

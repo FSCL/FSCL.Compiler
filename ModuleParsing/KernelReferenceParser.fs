@@ -11,6 +11,8 @@ do()
 
 [<StepProcessor("FSCL_KERNEL_REF_PARSING_PROCESSOR", "FSCL_MODULE_PARSING_STEP")>]
 type KernelReferenceParser() =      
+    inherit ModuleParsingProcessor()
+
     let rec GetKernelFromName(expr, k:ModuleParsingStep) =                    
         match expr with
         | Patterns.Lambda(v, e) -> 
@@ -33,17 +35,16 @@ type KernelReferenceParser() =
             raise (CompilerException("The engine is not able to parse a kernel inside the expression [" + expr.ToString() + "]"))
             None
         
-    interface ModuleParsingProcessor with
-        member this.Process(expr, en) =
-            let engine = en :?> ModuleParsingStep
-            if (typeof<Expr>.IsAssignableFrom(expr.GetType())) then
-                match GetKernelFromName(expr :?> Expr, engine) with
-                | Some(mi, b) -> 
-                    let km = new KernelModule()
-                    km.Source <- new KernelInfo(mi, b)
-                    Some(km)
-                | _ ->
-                    None
-            else
+    override this.Run(expr, en) =
+        let engine = en :?> ModuleParsingStep
+        if (typeof<Expr>.IsAssignableFrom(expr.GetType())) then
+            match GetKernelFromName(expr :?> Expr, engine) with
+            | Some(mi, b) -> 
+                let km = new KernelModule()
+                km.Source <- new KernelInfo(mi, b)
+                Some(km)
+            | _ ->
                 None
+        else
+            None
             

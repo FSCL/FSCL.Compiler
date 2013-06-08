@@ -4,22 +4,14 @@ open FSCL.Compiler
 open FSCL.Compiler.ModuleParsing
 open System.Collections.Generic
 open System.Reflection
+open System.Reflection.Emit
 open Microsoft.FSharp.Quotations
 open System
+open AcceleratedCollectionUtil
 
 [<StepProcessor("FSCL_ACCELERATED_ARRAY_MODULE_PARSING_PROCESSOR", "FSCL_MODULE_PARSING_STEP")>] 
 type AcceleratedArrayParser() = 
-    // Find a call inside an expr and do something on the matched pattern
-    let rec FilterCall(expr, f) =                 
-        match expr with
-        | Patterns.Lambda(v, e) -> 
-            FilterCall (e, f)
-        | Patterns.Let (v, e1, e2) ->
-            FilterCall (e2, f)
-        | Patterns.Call (e, mi, a) ->
-            Some(f(e, mi, a))
-        | _ ->
-            None 
+    inherit ModuleParsingProcessor()
 
     // The List module type        
     let listModuleType = FilterCall(<@ Array.map @>, fun(e, mi, a) -> mi.DeclaringType).Value
@@ -28,21 +20,25 @@ type AcceleratedArrayParser() =
     let handlers = new Dictionary<MethodInfo, IAcceleratedCollectionHandler>()
     do 
         handlers.Add(FilterCall(<@ Array.map @>, fun(e, mi, a) -> mi.GetGenericMethodDefinition()).Value, new AcceleratedArrayMapHandler())
-        //handlers.Add(FilterCall(<@ Array.reduce @>, fun(e, mi, a) -> mi.GetGenericMethodDefinition()).Value, new AcceleratedArrayReduceHandler())
+        handlers.Add(FilterCall(<@ Array.reduce @>, fun(e, mi, a) -> mi.GetGenericMethodDefinition()).Value, new AcceleratedArrayReduceHandler())
+
+    // The dynamic module that hosts the generated kernels
+    let assemblyName = "FSCL.Compiler.Plugins.AcceleratedCollections.AcceleratedArray";
+    let assemblyBuilder = AppDomain.CurrentDomain.DefineDynamicAssembly(new AssemblyName(assemblyName), AssemblyBuilderAccess.Run);
+    let moduleBuilder = assemblyBuilder.DefineDynamicModule("AcceleratedArrayModule");
     
-    interface ModuleParsingProcessor with
-        member this.Process(o, en) =
-            let engine = en :?> ModuleParsingStep
-            match FilterCall(o :?> Expr, fun a -> a) with
-            | Some(item, methodInfo, args) -> 
-                if methodInfo.DeclaringType = listModuleType then
-                    if (handlers.ContainsKey(methodInfo.GetGenericMethodDefinition())) then
-                        handlers.[methodInfo.GetGenericMethodDefinition()].Process(methodInfo, args)
-                    else
-                        None
+    override this.Run(o, en) =
+        let engine = en :?> ModuleParsingStep
+        match FilterCall(o :?> Expr, fun a -> a) with
+        | Some(item, methodInfo, args) -> 
+            if methodInfo.DeclaringType = listModuleType then
+                if (handlers.ContainsKey(methodInfo.GetGenericMethodDefinition())) then
+                    handlers.[methodInfo.GetGenericMethodDefinition()].Process(methodInfo, args, moduleBuilder)
                 else
                     None
-            | _ ->
+            else
                 None
+        | _ ->
+            None
              
             
