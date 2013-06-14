@@ -52,6 +52,8 @@
       <DocumentationSource sourceFile="..\Compiler\bin\Debug\GraphUtil.dll" />
       <DocumentationSource sourceFile="..\Compiler\bin\Debug\GraphUtil.xml" />
       <DocumentationSource sourceFile="..\FunctionPrettyPrinting\bin\Debug\FSCL.Compiler.Processors.PrettyPrinting.XML" />
+      <DocumentationSource sourceFile="..\Language\bin\Debug\FSCL.Compiler.Language.XML" />
+      <DocumentationSource sourceFile="..\Compiler\bin\Debug\FSCL.Compiler.XML" />
     </DocumentationSources>
   </PropertyGroup>
   <!-- There are no properties for these groups.  AnyCPU needs to appear in

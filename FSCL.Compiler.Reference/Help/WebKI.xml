@@ -79,7 +79,6 @@
   </HelpKINode>
   <HelpKINode Title="bindingFlags property" Url="html/f6253aaf-ea19-fefc-bb98-d911ddab9dfb.htm" />
   <HelpKINode Title="Body property" Url="html/a3ad1949-4f4c-2805-77a3-1179f491eabd.htm" />
-  <HelpKINode Title="Build method" Url="html/97cb50e7-947e-fb20-75b4-89e952450855.htm" />
   <HelpKINode Title="CallCodegen class">
     <HelpKINode Title="CallCodegen Class" Url="html/6d1b0210-f6a4-f264-05e4-0c695bfe642a.htm" />
     <HelpKINode Title="CallCodegen Members" Url="html/66022a3d-bc0e-5315-dc51-b0a87cd3563e.htm" />
@@ -108,9 +107,9 @@
     <HelpKINode Title="Generator Members" Url="html/77580375-a61a-8f5d-7451-7764204a15a1.htm" />
   </HelpKINode>
   <HelpKINode Title="CompareTo method">
+    <HelpKINode Title="KernelLanguage.half.CompareTo Method " Url="html/009c180c-57d0-8140-cb9a-e72bebd5bf6a.htm" />
     <HelpKINode Title="KernelLanguage.MemFenceMode.CompareTo Method " Url="html/2ff1dde9-86e0-181c-f189-848d75f916d5.htm" />
-    <HelpKINode Title="KernelLanguage.size_t.CompareTo Method " Url="html/056c5aa3-dbde-315b-dc5a-b55bbbf16849.htm" />
-    <HelpKINode Title="KernelLanguage.uint.CompareTo Method " Url="html/e17692a5-4d7d-56ec-2ab4-f595dd4f0787.htm" />
+    <HelpKINode Title="KernelLanguage.uchar.CompareTo Method " Url="html/b5e267f5-560f-d61e-a5de-4f2831786f93.htm" />
     <HelpKINode Title="KernelLanguage.ulong.CompareTo Method " Url="html/61f18c9c-2feb-280d-bc0a-b8e89bce7679.htm" />
     <HelpKINode Title="KernelParameterAccessMode.CompareTo Method " Url="html/3ec8f412-c7c7-bbf7-593b-5b72a250c22b.htm" />
     <HelpKINode Title="KernelParameterAddressSpace.CompareTo Method " Url="html/ad6019cb-88f9-c35e-2571-8f0f46114917.htm" />
@@ -176,22 +175,6 @@
   <HelpKINode Title="CompilerConfigurationException.Data0 property" Url="html/7ce9eb5f-6037-f20a-5673-3c68f36c7627.htm" />
   <HelpKINode Title="CompilerConfigurationException.Equals method" Url="html/82f9abc6-0c3f-dbb2-2d8f-2efd8a6f983b.htm" />
   <HelpKINode Title="CompilerConfigurationException.GetHashCode method" Url="html/69a902b1-5ddc-f300-802a-ae5c4f835cb4.htm" />
-  <HelpKINode Title="CompilerConfigurationManager class">
-    <HelpKINode Title="CompilerConfigurationManager Class" Url="html/84ffafd4-407a-0c24-e070-8d24742ae009.htm" />
-    <HelpKINode Title="CompilerConfigurationManager Members" Url="html/53fe8e5d-1120-0ffe-e1e5-eea33b9c341a.htm" />
-    <HelpKINode Title="about CompilerConfigurationManager class" Url="html/84ffafd4-407a-0c24-e070-8d24742ae009.htm" />
-    <HelpKINode Title="all members" Url="html/53fe8e5d-1120-0ffe-e1e5-eea33b9c341a.htm" />
-    <HelpKINode Title="constructor" Url="html/a58e1f34-d564-49c4-757a-c14dad1d0759.htm" />
-    <HelpKINode Title="methods" Url="html/556a7ac1-a0db-54e0-c794-9fa917251af5.htm" />
-    <HelpKINode Title="properties" Url="html/8710f0d4-e9c7-de0b-7eb7-63a60fa865a1.htm" />
-  </HelpKINode>
-  <HelpKINode Title="CompilerConfigurationManager.Build method" Url="html/97cb50e7-947e-fb20-75b4-89e952450855.htm" />
-  <HelpKINode Title="CompilerConfigurationManager.CompilerConfigurationManager constructor" Url="html/a58e1f34-d564-49c4-757a-c14dad1d0759.htm" />
-  <HelpKINode Title="CompilerConfigurationManager.ComponentsRoot property" Url="html/d59d5c67-7d9f-047e-820a-3a60b32d1a56.htm" />
-  <HelpKINode Title="CompilerConfigurationManager.ConfigurationRoot property" Url="html/80f78c4d-29a5-d914-f762-3eee4735d0b3.htm" />
-  <HelpKINode Title="CompilerConfigurationManager.DefaultConfiguration method" Url="html/505f4204-c3f9-e1f3-8dc7-0bc5d0eeb0b9.htm" />
-  <HelpKINode Title="CompilerConfigurationManager.LoadConfiguration method" Url="html/265d6dda-1a0d-238f-2773-520d0b25eceb.htm" />
-  <HelpKINode Title="CompilerConfigurationManager.StoreConfiguration method" Url="html/e80c9217-e93d-7a9c-8b88-8d179ccb11a4.htm" />
   <HelpKINode Title="CompilerException class">
     <HelpKINode Title="CompilerException Class" Url="html/a3975c08-7e79-4a0d-0a58-b186f650ab34.htm" />
     <HelpKINode Title="CompilerException Members" Url="html/77e674ff-c7dc-00fb-be29-f092c157398d.htm" />
@@ -316,7 +299,6 @@
     <HelpKINode Title="QuotationEvaluation.CompileUntyped Method " Url="html/2a34235e-72c1-bfc0-3bcb-3e3dcbad27c7.htm" />
     <HelpKINode Title="QuotationEvaluator.CompileUntyped Method " Url="html/e2a678d8-eb78-a219-20e4-e05627b606ea.htm" />
   </HelpKINode>
-  <HelpKINode Title="ComponentsRoot property" Url="html/d59d5c67-7d9f-047e-820a-3a60b32d1a56.htm" />
   <HelpKINode Title="concatWithIndex method" Url="html/1471d619-6df9-1250-53b7-f4bc94df0ffa.htm" />
   <HelpKINode Title="ConditionalAssignmentTransformation class">
     <HelpKINode Title="ConditionalAssignmentTransformation Class" Url="html/2c0f9b2d-cdfa-2103-a5cb-cb3b47726d1d.htm" />
@@ -329,20 +311,6 @@
   <HelpKINode Title="ConditionalAssignmentTransformation.ConditionalAssignmentTransformation constructor" Url="html/8d115be0-53ee-04ae-1fac-fdbf1846c789.htm" />
   <HelpKINode Title="ConditionalAssignmentTransformation.Run method" Url="html/23fe01db-aee9-992d-4e0c-cd3b3e20a8bc.htm" />
   <HelpKINode Title="Configuration property" Url="html/3b8b9c3b-be95-d471-ac00-4d97d7b6d84e.htm" />
-  <HelpKINode Title="ConfigurationRoot property" Url="html/80f78c4d-29a5-d914-f762-3eee4735d0b3.htm" />
-  <HelpKINode Title="ConfigurationUtil class">
-    <HelpKINode Title="ConfigurationUtil Class" Url="html/f86e8768-6a0c-5495-cdb3-52ccefaf2275.htm" />
-    <HelpKINode Title="ConfigurationUtil Members" Url="html/ef6d0cad-8990-9269-99ae-0ac61d7c9e0f.htm" />
-    <HelpKINode Title="about ConfigurationUtil class" Url="html/f86e8768-6a0c-5495-cdb3-52ccefaf2275.htm" />
-    <HelpKINode Title="all members" Url="html/ef6d0cad-8990-9269-99ae-0ac61d7c9e0f.htm" />
-    <HelpKINode Title="constructor" Url="html/ef2d2af8-8c3e-2636-f664-894899c04395.htm" />
-    <HelpKINode Title="methods" Url="html/eed4a91a-094a-2c5f-9441-3c0ae7be167a.htm" />
-  </HelpKINode>
-  <HelpKINode Title="ConfigurationUtil.ConfigurationUtil constructor" Url="html/ef2d2af8-8c3e-2636-f664-894899c04395.htm" />
-  <HelpKINode Title="ConfigurationUtil.FlattenList(Of T) method" Url="html/a16cf044-9b53-b563-6114-3a7f9f399c6e.htm" />
-  <HelpKINode Title="ConfigurationUtil.FlattenList&lt;T&gt; method" Url="html/a16cf044-9b53-b563-6114-3a7f9f399c6e.htm" />
-  <HelpKINode Title="ConfigurationUtil.ParseUnion(Of T) method" Url="html/9704dfd8-6421-60d6-2c0a-7c05c6cf8c8d.htm" />
-  <HelpKINode Title="ConfigurationUtil.ParseUnion&lt;T&gt; method" Url="html/9704dfd8-6421-60d6-2c0a-7c05c6cf8c8d.htm" />
   <HelpKINode Title="Connect method" Url="html/ad066bae-2fed-3b15-5294-d7d135e323f5.htm" />
   <HelpKINode Title="ConstantSpace field" Url="html/99db6737-ec27-afc3-8abd-32a2b8bd1e56.htm" />
   <HelpKINode Title="ConstantSpace property" Url="html/a666777e-421d-8fde-8aa9-5f8e3b56be03.htm" />
@@ -385,7 +353,6 @@
     <HelpKINode Title="properties" Url="html/845c287c-6ea4-91fc-f82e-44a0e2810a5a.htm" />
   </HelpKINode>
   <HelpKINode Title="DefaultComponentAssembly.DefaultComponentAssembly constructor" Url="html/16a938d9-3d11-bb56-681f-cf1f0d0f4bae.htm" />
-  <HelpKINode Title="DefaultConfiguration method" Url="html/505f4204-c3f9-e1f3-8dc7-0bc5d0eeb0b9.htm" />
   <HelpKINode Title="DefaultTypeHandler class">
     <HelpKINode Title="DefaultTypeHandler Class" Url="html/b60a6cd6-1317-de78-96ef-17604431243c.htm" />
     <HelpKINode Title="DefaultTypeHandler Members" Url="html/9e7830dd-491e-bb12-7061-d8421760c259.htm" />
@@ -870,9 +837,9 @@
     <HelpKINode Title="CompilerBuildException.Equals Method " Url="html/8014b5c6-5782-d9aa-d7a2-c789e0c83399.htm" />
     <HelpKINode Title="CompilerConfigurationException.Equals Method " Url="html/82f9abc6-0c3f-dbb2-2d8f-2efd8a6f983b.htm" />
     <HelpKINode Title="CompilerSource.Equals Method " Url="html/924ef104-6fde-a54f-0e2e-c79751be4735.htm" />
+    <HelpKINode Title="KernelLanguage.half.Equals Method " Url="html/3330b5c8-4dc7-17e1-735a-e472deceae3e.htm" />
     <HelpKINode Title="KernelLanguage.MemFenceMode.Equals Method " Url="html/03ef2900-b475-32c1-ae1b-5974ec90d661.htm" />
-    <HelpKINode Title="KernelLanguage.size_t.Equals Method " Url="html/02c27b97-4cb5-7c21-e08f-0f512eca9442.htm" />
-    <HelpKINode Title="KernelLanguage.uint.Equals Method " Url="html/5790a3c4-d5a3-272a-df40-279e747861de.htm" />
+    <HelpKINode Title="KernelLanguage.uchar.Equals Method " Url="html/3f58c27c-9a20-3136-3ff6-ca7bdbb755e2.htm" />
     <HelpKINode Title="KernelLanguage.ulong.Equals Method " Url="html/639f891c-2d2a-c903-3b26-8135d7d82bd7.htm" />
     <HelpKINode Title="KernelParameterAccessMode.Equals Method " Url="html/b591007d-cdc1-2789-54d7-ffce8b3bb556.htm" />
     <HelpKINode Title="KernelParameterAddressSpace.Equals Method " Url="html/a59413c3-17d7-51fb-1938-e69dc84f7c03.htm" />
@@ -927,8 +894,7 @@
   <HelpKINode Title="ExtraHashCompare.GenericNotEqualIntrinsic&lt;T&gt; method" Url="html/f82185f2-3481-ab60-a319-8603c3cb8315.htm" />
   <HelpKINode Title="extraHashCompareType property" Url="html/5545887e-68b7-2f69-45b7-956973e8a4ba.htm" />
   <HelpKINode Title="FileSource field" Url="html/05f0d5b0-2477-fb6a-b2c8-567c78dabee2.htm" />
-  <HelpKINode Title="FlattenList(Of T) method" Url="html/a16cf044-9b53-b563-6114-3a7f9f399c6e.htm" />
-  <HelpKINode Title="FlattenList&lt;T&gt; method" Url="html/a16cf044-9b53-b563-6114-3a7f9f399c6e.htm" />
+  <HelpKINode Title="Float16 property" Url="html/800f12ed-c35a-6d0a-ec0c-d9a1cfee34a7.htm" />
   <HelpKINode Title="float2 class">
     <HelpKINode Title="float2 Class" Url="html/514ef8a4-6f98-1fb5-bd14-721d429384ce.htm" />
     <HelpKINode Title="float2 Members" Url="html/1e38ab77-fd89-b4f5-0747-139a01e18ad1.htm" />
@@ -1430,10 +1396,6 @@
     <HelpKINode Title="CompilerConfigurationException Class" Url="html/88e6f8d3-647d-c117-1fe8-5c135a64b292.htm" />
     <HelpKINode Title="CompilerConfigurationException Members" Url="html/fc2b7d7b-eb7f-34e9-8f8b-4e0830997da4.htm" />
   </HelpKINode>
-  <HelpKINode Title="FSCL.Compiler.Configuration.CompilerConfigurationManager class">
-    <HelpKINode Title="CompilerConfigurationManager Class" Url="html/84ffafd4-407a-0c24-e070-8d24742ae009.htm" />
-    <HelpKINode Title="CompilerConfigurationManager Members" Url="html/53fe8e5d-1120-0ffe-e1e5-eea33b9c341a.htm" />
-  </HelpKINode>
   <HelpKINode Title="FSCL.Compiler.Configuration.CompilerSource class">
     <HelpKINode Title="CompilerSource Class" Url="html/df7d3722-47eb-7c22-b238-46cdc20ee010.htm" />
     <HelpKINode Title="CompilerSource Members" Url="html/da88bcbd-19ba-edef-c01a-28a7b68e8c5f.htm" />
@@ -1449,10 +1411,6 @@
   <HelpKINode Title="FSCL.Compiler.Configuration.CompilerSource.Tags class">
     <HelpKINode Title="CompilerSource.Tags Class" Url="html/498e5273-d5ee-fc17-dbce-8cd1b95d63f8.htm" />
     <HelpKINode Title="CompilerSource.Tags Members" Url="html/33e8e8d0-189e-f3af-26d9-33d979c38616.htm" />
-  </HelpKINode>
-  <HelpKINode Title="FSCL.Compiler.Configuration.ConfigurationUtil class">
-    <HelpKINode Title="ConfigurationUtil Class" Url="html/f86e8768-6a0c-5495-cdb3-52ccefaf2275.htm" />
-    <HelpKINode Title="ConfigurationUtil Members" Url="html/ef6d0cad-8990-9269-99ae-0ac61d7c9e0f.htm" />
   </HelpKINode>
   <HelpKINode Title="FSCL.Compiler.Configuration.SourceConfiguration class">
     <HelpKINode Title="SourceConfiguration Class" Url="html/2db8a234-022e-7eb2-5d55-68dee6fb93ed.htm" />
@@ -1653,6 +1611,10 @@
     <HelpKINode Title="KernelLanguage.ConstantAttribute Class" Url="html/540c5400-b2d4-a10c-90cb-8d6f0f9d77b2.htm" />
     <HelpKINode Title="KernelLanguage.ConstantAttribute Members" Url="html/dcf61414-fd21-87b6-0666-ffca6b3fcd55.htm" />
   </HelpKINode>
+  <HelpKINode Title="FSCL.Compiler.KernelLanguage.half class">
+    <HelpKINode Title="KernelLanguage.half Class" Url="html/4d03b195-b256-a378-bf9c-d29411567790.htm" />
+    <HelpKINode Title="KernelLanguage.half Members" Url="html/40d1d312-a92c-d67d-e19f-f7924f0764f5.htm" />
+  </HelpKINode>
   <HelpKINode Title="FSCL.Compiler.KernelLanguage.LocalAttribute class">
     <HelpKINode Title="KernelLanguage.LocalAttribute Class" Url="html/ea33532c-7f39-535b-8a33-f42a5a2d11bf.htm" />
     <HelpKINode Title="KernelLanguage.LocalAttribute Members" Url="html/e7bdefab-e261-cd8e-085b-5eaa8f565bb5.htm" />
@@ -1665,13 +1627,9 @@
     <HelpKINode Title="KernelLanguage.MemFenceMode.Tags Class" Url="html/1699e092-7cfa-54da-4153-5b199a8436bc.htm" />
     <HelpKINode Title="KernelLanguage.MemFenceMode.Tags Members" Url="html/c117ae12-a425-a616-6326-53245aac913b.htm" />
   </HelpKINode>
-  <HelpKINode Title="FSCL.Compiler.KernelLanguage.size_t class">
-    <HelpKINode Title="KernelLanguage.size_t Class" Url="html/caa5f1d9-9193-caff-47ba-1c48bebd02f9.htm" />
-    <HelpKINode Title="KernelLanguage.size_t Members" Url="html/b9f09dc2-7968-31f5-faf2-4a6d2b3fa70f.htm" />
-  </HelpKINode>
-  <HelpKINode Title="FSCL.Compiler.KernelLanguage.uint class">
-    <HelpKINode Title="KernelLanguage.uint Class" Url="html/9c0b2ddc-c9c6-ee24-6755-1fe6e136a2d3.htm" />
-    <HelpKINode Title="KernelLanguage.uint Members" Url="html/fc092f0a-1056-0141-f65d-0325406f640a.htm" />
+  <HelpKINode Title="FSCL.Compiler.KernelLanguage.uchar class">
+    <HelpKINode Title="KernelLanguage.uchar Class" Url="html/264855ab-0032-4f34-7f31-ad1e65fac6c1.htm" />
+    <HelpKINode Title="KernelLanguage.uchar Members" Url="html/445c4172-9e18-e8f7-c58f-1e743da43c98.htm" />
   </HelpKINode>
   <HelpKINode Title="FSCL.Compiler.KernelLanguage.ulong class">
     <HelpKINode Title="KernelLanguage.ulong Class" Url="html/4d9a8986-16a4-28e9-3f6c-d8e87ce30641.htm" />
@@ -1921,9 +1879,9 @@
     <HelpKINode Title="CompilerBuildException.GetHashCode Method " Url="html/c5be19b8-c699-9b63-75ee-45cc1413bb51.htm" />
     <HelpKINode Title="CompilerConfigurationException.GetHashCode Method " Url="html/69a902b1-5ddc-f300-802a-ae5c4f835cb4.htm" />
     <HelpKINode Title="CompilerSource.GetHashCode Method " Url="html/dd02d0a5-2f09-1c0a-b8e0-463bbf961fb6.htm" />
+    <HelpKINode Title="KernelLanguage.half.GetHashCode Method " Url="html/e08b26ac-5a85-9606-c225-200e05635066.htm" />
     <HelpKINode Title="KernelLanguage.MemFenceMode.GetHashCode Method " Url="html/026da58c-3487-dac3-a708-3a4ea75032fc.htm" />
-    <HelpKINode Title="KernelLanguage.size_t.GetHashCode Method " Url="html/30376cb2-bdda-e2b5-86e7-ebad9c44bfbf.htm" />
-    <HelpKINode Title="KernelLanguage.uint.GetHashCode Method " Url="html/0ffa7603-1700-1a3b-5d52-91631f2636ef.htm" />
+    <HelpKINode Title="KernelLanguage.uchar.GetHashCode Method " Url="html/79792ea3-ea03-661c-b494-e1379bbe77c7.htm" />
     <HelpKINode Title="KernelLanguage.ulong.GetHashCode Method " Url="html/1e3008af-ca1c-7257-4dd1-6458bc192708.htm" />
     <HelpKINode Title="KernelParameterAccessMode.GetHashCode Method " Url="html/d0456e42-4811-583f-2be9-b64610ceb5e1.htm" />
     <HelpKINode Title="KernelParameterAddressSpace.GetHashCode Method " Url="html/e46c793a-1804-6fb3-d69d-7c24a876ad2a.htm" />
@@ -1937,15 +1895,12 @@
   <HelpKINode Title="get_CLK_GLOBAL_MEM_FENCE method" Url="html/c4007b8b-5d34-78f3-2d37-0a5d6969d006.htm" />
   <HelpKINode Title="get_CLK_LOCAL_MEM_FENCE method" Url="html/870ce828-2f06-6fbd-5285-3fc0a799ec58.htm" />
   <HelpKINode Title="get_ConstantSpace method" Url="html/64fb019e-49e5-ce27-cdd2-aec28fcb2470.htm" />
+  <HelpKINode Title="get_Float16 method" Url="html/a05192cc-88aa-d728-d0d3-c1ace9fe8226.htm" />
   <HelpKINode Title="get_GlobalSpace method" Url="html/6eb54081-cb2e-d237-4e3e-d35c2cbde804.htm" />
   <HelpKINode Title="get_global_id method" Url="html/42682458-15a8-0075-fd6b-306f40e1a98e.htm" />
   <HelpKINode Title="get_global_offset method" Url="html/c18a9a43-cc10-b901-88c2-d533c9f2f9ba.htm" />
   <HelpKINode Title="get_global_size method" Url="html/1c8cf961-8827-ea0b-ef3a-9cba1594d733.htm" />
   <HelpKINode Title="get_group_id method" Url="html/df0db281-1693-5716-952e-4894f2e0ce0b.htm" />
-  <HelpKINode Title="get_Int method">
-    <HelpKINode Title="KernelLanguage.size_t.get_Int Method " Url="html/b51857bd-5bd9-1f0e-188a-a98fc241a277.htm" />
-    <HelpKINode Title="KernelLanguage.uint.get_Int Method " Url="html/5f04c090-3ec9-605e-d8eb-76a8b3382ce0.htm" />
-  </HelpKINode>
   <HelpKINode Title="get_IsAssemblySource method" Url="html/27639db1-787e-8dde-bee3-86c72502b287.htm" />
   <HelpKINode Title="get_IsAutoSpace method" Url="html/69554934-8365-80fb-0231-06d8f1a23573.htm" />
   <HelpKINode Title="get_IsCLK_GLOBAL_MEM_FENCE method" Url="html/a7dd4b34-2001-4b98-c7b7-102b4b9a4079.htm" />
@@ -1966,7 +1921,6 @@
   <HelpKINode Title="get_LocalSpace method" Url="html/79d5eb05-22c4-77cb-de06-5db9036300a7.htm" />
   <HelpKINode Title="get_local_id method" Url="html/06ea77e3-c486-d08d-48bf-84065f70fbae.htm" />
   <HelpKINode Title="get_local_size method" Url="html/b48a20a5-4cc1-a740-b087-0543ab1065f4.htm" />
-  <HelpKINode Title="get_Long method" Url="html/203f9ea9-c381-8a2d-4021-c1bf5adf440b.htm" />
   <HelpKINode Title="get_NoAccess method" Url="html/20842992-3894-5f44-1483-063078b1a7e2.htm" />
   <HelpKINode Title="get_num_groups method" Url="html/4fabc919-6de5-668c-d952-14ff0ac9e958.htm" />
   <HelpKINode Title="get_PrivateSpace method" Url="html/7bd1251c-953e-7691-ed28-8c969b3fda72.htm" />
@@ -1974,16 +1928,19 @@
   <HelpKINode Title="get_ReadWrite method" Url="html/8ef1318a-4648-56ed-ccbf-caf0d718a4d2.htm" />
   <HelpKINode Title="get_Tag method">
     <HelpKINode Title="CompilerSource.get_Tag Method " Url="html/4c15d37e-e5b3-02a6-b178-b8a2b3f91550.htm" />
+    <HelpKINode Title="KernelLanguage.half.get_Tag Method " Url="html/499ec126-ef03-80d8-e433-bc13da1e513a.htm" />
     <HelpKINode Title="KernelLanguage.MemFenceMode.get_Tag Method " Url="html/87498e0e-eaea-ec4b-8c54-19f6a5a0e38b.htm" />
-    <HelpKINode Title="KernelLanguage.size_t.get_Tag Method " Url="html/4b6ca8f3-4909-1628-842a-d0de03c2ce74.htm" />
-    <HelpKINode Title="KernelLanguage.uint.get_Tag Method " Url="html/f789a73f-2ef5-fbb4-9fea-39f0ecc7d42e.htm" />
+    <HelpKINode Title="KernelLanguage.uchar.get_Tag Method " Url="html/e89ece45-a33c-0767-5e05-bc0c1a1e2ed1.htm" />
     <HelpKINode Title="KernelLanguage.ulong.get_Tag Method " Url="html/3da88f01-4db9-25d4-8f1b-ec3824ed34af.htm" />
     <HelpKINode Title="KernelParameterAccessMode.get_Tag Method " Url="html/f574823a-fa98-489f-8d53-1fd62c8a8a0f.htm" />
     <HelpKINode Title="KernelParameterAddressSpace.get_Tag Method " Url="html/d851d74a-9f78-465b-761b-ae4e5a4f6108.htm" />
   </HelpKINode>
+  <HelpKINode Title="get_UChar method" Url="html/f59400b7-e49f-21e9-63fe-16c2db0afc30.htm" />
+  <HelpKINode Title="get_ULong method" Url="html/e0b6a622-7af7-04ff-f2b7-65cfe22ddc42.htm" />
   <HelpKINode Title="get_work_dim method" Url="html/427404b6-2ac9-2d96-d7d3-4d74699f73de.htm" />
   <HelpKINode Title="get_WriteOnly method" Url="html/98c65f66-d11e-5c89-1969-94e64e5ce3df.htm" />
   <HelpKINode Title="GlobalID method" Url="html/667b2044-6a35-6913-fa1b-381870b3716b.htm" />
+  <HelpKINode Title="GlobalOffset method" Url="html/7a19115e-b675-73a3-cbb1-3eae5dca3f55.htm" />
   <HelpKINode Title="GlobalSize method" Url="html/5d095295-8f3e-e046-52ec-042e02ba5fd0.htm" />
   <HelpKINode Title="GlobalSpace field" Url="html/a845d405-7d05-f6b1-28fb-a66da3f9e938.htm" />
   <HelpKINode Title="GlobalSpace property" Url="html/3296b9f3-246d-b309-9c0f-8e820d304080.htm" />
@@ -2137,10 +2094,6 @@
   </HelpKINode>
   <HelpKINode Title="Ingoing method" Url="html/0b6f3ece-af61-ca44-58ca-607fdae7a63a.htm" />
   <HelpKINode Title="instanceBindingFlags property" Url="html/ded8253e-e248-5529-e7c8-757cec93f811.htm" />
-  <HelpKINode Title="Int property">
-    <HelpKINode Title="KernelLanguage.size_t.Int Property " Url="html/f934f6a1-8645-3d36-c21d-b5538cdc5bdb.htm" />
-    <HelpKINode Title="KernelLanguage.uint.Int Property " Url="html/41c4fd57-db33-6094-2d1c-e8104007a58b.htm" />
-  </HelpKINode>
   <HelpKINode Title="int2 class">
     <HelpKINode Title="int2 Class" Url="html/6b4b3889-869b-e183-e6e6-fce044587700.htm" />
     <HelpKINode Title="int2 Members" Url="html/76733811-6d29-c13f-b57e-37fc943c2d33.htm" />
@@ -2659,6 +2612,21 @@
   <HelpKINode Title="KernelLanguage.get_local_size method" Url="html/b48a20a5-4cc1-a740-b087-0543ab1065f4.htm" />
   <HelpKINode Title="KernelLanguage.get_num_groups method" Url="html/4fabc919-6de5-668c-d952-14ff0ac9e958.htm" />
   <HelpKINode Title="KernelLanguage.get_work_dim method" Url="html/427404b6-2ac9-2d96-d7d3-4d74699f73de.htm" />
+  <HelpKINode Title="KernelLanguage.half class">
+    <HelpKINode Title="KernelLanguage.half Class" Url="html/4d03b195-b256-a378-bf9c-d29411567790.htm" />
+    <HelpKINode Title="KernelLanguage.half Members" Url="html/40d1d312-a92c-d67d-e19f-f7924f0764f5.htm" />
+    <HelpKINode Title="about KernelLanguage.half class" Url="html/4d03b195-b256-a378-bf9c-d29411567790.htm" />
+    <HelpKINode Title="all members" Url="html/40d1d312-a92c-d67d-e19f-f7924f0764f5.htm" />
+    <HelpKINode Title="methods" Url="html/65e9b94b-5693-9069-235c-caf3288099d0.htm" />
+    <HelpKINode Title="properties" Url="html/274dfb9a-3fb6-1ecc-1089-00e83f678ddb.htm" />
+  </HelpKINode>
+  <HelpKINode Title="KernelLanguage.half.CompareTo method" Url="html/009c180c-57d0-8140-cb9a-e72bebd5bf6a.htm" />
+  <HelpKINode Title="KernelLanguage.half.Equals method" Url="html/3330b5c8-4dc7-17e1-735a-e472deceae3e.htm" />
+  <HelpKINode Title="KernelLanguage.half.Float16 property" Url="html/800f12ed-c35a-6d0a-ec0c-d9a1cfee34a7.htm" />
+  <HelpKINode Title="KernelLanguage.half.GetHashCode method" Url="html/e08b26ac-5a85-9606-c225-200e05635066.htm" />
+  <HelpKINode Title="KernelLanguage.half.get_Float16 method" Url="html/a05192cc-88aa-d728-d0d3-c1ace9fe8226.htm" />
+  <HelpKINode Title="KernelLanguage.half.get_Tag method" Url="html/499ec126-ef03-80d8-e433-bc13da1e513a.htm" />
+  <HelpKINode Title="KernelLanguage.half.Tag property" Url="html/39564aa8-34de-c54f-18d0-e7423dcdd1f3.htm" />
   <HelpKINode Title="KernelLanguage.LocalAttribute class">
     <HelpKINode Title="KernelLanguage.LocalAttribute Class" Url="html/ea33532c-7f39-535b-8a33-f42a5a2d11bf.htm" />
     <HelpKINode Title="KernelLanguage.LocalAttribute Members" Url="html/e7bdefab-e261-cd8e-085b-5eaa8f565bb5.htm" />
@@ -2699,36 +2667,21 @@
   </HelpKINode>
   <HelpKINode Title="KernelLanguage.MemFenceMode.Tags.CLK_GLOBAL_MEM_FENCE field" Url="html/e3fd4c5e-4966-e357-6fd0-690a54e0d04e.htm" />
   <HelpKINode Title="KernelLanguage.MemFenceMode.Tags.CLK_LOCAL_MEM_FENCE field" Url="html/57fd3666-91e0-afc1-54c7-f5ca61fac1b3.htm" />
-  <HelpKINode Title="KernelLanguage.size_t class">
-    <HelpKINode Title="KernelLanguage.size_t Class" Url="html/caa5f1d9-9193-caff-47ba-1c48bebd02f9.htm" />
-    <HelpKINode Title="KernelLanguage.size_t Members" Url="html/b9f09dc2-7968-31f5-faf2-4a6d2b3fa70f.htm" />
-    <HelpKINode Title="about KernelLanguage.size_t class" Url="html/caa5f1d9-9193-caff-47ba-1c48bebd02f9.htm" />
-    <HelpKINode Title="all members" Url="html/b9f09dc2-7968-31f5-faf2-4a6d2b3fa70f.htm" />
-    <HelpKINode Title="methods" Url="html/e11e9b12-04d7-1fc6-8d8d-8984173eff3a.htm" />
-    <HelpKINode Title="properties" Url="html/b7ff2f1a-4653-0933-a56b-7752d6982760.htm" />
+  <HelpKINode Title="KernelLanguage.uchar class">
+    <HelpKINode Title="KernelLanguage.uchar Class" Url="html/264855ab-0032-4f34-7f31-ad1e65fac6c1.htm" />
+    <HelpKINode Title="KernelLanguage.uchar Members" Url="html/445c4172-9e18-e8f7-c58f-1e743da43c98.htm" />
+    <HelpKINode Title="about KernelLanguage.uchar class" Url="html/264855ab-0032-4f34-7f31-ad1e65fac6c1.htm" />
+    <HelpKINode Title="all members" Url="html/445c4172-9e18-e8f7-c58f-1e743da43c98.htm" />
+    <HelpKINode Title="methods" Url="html/d415dd39-94b6-cbc9-5266-e16aa2296542.htm" />
+    <HelpKINode Title="properties" Url="html/f91534f6-2b98-3f10-f17b-d524b0f72601.htm" />
   </HelpKINode>
-  <HelpKINode Title="KernelLanguage.size_t.CompareTo method" Url="html/056c5aa3-dbde-315b-dc5a-b55bbbf16849.htm" />
-  <HelpKINode Title="KernelLanguage.size_t.Equals method" Url="html/02c27b97-4cb5-7c21-e08f-0f512eca9442.htm" />
-  <HelpKINode Title="KernelLanguage.size_t.GetHashCode method" Url="html/30376cb2-bdda-e2b5-86e7-ebad9c44bfbf.htm" />
-  <HelpKINode Title="KernelLanguage.size_t.get_Int method" Url="html/b51857bd-5bd9-1f0e-188a-a98fc241a277.htm" />
-  <HelpKINode Title="KernelLanguage.size_t.get_Tag method" Url="html/4b6ca8f3-4909-1628-842a-d0de03c2ce74.htm" />
-  <HelpKINode Title="KernelLanguage.size_t.Int property" Url="html/f934f6a1-8645-3d36-c21d-b5538cdc5bdb.htm" />
-  <HelpKINode Title="KernelLanguage.size_t.Tag property" Url="html/79bac994-4d35-293c-e9ff-29a3c0f099e3.htm" />
-  <HelpKINode Title="KernelLanguage.uint class">
-    <HelpKINode Title="KernelLanguage.uint Class" Url="html/9c0b2ddc-c9c6-ee24-6755-1fe6e136a2d3.htm" />
-    <HelpKINode Title="KernelLanguage.uint Members" Url="html/fc092f0a-1056-0141-f65d-0325406f640a.htm" />
-    <HelpKINode Title="about KernelLanguage.uint class" Url="html/9c0b2ddc-c9c6-ee24-6755-1fe6e136a2d3.htm" />
-    <HelpKINode Title="all members" Url="html/fc092f0a-1056-0141-f65d-0325406f640a.htm" />
-    <HelpKINode Title="methods" Url="html/875cabbe-6534-65c4-3517-bb98cee80740.htm" />
-    <HelpKINode Title="properties" Url="html/b018241c-a949-3cfd-f79f-4d2e08225dc9.htm" />
-  </HelpKINode>
-  <HelpKINode Title="KernelLanguage.uint.CompareTo method" Url="html/e17692a5-4d7d-56ec-2ab4-f595dd4f0787.htm" />
-  <HelpKINode Title="KernelLanguage.uint.Equals method" Url="html/5790a3c4-d5a3-272a-df40-279e747861de.htm" />
-  <HelpKINode Title="KernelLanguage.uint.GetHashCode method" Url="html/0ffa7603-1700-1a3b-5d52-91631f2636ef.htm" />
-  <HelpKINode Title="KernelLanguage.uint.get_Int method" Url="html/5f04c090-3ec9-605e-d8eb-76a8b3382ce0.htm" />
-  <HelpKINode Title="KernelLanguage.uint.get_Tag method" Url="html/f789a73f-2ef5-fbb4-9fea-39f0ecc7d42e.htm" />
-  <HelpKINode Title="KernelLanguage.uint.Int property" Url="html/41c4fd57-db33-6094-2d1c-e8104007a58b.htm" />
-  <HelpKINode Title="KernelLanguage.uint.Tag property" Url="html/66587e0e-66c1-324b-a644-e362fd18599c.htm" />
+  <HelpKINode Title="KernelLanguage.uchar.CompareTo method" Url="html/b5e267f5-560f-d61e-a5de-4f2831786f93.htm" />
+  <HelpKINode Title="KernelLanguage.uchar.Equals method" Url="html/3f58c27c-9a20-3136-3ff6-ca7bdbb755e2.htm" />
+  <HelpKINode Title="KernelLanguage.uchar.GetHashCode method" Url="html/79792ea3-ea03-661c-b494-e1379bbe77c7.htm" />
+  <HelpKINode Title="KernelLanguage.uchar.get_Tag method" Url="html/e89ece45-a33c-0767-5e05-bc0c1a1e2ed1.htm" />
+  <HelpKINode Title="KernelLanguage.uchar.get_UChar method" Url="html/f59400b7-e49f-21e9-63fe-16c2db0afc30.htm" />
+  <HelpKINode Title="KernelLanguage.uchar.Tag property" Url="html/2371e592-e69b-0042-2957-63e34fa583c3.htm" />
+  <HelpKINode Title="KernelLanguage.uchar.UChar property" Url="html/7e2c0a06-d48c-87cf-e053-742190964bdf.htm" />
   <HelpKINode Title="KernelLanguage.ulong class">
     <HelpKINode Title="KernelLanguage.ulong Class" Url="html/4d9a8986-16a4-28e9-3f6c-d8e87ce30641.htm" />
     <HelpKINode Title="KernelLanguage.ulong Members" Url="html/6dccd1ed-9af0-29b7-ad3c-1e58ec3c5466.htm" />
@@ -2740,26 +2693,27 @@
   <HelpKINode Title="KernelLanguage.ulong.CompareTo method" Url="html/61f18c9c-2feb-280d-bc0a-b8e89bce7679.htm" />
   <HelpKINode Title="KernelLanguage.ulong.Equals method" Url="html/639f891c-2d2a-c903-3b26-8135d7d82bd7.htm" />
   <HelpKINode Title="KernelLanguage.ulong.GetHashCode method" Url="html/1e3008af-ca1c-7257-4dd1-6458bc192708.htm" />
-  <HelpKINode Title="KernelLanguage.ulong.get_Long method" Url="html/203f9ea9-c381-8a2d-4021-c1bf5adf440b.htm" />
   <HelpKINode Title="KernelLanguage.ulong.get_Tag method" Url="html/3da88f01-4db9-25d4-8f1b-ec3824ed34af.htm" />
-  <HelpKINode Title="KernelLanguage.ulong.Long property" Url="html/0225f6df-87d7-0639-501f-a9cb2810f53b.htm" />
+  <HelpKINode Title="KernelLanguage.ulong.get_ULong method" Url="html/e0b6a622-7af7-04ff-f2b7-65cfe22ddc42.htm" />
   <HelpKINode Title="KernelLanguage.ulong.Tag property" Url="html/13a254c2-11e2-accc-08b7-a2bfc2dd35e7.htm" />
+  <HelpKINode Title="KernelLanguage.ulong.ULong property" Url="html/0036298d-7023-8306-9a79-eccd59f88053.htm" />
   <HelpKINode Title="KernelLanguage.WorkItemIdContainer class">
     <HelpKINode Title="KernelLanguage.WorkItemIdContainer Class" Url="html/d00d5c96-cc9b-72a0-5f81-d2aa498af7fb.htm" />
     <HelpKINode Title="KernelLanguage.WorkItemIdContainer Members" Url="html/d2dc24e0-0e26-e9ff-010c-7c7e613c0574.htm" />
     <HelpKINode Title="about KernelLanguage.WorkItemIdContainer class" Url="html/d00d5c96-cc9b-72a0-5f81-d2aa498af7fb.htm" />
     <HelpKINode Title="all members" Url="html/d2dc24e0-0e26-e9ff-010c-7c7e613c0574.htm" />
-    <HelpKINode Title="constructor" Url="html/09c8cd8c-1099-d76b-9343-47bf30a1bbf1.htm" />
+    <HelpKINode Title="constructor" Url="html/1dca0255-d88f-fb2d-e12b-ff2020dc9baf.htm" />
     <HelpKINode Title="methods" Url="html/9c9f5c34-21de-73f3-ca0a-206e590b0722.htm" />
   </HelpKINode>
   <HelpKINode Title="KernelLanguage.WorkItemIdContainer.GlobalID method" Url="html/667b2044-6a35-6913-fa1b-381870b3716b.htm" />
+  <HelpKINode Title="KernelLanguage.WorkItemIdContainer.GlobalOffset method" Url="html/7a19115e-b675-73a3-cbb1-3eae5dca3f55.htm" />
   <HelpKINode Title="KernelLanguage.WorkItemIdContainer.GlobalSize method" Url="html/5d095295-8f3e-e046-52ec-042e02ba5fd0.htm" />
   <HelpKINode Title="KernelLanguage.WorkItemIdContainer.GroupID method" Url="html/ec7156f2-79cd-de24-9776-bce63d354509.htm" />
   <HelpKINode Title="KernelLanguage.WorkItemIdContainer.LocalID method" Url="html/5147a9b5-f11a-2114-1945-eee0cfa96197.htm" />
   <HelpKINode Title="KernelLanguage.WorkItemIdContainer.LocalSize method" Url="html/26b648d8-ee7e-6fe1-092b-9e6ec342b8e2.htm" />
   <HelpKINode Title="KernelLanguage.WorkItemIdContainer.NumGroups method" Url="html/d026eb56-38ef-4eff-8956-1da445b343a8.htm" />
   <HelpKINode Title="KernelLanguage.WorkItemIdContainer.WorkDim method" Url="html/63a87899-af31-1389-fd1b-ae97e8dcd061.htm" />
-  <HelpKINode Title="KernelLanguage.WorkItemIdContainer.WorkItemIdContainer constructor" Url="html/09c8cd8c-1099-d76b-9343-47bf30a1bbf1.htm" />
+  <HelpKINode Title="KernelLanguage.WorkItemIdContainer.WorkItemIdContainer constructor" Url="html/1dca0255-d88f-fb2d-e12b-ff2020dc9baf.htm" />
   <HelpKINode Title="KernelMethodInfoParser class">
     <HelpKINode Title="KernelMethodInfoParser Class" Url="html/5e3c66d6-6b2c-8ca6-6f7c-9a84dab5efba.htm" />
     <HelpKINode Title="KernelMethodInfoParser Members" Url="html/807b74b4-9614-bc31-6edb-6d0f4ec8c33c.htm" />
@@ -2950,13 +2904,11 @@
     <HelpKINode Title="int3.lo Property " Url="html/bd88175b-ad08-70e6-ebdd-2fff5b27d874.htm" />
     <HelpKINode Title="int4.lo Property " Url="html/e5fd86ab-c988-1e45-021c-64b049fa23e8.htm" />
   </HelpKINode>
-  <HelpKINode Title="LoadConfiguration method" Url="html/265d6dda-1a0d-238f-2773-520d0b25eceb.htm" />
   <HelpKINode Title="LoadDefaultSteps property" Url="html/91137e37-4d61-e185-5871-e22913507459.htm" />
   <HelpKINode Title="LocalID method" Url="html/5147a9b5-f11a-2114-1945-eee0cfa96197.htm" />
   <HelpKINode Title="LocalSize method" Url="html/26b648d8-ee7e-6fe1-092b-9e6ec342b8e2.htm" />
   <HelpKINode Title="LocalSpace field" Url="html/76de04e2-e2e6-47f5-f0ed-a29e895738c4.htm" />
   <HelpKINode Title="LocalSpace property" Url="html/60183300-675d-bed9-13b3-7f1a51febcb6.htm" />
-  <HelpKINode Title="Long property" Url="html/0225f6df-87d7-0639-501f-a9cb2810f53b.htm" />
   <HelpKINode Title="MakeFakeExpression method" Url="html/f7a342f0-b4c2-c5d0-6d0e-c74ba31a6a79.htm" />
   <HelpKINode Title="ManagedGenericInstances property">
     <HelpKINode Title="DefaultTypeHandler.ManagedGenericInstances Property " Url="html/f7def860-87cb-6065-ecc0-e4449910fac1.htm" />
@@ -3129,8 +3081,6 @@
   <HelpKINode Title="outerProduct&lt;a, b&gt; method" Url="html/73cacd6b-dfd0-888d-0890-56039e4ee823.htm" />
   <HelpKINode Title="Outgoing method" Url="html/369bed0a-09e4-205f-fdba-06a11094e035.htm" />
   <HelpKINode Title="ParameterInfo property" Url="html/23f85348-2e2c-5b0c-a182-9d1ae2f00c2b.htm" />
-  <HelpKINode Title="ParseUnion(Of T) method" Url="html/9704dfd8-6421-60d6-2c0a-7c05c6cf8c8d.htm" />
-  <HelpKINode Title="ParseUnion&lt;T&gt; method" Url="html/9704dfd8-6421-60d6-2c0a-7c05c6cf8c8d.htm" />
   <HelpKINode Title="picks(Of a) method" Url="html/5fdafa91-b7e0-df6a-e2e7-b8035d7c1e2f.htm" />
   <HelpKINode Title="picks&lt;a&gt; method" Url="html/5fdafa91-b7e0-df6a-e2e7-b8035d7c1e2f.htm" />
   <HelpKINode Title="Placeholder property" Url="html/711b01c0-5174-3c3c-1238-9083f0b7cfa6.htm" />
@@ -3615,7 +3565,6 @@
   <HelpKINode Title="StepProcessorConfiguration.Type property" Url="html/f82aa0fa-2724-0eab-6a73-f7f774a74b3a.htm" />
   <HelpKINode Title="StepProcessors property" Url="html/dfd228f7-cc0b-0dbe-2855-855ca5f288e3.htm" />
   <HelpKINode Title="Steps property" Url="html/54cb18ba-0f68-892f-5ff1-5d710fe3bd46.htm" />
-  <HelpKINode Title="StoreConfiguration method" Url="html/e80c9217-e93d-7a9c-8b88-8d179ccb11a4.htm" />
   <HelpKINode Title="StructAccessCodegen class">
     <HelpKINode Title="StructAccessCodegen Class" Url="html/ca82440e-c00a-139d-24df-bfad94a1dbba.htm" />
     <HelpKINode Title="StructAccessCodegen Members" Url="html/596e9775-4913-857f-7c7e-671fb0e9a78c.htm" />
@@ -3662,9 +3611,9 @@
   </HelpKINode>
   <HelpKINode Title="Tag property">
     <HelpKINode Title="CompilerSource.Tag Property " Url="html/e760295a-4079-5403-249c-152545b9d007.htm" />
+    <HelpKINode Title="KernelLanguage.half.Tag Property " Url="html/39564aa8-34de-c54f-18d0-e7423dcdd1f3.htm" />
     <HelpKINode Title="KernelLanguage.MemFenceMode.Tag Property " Url="html/5422eda0-f4f7-f66b-a457-4bd1eebb1345.htm" />
-    <HelpKINode Title="KernelLanguage.size_t.Tag Property " Url="html/79bac994-4d35-293c-e9ff-29a3c0f099e3.htm" />
-    <HelpKINode Title="KernelLanguage.uint.Tag Property " Url="html/66587e0e-66c1-324b-a644-e362fd18599c.htm" />
+    <HelpKINode Title="KernelLanguage.uchar.Tag Property " Url="html/2371e592-e69b-0042-2957-63e34fa583c3.htm" />
     <HelpKINode Title="KernelLanguage.ulong.Tag Property " Url="html/13a254c2-11e2-accc-08b7-a2bfc2dd35e7.htm" />
     <HelpKINode Title="KernelParameterAccessMode.Tag Property " Url="html/89a44842-6b06-6c03-b919-f926a513ec33.htm" />
     <HelpKINode Title="KernelParameterAddressSpace.Tag Property " Url="html/168e8500-a64a-aa19-49ab-ca1514ee5222.htm" />
@@ -3751,6 +3700,8 @@
   <HelpKINode Title="TypeManager.ManagedGenericInstances property" Url="html/bc38f07e-3aff-b22f-1b54-9b85af4f799f.htm" />
   <HelpKINode Title="TypeManager.Print method" Url="html/4a1ae5a0-2ee8-f73f-2c5e-222f2e9b99eb.htm" />
   <HelpKINode Title="TypeManager.TypeManager constructor" Url="html/20f63ca2-ff5d-b2a0-9376-d0cc66013e03.htm" />
+  <HelpKINode Title="UChar property" Url="html/7e2c0a06-d48c-87cf-e053-742190964bdf.htm" />
+  <HelpKINode Title="ULong property" Url="html/0036298d-7023-8306-9a79-eccd59f88053.htm" />
   <HelpKINode Title="UnionCaseCodegen class">
     <HelpKINode Title="UnionCaseCodegen Class" Url="html/a2c8e105-7a3e-f189-6082-fb24d101e227.htm" />
     <HelpKINode Title="UnionCaseCodegen Members" Url="html/62d5d8ca-28ab-4f24-3b7c-9049b77a1789.htm" />

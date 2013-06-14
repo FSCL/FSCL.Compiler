@@ -70,6 +70,8 @@ and [<AbstractClass>] ICompilerStep(tm: TypeManager, processors:ICompilerStepPro
 ///<summary>
 ///The generic base class of compiler steps
 ///</summary>
+///<typeparam name="T">The type of the step input</typeparam>
+///<typeparam name="U">The type of the step output</typeparam>
 /// 
 [<AbstractClass>]
 type CompilerStep<'T,'U>(tm, processors) =
@@ -78,7 +80,7 @@ type CompilerStep<'T,'U>(tm, processors) =
     ///<summary>
     ///The abstract method that every step must implement to define the behavior of the step
     ///</summary>
-    ///<param>An instance of type 'T</param>
+    ///<param name="param0">An instance of type 'T</param>
     ///<returns>An instance of type 'U</returns>
     /// 
     abstract member Run: 'T -> 'U
@@ -95,8 +97,8 @@ type [<AbstractClass>] CompilerStepProcessor<'T,'U>() =
     ///<summary>
     ///The abstract method that every step processors must implement to define the behavior of the processor
     ///</summary>
-    ///<param>An instance of type 'T</param>
-    ///<param>The owner step</param>
+    ///<param name="param0">An instance of type 'T</param>
+    ///<param name="param1">The owner step</param>
     ///<returns>An instance of type 'U</returns>
     /// 
     abstract member Run: 'T * ICompilerStep -> 'U
@@ -113,8 +115,8 @@ type [<AbstractClass>] CompilerStepProcessor<'T>() =
     ///<summary>
     ///The abstract method that the step processors must implement to define their behaviour
     ///</summary>
-    ///<param>An instance of type 'T</param>
-    ///<param>The owner step</param>
+    ///<param name="param0">An instance of type 'T</param>
+    ///<param name="param1">The owner step</param>
     /// 
     abstract member Run: 'T * ICompilerStep -> unit
 

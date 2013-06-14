@@ -9,14 +9,47 @@ open System.Xml
 open System.Xml.Linq
 open Microsoft.FSharp.Reflection
 
+///
+///<summary>
+///Kind of compiler source: assembly object or file path
+///</summary>
+///
 type CompilerSource =
 | AssemblySource of Assembly
 | FileSource of string
 
+///
+///<summary>
+///Configuration of a compiler step
+///</summary>
+///<remarks>
+///A step configuration contains all the information about a step that must be provided when the step is specified in a configuration file or object
+///</remarks>
+///
 type StepConfiguration(i: string, t: Type, ?dependencies: string list, ?before: string list) =
+    ///
+    ///<summary>
+    ///The ID of the step
+    ///</summary>
+    ///
     member val ID = i with get
+    ///
+    ///<summary>
+    ///The step dependencies. See <see cref="FSCL.Compiler.StepAttribute"/>
+    ///</summary>
+    ///
     member val Dependencies = if dependencies.IsSome then dependencies.Value else [] with get
+    ///
+    ///<summary>
+    ///The set of steps that must be executed after this
+    ///</summary>
+    ///
     member val Before = if before.IsSome then before.Value else [] with get
+    ///
+    ///<summary>
+    ///The runtime .NET type of the step
+    ///</summary>
+    ///
     member val Type = t with get
     member internal this.ToXml() =
         let el = new XElement(XName.Get(this.GetType().Name),
@@ -61,12 +94,42 @@ type StepConfiguration(i: string, t: Type, ?dependencies: string list, ?before: 
                     equal := !equal && (List.tryFind(fun (item2:string) ->
                                         item1 = item2) oth.Before).IsSome) this.Before
             !equal
-
+            
+///
+///<summary>
+///Configuration of a compiler step processor
+///</summary>
+///
 type StepProcessorConfiguration(i: string, s: string, t: Type, ?dependencies, ?before) =
+    ///
+    ///<summary>
+    ///The ID of the step processors
+    ///</summary>
+    ///
     member val ID = i with get
-    member val Step = s with get
+    ///
+    ///<summary>
+    ///The step processors dependencies. See <see cref="FSCL.Compiler.StepProcessorAttribute"/>
+    ///</summary>
+    ///
     member val Dependencies = if dependencies.IsSome then dependencies.Value else [] with get
+    ///
+    ///<summary>
+    ///The set of processors that must be executed after this
+    ///</summary>
+    ///
     member val Before = if before.IsSome then before.Value else [] with get
+    ///
+    ///<summary>
+    ///The runtime .NET type of the step processor
+    ///</summary>
+    ///
+    member val Step = s with get
+    ///
+    ///<summary>
+    ///The runtime .NET type of the step
+    ///</summary>
+    ///
     member val Type = t with get
 
     member internal this.ToXml() =
@@ -99,9 +162,29 @@ type StepProcessorConfiguration(i: string, s: string, t: Type, ?dependencies, ?b
                                    a.GetType(el.Attribute(XName.Get("Type")).Value), 
                                    List.ofSeq deps, List.ofSeq bef)
 
+///
+///<summary>
+///Configuration of a type handler
+///</summary>
+///
 type TypeHandlerConfiguration(i:string, t:Type, ?before: string list) =
+    ///
+    ///<summary>
+    ///Type handler ID
+    ///</summary>
+    ///
     member val ID = i with get
+    ///
+    ///<summary>
+    ///The set of type handlers that must taken into account only is this one is not able to handle a type
+    ///</summary>
+    ///
     member val Before = if before.IsSome then before.Value else [] with get
+    ///
+    ///<summary>
+    ///The runtime .NET type of the step processor
+    ///</summary>
+    ///
     member val Type = t with get
     member internal this.ToXml() =
         let el = new XElement(
@@ -120,11 +203,21 @@ type TypeHandlerConfiguration(i:string, t:Type, ?before: string list) =
             for item in d.Elements(XName.Get("Item")) do
                 before.Add(item.Attribute(XName.Get("ID")).Value)
         TypeHandlerConfiguration(el.Attribute(XName.Get("ID")).Value, a.GetType(el.Attribute(XName.Get("Type")).Value), List.ofSeq before)   
-
+                
+///
+///<summary>
+///Configuration of a compiler source, which is a set of steps, processors and type handlers contained to the same assembly
+///</summary>
+///
 type SourceConfiguration(src: CompilerSource, 
                          th: TypeHandlerConfiguration list, 
                          s: StepConfiguration list, 
-                         p: StepProcessorConfiguration list) = 
+                         p: StepProcessorConfiguration list) =     
+    ///
+    ///<summary>
+    ///The path of the source file or the instance of the source assembly
+    ///</summary>
+    ///
     member val Source = 
         match src with
         | AssemblySource(a) ->
@@ -133,12 +226,35 @@ type SourceConfiguration(src: CompilerSource,
             if (Path.IsPathRooted(s)) then
                 FileSource(s)
             else
-               FileSource(Path.Combine(Directory.GetCurrentDirectory(), s))
-
+               FileSource(Path.Combine(Directory.GetCurrentDirectory(), s))               
+    ///
+    ///<summary>
+    ///The set of configurations of type handlers
+    ///</summary>
+    ///
     member val TypeHandlers = th with get
+    ///
+    ///<summary>
+    ///The set of configurations of steps
+    ///</summary>
+    ///
     member val Steps = s with get
-    member val StepProcessors = p with get
-    
+    ///
+    ///<summary>
+    ///The set of configurations of step processors
+    ///</summary>
+    ///
+    member val StepProcessors = p with get    
+    ///
+    ///<summary>
+    ///Whether this source is explicit or not
+    ///</summary>
+    ///<remarks>
+    ///An explicit source is a source where all the components in the assembly/file and all the related information are explicitated. 
+    ///In an implicit source the set of steps, processors and type handlers are instead to be found and parsed through reflection,
+    ///investigating the types declared in the assembly and their eventual step, processor or type handler attributes.
+    ///</remarks>
+    ///
     member this.IsExplicit
         with get() =
             (this.TypeHandlers.Length > 0) || (this.Steps.Length > 0) || (this.StepProcessors.Length > 0)
@@ -150,8 +266,12 @@ type SourceConfiguration(src: CompilerSource,
                 let a = Assembly.LoadFile(s)
                 a.GetCustomAttribute<DefaultComponentAssembly>() <> null
             | AssemblySource(a) ->
-                a.GetCustomAttribute<DefaultComponentAssembly>() <> null                
-
+                a.GetCustomAttribute<DefaultComponentAssembly>() <> null     
+    ///
+    ///<summary>
+    ///Constructor to instantiate an implicit compiler source
+    ///</summary>
+    ///
     new(src: CompilerSource) = 
         SourceConfiguration(src, [], [], [])
 
@@ -266,22 +386,43 @@ type SourceConfiguration(src: CompilerSource,
             // Return
             SourceConfiguration(this.Source, List.ofSeq th, List.ofSeq s, List.ofSeq sp)
         else
-            this        
-
+            this  
+             
+///
+///<summary>
+///Configuration of a compiler instance
+///</summary>
+///
 type CompilerConfiguration(defSteps, sources: SourceConfiguration list) =
-    // Guarantee file sources absolute
-    member val Sources = sources
-
+    ///
+    ///<summary>
+    ///The set of components sources
+    ///</summary>
+    ///
+    member val Sources = sources    
+    ///
+    ///<summary>
+    //Instantiates a default configuration, which is made by the set of sources of the native compiler components
+    ///</summary>
+    ///
     new(defSteps) =
-        CompilerConfiguration(defSteps, [])
-        
+        CompilerConfiguration(defSteps, [])        
+    ///
+    ///<summary>
+    ///Whether or not this configuration is a default configuration
+    ///</summary>
+    ///
     member this.IsDefault 
         with get() =
             if this.Sources.IsEmpty then
                 false
             else
                 this.Sources |> List.map(fun (el:SourceConfiguration) -> el.IsDefault) |> List.reduce(fun (el1:bool) (el2:bool) -> el1 && el2)
-            
+    ///
+    ///<summary>
+    ///Whether or not the native components must be merged with this configuration
+    ///</summary>
+    ///
     member this.LoadDefaultSteps 
         with get() = 
             defSteps && (not this.IsDefault)

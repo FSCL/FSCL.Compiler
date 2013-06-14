@@ -8,7 +8,6 @@ open FSCL.Compiler
 open System.Reflection
 
 exception CompilerBuildException of string
-
     
 type internal CompilerBuilder() =
     static member Build(conf: CompilerConfiguration) =

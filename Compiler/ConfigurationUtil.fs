@@ -4,7 +4,7 @@ open System
 open System.Collections.Generic
 open Microsoft.FSharp.Reflection
 
-type ConfigurationUtil() =
+type internal ConfigurationUtil() =
     static member FlattenList<'T>(t: obj) =
         List.ofSeq(t :?> IEnumerable<'T>)
 

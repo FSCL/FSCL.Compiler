@@ -132,7 +132,7 @@ type ArrayAccessTransformation() =
                         // Create a new call for the flattened array
                         let (get,set) = GetArrayAccessMethodInfo(v.Type.GetElementType())
                         Expr.Call(set, [Expr.Var(placeholder); accessIndex; processedArgs.[2]])
-                        elif methodInfo.Name = "SetArray3D" then
+                    elif methodInfo.Name = "SetArray3D" then
                             // Find the placeholder holding the variable of the flattened array
                         let placeholder = GetPlaceholderVar(v.Name, engine)
                         // Find the placeholders holding the array sizes

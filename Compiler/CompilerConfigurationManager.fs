@@ -17,7 +17,7 @@ open System.Xml.Linq
 
 exception CompilerConfigurationException of string
 
-type CompilerConfigurationManager() = 
+type internal CompilerConfigurationManager() = 
     // Trick to guarantee the default components assemblies are loaded
     static member private defAssemblyComponents = [typeof<SignaturePreprocessor>; typeof<SignatureCodegen>; typeof<ReturnLifting>; typeof<KernelReferenceParser>; typeof<GenericInstantiator>; typeof<ModuleCodegen>; typeof<DefaultTypeHandler>; typeof<VectorTypeHandler>; ]
 
