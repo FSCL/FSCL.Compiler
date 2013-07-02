@@ -1,6 +1,8 @@
 ﻿namespace FSCL.Compiler.FunctionCodegen
 
+open System
 open FSCL.Compiler
+open System.Collections.Generic
 open Microsoft.FSharp.Quotations
 
 [<StepProcessor("FSCL_CALL_CODEGEN_PROCESSOR", "FSCL_FUNCTION_CODEGEN_STEP",
@@ -14,6 +16,7 @@ open Microsoft.FSharp.Quotations
 ///  
 type CallCodegen() =
     inherit FunctionBodyCodegenProcessor()
+
     ///
     ///<summary>
     ///The method called to execute the processor
@@ -28,6 +31,8 @@ type CallCodegen() =
         let engine = en :?> FunctionCodegenStep
         match expr with
         | Patterns.Call (o, mi, a) ->
+            // Check if the call is the last thing done in the function body
+            // If so, prepend "return"
             let returnTags = engine.FunctionInfo.CustomInfo.["RETURN_EXPRESSIONS"] :?> Expr list
             let returnPrefix = 
                 if (List.tryFind(fun (e:Expr) -> e = expr) returnTags).IsSome then

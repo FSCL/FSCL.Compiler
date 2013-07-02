@@ -7,6 +7,10 @@ open System
 ///</summary>
 ///
 module KernelLanguage =
+    type AlternativeFunctionAttribute(s:string) =
+        inherit Attribute()
+        member this.AlternativeFunctionName 
+            with get() = s
     ///
     ///<summary>
     ///The attribute to mark a parameter to be allocated in the constant address-space
@@ -116,6 +120,169 @@ module KernelLanguage =
     let get_work_dim() =
         0
         
+    // Math functions
+    [<AlternativeFunction("Math.Acos")>]
+    let acos(x) =
+        Math.Acos(x)
+
+    let acosh(x) =
+        Math.Log(x + Math.Sqrt(Math.Pow(x, 2.0) - 1.0))
+
+    let acospi(x) =
+        Math.Acos(x) / Math.PI
+        
+    [<AlternativeFunction("Math.Asin")>]
+    let asin(x) =
+        Math.Asin(x)
+        
+    let asinh(x) =
+        Math.Log(x + Math.Sqrt(Math.Pow(x, 2.0) + 1.0))
+
+    let asinpi(x) =
+        Math.Asin(x) / Math.PI
+        
+    [<AlternativeFunction("Math.Atan")>]
+    let atan(x) =
+        Math.Atan(x)
+        
+    [<AlternativeFunction("Math.Atan2")>]
+    let atan2(y, x) =
+        Math.Atan2(y, x)
+        
+    let atanh(x) =
+        1.0/2.0 * Math.Log((1.0 + x) / (1.0 - x))
+
+    let atanpi(x) =
+        atan(x) / Math.PI
+        
+    let atan2pi(y, x) =
+        atan2(y, x) / Math.PI
+
+    let cbrt(x) =
+        Math.Pow(x, 1.0/3.0)
+        
+    [<AlternativeFunction("Math.Ceiling")>]
+    let ceil(x: float) =
+        Math.Ceiling(x)
+
+    let copysign(x, y) =
+        if (x / y < 0) then
+            -x
+        else
+            x
+    
+    [<AlternativeFunction("Math.Cos")>]
+    let cos(x) =
+        Math.Cos(x)
+        
+    [<AlternativeFunction("Math.Cosh")>]
+    let cosh(x) =
+        Math.Cosh(x)
+
+    let cospi(x) =
+        Math.Cos(x) / Math.PI
+        
+    let erfc(x: float) = 
+        let a1 = -1.26551223
+        let a2 = 1.00002368
+        let a3 = 0.37409196
+        let a4 = 0.09678418
+        let a5 = -0.18628806
+        let a6 = 0.27886807
+        let a7 = -1.13520398
+        let a8 = 1.48851587
+        let a9 = -0.8221522
+        let a10 = 0.17087277
+        
+        let z = if x < 0.0 then -x else x
+        if (z < 0.0) then
+            1.0
+        else
+            let t = 1.0/(1.0 + 0.5 * z)
+            let mutable v = t * Math.Exp((-z*z)+a1+t*(a2+t*(a3+t*(a4+t*(a5+t*(a6+t*(a7+t*(a8+t*(a9+t*a10)))))))))
+            if (x < 0.0) then
+                v <- 2.0 - v
+            v
+
+    let erf(x) =
+        1.0 - erfc(x)
+        
+    [<AlternativeFunction("Math.Exp")>]
+    let exp(x) =
+        Math.Exp(x)
+        
+    let exp2(x) =
+        Math.Pow(2.0, x)
+        
+    let exp10(x) =
+        Math.Pow(10.0, x)
+
+    let expm1(x) =
+        Math.Exp(x) - 1.0
+
+    let fabs(x) =
+        if(x < 0.0) then
+            x
+        else
+            -x
+
+    let fdim(x, y) =
+        if x > y then
+            x - y
+        else
+            0.0
+            
+    [<AlternativeFunction("Math.Floor")>]
+    let floor(x: float) =
+        Math.Floor(x)
+
+    let fma(a, b, c) =
+        c + (a * b)
+
+    let fmax(x, y) =
+        if Double.IsNaN(x) && Double.IsNaN(y) then
+            Double.NaN
+        else if Double.IsNaN(x) then
+            y
+        else if Double.IsNaN(y) then
+            x
+        else
+            Math.Max(x, y)
+            
+    let fmin(x, y) =
+        if Double.IsNaN(x) && Double.IsNaN(y) then
+            Double.NaN
+        else if Double.IsNaN(x) then
+            y
+        else if Double.IsNaN(y) then
+            x
+        else
+            Math.Min(x, y)
+
+    let fmod(x: float, y: float) =
+        x - y * (Math.Truncate(x / y))
+    (*
+    let fract(x, iptr) =
+      
+
+gentype fract (gentype x, 
+__global gentype *iptr)
+49
+gentype fract (gentype x, 
+__local gentype *iptr)
+gentype fract (gentype x, 
+__private gentype *iptr)
+Returns fmin( x – floor (x), 0x1.fffffep-1f ).
+floor(x) is returned in iptr.
+floatn frexp (floatn x, 
+__global intn *exp)
+floatn frexp (floatn x, 
+__local intn *exp)
+Extract mantissa and exponent from x. For each 
+component the mantissa returned is a float with 
+magnitude in the interval [1/2, 1) or 0. Each 
+component of x equals mantissa returned * 2exp *)
+
     ///
     ///<summary>
     ///The container of workspace related functions

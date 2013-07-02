@@ -3,6 +3,12 @@
 open FSCL
 open FSCL.Compiler.KernelLanguage
 
+// Demonstrate the usage of math functions
+[<ReflectedDefinition>]
+let Fmad(a: float32[], b: float32[], c: float32[]) =
+    let gid = get_global_id(0)
+    c.[gid] <- (float32) (fmax((float)a.[gid], (float)b.[gid]))
+
 // Demonstrate the usage of ref variables as arrays of 1 element
 [<ReflectedDefinition>]
 let SingleReturn(a: float32[], b: float32[], c: float32 ref) =
