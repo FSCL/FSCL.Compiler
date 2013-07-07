@@ -55,39 +55,39 @@
       <Project>{7635ade1-ac00-4587-8117-3faa15be9318}</Project>
       <Private>True</Private>
     </ProjectReference>
-    <ProjectReference Include="..\FunctionPreprocessing\FSCL.Compiler.Core.FunctionPreprocessing.fsproj">
-      <Name>FSCL.Compiler.Core.FunctionPreprocessing</Name>
-      <Project>{ed8c50cd-4155-4d3a-a682-76757fb2b8d7}</Project>
-      <Private>True</Private>
-    </ProjectReference>
-    <ProjectReference Include="..\FunctionPrettyPrinting\FSCL.Compiler.Core.FunctionCodegen.fsproj">
-      <Name>FSCL.Compiler.Core.FunctionCodegen</Name>
-      <Project>{a0eb369a-a29e-4bb9-8b16-cf406e42f534}</Project>
-      <Private>True</Private>
-    </ProjectReference>
-    <ProjectReference Include="..\FunctionTransformation\FSCL.Compiler.Core.FunctionTransformation.fsproj">
-      <Name>FSCL.Compiler.Core.FunctionTransformation</Name>
-      <Project>{76611cb9-7f4f-4842-bee6-03eecaf79894}</Project>
-      <Private>True</Private>
-    </ProjectReference>
     <ProjectReference Include="..\Language\FSCL.Compiler.Core.Language.fsproj">
       <Name>FSCL.Compiler.Core.Language</Name>
       <Project>{02cc39bd-a326-49f6-b5e6-2987eada1ba2}</Project>
       <Private>True</Private>
     </ProjectReference>
-    <ProjectReference Include="..\ModuleParsing\FSCL.Compiler.Core.ModuleParsing.fsproj">
+    <ProjectReference Include="..\NativeComponents\FunctionCodegen\FSCL.Compiler.Core.FunctionCodegen.fsproj">
+      <Name>FSCL.Compiler.Core.FunctionCodegen</Name>
+      <Project>{a0eb369a-a29e-4bb9-8b16-cf406e42f534}</Project>
+      <Private>True</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\NativeComponents\FunctionPreprocessing\FSCL.Compiler.Core.FunctionPreprocessing.fsproj">
+      <Name>FSCL.Compiler.Core.FunctionPreprocessing</Name>
+      <Project>{ed8c50cd-4155-4d3a-a682-76757fb2b8d7}</Project>
+      <Private>True</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\NativeComponents\FunctionTransformation\FSCL.Compiler.Core.FunctionTransformation.fsproj">
+      <Name>FSCL.Compiler.Core.FunctionTransformation</Name>
+      <Project>{76611cb9-7f4f-4842-bee6-03eecaf79894}</Project>
+      <Private>True</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\NativeComponents\ModuleCodegen\FSCL.Compiler.Core.ModuleCodegen.fsproj">
+      <Name>FSCL.Compiler.Core.ModuleCodegen</Name>
+      <Project>{431cb9ed-c613-46be-ad84-b4a0d8532487}</Project>
+      <Private>True</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\NativeComponents\ModuleParsing\FSCL.Compiler.Core.ModuleParsing.fsproj">
       <Name>FSCL.Compiler.Core.ModuleParsing</Name>
       <Project>{a42da267-4d0e-4f14-a7e0-f2f9ab587005}</Project>
       <Private>True</Private>
     </ProjectReference>
-    <ProjectReference Include="..\ModulePreprocessing\FSCL.Compiler.Core.ModulePreprocessing.fsproj">
+    <ProjectReference Include="..\NativeComponents\ModulePreprocessing\FSCL.Compiler.Core.ModulePreprocessing.fsproj">
       <Name>FSCL.Compiler.Core.ModulePreprocessing</Name>
       <Project>{898f5ec0-3903-40e0-98bd-ee2e5746620f}</Project>
-      <Private>True</Private>
-    </ProjectReference>
-    <ProjectReference Include="..\ModulePrettyPrinting\FSCL.Compiler.Core.ModuleCodegen.fsproj">
-      <Name>FSCL.Compiler.Core.ModuleCodegen</Name>
-      <Project>{431cb9ed-c613-46be-ad84-b4a0d8532487}</Project>
       <Private>True</Private>
     </ProjectReference>
     <ProjectReference Include="..\Tools\FSCL.Compiler.Tools.fsproj">

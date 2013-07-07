@@ -17,7 +17,7 @@ open System.Xml.Linq
 
 exception CompilerConfigurationException of string
 
-type internal CompilerConfigurationManager() = 
+type CompilerConfigurationManager() = 
     // Trick to guarantee the default components assemblies are loaded
     static member private defAssemblyComponents = [typeof<SignaturePreprocessor>; typeof<SignatureCodegen>; typeof<ReturnLifting>; typeof<KernelReferenceParser>; typeof<GenericInstantiator>; typeof<ModuleCodegen>; typeof<DefaultTypeHandler>; typeof<VectorTypeHandler>; ]
 
@@ -37,13 +37,13 @@ type internal CompilerConfigurationManager() =
         CompilerConfiguration(false, List.ofSeq sources)
 
     // Load from configuration file    
-    static member LoadConfiguration(cf:string) =
+    static member internal LoadConfiguration(cf:string) =
         let document = XDocument.Load(cf)
         let conf = CompilerConfiguration.FromXml(document, Path.GetDirectoryName(Path.GetFullPath(cf)))
         conf
         
     // Load from configuration file    
-    static member LoadConfiguration() =
+    static member internal LoadConfiguration() =
         let conf = Path.Combine(CompilerConfigurationManager.ConfigurationRoot, "FSCL.Config.xml")
         if not (File.Exists(conf)) then
             let sources = List<SourceConfiguration>()
@@ -56,20 +56,20 @@ type internal CompilerConfigurationManager() =
         else
             CompilerConfiguration(true)
             
-    static member StoreConfiguration(conf: CompilerConfiguration, f: string) =
+    static member internal StoreConfiguration(conf: CompilerConfiguration, f: string) =
         conf.MakeExplicit().ToXml().Save(f)
               
-    static member Build() =
+    static member internal Build() =
         let conf = CompilerConfigurationManager.LoadConfiguration()
         CompilerConfigurationManager.Build(conf)
 
 
     // Build from file
-    static member Build(cf: string) =
+    static member internal Build(cf: string) =
         let conf = CompilerConfigurationManager.LoadConfiguration(cf)
         CompilerConfigurationManager.Build(conf)
         
-    static member Build(conf: CompilerConfiguration) =
+    static member internal Build(conf: CompilerConfiguration) =
         let explicitConf = conf.MergeDefault(CompilerConfigurationManager.DefaultConfiguration())
         CompilerBuilder.Build(explicitConf)
 

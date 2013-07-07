@@ -1,0 +1,13 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<!-- Implicit configuration file: every source is characterized only by its path, components automatically detected-->
+<CompilerConfiguration LoadDefaultSteps="false">
+  <Sources>
+    <CompilerSourceConfiguration FileSource="FSCL.Compiler.Core.Types.dll"/>
+    <CompilerSourceConfiguration FileSource="FSCL.Compiler.Core.ModuleParsing.dll"/>
+    <CompilerSourceConfiguration FileSource="FSCL.Compiler.Core.ModulePreprocessing.dll"/>
+    <CompilerSourceConfiguration FileSource="FSCL.Compiler.Core.ModulePrettyPrinting.dll"/>
+    <CompilerSourceConfiguration FileSource="FSCL.Compiler.Core.FunctionPreprocessing.dll"/>
+    <CompilerSourceConfiguration FileSource="FSCL.Compiler.Core.FunctionTransformation.dll"/>
+    <CompilerSourceConfiguration FileSource="FSCL.Compiler.Core.FunctionPrettyPrinting.dll"/>
+  </Sources>  
+</CompilerConfiguration>
