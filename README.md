@@ -8,6 +8,7 @@ FSharp to OpenCL Compiler
 
 A draft of the FSCL compiler and FSCL runtime specification is available: 
 [FSCL compiler and runtime documentation](https://github.com/GabrieleCocco/FSCL.Compiler/blob/master/FSCL%20Documentation%20v1.0.pdf)
+Note that the FSCL runtime is a separate project hosted on gihub: [FSCL runtime project](https://github.com/GabrieleCocco/FSCL.Runtime)
 
 ###At a glance
 
