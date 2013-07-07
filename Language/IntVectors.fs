@@ -1,6 +1,9 @@
 ﻿namespace FSCL.Compiler
+open System.Runtime.InteropServices
 
 // Integer vector types
+[<Struct>]
+[<StructLayout(LayoutKind.Sequential)>]
 type int2 =
     struct 
         val mutable x: int
@@ -80,7 +83,9 @@ type int2 =
         static member (<=>) (f1: int2, f2: int2) =
             int2(Array.map2 (fun e1 e2 -> if e1 <> e2 then -1 else 0) (f1.Components) (f2.Components))
     end
-               
+    
+[<Struct>]
+[<StructLayout(LayoutKind.Sequential)>]               
 type int3 =
     struct
         val mutable x: int
@@ -328,7 +333,9 @@ type int3 =
         static member (<=>) (f1: int3, f2: int3) =
             int3(Array.map2 (fun e1 e2 -> if e1 <> e2 then -1 else 0) (f1.Components) (f2.Components))
     end
-            
+
+[<Struct>]
+[<StructLayout(LayoutKind.Sequential)>]            
 type int4 =
     struct
         val mutable x: int

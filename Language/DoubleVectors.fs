@@ -1,6 +1,9 @@
 ﻿namespace FSCL.Compiler
+open System.Runtime.InteropServices
 
 // Double vector types
+[<Struct>]
+[<StructLayout(LayoutKind.Sequential)>]
 type double2 =
     struct
         val mutable x: double
@@ -80,7 +83,9 @@ type double2 =
         static member (<=>) (f1: double2, f2: double2) =
             int2(Array.map2 (fun e1 e2 -> if e1 <> e2 then -1 else 0) (f1.Components) (f2.Components))
     end
-                    
+    
+[<Struct>]
+[<StructLayout(LayoutKind.Sequential)>]                    
 type double3 =
     struct
         val mutable x: double
@@ -328,7 +333,9 @@ type double3 =
         static member (<=>) (f1: double3, f2: double3) =
             int3(Array.map2 (fun e1 e2 -> if e1 <> e2 then -1 else 0) (f1.Components) (f2.Components))
     end
-             
+ 
+[<Struct>]
+[<StructLayout(LayoutKind.Sequential)>]        
 type double4 =
     struct
         val mutable x: double

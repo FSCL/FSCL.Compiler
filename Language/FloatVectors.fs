@@ -1,6 +1,9 @@
 ﻿namespace FSCL.Compiler
+open System.Runtime.InteropServices
 
 // Float vector types
+[<Struct>]
+[<StructLayout(LayoutKind.Sequential)>]
 type float2 =
     struct
         val mutable x: float32
@@ -81,6 +84,8 @@ type float2 =
             int2(Array.map2 (fun e1 e2 -> if e1 <> e2 then -1 else 0) (f1.Components) (f2.Components))
     end               
                 
+[<Struct>]
+[<StructLayout(LayoutKind.Sequential)>]
 type float3 =
     struct
         val mutable x: float32
@@ -328,7 +333,9 @@ type float3 =
         static member (<=>) (f1: float3, f2: float3) =
             int3(Array.map2 (fun e1 e2 -> if e1 <> e2 then -1 else 0) (f1.Components) (f2.Components))
     end
-
+    
+[<Struct>]
+[<StructLayout(LayoutKind.Sequential)>]
 type float4 =
     struct
         val mutable x: float32
