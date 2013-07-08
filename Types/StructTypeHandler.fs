@@ -1,4 +1,4 @@
-﻿namespace FSCL.Compiler.Processors
+﻿namespace FSCL.Compiler.Types
 
 open System
 open FSCL.Compiler
@@ -24,6 +24,9 @@ type StructTypeHandler() =
         let elementType = if t.IsArray then t.GetElementType() else t
         if (FSharpType.IsRecord(elementType) ||
             (elementType.IsValueType && (not elementType.IsPrimitive) && (not elementType.IsEnum))) then   
-            true
+                if elementType.Assembly.GetName().Name = "FSCL.Compiler.Core.Language" then
+                    false
+                else
+                    true
         else
             false         

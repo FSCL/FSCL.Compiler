@@ -17,7 +17,9 @@ type StructDiscover() =
         // If the type of the expression is a struct not already added to the collection, add it
         if (FSharpType.IsRecord(t) || (t.IsValueType && (not t.IsPrimitive) && (not t.IsEnum))) then   
             if not (structs.ContainsKey(t)) then
-                structs.Add(t, ())
+                // Vector types are implicitely defined in OpenCL: do not collect them
+                if not (t.Assembly.GetName().Name = "FSCL.Compiler.Core.Language") then
+                    structs.Add(t, ())
 
         // Recursive analysis
         match e with
