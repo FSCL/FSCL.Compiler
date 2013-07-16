@@ -12,7 +12,7 @@ open System
 type AcceleratedArrayMapHandler() =
     interface IAcceleratedCollectionHandler with
         member this.Process(methodInfo, args, dynModule) =
-            let kernelModule = KernelModule()
+            let kcg = new KernelCallGraph()
             // Extract the map function 
             match AcceleratedCollectionUtil.FilterCall(args.[0], id) with
             | Some(expr, functionInfo, args) ->
@@ -55,8 +55,8 @@ type AcceleratedArrayMapHandler() =
                                                         ])
                                            ]))
 
-                    kernelModule.Source <- KernelInfo(signature, body)                                                           
-                    Some(kernelModule)
+                    kcg.AddKernel(new KernelInfo(signature, body))                                   
+                    Some(new KernelModule(kcg))
                 | _ ->
                     None
             | _ ->

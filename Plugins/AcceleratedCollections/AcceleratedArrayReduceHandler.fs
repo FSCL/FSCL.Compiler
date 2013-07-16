@@ -138,7 +138,7 @@ type AcceleratedArrayReduceHandler() =
 
     interface IAcceleratedCollectionHandler with
         member this.Process(methodInfo, args, dynModule) =
-            let kernelModule = KernelModule()
+            let kcg = new KernelCallGraph()
             // Extract the map function 
             match AcceleratedCollectionUtil.FilterCall(args.[0], id) with
             | Some(expr, functionInfo, args) ->
@@ -193,9 +193,9 @@ type AcceleratedArrayReduceHandler() =
                     let newBody = SubstitutePlaceholders(templateBody, parameterMatching, functionInfo)  
                     
                     // Setup kernel module and return  
-                    let signature = dynModule.GetMethod(methodBuilder.Name)      
-                    kernelModule.Source <- new KernelInfo(signature, newBody)           
-                    Some(kernelModule)
+                    let signature = dynModule.GetMethod(methodBuilder.Name) 
+                    kcg.AddKernel(new KernelInfo(signature, newBody))
+                    Some(new KernelModule(kcg))
                 | _ ->
                     None
             | _ ->

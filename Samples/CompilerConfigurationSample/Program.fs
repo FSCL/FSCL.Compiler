@@ -114,17 +114,17 @@ let main argv =
                                                     [ StepConfiguration("FSCL_FUNCTION_PREPROCESSING_STEP",                         // Explicitely define steps
                                                                         typeof<FunctionPreprocessingStep>,
                                                                         [ "FSCL_MODULE_PREPROCESSING_STEP"; "FSCL_MODULE_PARSING_STEP" ]) ],
-                                                    [ StepProcessorConfiguration("FSCL_ARG_EXTRACTION_PREPROCESSING_PROCESSOR",     // Explicitely define processors
+                                                    [ StepProcessorConfiguration("FSCL_RTTOA_PREPROCESSING_PROCESSOR",     // Explicitely define processors
                                                                                  "FSCL_FUNCTION_PREPROCESSING_STEP",
-                                                                                 typeof<ArgExtractionPreprocessor>);
-                                                      StepProcessorConfiguration("FSCL_SIGNATURE_PREPROCESSING_PROCESSOR", 
+                                                                                 typeof<ReturnTypeToOutputArgProcessor>);
+                                                      StepProcessorConfiguration("FSCL_ALAI_PREPROCESSING_PROCESSOR", 
                                                                                  "FSCL_FUNCTION_PREPROCESSING_STEP",
-                                                                                 typeof<SignaturePreprocessor>,
-                                                                                 ["FSCL_ARG_EXTRACTION_PREPROCESSING_PROCESSOR"]);
-                                                      StepProcessorConfiguration("FSCL_REF_VAR_PREPROCESSING_PROCESSOR", 
+                                                                                 typeof<ArrayLengthArgsInsertionProcessor>,
+                                                                                 ["FSCL_RTTOA_PREPROCESSING_PROCESSOR"]);
+                                                      StepProcessorConfiguration("FSCL_RTTAR_PREPROCESSING_PROCESSOR", 
                                                                                  "FSCL_FUNCTION_PREPROCESSING_STEP",
-                                                                                 typeof<RefVariablePreprocessor>,
-                                                                                 ["FSCL_SIGNATURE_PREPROCESSING_PROCESSOR"])]);
+                                                                                 typeof<RefTypeToArrayReplacingProcessor>,
+                                                                                 ["FSCL_ALAI_PREPROCESSING_PROCESSOR"])]);
                                                 SourceConfiguration(
                                                     AssemblySource(typeof<FunctionTransformationStep>.Assembly));
                                                 SourceConfiguration(
