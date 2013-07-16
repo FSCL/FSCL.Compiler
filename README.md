@@ -33,7 +33,7 @@ When an F# kernel containing generic parameters is compiled, FSCL produces an in
 
 To use the FSCL compiler to write F# kernels and to compile them into OpenCL code, programmers must:
 
-1. Link the appropriate libraries: *FSCL.Compiler.dll* and *FSCL.Compiler.KernelLanguage.dll*;
+1. Link the appropriate libraries: *FSCL.Compiler.dll* and *FSCL.Compiler.Language.dll*;
 2. Open the appropriate namespaces: *FSCL.Compiler* and *FSCL.Compiler.KernelLanguage*;
 3. Write the F# kernel and mark it with the *ReflectedDefinition attribute*;
 4. Instantiate the *Compiler* type and call the *Compile method* passing the quotation of the function/method reference (name).

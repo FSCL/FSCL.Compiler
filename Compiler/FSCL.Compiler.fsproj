@@ -100,11 +100,6 @@
       <Project>{ec288651-4f88-44d7-9206-7a0260552ecc}</Project>
       <Private>True</Private>
     </ProjectReference>
-    <ProjectReference Include="..\VectorTypes\FSCL.Compiler.Core.VectorTypes.fsproj">
-      <Name>FSCL.Compiler.Core.VectorTypes</Name>
-      <Project>{4e60e123-e793-4fed-a316-b0d6039764e8}</Project>
-      <Private>True</Private>
-    </ProjectReference>
   </ItemGroup>
   <PropertyGroup>
     <MinimumVisualStudioVersion Condition="'$(MinimumVisualStudioVersion)' == ''">11</MinimumVisualStudioVersion>
