@@ -11,9 +11,9 @@ open System
 type internal TemporaryKernelParameterTable = Dictionary<String, TemporaryKernelParameterInfo>
 type internal KernelParameterTable = Dictionary<String, KernelParameterInfo>
 
-[<StepProcessor("FSCL_SIGNATURE_PREPROCESSING_PROCESSOR", "FSCL_FUNCTION_PREPROCESSING_STEP", 
-                Dependencies = [|"FSCL_ARG_EXTRACTION_PREPROCESSING_PROCESSOR"|])>] 
-type SignaturePreprocessor() =        
+[<StepProcessor("FSCL_ARRAY_LENGTH_ARGS_INSERTION_PREPROCESSING_PROCESSOR", "FSCL_FUNCTION_PREPROCESSING_STEP", 
+                Dependencies = [|"FSCL_RETURN_TYPE_TO_OUTPUT_ARG_REPLACING_PREPROCESSING_PROCESSOR"|])>] 
+type ArrayLengthArgsInsertionProcessor() =        
     inherit FunctionPreprocessingProcessor()
 
     let GetArrayDimensions (t:Type) =
@@ -107,7 +107,7 @@ type SignaturePreprocessor() =
                 // Define a var to ref the size parameter inside the kernel
                 kSizePInfo.Placeholder <- Some(Quotations.Var(sizePName, kSizePInfo.Info.ParameterType, false))
                 pInfo.Value.SizeParameters <- pInfo.Value.SizeParameters @ [kSizePInfo]
-                    
+                
         // Add kernel parameter table to the global data
         for item in newParameterTable do
             kernelInfo.ParameterInfo.Add(item.Key, item.Value)

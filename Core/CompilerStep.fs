@@ -140,7 +140,7 @@ type ModuleParsingProcessor = CompilerStepProcessor<obj, KernelModule option>
 type ModulePreprocessingProcessor = CompilerStepProcessor<KernelModule>
 ///
 ///<summary>
-///The type of the processors of the function preprocessing step. Alias of CompilerStepProcessor&lt;FunctionInfo&gt;
+///The type of the processors of the function preprocessing step. Alias of CompilerStepProcessor&lt;FunctionInfo * ConnectionsWrapper, ConnectionWrapper&gt;
 ///</summary>
 /// 
 type FunctionPreprocessingProcessor = CompilerStepProcessor<FunctionInfo>

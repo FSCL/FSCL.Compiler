@@ -1,6 +1,6 @@
-﻿namespace CombinationGenerator
+﻿namespace FSCL.Compiler.Core.Util
 
-module Generator =
+module CombinationGenerator =
     // All ordered picks {x_i1, x_i2, .. , x_ik} of k out of n elements {x_1,..,x_n}
     // where i1 < i2 < .. < ik
     let picks n L = 

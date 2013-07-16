@@ -1,4 +1,4 @@
-﻿namespace FSCL.Compiler.FunctionPreprocessing
+﻿namespace FSCL.Compiler.FunctionTransformation
 
 open FSCL.Compiler
 open System.Collections.Generic
@@ -8,13 +8,15 @@ open Microsoft.FSharp.Quotations
 open Microsoft.FSharp.Reflection
 open System
 
-[<StepProcessor("FSCL_ARG_EXTRACTION_PREPROCESSING_PROCESSOR", "FSCL_FUNCTION_PREPROCESSING_STEP")>] 
+[<StepProcessor("FSCL_ARG_LIFTING_TRANSFORMATION_PROCESSOR", "FSCL_FUNCTION_TRANSFORMATION_STEP")>] 
 type ArgExtractionPreprocessor() =
-    inherit FunctionPreprocessingProcessor()
+    inherit FunctionTransformationProcessor()
     let rec LiftArgExtraction (expr, parameters: ParameterInfo[]) =
         match expr with
         | Patterns.Lambda(v, e) ->
             if v.Name = "tupledArg" then
+                LiftArgExtraction(e, parameters)                
+            else if v.Name = "this" then
                 LiftArgExtraction(e, parameters)
             else
                 let el = Array.tryFind (fun (p:ParameterInfo) -> p.Name = v.Name) parameters
@@ -31,7 +33,8 @@ type ArgExtractionPreprocessor() =
         | _ ->
             expr
         
-    override this.Run(fi, en) =
-        fi.Body <- LiftArgExtraction(fi.Body, fi.Signature.GetParameters())
+    override this.Run(exp, en) =
+        let step = en :?> FunctionTransformationStep
+        LiftArgExtraction(exp, step.FunctionInfo.Signature.GetParameters())
             
 

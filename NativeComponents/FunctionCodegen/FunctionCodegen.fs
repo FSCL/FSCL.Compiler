@@ -89,9 +89,9 @@ type FunctionCodegenStep(tm: TypeManager,
     ///</returns>
     ///       
     override this.Run(km: KernelModule) =    
-        for kernel in km.Kernels do
+        for kernel in km.CallGraph.Kernels do
             this.Process(kernel)
-        for f in km.Functions do
+        for f in km.CallGraph.Functions do
             this.Process(f)
         km
     (*

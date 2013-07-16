@@ -6,14 +6,14 @@ open System.Collections.Generic
 open System.Reflection
 open Microsoft.FSharp.Quotations
 
-[<StepProcessor("FSCL_METHOD_INFO_PARSING_PROCESSOR", "FSCL_MODULE_PARSING_STEP")>]
-type KernelMethodInfoParser() =      
-    inherit ModuleParsingProcessor() 
+[<StepProcessor("FSCL_LAMBDA_PARSING_PROCESSOR", "FSCL_MODULE_PARSING_STEP", Dependencies = [| "FSCL_REFERENCE_PARSING_PROCESSOR" |])>]
+type KernelLambdaParser() =      
+    inherit ModuleParsingProcessor()
         
     override this.Run(mi, en) =
         let engine = en :?> ModuleParsingStep
-        if (mi :? MethodInfo) then
-            match QuotationAnalysis.GetKernelFromMethodInfo(mi :?> MethodInfo) with
+        if (mi :? Expr) then
+            match QuotationAnalysis.GetKernelFromLambda(mi :?> Expr) with
             | Some(mi, b) -> 
                 // Create signleton kernel call graph
                 let kcg = new KernelCallGraph()

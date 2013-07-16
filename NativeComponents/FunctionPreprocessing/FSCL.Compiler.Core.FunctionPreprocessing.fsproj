@@ -42,9 +42,9 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="FunctionPreprocessing.fs" />
-    <Compile Include="ArgExtractionPreprocessor.fs" />
-    <Compile Include="SignaturePreprocessor.fs" />
-    <Compile Include="RefVariablePreprocessor.fs" />
+    <Compile Include="ReturnTypeToOutputArgReplacing.fs" />
+    <Compile Include="ArrayLengthArgsInsertion.fs" />
+    <Compile Include="RefTypeToArrayReplacing.fs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\Core\FSCL.Compiler.Core.fsproj">

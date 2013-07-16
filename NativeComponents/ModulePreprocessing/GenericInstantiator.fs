@@ -6,7 +6,7 @@ open System.Reflection
 open Microsoft.FSharp.Quotations
 open System
 open System.Reflection.Emit
-
+(*
 [<StepProcessor("FSCL_GENERIC_INSTANTIATION_PROCESSOR", "FSCL_MODULE_PREPROCESSING_STEP", Dependencies = [| "FSCL_STRUCT_DISCOVERY_PROCESSOR" |])>]
 type GenericInstantiator() =      
     inherit ModulePreprocessingProcessor()
@@ -58,4 +58,21 @@ type GenericInstantiator() =
         else            
             let kInfo = new KernelInfo(m.Source.Signature, m.Source.Body)
             m.Kernels <- m.Kernels @ [ kInfo ]
-            
+            *)
+
+[<StepProcessor("FSCL_GENERIC_INSTANTIATION_PROCESSOR", "FSCL_MODULE_PREPROCESSING_STEP", Dependencies = [| "FSCL_STRUCT_DISCOVERY_PROCESSOR" |])>]
+type GenericInstantiator() =      
+    inherit ModulePreprocessingProcessor()
+
+    override this.Run(m, en) =
+        let engine = en :?> ModulePreprocessingStep
+        // Populate the module call graph with kernels
+        for k in m.Source.KernelIDs do
+            let kernel = m.Source.GetKernel(k) :?> KernelInfo
+            m.CallGraph.AddKernel(kernel)
+        // Set connections
+        for k in m.Source.Kernels do
+            for connSet in m.Source.GetOutputConnections(k.ID) do
+                for conn in connSet.Value do
+                    m.CallGraph.AddConnection(k.ID, connSet.Key, conn.Key, conn.Value)
+        

@@ -35,8 +35,9 @@ type FunctionReferenceDiscover() =
 
     override this.Run(m, en) =
         let engine = en :?> ModulePreprocessingStep
-        for k in m.Kernels do
+        for k in m.CallGraph.Kernels do
             let found = DiscoverFunctionRef(k)
             for item in found do
-                m.Functions <- m.Functions @ [ item.Value ]
+                m.CallGraph.AddFunction(item.Value)
+                m.CallGraph.AddCall(k.ID, item.Value.ID)
             

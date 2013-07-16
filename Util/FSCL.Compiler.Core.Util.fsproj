@@ -43,6 +43,7 @@
   <ItemGroup>
     <Compile Include="QuotationEvaluation.fs" />
     <Compile Include="CombinationGenerator.fs" />
+    <Compile Include="QuotationAnalysis.fs" />
   </ItemGroup>
   <PropertyGroup>
     <MinimumVisualStudioVersion Condition="'$(MinimumVisualStudioVersion)' == ''">11</MinimumVisualStudioVersion>

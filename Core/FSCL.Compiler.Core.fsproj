@@ -42,6 +42,9 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Exceptions.fs" />
+    <Compile Include="KernelParameterInfo.fs" />
+    <Compile Include="KernelInfo.fs" />
+    <Compile Include="KernelCallGraph.fs" />
     <Compile Include="KernelModule.fs" />
     <Compile Include="TypeManager.fs" />
     <Compile Include="CompilerStep.fs" />

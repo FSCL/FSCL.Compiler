@@ -8,9 +8,9 @@ open Microsoft.FSharp.Quotations
 open Microsoft.FSharp.Reflection
 open System
 
-[<StepProcessor("FSCL_REF_VAR_PREPROCESSING_PROCESSOR", "FSCL_FUNCTION_PREPROCESSING_STEP",
-                Dependencies = [|"FSCL_SIGNATURE_PREPROCESSING_PROCESSOR"|])>] 
-type RefVariablePreprocessor() =        
+[<StepProcessor("FSCL_REF_TYPE_TO_ARRAY_REPLACING_PREPROCESSING_PROCESSOR", "FSCL_FUNCTION_PREPROCESSING_STEP",
+                Dependencies = [|"FSCL_ARRAY_LENGTH_ARGS_INSERTION_PREPROCESSING_PROCESSOR"|])>] 
+type RefTypeToArrayReplacingProcessor() =        
     inherit FunctionPreprocessingProcessor()
     let IsRef(t:Type) =
         if (t.IsGenericType && (t.GetGenericTypeDefinition() = typeof<Ref<_>>.GetGenericTypeDefinition())) then
