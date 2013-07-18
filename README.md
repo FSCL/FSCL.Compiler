@@ -7,13 +7,13 @@ FSharp to OpenCL Compiler
 ### Latest news
 
 In the last few commits I added a new important functionality. Now it is possible to compile not only single F# kernels (a reflected function call or reference), but also expressions resulting from composing multiple kernels.
-For example, if *F(x) and *G(x,y) are two F# kernels, programmers can compile <@@ G(F(x), y) @@>.
+For example, if *F(x)* and *G(x,y)* are two F# kernels, programmers can compile *<@@ G(F(x), y) @@>*.
 
 The compiler is capable of analyzing expressions containing F# kernel compositions, to produce the target code for all the kernels and to build a Call Graph that stores the dependencies between the kernels in the module.
-To accomplish this task, the *KernelModule data structure has become more complicated. In place of a kernel signature and body, now it primarly contains a call graph connecting multiple different kernels.
-In addition, the *ModuleParsing step processors are now required to produce a "raw" call graph to instantiate the kernel module. 
+To accomplish this task, the *KernelModule* data structure has become more complicated. In place of a kernel signature and body, now it primarly contains a call graph connecting multiple different kernels.
+In addition, the *ModuleParsing* step processors are now required to produce a "raw" call graph to instantiate the kernel module. 
 Simple, traditional FSCL parsing processors, like the one associated to function reference or the one that parses lambdas, produce a call graph containing only one kernel.
-There are also new parsing processors, like the *CallExpression parser, which instead produce a more complex call graph that connects multiple kernels.
+There are also new parsing processors, like the *CallExpression* parser, which instead produce a more complex call graph that connects multiple kernels.
 
 We call the call graph resulting from parsing "raw" because it is only required to contain all the kernels to compile and their connections, but it is not required to contain other informations produced by the compilation pipeline, such as calls to utility functions.
 The call graph is accessed and modified in multiple ways during the compilation prodcess. For example, when the return value of a kernel is replaced with an automatically-generated additional parameter (since OpenCL kernels cannot return values), eventual outbound connections from that kernel to another one (e.g. a second kernel whose i-th parameter is provided by the the return value of the first one)
