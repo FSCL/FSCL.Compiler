@@ -4,10 +4,12 @@ open FSCL.Compiler
 open FSCL.Compiler.KernelLanguage
 open System.Collections.Generic
 open System.Reflection
+open System.Collections.Generic
 open System.Reflection.Emit
 open Microsoft.FSharp.Quotations
 open Microsoft.FSharp.Core.LanguagePrimitives
 open System
+open FSCL.Compiler.Core.Util
 
 module AcceleratedCollectionUtil =
     // Check if the expr is a function reference (name)
@@ -22,6 +24,42 @@ module AcceleratedCollectionUtil =
         | _ ->
             None 
             
+    // Check if the argument is a lambda expression of the reference of a lambda expression declared in expr
+    let GetLambdaArgument(arg, expr) =        
+        let rec GetLambda(expr, var:Var) =         
+            match expr with
+            | Patterns.Let (dv, e1, e2) ->
+                match e1 with
+                | Patterns.Lambda(v, e) ->  
+                    if dv = var then
+                        // Check if this is a computational lambda, that is it is not lambda(lambda(...call)) where
+                        // the call is to a reflected method
+                        if QuotationAnalysis.IsComputationalLambda(e1) then
+                            Some(e1)
+                        else
+                            None
+                    else
+                        GetLambda(e2, var)
+                | _ ->
+                    GetLambda(e2, var)
+            | _ ->
+                None 
+          
+        match arg with
+        | Patterns.Var(v) ->
+            match GetLambda(expr, v) with
+            | Some(l) ->
+                Some(l)
+            | None ->
+                None
+        | Patterns.Lambda(v, e) -> 
+            if QuotationAnalysis.IsComputationalLambda(arg) then
+                Some(arg)
+            else
+                None
+        | _ ->
+            None
+
     (* 
      * Replace the arguments of a call
      * This is useful since inside <@ Array.arrfun(f) @> f is represented by Lambda(x, Call(f, [x]))
@@ -77,6 +115,7 @@ module AcceleratedCollectionUtil =
                 failwith "Template has no tupled args"                
         | _ ->
             failwith "No lambda found inside template"
+            
                         
             
 

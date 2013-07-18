@@ -19,7 +19,7 @@ exception CompilerConfigurationException of string
 
 type CompilerConfigurationManager() = 
     // Trick to guarantee the default components assemblies are loaded
-    static member private defAssemblyComponents = [typeof<FunctionPreprocessingStep>; typeof<FunctionTransformationStep>; typeof<FunctionCodegenStep>; typeof<ModuleParsingStep>; typeof<ModulePreprocessingStep>; typeof<ModuleCodegenStep>; typeof<DefaultTypeHandler>; typeof<VectorTypeHandler>; ]
+    static member private defAssemblyComponents = [typeof<FunctionPreprocessingStep>; typeof<FunctionTransformationStep>; typeof<FunctionCodegenStep>; typeof<ModuleParsingStep>; typeof<ModulePreprocessingStep>; typeof<ModuleCodegenStep>; typeof<DefaultTypeHandler> ]
 
     // The root where to place configuration file
     static member ConfigurationRoot = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "FSCL.Compiler")

@@ -20,7 +20,7 @@ type KernelReferenceParser() =
             match QuotationAnalysis.GetKernelFromName(expr :?> Expr) with
             | Some(mi, b) -> 
                 // Create signleton kernel call graph
-                let kcg = new KernelCallGraph()
+                let kcg = new ModuleCallGraph()
                 kcg.AddKernel(new KernelInfo(mi, b))
                 // Create module
                 let km = new KernelModule(kcg)

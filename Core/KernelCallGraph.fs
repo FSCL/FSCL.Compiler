@@ -32,7 +32,7 @@ type KernelCallGraph() =
             
     member this.GetKernel(info: MethodInfo) =
         if this.kernelStorage.ContainsKey(info) then
-            this.kernelStorage.[info].Content
+            this.kernelStorage.[info].Content :?> KernelInfo
         else
             null
 
@@ -96,7 +96,7 @@ type KernelCallGraph() =
 
     member this.MergeWith(kcg: KernelCallGraph) =
         for k in kcg.KernelIDs do
-            this.AddKernel(kcg.GetKernel(k) :?> KernelInfo)
+            this.AddKernel(kcg.GetKernel(k))
         for k in kcg.KernelIDs do
             for connSet in this.kernelStorage.[k].Next do
                 for conn in connSet.Value do
@@ -121,6 +121,12 @@ type ModuleCallGraph() =
 
     member val internal functionStorage = new Dictionary<MethodInfo, CallGraphNode>()
     
+    member this.GetFunction(info: MethodInfo) =
+        if this.functionStorage.ContainsKey(info) then
+            this.functionStorage.[info].Content
+        else
+            null
+
     member this.HasFunction(info: MethodInfo) =
         this.functionStorage.ContainsKey(info)
 

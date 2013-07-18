@@ -25,26 +25,32 @@ type KernelCallExpressionParser() =
                 
     override this.Run(mi, en) =
         let engine = en :?> ModuleParsingStep
-        let kcg = new KernelCallGraph() 
+        let kcg = new ModuleCallGraph() 
         if (mi :? Expr) then
             match mi :?> Expr with
             // Case k2(k1(args), ...) where k1 doesn't return a tuple value
             | Patterns.Call(o, m, args) ->
-                if QuotationAnalysis.IsKernel(m) then
-                    // Extract sub kernels
-                    let subkernels = List.map(fun (e: Expr) -> 
-                        try 
-                            engine.Process(e)
-                        with
-                            | :? CompilerException -> null) args
-                    // Add them to kernel call graph
-                    for subkernel in subkernels do
-                        if not (subkernel = null) then
-                            kcg.MergeWith(subkernel.Source)
-                    // Get endpoints
-                    let endpoints = kcg.EndPoints
-                    // Add the current kernel
-                    let currentKernel = engine.Process(m)
+                // Extract sub kernels
+                let subkernels = List.map(fun (e: Expr) -> 
+                    try 
+                        engine.Process(e)
+                    with
+                        | :? CompilerException -> null) args
+                // Add them to kernel call graph
+                for subkernel in subkernels do
+                    if not (subkernel = null) then
+                        kcg.MergeWith(subkernel.Source)
+                // Get endpoints
+                let endpoints = kcg.EndPoints
+                // Add the current kernel
+                let currentKernel = 
+                    try 
+                        engine.Process(m)
+                    with
+                        | :? CompilerException -> null
+                if currentKernel = null then
+                    None
+                else
                     kcg.AddKernel(currentKernel.Source.Kernels.[0])
                     // Setup connections ret-type -> parameter
                     let mutable endpointIndex = 0
@@ -56,9 +62,7 @@ type KernelCallExpressionParser() =
                                 ReturnValue(0), ParameterIndex(i))
                             endpointIndex <- endpointIndex + 1
                     // Return module
-                    Some(new KernelModule(kcg))
-                else
-                    None
+                    Some(new KernelModule(kcg))                
             | Patterns.Let(v, value, body) ->
                 (* 
                  * Check if we have something like:
@@ -72,20 +76,26 @@ type KernelCallExpressionParser() =
                 if v.Name = "tupledArg" then
                     let lifted = LiftArgExtraction(body)
                     match lifted with
-                    | Patterns.Call(o, mi, args) ->                        
-                        if QuotationAnalysis.IsKernel(mi) then                            
-                            let subkernel = 
-                                try 
-                                    engine.Process(value)
-                                with
-                                    | :? CompilerException -> null
-                            // Add the subkernel to the call graph
-                            if (subkernel <> null) then
-                                kcg.MergeWith(subkernel.Source)
-                            // Get endpoints
-                            let endpoints = kcg.EndPoints
-                            // Add the current kernel
-                            let currentKernel = engine.Process(mi)
+                    | Patterns.Call(o, mi, args) ->                                       
+                        let subkernel = 
+                            try 
+                                engine.Process(value)
+                            with
+                                | :? CompilerException -> null
+                        // Add the subkernel to the call graph
+                        if (subkernel <> null) then
+                            kcg.MergeWith(subkernel.Source)
+                        // Get endpoints
+                        let endpoints = kcg.EndPoints
+                        // Add the current kernel
+                        let currentKernel = 
+                            try 
+                                engine.Process(mi)
+                            with
+                                | :? CompilerException -> null
+                        if currentKernel = null then
+                            None
+                        else
                             kcg.AddKernel(currentKernel.Source.Kernels.[0])
                             // Setup connections ret-type -> parameter                            
                             if subkernel <> null then   
@@ -99,11 +109,7 @@ type KernelCallExpressionParser() =
                                         (endpoints.[0] :?> KernelInfo).ID, 
                                         currentKernel.Source.KernelIDs.[0], 
                                         ReturnValue(i), ParameterIndex(i))
-                                Some(new KernelModule(kcg))
-                            else
-                                None
-                        else
-                            None
+                            Some(new KernelModule(kcg))
                     | _ ->
                         None
                 else

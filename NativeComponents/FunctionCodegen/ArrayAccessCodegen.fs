@@ -27,7 +27,7 @@ type ArrayAccessCodegen() =
         let engine = en :?> FunctionCodegenStep
         match expr with
         | Patterns.Call(o, methodInfo, args) ->
-            if methodInfo.DeclaringType.Name = "IntrinsicFunctions" then
+            if methodInfo.DeclaringType <> null && methodInfo.DeclaringType.Name = "IntrinsicFunctions" then
                 let returnTags = engine.FunctionInfo.CustomInfo.["RETURN_EXPRESSIONS"] :?> Expr list
                 let returnPrefix = 
                     if (List.tryFind(fun (e:Expr) -> e = expr) returnTags).IsSome then

@@ -72,7 +72,7 @@ type ArrayAccessTransformation() =
         let engine = en :?> FunctionTransformationStep
         match expr with
         | Patterns.Call(o, methodInfo, args) ->
-            if methodInfo.DeclaringType.Name = "IntrinsicFunctions" then
+            if methodInfo.DeclaringType <> null && methodInfo.DeclaringType.Name = "IntrinsicFunctions" then
                 match args.[0] with
                 | Patterns.Var(v) ->
                     let arraySizeParameters = GetSizeParameters(v.Name, engine)
@@ -151,7 +151,7 @@ type ArrayAccessTransformation() =
                     engine.Default(expr)
 
             // Get length replaced with appropriate size parameter
-            elif methodInfo.DeclaringType.Name = "Array" && methodInfo.Name = "GetLength" then
+            elif methodInfo.DeclaringType <> null && methodInfo.DeclaringType.Name = "Array" && methodInfo.Name = "GetLength" then
                 match o.Value with
                 | Patterns.Var(v) ->
                     let arrayName = v.Name

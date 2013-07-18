@@ -10,7 +10,7 @@ open System.Reflection
 
 [<ReflectedDefinition>]
 let incr x =
-    x + 1
+    x + 1.0f
 
 [<ReflectedDefinition>]
 let reduce (x:float32) (y:float32) =
@@ -18,10 +18,18 @@ let reduce (x:float32) (y:float32) =
 
 [<EntryPoint>]
 let main argv = 
-    // Configure compiler
+    // Configure compiler to load accelerated collections compiler components
     let conf = new CompilerConfiguration(true, [ SourceConfiguration(FileSource("FSCL.Compiler.AcceleratedCollections.dll")) ])
-
     let compiler = new Compiler(conf)
-    let r = compiler.Compile(<@ Array.reduce(reduce) @>)
+    
+    //#1: reduce with method reference
+    let mutable result = compiler.Compile(<@ Array.reduce(reduce) @>)
+        
+    //#2: reduce with lambda 
+    result <- compiler.Compile(<@ Array.reduce(fun x y -> x * y) @>)
+
+    //#3: composition or reduce and map (thanks to the kernel composition capabilities of the FSCL compiler)
+    let a = Array.zeroCreate<float32> 128
+    result <- compiler.Compile(<@ Array.reduce reduce (Array.map (fun el -> el + 1.0f) a) @>)
 
     0 // return an integer exit code

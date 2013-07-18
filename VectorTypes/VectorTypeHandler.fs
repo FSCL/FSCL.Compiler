@@ -1,4 +1,4 @@
-﻿namespace FSCL.Compiler.Types
+﻿namespace FSCL.Compiler.VectorTypes
 
 open System
 open FSCL.Compiler

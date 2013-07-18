@@ -16,7 +16,7 @@ type KernelMethodInfoParser() =
             match QuotationAnalysis.GetKernelFromMethodInfo(mi :?> MethodInfo) with
             | Some(mi, b) -> 
                 // Create signleton kernel call graph
-                let kcg = new KernelCallGraph()
+                let kcg = new ModuleCallGraph()
                 kcg.AddKernel(new KernelInfo(mi, b))
                 // Create module
                 let km = new KernelModule(kcg)

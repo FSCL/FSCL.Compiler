@@ -75,15 +75,18 @@ type ConditionalAssignmentTransformation() =
             | _ ->
                 engine.Default(expr)                 
         | Patterns.Call (e, mi, a) ->
-            if mi.DeclaringType.Name = "IntrinsicFunctions" then                    
-                if mi.Name.StartsWith "SetArray" then
-                    let substituteIndex = a.Length - 1
+            if mi.DeclaringType <> null then
+                if mi.DeclaringType.Name = "IntrinsicFunctions" then                    
+                    if mi.Name.StartsWith "SetArray" then
+                        let substituteIndex = a.Length - 1
 
-                    match a.[substituteIndex] with
-                    | Patterns.IfThenElse(cond, ib, eb) ->                    
-                        let fixedExpr = MoveArraySetIntoBody(e, mi, a, substituteIndex, a.[substituteIndex], engine)
-                        engine.Continue(fixedExpr)
-                    | _ ->
+                        match a.[substituteIndex] with
+                        | Patterns.IfThenElse(cond, ib, eb) ->                    
+                            let fixedExpr = MoveArraySetIntoBody(e, mi, a, substituteIndex, a.[substituteIndex], engine)
+                            engine.Continue(fixedExpr)
+                        | _ ->
+                            engine.Default(expr)
+                    else
                         engine.Default(expr)
                 else
                     engine.Default(expr)

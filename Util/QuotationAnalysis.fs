@@ -75,7 +75,27 @@ module QuotationAnalysis =
         | _ ->
             None
 
-    let GetKernelFromLambda(expr) = 
+    let IsComputationalLambda(expr:Expr) =    
+        let rec isCallToReflectedMethod(expr) =
+            match expr with
+            | Patterns.Lambda(v, e) -> 
+                isCallToReflectedMethod(e)
+            | Patterns.Call (e, mi, a) ->
+                match mi with
+                | DerivedPatterns.MethodWithReflectedDefinition(b) ->
+                    true
+                | _ ->
+                    false
+            | _ ->
+                false
+           
+        match expr with 
+        | Patterns.Lambda(v, e) -> 
+            not (isCallToReflectedMethod(e))
+        | _ ->
+            false  
+        
+    let LambdaToMethod(expr) = 
         let mutable body = expr
         let mutable parameters = []
         
@@ -92,21 +112,36 @@ module QuotationAnalysis =
             | _ ->
                 ()
 
-        if body = expr then
-            None
-        else
+        // If no lifting occurred this is not a lambda
+        if IsComputationalLambda(expr) then
             // Get MD5 o identify the lambda 
             let md5 = MD5.Create()
             let hash = md5.ComputeHash(Encoding.UTF8.GetBytes(expr.ToString()))
             let sb = new StringBuilder("lambda_")
             for i = 0 to hash.Length - 1 do
                 sb.Append(hash.[i].ToString("x2")) |> ignore
-
+               (*
             // Create appropriate MethodInfo
             let newSignature = new DynamicMethod(sb.ToString(), body.Type, Array.ofList(List.map(fun (v: Var) -> v.Type) parameters))
             for p = 1 to parameters.Length do
                 newSignature.DefineParameter(p, ParameterAttributes.None, parameters.[p-1].Name) |> ignore
-            Some(newSignature, body)
-
-        
+            Some(newSignature :> MethodInfo, body)
+            *)            
+            let assemblyName = sb.ToString() + "_module";
+            let assemblyBuilder = AppDomain.CurrentDomain.DefineDynamicAssembly(new AssemblyName(assemblyName), AssemblyBuilderAccess.Run);
+            let moduleBuilder = assemblyBuilder.DefineDynamicModule(sb.ToString() + "_module");
+            let methodBuilder = moduleBuilder.DefineGlobalMethod(
+                                    sb.ToString(),
+                                    MethodAttributes.Public ||| MethodAttributes.Static, body.Type, 
+                                    Array.ofList(List.map(fun (v: Var) -> v.Type) parameters))
+            for p = 1 to parameters.Length do
+                methodBuilder.DefineParameter(p, ParameterAttributes.None, parameters.[p-1].Name) |> ignore
+            // Body (simple return) of the method must be set to build the module and get the MethodInfo that we need as signature
+            methodBuilder.GetILGenerator().Emit(OpCodes.Ret)
+            moduleBuilder.CreateGlobalFunctions()
+            let signature = moduleBuilder.GetMethod(methodBuilder.Name) 
+            Some(signature, body)
+        else
+            None
+            
 

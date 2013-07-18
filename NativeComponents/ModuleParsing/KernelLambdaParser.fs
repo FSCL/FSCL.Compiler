@@ -13,10 +13,10 @@ type KernelLambdaParser() =
     override this.Run(mi, en) =
         let engine = en :?> ModuleParsingStep
         if (mi :? Expr) then
-            match QuotationAnalysis.GetKernelFromLambda(mi :?> Expr) with
+            match QuotationAnalysis.LambdaToMethod(mi :?> Expr) with
             | Some(mi, b) -> 
                 // Create signleton kernel call graph
-                let kcg = new KernelCallGraph()
+                let kcg = new ModuleCallGraph()
                 kcg.AddKernel(new KernelInfo(mi, b))
                 // Create module
                 let km = new KernelModule(kcg)

@@ -11,7 +11,7 @@ open System.Collections.Generic
 ///</summary>
 ///
 [<AllowNullLiteral>]
-type KernelModule(kcg: KernelCallGraph) =  
+type KernelModule(kcg: ModuleCallGraph) =  
     ///
     ///<summary>
     /// The set of utility functions (i.e. functions called somewere in one or more kernels)
@@ -42,7 +42,7 @@ type KernelModule(kcg: KernelCallGraph) =
     // as additional parameters generation, list-to-array transformation and multi-dimensional array flattening.
     ///</summary>
     ///
-    member val Source:KernelCallGraph = kcg with get
+    member val Source:ModuleCallGraph = kcg with get
     ///
     ///<summary>
     /// A set of custom additional information to be stored in the module
