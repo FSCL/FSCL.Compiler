@@ -93,13 +93,13 @@ type AcceleratedArrayMapHandler() =
                 // Connect with subkernel
                 if subkernel <> null then   
                     let retTypes =
-                        if FSharpType.IsTuple(subkernel.Source.EndPoints.[0].ID.ReturnType) then
-                            FSharpType.GetTupleElements(subkernel.Source.EndPoints.[0].ID.ReturnType)
+                        if FSharpType.IsTuple(subkernel.Source.EndPoints.[0].ReturnType) then
+                            FSharpType.GetTupleElements(subkernel.Source.EndPoints.[0].ReturnType)
                         else
-                            [| subkernel.Source.EndPoints.[0].ID.ReturnType |]
+                            [| subkernel.Source.EndPoints.[0].ReturnType |]
                     for i = 0 to retTypes.Length - 1 do                     
                         kcg.AddConnection(
-                            (endpoints.[0] :?> KernelInfo).ID, 
+                            endpoints.[0], 
                             signature, 
                             ReturnValue(i), ParameterIndex(i)) 
                 // Return module                             

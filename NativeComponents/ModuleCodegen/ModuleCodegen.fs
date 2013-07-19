@@ -26,8 +26,8 @@ type ModuleCodegen() =
         let directives = String.concat "\n\n" km.Directives
         let structs = km.GlobalTypes
         let pstructs = String.concat "\n" (List.map (fun (s: Type) -> PrintStructDefinition(s, engine)) structs)
-        let functions = String.concat "\n\n" (List.map (fun (f: FunctionInfo) -> f.Codegen) km.CallGraph.Functions) 
-        let kernels = String.concat "\n\n" (List.map (fun (f: KernelInfo) -> f.Codegen) km.CallGraph.Kernels)
+        let functions = String.concat "\n\n" (List.map (fun (f: FunctionInfo) -> f.Codegen) (List.map (fun (m:MethodInfo) -> km.CallGraph.GetFunction(m)) km.CallGraph.FunctionIDs))
+        let kernels = String.concat "\n\n" (List.map (fun (f: KernelInfo) -> f.Codegen) (List.map (fun (m:MethodInfo) -> km.CallGraph.GetKernel(m)) km.CallGraph.KernelIDs)) 
         String.concat "\n\n" [directives; pstructs; functions; kernels]
              
             

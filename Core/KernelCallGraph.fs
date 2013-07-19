@@ -14,9 +14,10 @@ type CallGraphNode(content: FunctionInfo) =
     member val Content = content with get
     member val Next = new Dictionary<MethodInfo, Dictionary<KernelConnection, KernelConnection>>() with get
     member val Functions = new Dictionary<MethodInfo, unit>() with get
-    
+            
 [<AllowNullLiteral>]
-type KernelCallGraph() =
+type ModuleCallGraph() =
+    member val internal functionStorage = new Dictionary<MethodInfo, CallGraphNode>()    
     member val internal kernelStorage = new Dictionary<MethodInfo, CallGraphNode>() 
             
     member private this.RecomputeEntryEndPoints() =
@@ -49,6 +50,29 @@ type KernelCallGraph() =
             // Remove the item
             this.kernelStorage.Remove(info) |> ignore
             this.RecomputeEntryEndPoints()
+
+    member this.HasFunction(info: MethodInfo) =
+        this.functionStorage.ContainsKey(info)
+                        
+    member this.GetFunction(info: MethodInfo) =
+        if this.functionStorage.ContainsKey(info) then
+            this.functionStorage.[info].Content
+        else
+            null
+
+    member this.AddFunction(info: FunctionInfo) =
+        if not (this.functionStorage.ContainsKey(info.ID)) then
+            this.functionStorage.Add(info.ID, new CallGraphNode(info))
+            
+    member this.RemoveFunction(info: MethodInfo) =
+        if this.functionStorage.ContainsKey(info) then
+            // Remove connections
+            for kernel in this.kernelStorage do
+                kernel.Value.Functions.Remove(info) |> ignore
+            for func in this.functionStorage do
+                func.Value.Functions.Remove(info) |> ignore
+            // Remove the item
+            this.functionStorage.Remove(info) |> ignore
 
     member this.AddConnection(src: MethodInfo, dst: MethodInfo, inBinding: KernelConnection, outBinding: KernelConnection) =
         if this.kernelStorage.ContainsKey(src) && this.kernelStorage.ContainsKey(dst) then
@@ -93,57 +117,7 @@ type KernelCallGraph() =
                 if next.Key = info then
                     inputConnections.Add(id, new ReadOnlyDictionary<KernelConnection, KernelConnection>(next.Value))
         new ReadOnlyDictionary<MethodInfo, ReadOnlyDictionary<KernelConnection, KernelConnection>>(inputConnections)
-
-    member this.MergeWith(kcg: KernelCallGraph) =
-        for k in kcg.KernelIDs do
-            this.AddKernel(kcg.GetKernel(k))
-        for k in kcg.KernelIDs do
-            for connSet in this.kernelStorage.[k].Next do
-                for conn in connSet.Value do
-                    this.AddConnection(k, connSet.Key, conn.Key, conn.Value)
-        this.RecomputeEntryEndPoints()
-        
-    member this.EntyPoints = 
-        List.ofSeq((Seq.map(fun (g: CallGraphNode) -> g.Content) >> Seq.filter(fun (k: FunctionInfo) -> (k :?> KernelInfo).IsEntryPoint)) (this.kernelStorage.Values))
-        
-    member this.EndPoints =  
-        List.ofSeq((Seq.map(fun (g: CallGraphNode) -> g.Content) >> Seq.filter(fun (k: FunctionInfo) -> (k :?> KernelInfo).IsEndPoint)) (this.kernelStorage.Values))
-        
-    member this.Kernels = 
-        List.ofSeq(Seq.map(fun (g: CallGraphNode) -> g.Content :?> KernelInfo) this.kernelStorage.Values)
-
-    member this.KernelIDs =
-        List.ofSeq(this.kernelStorage.Keys)
-        
-[<AllowNullLiteral>]
-type ModuleCallGraph() =
-    inherit KernelCallGraph()
-
-    member val internal functionStorage = new Dictionary<MethodInfo, CallGraphNode>()
-    
-    member this.GetFunction(info: MethodInfo) =
-        if this.functionStorage.ContainsKey(info) then
-            this.functionStorage.[info].Content
-        else
-            null
-
-    member this.HasFunction(info: MethodInfo) =
-        this.functionStorage.ContainsKey(info)
-
-    member this.AddFunction(info: FunctionInfo) =
-        if not (this.functionStorage.ContainsKey(info.ID)) then
-            this.functionStorage.Add(info.ID, new CallGraphNode(info))
-            
-    member this.RemoveFunction(info: MethodInfo) =
-        if this.functionStorage.ContainsKey(info) then
-            // Remove connections
-            for kernel in this.kernelStorage do
-                kernel.Value.Functions.Remove(info) |> ignore
-            for func in this.functionStorage do
-                func.Value.Functions.Remove(info) |> ignore
-            // Remove the item
-            this.functionStorage.Remove(info) |> ignore
-
+                
     member this.AddCall(src: MethodInfo, dst: MethodInfo) =
         if this.kernelStorage.ContainsKey(src) && this.functionStorage.ContainsKey(dst) then
             if not (this.kernelStorage.[src].Functions.ContainsKey(dst)) then
@@ -158,7 +132,7 @@ type ModuleCallGraph() =
             this.kernelStorage.[src].Functions.Clear()
         if this.functionStorage.ContainsKey(src) then
             this.functionStorage.[src].Functions.Clear()
-            
+
     member this.GetOutputCalls(info: MethodInfo) =
         if this.kernelStorage.ContainsKey(info) then
             new ReadOnlyDictionary<MethodInfo, unit>(this.kernelStorage.[info].Functions)
@@ -179,10 +153,37 @@ type ModuleCallGraph() =
             new ReadOnlyDictionary<MethodInfo, unit>(inputConnections)
         else
             new ReadOnlyDictionary<MethodInfo, unit>(new Dictionary<MethodInfo, unit>())
-                        
-    member this.Functions = 
-        List.ofSeq(Seq.map(fun (g: CallGraphNode) -> g.Content) this.functionStorage.Values)
 
+    member this.MergeWith(kcg: ModuleCallGraph) =
+        for k in kcg.KernelIDs do
+            this.AddKernel(kcg.GetKernel(k))
+        for f in kcg.FunctionIDs do
+            this.AddFunction(kcg.GetFunction(f))
+        for k in kcg.KernelIDs do
+            for connSet in this.kernelStorage.[k].Next do
+                for conn in connSet.Value do
+                    this.AddConnection(k, connSet.Key, conn.Key, conn.Value)
+            for connSet in this.kernelStorage.[k].Functions do
+                this.AddCall(k, connSet.Key)
+        for f in kcg.FunctionIDs do
+            for connSet in this.functionStorage.[f].Functions do
+                this.AddCall(f, connSet.Key)
+        this.RecomputeEntryEndPoints()
+        
+    member this.EntyPoints = 
+        List.ofSeq((Seq.filter(fun (k: MethodInfo) -> this.GetKernel(k).IsEntryPoint)) (this.kernelStorage.Keys))
+        
+    member this.EndPoints =  
+        List.ofSeq((Seq.filter(fun (k: MethodInfo) -> this.GetKernel(k).IsEndPoint)) (this.kernelStorage.Keys))
+      
+    // Return in a breath-first mode
+    member this.KernelIDs =
+        let l = new List<MethodInfo>()
+        l.AddRange(this.EntyPoints)
+        for i = 0 to l.Count - 1 do
+            l.AddRange(this.kernelStorage.[l.[i]].Next.Keys)
+        List.ofSeq(this.kernelStorage.Keys)
+        
     member this.FunctionIDs =
         List.ofSeq(this.functionStorage.Keys)
         

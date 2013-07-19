@@ -74,13 +74,13 @@ type GenericInstantiator() =
             let kernel = m.Source.GetFunction(k)
             m.CallGraph.AddFunction(kernel)
         // Set connections
-        for k in m.Source.Kernels do
-            for connSet in m.Source.GetOutputConnections(k.ID) do
+        for k in m.Source.KernelIDs do
+            for connSet in m.Source.GetOutputConnections(k) do
                 for conn in connSet.Value do
-                    m.CallGraph.AddConnection(k.ID, connSet.Key, conn.Key, conn.Value)
-            for connSet in m.Source.GetOutputCalls(k.ID) do
-                m.CallGraph.AddCall(k.ID, connSet.Key)
-        for k in m.Source.Functions do
-            for connSet in m.Source.GetOutputCalls(k.ID) do
-                m.CallGraph.AddCall(k.ID, connSet.Key)
+                    m.CallGraph.AddConnection(k, connSet.Key, conn.Key, conn.Value)
+            for connSet in m.Source.GetOutputCalls(k) do
+                m.CallGraph.AddCall(k, connSet.Key)
+        for k in m.Source.FunctionIDs do
+            for connSet in m.Source.GetOutputCalls(k) do
+                m.CallGraph.AddCall(k, connSet.Key)
         
