@@ -18,6 +18,7 @@ type FunctionInfo(id: MethodInfo, expr:Expr) =
     ///</summary>
     ///
     member val ID = id with get
+    member val Skip = false with get, set
     ///
     ///<summary>
     /// The processed signature of the function. Signature processing includes generating additional parameters to address arrays, flatten arrays, replace ref variables with sigletons and so on

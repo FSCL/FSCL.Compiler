@@ -70,7 +70,7 @@ type Compiler =
     ///</summary>
     ///  
     member this.Compile(input) =
-        let mutable state = input
+        let mutable state = (input, new KernelModule()) :> obj
         for step in this.steps do
             state <- step.Execute(state)
         state

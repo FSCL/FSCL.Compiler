@@ -39,7 +39,7 @@ type KernelCallExpressionParser() =
                 // Add them to kernel call graph
                 for subkernel in subkernels do
                     if not (subkernel = null) then
-                        kcg.MergeWith(subkernel.Source)
+                        kcg.MergeWith(subkernel)
                 // Get endpoints
                 let endpoints = kcg.EndPoints
                 // Add the current kernel
@@ -51,18 +51,18 @@ type KernelCallExpressionParser() =
                 if currentKernel = null then
                     None
                 else
-                    kcg.AddKernel(currentKernel.CallGraph.GetKernel(currentKernel.Source.KernelIDs.[0]))
+                    kcg.AddKernel(currentKernel.GetKernel(currentKernel.KernelIDs.[0]))
                     // Setup connections ret-type -> parameter
                     let mutable endpointIndex = 0
                     for i = 0 to subkernels.Length - 1 do
                         if subkernels.[i] <> null then
                             kcg.AddConnection(
                                 endpoints.[endpointIndex], 
-                                currentKernel.Source.KernelIDs.[0], 
+                                currentKernel.KernelIDs.[0], 
                                 ReturnValue(0), ParameterIndex(i))
                             endpointIndex <- endpointIndex + 1
                     // Return module
-                    Some(new KernelModule(kcg))                
+                    Some(kcg)                
             | Patterns.Let(v, value, body) ->
                 (* 
                  * Check if we have something like:
@@ -84,7 +84,7 @@ type KernelCallExpressionParser() =
                                 | :? CompilerException -> null
                         // Add the subkernel to the call graph
                         if (subkernel <> null) then
-                            kcg.MergeWith(subkernel.Source)
+                            kcg.MergeWith(subkernel)
                         // Get endpoints
                         let endpoints = kcg.EndPoints
                         // Add the current kernel
@@ -96,20 +96,20 @@ type KernelCallExpressionParser() =
                         if currentKernel = null then
                             None
                         else
-                            kcg.AddKernel(kcg.GetKernel(currentKernel.Source.KernelIDs.[0]))
+                            kcg.AddKernel(kcg.GetKernel(currentKernel.KernelIDs.[0]))
                             // Setup connections ret-type -> parameter                            
                             if subkernel <> null then   
                                 let retTypes =
-                                    if FSharpType.IsTuple(subkernel.Source.EndPoints.[0].ReturnType) then
-                                        FSharpType.GetTupleElements(subkernel.Source.EndPoints.[0].ReturnType)
+                                    if FSharpType.IsTuple(subkernel.EndPoints.[0].ReturnType) then
+                                        FSharpType.GetTupleElements(subkernel.EndPoints.[0].ReturnType)
                                     else
-                                        [| subkernel.Source.EndPoints.[0].ReturnType |]
+                                        [| subkernel.EndPoints.[0].ReturnType |]
                                 for i = 0 to retTypes.Length - 1 do                     
                                     kcg.AddConnection(
                                         endpoints.[0], 
-                                        currentKernel.Source.KernelIDs.[0], 
+                                        currentKernel.KernelIDs.[0], 
                                         ReturnValue(i), ParameterIndex(i))
-                            Some(new KernelModule(kcg))
+                            Some(kcg)
                     | _ ->
                         None
                 else

@@ -60,9 +60,11 @@ type FunctionPreprocessingStep(tm: TypeManager,
     override this.Run(km: KernelModule) =
         this.currentModule <- km
         for k in km.CallGraph.KernelIDs do
-            this.Process(km.CallGraph.GetKernel(k))
+            if not (km.CallGraph.GetKernel(k).Skip) then
+                this.Process(km.CallGraph.GetKernel(k))
         for f in km.CallGraph.FunctionIDs do
-            this.Process(km.CallGraph.GetFunction(f))
+            if not (km.CallGraph.GetFunction(f).Skip) then
+                this.Process(km.CallGraph.GetFunction(f))
         km
 
 

@@ -23,8 +23,7 @@ type KernelReferenceParser() =
                 let kcg = new ModuleCallGraph()
                 kcg.AddKernel(new KernelInfo(mi, b))
                 // Create module
-                let km = new KernelModule(kcg)
-                Some(km)
+                Some(kcg)
             | _ ->
                 None
         else
