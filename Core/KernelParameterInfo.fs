@@ -64,6 +64,8 @@ type KernelParameterInfo(parameterInfo:ParameterInfo) =
     member val Access = KernelParameterAccessMode.NoAccess with get, set
     // For kernel return type
     member val Expr = None with get, set
+    // Actual arg
+    member val ArgumentExpression = None with get, set
     ///
     ///<summary>
     /// Variable holding the parameter inside the kernel body in the abstract syntax tree
