@@ -33,13 +33,14 @@ type KernelParameterAccessMode =
 /// The set of information about a kernel parameter collected and maintained by the compiler
 ///</summary>
 ///
-type KernelParameterInfo(parameterInfo:ParameterInfo) =
+type KernelParameterInfo(name:string, t: Type) =
     ///
     ///<summary>
     /// .NET-related information about the kernel (method) parameter
     ///</summary>
     ///
-    member val Info = parameterInfo with get, set 
+    member val Name = name with get 
+    member val Type = t with get, set
     ///
     ///<summary>
     /// The set of additional parameters generated to access this parameter
@@ -48,8 +49,7 @@ type KernelParameterInfo(parameterInfo:ParameterInfo) =
     /// Additional size parameters are generated only for vector (array) parameters, one for each vector parameter dimension
     ///</remarks>
     ///
-    member val SizeParameters = ([]:KernelParameterInfo list) with get, set
-    member val SizeParameterNames = ([]:string list) with get, set    
+    member val SizeParameters = new Dictionary<String, KernelParameterInfo>() with get
     ///
     ///<summary>
     /// The OpenCL address-space of this parameter

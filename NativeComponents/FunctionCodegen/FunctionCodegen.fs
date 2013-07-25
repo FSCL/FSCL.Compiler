@@ -57,16 +57,16 @@ type FunctionCodegenStep(tm: TypeManager,
             raise (CompilerException("Unrecognized construct in kernel body " + expression.ToString()))
         output.Value
         
-    member private this.Process(mi: MethodInfo) =
+    member private this.Process(name: string, parameters: Dictionary<string, KernelParameterInfo>) =
         // At first, check generic processors (for complex constructs)
         let mutable index = 0
         let mutable output = None        
         while (output.IsNone) && (index < signatureProcessors.Length) do
-            output <- signatureProcessors.[index].Run(mi, this)
+            output <- signatureProcessors.[index].Run((name, List.ofSeq(parameters.Values)), this)
             index <- index + 1
         // If no suitable generic processor, use specific ones
         if (output.IsNone) then
-            raise (CompilerException("Unrecognized kernel signature " + mi.ToString()))
+            raise (CompilerException("Unrecognized kernel signature " + name))
         output.Value
     ///
     ///<summary>
@@ -78,7 +78,7 @@ type FunctionCodegenStep(tm: TypeManager,
         
     member private this.Process(f:FunctionInfo) =
         this.FunctionInfo <- f
-        this.FunctionInfo.Codegen <- this.Process(this.FunctionInfo.Signature) + "{\n" + this.Process(this.FunctionInfo.Body) + "\n}"
+        this.FunctionInfo.Code <- this.Process(this.FunctionInfo.Name, this.FunctionInfo.Parameters) + "{\n" + this.Process(this.FunctionInfo.Body) + "\n}"
     ///
     ///<summary>
     ///The method called to execute the step
@@ -89,12 +89,12 @@ type FunctionCodegenStep(tm: TypeManager,
     ///</returns>
     ///       
     override this.Run(km: KernelModule) =    
-        for k in km.CallGraph.KernelIDs do
-            if not (km.CallGraph.GetKernel(k).Skip) then
-                this.Process(km.CallGraph.GetKernel(k))
-        for f in km.CallGraph.FunctionIDs do
-            if not (km.CallGraph.GetFunction(f).Skip) then
-                this.Process(km.CallGraph.GetFunction(f))
+        for k in km.CallGraph.Kernels do
+            if not (k.Skip) then
+                this.Process(k)
+        for f in km.CallGraph.Functions do
+            if not (f.Skip) then
+                this.Process(f)
         km
     (*
         let mutable output = ""

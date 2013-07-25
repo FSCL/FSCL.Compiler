@@ -12,8 +12,8 @@ type internal TemporaryKernelParameterTable = Dictionary<String, TemporaryKernel
 type internal KernelParameterTable = Dictionary<String, KernelParameterInfo>
 
 [<StepProcessor("FSCL_ARRAY_LENGTH_ARGS_INSERTION_PREPROCESSING_PROCESSOR", "FSCL_FUNCTION_PREPROCESSING_STEP", 
-                Dependencies = [|"FSCL_RETURN_TYPE_TO_OUTPUT_ARG_REPLACING_PREPROCESSING_PROCESSOR"|])>] 
-type ArrayLengthArgsInsertionProcessor() =        
+                Dependencies = [|"FSCL_ARGS_BUILDING_PREPROCESSING_PROCESSOR"|])>] 
+type ArgumentsBuildingProcessor() =        
     inherit FunctionPreprocessingProcessor()
 
     let GetArrayDimensions (t:Type) =
@@ -30,7 +30,7 @@ type ArrayLengthArgsInsertionProcessor() =
         // Get kernel info
         let kernelInfo = fInfo
         // Get kernel signature
-        let methodInfo = kernelInfo.Signature
+        let methodInfo = kernelInfo.ID
 
         // Create kernel parameter data
         let temporaryParameterTable = new TemporaryKernelParameterTable()
@@ -61,22 +61,20 @@ type ArrayLengthArgsInsertionProcessor() =
                 additionalParameterType <- additionalParameterType @ (List.init (parameterEntry.SizeParameters.Length) (fun i -> typeof<int>))
                 
             // Store parameter type    
-            parameterType <- parameterType @ [p.ParameterType]
+            parameterType <- parameterType @ [
+                                                (if p.ParameterType.IsArray then
+                                                    p.ParameterType.GetElementType().MakeArrayType()
+                                                 else
+                                                    p.ParameterType)
+                                             ]
 
             // Store entry into table
             temporaryParameterTable.Add(p.Name, parameterEntry)                        
 
-        // Modify kernel signature to include additional parameters and to flat arrays
-        // Flat array types
-        parameterType <- List.map (fun (t:Type) ->
-            if t.IsArray then
-                t.GetElementType().MakeArrayType()
-            else
-                t) parameterType
         // Create new signature
-        let newSignature = new DynamicMethod(methodInfo.Name, methodInfo.ReturnType, Array.ofList (parameterType @ additionalParameterType))
+        //let newSignature = new DynamicMethod(methodInfo.Name, methodInfo.ReturnType, Array.ofList (parameterType @ additionalParameterType))
         // Define existing parameters
-        let mutable pIndex = 1
+        (*let mutable pIndex = 1
         for p in temporaryParameterTable do
             let pb = newSignature.DefineParameter(pIndex, p.Value.Info.Attributes, p.Key)  
             pIndex <- pIndex + 1
@@ -85,19 +83,14 @@ type ArrayLengthArgsInsertionProcessor() =
             for i in p.Value.SizeParameters do
                 newSignature.DefineParameter(pIndex, ParameterAttributes.None, i) |> ignore     
                 pIndex <- pIndex + 1 
-        // Replace each original parameter info in parameterTable with new ones
-        let newParameterTable = new KernelParameterTable()
-        for newParam in newSignature.GetParameters() do
-            if temporaryParameterTable.ContainsKey(newParam.Name) then
-                let info = temporaryParameterTable.[newParam.Name]
-                let newInfo = new KernelParameterInfo(newParam)
-                newInfo.Access <- info.Access
-                newInfo.Placeholder <- Some(Quotations.Var(newParam.Name, newParam.ParameterType, false))
-                newInfo.AddressSpace <- info.AddressSpace
-                newInfo.SizeParameterNames <- info.SizeParameters
-                newParameterTable.Add(newParam.Name, newInfo)
-            else
-                newParameterTable.Add(newParam.Name, KernelParameterInfo(newParam))
+        // Replace each original parameter info in parameterTable with new ones*)
+        for newParam in temporaryParameterTable do
+            let newInfo = new KernelParameterInfo(newParam.Key, parameterType.Is.Value.Info.ParameterType)
+            newInfo.Access <- newParam.Value.Access
+            newInfo.Placeholder <- Some(Quotations.Var(newParam.Value.Info.Name, newParam.Value.Info.ParameterType, false))
+            newInfo.AddressSpace <- info.AddressSpace
+            newInfo.SizeParameterNames <- info.SizeParameters
+            newParameterTable.Add(newParam.Name, newInfo)
 
         // Associate to each kernel parameter info the kernel parameter infos representing their size
         for pInfo in newParameterTable do

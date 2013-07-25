@@ -11,7 +11,7 @@ open System
 [<StepProcessor("FSCL_ARG_LIFTING_TRANSFORMATION_PROCESSOR", "FSCL_FUNCTION_TRANSFORMATION_STEP")>] 
 type ArgExtractionPreprocessor() =
     inherit FunctionTransformationProcessor()
-    let rec LiftArgExtraction (expr, parameters: ParameterInfo[]) =
+    let rec LiftArgExtraction (expr, parameters:Dictionary<String, KernelParameterInfo>) =
         match expr with
         | Patterns.Lambda(v, e) ->
             if v.Name = "tupledArg" then
@@ -19,14 +19,12 @@ type ArgExtractionPreprocessor() =
             else if v.Name = "this" then
                 LiftArgExtraction(e, parameters)
             else
-                let el = Array.tryFind (fun (p:ParameterInfo) -> p.Name = v.Name) parameters
-                if el.IsSome then
+                if parameters.ContainsKey(v.Name) then
                     LiftArgExtraction (e, parameters)
                 else
                     expr
         | Patterns.Let(v, value, body) ->
-            let el = Array.tryFind (fun (p:ParameterInfo) -> p.Name = v.Name) parameters
-            if el.IsSome then
+            if parameters.ContainsKey(v.Name) then
                 LiftArgExtraction (body, parameters)
             else
                 expr
@@ -35,6 +33,6 @@ type ArgExtractionPreprocessor() =
         
     override this.Run(exp, en) =
         let step = en :?> FunctionTransformationStep
-        LiftArgExtraction(exp, step.FunctionInfo.Signature.GetParameters())
+        LiftArgExtraction(exp, step.FunctionInfo.Parameters)
             
 

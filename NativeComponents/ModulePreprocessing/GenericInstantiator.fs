@@ -67,12 +67,10 @@ type GenericInstantiator() =
     override this.Run(m, en) =
         let engine = en :?> ModulePreprocessingStep
         // Populate the module call graph with kernels
-        for k in m.Source.KernelIDs do
-            let kernel = m.Source.GetKernel(k)
-            m.CallGraph.AddKernel(kernel)
-        for k in m.Source.FunctionIDs do
-            let kernel = m.Source.GetFunction(k)
-            m.CallGraph.AddFunction(kernel)
+        for k in m.Source.Kernels do
+            m.CallGraph.AddKernel(k)
+        for k in m.Source.Functions do
+            m.CallGraph.AddFunction(k)
         // Set connections
         for k in m.Source.KernelIDs do
             for connSet in m.Source.GetOutputConnections(k) do

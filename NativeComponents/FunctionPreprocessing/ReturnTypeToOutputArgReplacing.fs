@@ -8,7 +8,8 @@ open Microsoft.FSharp.Reflection
 open System.Reflection
 
 [<StepProcessor("FSCL_RETURN_TYPE_TO_OUTPUT_ARG_REPLACING_PREPROCESSING_PROCESSOR", 
-                "FSCL_FUNCTION_PREPROCESSING_STEP")>]
+                "FSCL_FUNCTION_PREPROCESSING_STEP",,
+                Dependencies = [|"FSCL_REF_TYPE_TO_ARRAY_REPLACING_PREPROCESSING_PROCESSOR"|])>]
 type ReturnTypeToOutputArgProcessor() =
     inherit FunctionPreprocessingProcessor()
 
@@ -30,29 +31,19 @@ type ReturnTypeToOutputArgProcessor() =
 
             // Fix signature and kernel parameters
             let kernelInfo = kernel :?> KernelInfo
-            let kernelParameters = kernelInfo.ParameterInfo
-            let mutable kernelSignature = kernelInfo.Signature
-            let originalParamsCount = kernelSignature.GetParameters().Length
-
-            // Get parameter types
-            let parameterType = List.ofArray (Array.map (fun (e:ParameterInfo) -> e.ParameterType) (kernelSignature.GetParameters()))
-                                 
-            // Create new signature
-            let newSignature = new DynamicMethod(kernelSignature.Name, typeof<unit>, Array.ofList(parameterType @ (List.map(fun (v:Var, args:Expr list) -> v.Type) returnedVars)))
-            // Add old params
-            Array.iteri(fun i (p:ParameterInfo) -> 
-                newSignature.DefineParameter(i + 1, p.Attributes, p.Name) |> ignore) (kernelSignature.GetParameters())
+                        
+            // Change return type 
+            kernelInfo.ReturnType <- typeof<unit>
+                
             // Add return arrays
             for i = 0 to returnedVars.Length - 1 do
-                newSignature.DefineParameter(originalParamsCount + 1 + i, ParameterAttributes.None, (fst returnedVars.[i]).Name) |> ignore
+                kernelInfo.Parameters.Add((fst returnedVars.[i]).Name, new KernelParameterInfo((fst returnedVars.[i]).Name, (fst returnedVars.[i]).Type))
             
-            // Add kernel parameter table to the global data
-            kernelInfo.Signature <- newSignature     
-
             // Change connections bound to the return types of this kernel
-            // NB: this modifies the call graph
+            // NB: this modifies the call graphv
             for i = 0 to returnedVars.Length - 1 do
-                step.ChangeOutConnection(ReturnValue(i), ParameterIndex(originalParamsCount + i))
+                step.ChangeOutConnection(ReturnValueConnection(i), 
+                                         ParameterConnection((fst returnedVars.[i]).Name))
 
        
     member private this.FindReturnedArraysAllocationExpression(expr:Expr, step:FunctionPreprocessingStep, kernel:FunctionInfo) =

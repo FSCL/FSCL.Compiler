@@ -5,6 +5,13 @@ open Microsoft.FSharp.Quotations
 open System
 open System.Collections.Generic
 
+[<AllowNullLiteral>]
+type DeviceAttribute(platform: int, device: int) =
+    inherit Attribute()
+
+    member val Platform = platform with get
+    member val Device = device with get
+
 ///
 ///<summary>
 /// The set of information about utility functions collected and maintained by the compiler
@@ -17,14 +24,13 @@ type FunctionInfo(id: MethodInfo, expr:Expr) =
     /// The original signature of the function
     ///</summary>
     ///
-    member val ID = id with get
+    member val ID = id with get   
+    
     member val Skip = false with get, set
-    ///
-    ///<summary>
-    /// The processed signature of the function. Signature processing includes generating additional parameters to address arrays, flatten arrays, replace ref variables with sigletons and so on
-    ///</summary>
-    ///
-    member val Signature = id with get, set
+
+    member val ReturnType = id.ReturnType with get, set
+
+    member val Name = id.Name with get, set
     ///
     ///<summary>
     /// The body of the function
@@ -36,13 +42,13 @@ type FunctionInfo(id: MethodInfo, expr:Expr) =
     /// The generated target code
     ///</summary>
     ///
-    member val Codegen = "" with get, set
+    member val Code = "" with get, set
     ///
     ///<summary>
     /// The set of information about function parameters
     ///</summary>
     ///
-    member val ParameterInfo = new Dictionary<String, KernelParameterInfo>() with get
+    member val Parameters = new Dictionary<String, KernelParameterInfo>() with get
     ///
     ///<summary>
     /// A set of custom additional information to be stored in the function
@@ -83,3 +89,6 @@ type KernelInfo(methodInfo: MethodInfo, expr:Expr) =
             isEndPoint
         and internal set(value) = 
             isEndPoint <- value
+
+    member val Device:DeviceAttribute = null 
+        with get, set

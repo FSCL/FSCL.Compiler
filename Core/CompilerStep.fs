@@ -155,7 +155,7 @@ type FunctionTransformationProcessor = CompilerStepProcessor<Expr, Expr>
 ///The type of the (signature) processors of the function codegen step. Alias of CompilerStepProcessor&lt;MethodInfo, String option&gt;
 ///</summary>
 /// 
-type FunctionSignatureCodegenProcessor = CompilerStepProcessor<MethodInfo, String option>
+type FunctionSignatureCodegenProcessor = CompilerStepProcessor<String * KernelParameterInfo list, String option>
 ///
 ///<summary>
 ///The type of the (body) processors of the function codegen step. Alias of CompilerStepProcessor&lt;Expr, String option&gt;

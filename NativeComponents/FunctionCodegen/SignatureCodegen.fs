@@ -38,36 +38,33 @@ type SignatureCodegen() =
     ///The target code for the signature
     ///</returns>
     ///       
-    override this.Run(fi, en) =
+    override this.Run((name, parameters), en) =
         let engine = en :?> FunctionCodegenStep
         // Convert params and produce additional params
-        let kernelParams = fi.GetParameters()
         if engine.FunctionInfo.GetType() = typeof<KernelInfo> then
             let kernelInfo = engine.FunctionInfo :?> KernelInfo
-            let kernelParamsInfo = kernelInfo.ParameterInfo
-            let paramsPrint = Array.map(fun (p:ParameterInfo) ->
-                if p.ParameterType.IsArray then
+            let paramsPrint = List.map(fun (p:KernelParameterInfo) ->
+                if p.Info.ParameterType.IsArray then
                     // If the parameters is tagged with Contant attribute, prepend constant keyword, else global
-                    let addressSpace = kernelParamsInfo.[p.Name].AddressSpace
+                    let addressSpace = p.AddressSpace
                     if addressSpace = KernelParameterAddressSpace.LocalSpace then
-                        "local " + engine.TypeManager.Print(p.ParameterType) + p.Name
+                        "local " + engine.TypeManager.Print(p.Info.ParameterType) + p.Info.Name
                     elif addressSpace = KernelParameterAddressSpace.ConstantSpace then
-                        "constant " + engine.TypeManager.Print(p.ParameterType) + p.Name
+                        "constant " + engine.TypeManager.Print(p.Info.ParameterType) + p.Info.Name
                     else
-                        "global " + engine.TypeManager.Print(p.ParameterType) + p.Name
+                        "global " + engine.TypeManager.Print(p.Info.ParameterType) + p.Info.Name
                 else
-                    engine.TypeManager.Print(p.ParameterType) + " " + p.Name) kernelParams
+                    engine.TypeManager.Print(p.Info.ParameterType) + " " + p.Info.Name) parameters
             
-            let signature = Some("kernel void " + fi.Name + "(" + (String.concat ", " paramsPrint) + ")")
+            let signature = Some("kernel void " + name + "(" + (String.concat ", " paramsPrint) + ")")
             signature
         else
             let kernelInfo = engine.FunctionInfo
-            let kernelParamsInfo = kernelInfo.ParameterInfo
             // Create KERNEL_PARAMETER_TABLE
-            let paramsPrint = Array.map(fun (p:ParameterInfo) ->
-                engine.TypeManager.Print(p.ParameterType) + " " + p.Name) kernelParams
+            let paramsPrint = List.map(fun (p:KernelParameterInfo) ->
+                engine.TypeManager.Print(p.Info.ParameterType) + " " + p.Info.Name) parameters
             
-            let signature = Some(engine.TypeManager.Print(kernelInfo.Signature.ReturnType) + " " + fi.Name + "(" + (String.concat ", " paramsPrint) + ")")
+            let signature = Some(engine.TypeManager.Print(kernelInfo.ReturnType) + " " + name + "(" + (String.concat ", " paramsPrint) + ")")
             signature
 
            

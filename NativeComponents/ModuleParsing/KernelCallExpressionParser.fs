@@ -51,14 +51,14 @@ type KernelCallExpressionParser() =
                 if currentKernel = null then
                     None
                 else
-                    kcg.AddKernel(currentKernel.GetKernel(currentKernel.KernelIDs.[0]))
+                    kcg.AddKernel(currentKernel.Kernels.[0])
                     // Setup connections ret-type -> parameter
                     let mutable endpointIndex = 0
                     for i = 0 to subkernels.Length - 1 do
                         if subkernels.[i] <> null then
                             kcg.AddConnection(
-                                endpoints.[endpointIndex], 
-                                currentKernel.KernelIDs.[0], 
+                                endpoints.[endpointIndex].ID, 
+                                currentKernel.Kernels.[0].ID, 
                                 ReturnValue(0), ParameterIndex(i))
                             endpointIndex <- endpointIndex + 1
                     // Return module
@@ -96,18 +96,18 @@ type KernelCallExpressionParser() =
                         if currentKernel = null then
                             None
                         else
-                            kcg.AddKernel(kcg.GetKernel(currentKernel.KernelIDs.[0]))
+                            kcg.AddKernel(currentKernel.Kernels.[0])
                             // Setup connections ret-type -> parameter                            
                             if subkernel <> null then   
                                 let retTypes =
-                                    if FSharpType.IsTuple(subkernel.EndPoints.[0].ReturnType) then
-                                        FSharpType.GetTupleElements(subkernel.EndPoints.[0].ReturnType)
+                                    if FSharpType.IsTuple(subkernel.EndPoints.[0].ID.ReturnType) then
+                                        FSharpType.GetTupleElements(subkernel.EndPoints.[0].ID.ReturnType)
                                     else
-                                        [| subkernel.EndPoints.[0].ReturnType |]
+                                        [| subkernel.EndPoints.[0].ID.ReturnType |]
                                 for i = 0 to retTypes.Length - 1 do                     
                                     kcg.AddConnection(
-                                        endpoints.[0], 
-                                        currentKernel.KernelIDs.[0], 
+                                        endpoints.[0].ID, 
+                                        currentKernel.Kernels.[0].ID, 
                                         ReturnValue(i), ParameterIndex(i))
                             Some(kcg)
                     | _ ->

@@ -87,19 +87,25 @@ type AcceleratedArrayMapHandler() =
                 let endpoints = kcg.EndPoints
                 // Add current kernel
                 kcg.AddKernel(new KernelInfo(signature, body)) 
+                
+                // Detect is device attribute set
+                let device = functionInfo.GetCustomAttribute(typeof<DeviceAttribute>)
+                if device <> null then
+                    kcg.GetKernel(signature).Device <- device :?> DeviceAttribute
+
                 // Add the computation function and connect it to the kernel
                 kcg.AddFunction(new FunctionInfo(functionInfo, body))
                 kcg.AddCall(signature, functionInfo)
                 // Connect with subkernel
                 if subkernel <> null then   
                     let retTypes =
-                        if FSharpType.IsTuple(subkernel.EndPoints.[0].ReturnType) then
-                            FSharpType.GetTupleElements(subkernel.EndPoints.[0].ReturnType)
+                        if FSharpType.IsTuple(subkernel.EndPoints.[0].ID.ReturnType) then
+                            FSharpType.GetTupleElements(subkernel.EndPoints.[0].ID.ReturnType)
                         else
-                            [| subkernel.EndPoints.[0].ReturnType |]
+                            [| subkernel.EndPoints.[0].ID.ReturnType |]
                     for i = 0 to retTypes.Length - 1 do                     
                         kcg.AddConnection(
-                            endpoints.[0], 
+                            endpoints.[0].ID, 
                             signature, 
                             ReturnValue(i), ParameterIndex(i)) 
                 // Return module                             

@@ -43,7 +43,6 @@
   <ItemGroup>
     <Compile Include="ModulePreprocessing.fs" />
     <Compile Include="StructDiscover.fs" />
-    <Compile Include="GenericInstantiator.fs" />
     <Compile Include="FunctionReferenceDiscover.fs" />
   </ItemGroup>
   <ItemGroup>
