@@ -119,7 +119,7 @@ let main argv =
                                                                                  typeof<ReturnTypeToOutputArgProcessor>);
                                                       StepProcessorConfiguration("FSCL_ALAI_PREPROCESSING_PROCESSOR", 
                                                                                  "FSCL_FUNCTION_PREPROCESSING_STEP",
-                                                                                 typeof<ArrayLengthArgsInsertionProcessor>,
+                                                                                 typeof<ArrayParametersManipulationProcessor>,
                                                                                  ["FSCL_RTTOA_PREPROCESSING_PROCESSOR"]);
                                                       StepProcessorConfiguration("FSCL_RTTAR_PREPROCESSING_PROCESSOR", 
                                                                                  "FSCL_FUNCTION_PREPROCESSING_STEP",

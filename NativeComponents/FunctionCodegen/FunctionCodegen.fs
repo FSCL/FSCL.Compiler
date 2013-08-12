@@ -57,12 +57,12 @@ type FunctionCodegenStep(tm: TypeManager,
             raise (CompilerException("Unrecognized construct in kernel body " + expression.ToString()))
         output.Value
         
-    member private this.Process(name: string, parameters: Dictionary<string, KernelParameterInfo>) =
+    member private this.Process(name: string, parameters: List<KernelParameterInfo>) =
         // At first, check generic processors (for complex constructs)
         let mutable index = 0
         let mutable output = None        
         while (output.IsNone) && (index < signatureProcessors.Length) do
-            output <- signatureProcessors.[index].Run((name, List.ofSeq(parameters.Values)), this)
+            output <- signatureProcessors.[index].Run((name, List.ofSeq(parameters)), this)
             index <- index + 1
         // If no suitable generic processor, use specific ones
         if (output.IsNone) then

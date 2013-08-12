@@ -29,10 +29,10 @@ type RefVariableTransformationProcessor() =
 
     let UpdateArrayAccessMode(var:string, mode:KernelParameterAccessMode, engine:FunctionTransformationStep) =  
         let data = engine.FunctionInfo :?> KernelInfo
-        for pInfo in data.ParameterInfo do
-            if pInfo.Key = var then
+        for pInfo in data.Parameters do
+            if pInfo.Name = var then
                 let newMode = 
-                    match mode, pInfo.Value.Access with
+                    match mode, pInfo.Access with
                     | _, KernelParameterAccessMode.ReadWrite
                     | KernelParameterAccessMode.ReadWrite, _ ->
                         KernelParameterAccessMode.ReadWrite
@@ -41,15 +41,15 @@ type RefVariableTransformationProcessor() =
                         KernelParameterAccessMode.ReadWrite
                     | _, _ ->
                         mode
-                pInfo.Value.Access <- newMode
+                pInfo.Access <- newMode
                     
     let GetPlaceholderVar(var, engine:FunctionTransformationStep) = 
         let data = engine.FunctionInfo :?> KernelInfo
         let mutable placeholder = None
                 
-        for pInfo in data.ParameterInfo do
-            if pInfo.Key = var then
-                placeholder <- pInfo.Value.Placeholder
+        for pInfo in data.Parameters do
+            if pInfo.Name = var then
+                placeholder <- pInfo.Placeholder
                 
         if placeholder.IsNone then
             raise (CompilerException("Cannot determine the parameter referred by the kernel body " + var))

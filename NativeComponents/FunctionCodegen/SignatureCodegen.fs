@@ -44,17 +44,17 @@ type SignatureCodegen() =
         if engine.FunctionInfo.GetType() = typeof<KernelInfo> then
             let kernelInfo = engine.FunctionInfo :?> KernelInfo
             let paramsPrint = List.map(fun (p:KernelParameterInfo) ->
-                if p.Info.ParameterType.IsArray then
+                if p.Type.IsArray then
                     // If the parameters is tagged with Contant attribute, prepend constant keyword, else global
                     let addressSpace = p.AddressSpace
                     if addressSpace = KernelParameterAddressSpace.LocalSpace then
-                        "local " + engine.TypeManager.Print(p.Info.ParameterType) + p.Info.Name
+                        "local " + engine.TypeManager.Print(p.Type) + p.Name
                     elif addressSpace = KernelParameterAddressSpace.ConstantSpace then
-                        "constant " + engine.TypeManager.Print(p.Info.ParameterType) + p.Info.Name
+                        "constant " + engine.TypeManager.Print(p.Type) + p.Name
                     else
-                        "global " + engine.TypeManager.Print(p.Info.ParameterType) + p.Info.Name
+                        "global " + engine.TypeManager.Print(p.Type) + p.Name
                 else
-                    engine.TypeManager.Print(p.Info.ParameterType) + " " + p.Info.Name) parameters
+                    engine.TypeManager.Print(p.Type) + " " + p.Name) parameters
             
             let signature = Some("kernel void " + name + "(" + (String.concat ", " paramsPrint) + ")")
             signature
@@ -62,7 +62,7 @@ type SignatureCodegen() =
             let kernelInfo = engine.FunctionInfo
             // Create KERNEL_PARAMETER_TABLE
             let paramsPrint = List.map(fun (p:KernelParameterInfo) ->
-                engine.TypeManager.Print(p.Info.ParameterType) + " " + p.Info.Name) parameters
+                engine.TypeManager.Print(p.Type) + " " + p.Name) parameters
             
             let signature = Some(engine.TypeManager.Print(kernelInfo.ReturnType) + " " + name + "(" + (String.concat ", " paramsPrint) + ")")
             signature

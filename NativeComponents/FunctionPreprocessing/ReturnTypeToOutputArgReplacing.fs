@@ -8,8 +8,8 @@ open Microsoft.FSharp.Reflection
 open System.Reflection
 
 [<StepProcessor("FSCL_RETURN_TYPE_TO_OUTPUT_ARG_REPLACING_PREPROCESSING_PROCESSOR", 
-                "FSCL_FUNCTION_PREPROCESSING_STEP",,
-                Dependencies = [|"FSCL_REF_TYPE_TO_ARRAY_REPLACING_PREPROCESSING_PROCESSOR"|])>]
+                "FSCL_FUNCTION_PREPROCESSING_STEP",
+                Dependencies = [|"FSCL_ARGS_BUILDING_PREPROCESSING_PROCESSOR"|])>]
 type ReturnTypeToOutputArgProcessor() =
     inherit FunctionPreprocessingProcessor()
 
@@ -37,7 +37,9 @@ type ReturnTypeToOutputArgProcessor() =
                 
             // Add return arrays
             for i = 0 to returnedVars.Length - 1 do
-                kernelInfo.Parameters.Add((fst returnedVars.[i]).Name, new KernelParameterInfo((fst returnedVars.[i]).Name, (fst returnedVars.[i]).Type))
+                let pInfo = new KernelParameterInfo((fst returnedVars.[i]).Name, (fst returnedVars.[i]).Type)
+                pInfo.IsReturnParameter <- true
+                kernelInfo.Parameters.Add(pInfo)
             
             // Change connections bound to the return types of this kernel
             // NB: this modifies the call graphv

@@ -70,9 +70,14 @@ type Compiler =
     ///</summary>
     ///  
     member this.Compile(input) =
-        let mutable state = (input, new KernelModule()) :> obj
+        let mutable state = (input :> obj, new KernelModule()) :> obj
+        //let timer = new System.Diagnostics.Stopwatch()
         for step in this.steps do
+            //timer.Reset()
+            //timer.Start()
             state <- step.Execute(state)
+            //timer.Stop()
+            //Console.WriteLine("Step " + (step.GetType().ToString()) + ": " + timer.ElapsedMilliseconds.ToString() + "ms")
         state
           
     (*

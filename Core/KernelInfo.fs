@@ -48,7 +48,10 @@ type FunctionInfo(id: MethodInfo, expr:Expr) =
     /// The set of information about function parameters
     ///</summary>
     ///
-    member val Parameters = new Dictionary<String, KernelParameterInfo>() with get
+    member val Parameters = new List<KernelParameterInfo>() with get
+    member this.GetParameter(name) =
+        Seq.tryFind(fun (p: KernelParameterInfo) -> p.Name = name) (this.Parameters)
+        
     ///
     ///<summary>
     /// A set of custom additional information to be stored in the function

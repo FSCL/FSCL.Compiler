@@ -9,7 +9,7 @@ open Microsoft.FSharp.Reflection
 open System
 
 [<StepProcessor("FSCL_REF_TYPE_TO_ARRAY_REPLACING_PREPROCESSING_PROCESSOR", "FSCL_FUNCTION_PREPROCESSING_STEP",
-                Dependencies = [|"FSCL_ARGS_BUILDING_PREPROCESSING_PROCESSOR"|])>] 
+                Dependencies = [|"FSCL_ARRAY_PARAMETERS_MANIPULATION_PREPROCESSING_PROCESSOR"|])>] 
 type RefTypeToArrayReplacingProcessor() =        
     inherit FunctionPreprocessingProcessor()
     let IsRef(t:Type) =
@@ -24,16 +24,11 @@ type RefTypeToArrayReplacingProcessor() =
 
         // Transform each ref variable in an array of 1 element
         for p in fi.Parameters do
-            let t = p.Value.Type
+            let t = p.Type
             if IsRef(t) then
                 let newType = (FSharpType.GetRecordFields(t)).[0].PropertyType.MakeArrayType()
-                let newParam = new KernelParameterInfo(p.Value.Name, newType)
-                newParam.Access <- p.Value.Access
-                newParam.AddressSpace <- p.Value.AddressSpace
-                newParam.ArgumentExpression <- p.Value.ArgumentExpression
-                newParam.Expr <- p.Value.Expr
-
-                newParam.Placeholder <- Some(Quotations.Var(p.Value.Name, newType, false))
-                newParam.Type <- newType
+                // Generate new placeholder
+                p.Placeholder <- Some(Quotations.Var(p.Name, newType, false))                
+                p.Type <- (FSharpType.GetRecordFields(t)).[0].PropertyType.MakeArrayType()
 
             

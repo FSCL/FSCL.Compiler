@@ -32,37 +32,34 @@ type KernelCallExpressionParser() =
             | Patterns.Call(o, m, args) ->
                 // Extract sub kernels
                 let subkernels = List.map(fun (e: Expr) -> 
-                    try 
-                        engine.Process(e)
-                    with
-                        | :? CompilerException -> null) args
-                // Add them to kernel call graph
-                for subkernel in subkernels do
-                    if not (subkernel = null) then
-                        kcg.MergeWith(subkernel)
+                                            match engine.TryProcess(e) with
+                                            | Some(result) ->
+                                                kcg.MergeWith(result)
+                                                result
+                                            | _ ->
+                                                null) args
                 // Get endpoints
                 let endpoints = kcg.EndPoints
                 // Add the current kernel
-                let currentKernel = 
-                    try 
-                        engine.Process(m)
-                    with
-                        | :? CompilerException -> null
-                if currentKernel = null then
-                    None
-                else
-                    kcg.AddKernel(currentKernel.Kernels.[0])
-                    // Setup connections ret-type -> parameter
-                    let mutable endpointIndex = 0
-                    for i = 0 to subkernels.Length - 1 do
-                        if subkernels.[i] <> null then
-                            kcg.AddConnection(
-                                endpoints.[endpointIndex].ID, 
-                                currentKernel.Kernels.[0].ID, 
-                                ReturnValue(0), ParameterIndex(i))
-                            endpointIndex <- endpointIndex + 1
-                    // Return module
-                    Some(kcg)                
+                let currentKernel = engine.Process(m)
+                kcg.AddKernel(currentKernel.Kernels.[0])
+                // Set argument expressions as custom info
+                let argExpressions = new Dictionary<string, Expr>()
+                for i = 0 to subkernels.Length - 1 do
+                    if subkernels.[i] = null then
+                        argExpressions.Add(m.GetParameters().[i].Name, args.[i])
+                currentKernel.Kernels.[0].CustomInfo.Add("ARG_EXPRESSIONS", argExpressions)
+                // Setup connections ret-type -> parameter
+                let mutable endpointIndex = 0
+                for i = 0 to subkernels.Length - 1 do
+                    if subkernels.[i] <> null then
+                        kcg.AddConnection(
+                            endpoints.[endpointIndex].ID, 
+                            currentKernel.Kernels.[0].ID, 
+                            ReturnValueConnection(0), ParameterConnection(currentKernel.Kernels.[0].ID.GetParameters().[i].Name))
+                        endpointIndex <- endpointIndex + 1
+                // Return module
+                Some(kcg)                
             | Patterns.Let(v, value, body) ->
                 (* 
                  * Check if we have something like:
@@ -76,40 +73,34 @@ type KernelCallExpressionParser() =
                 if v.Name = "tupledArg" then
                     let lifted = LiftArgExtraction(body)
                     match lifted with
-                    | Patterns.Call(o, mi, args) ->                                       
-                        let subkernel = 
-                            try 
-                                engine.Process(value)
-                            with
-                                | :? CompilerException -> null
-                        // Add the subkernel to the call graph
-                        if (subkernel <> null) then
-                            kcg.MergeWith(subkernel)
+                    | Patterns.Call(o, mi, args) ->              
+                        let subkernel =                         
+                            match engine.TryProcess(value) with
+                            | Some(result) ->
+                                kcg.MergeWith(result)
+                                result
+                            | _ ->
+                                null
                         // Get endpoints
                         let endpoints = kcg.EndPoints
                         // Add the current kernel
-                        let currentKernel = 
-                            try 
-                                engine.Process(mi)
-                            with
-                                | :? CompilerException -> null
-                        if currentKernel = null then
-                            None
-                        else
-                            kcg.AddKernel(currentKernel.Kernels.[0])
-                            // Setup connections ret-type -> parameter                            
-                            if subkernel <> null then   
-                                let retTypes =
-                                    if FSharpType.IsTuple(subkernel.EndPoints.[0].ID.ReturnType) then
-                                        FSharpType.GetTupleElements(subkernel.EndPoints.[0].ID.ReturnType)
-                                    else
-                                        [| subkernel.EndPoints.[0].ID.ReturnType |]
-                                for i = 0 to retTypes.Length - 1 do                     
-                                    kcg.AddConnection(
-                                        endpoints.[0].ID, 
-                                        currentKernel.Kernels.[0].ID, 
-                                        ReturnValue(i), ParameterIndex(i))
-                            Some(kcg)
+                        let currentKernel = engine.Process(mi)
+                        let ki = currentKernel.Kernels.[0]
+                        kcg.AddKernel(ki)
+                        let kp = ki.ID.GetParameters()
+                        // Setup connections ret-type -> parameter                            
+                        if subkernel <> null then   
+                            let retTypes =
+                                if FSharpType.IsTuple(subkernel.EndPoints.[0].ID.ReturnType) then
+                                    FSharpType.GetTupleElements(subkernel.EndPoints.[0].ID.ReturnType)
+                                else
+                                    [| subkernel.EndPoints.[0].ID.ReturnType |]
+                            for i = 0 to retTypes.Length - 1 do                     
+                                kcg.AddConnection(
+                                    endpoints.[0].ID, 
+                                    ki.ID, 
+                                    ReturnValueConnection(i), ParameterConnection(kp.[i].Name))
+                        Some(kcg)
                     | _ ->
                         None
                 else

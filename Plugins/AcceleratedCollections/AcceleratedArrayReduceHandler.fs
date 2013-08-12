@@ -241,7 +241,7 @@ type AcceleratedArrayReduceHandler() =
                         kcg.AddConnection(
                             endpoints.[0].ID, 
                             signature, 
-                            ReturnValue(i), ParameterIndex(i)) 
+                            ReturnValueConnection(i), ParameterConnection(signature.GetParameters().[i].Name)) 
                 // Return module                             
                 Some(kcg)
             | _ ->

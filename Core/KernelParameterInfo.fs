@@ -41,6 +41,8 @@ type KernelParameterInfo(name:string, t: Type) =
     ///
     member val Name = name with get 
     member val Type = t with get, set
+    member val IsSizeParameter = false with get, set
+    member val IsReturnParameter = false with get, set
     ///
     ///<summary>
     /// The set of additional parameters generated to access this parameter
@@ -49,7 +51,7 @@ type KernelParameterInfo(name:string, t: Type) =
     /// Additional size parameters are generated only for vector (array) parameters, one for each vector parameter dimension
     ///</remarks>
     ///
-    member val SizeParameters = new Dictionary<String, KernelParameterInfo>() with get
+    member val SizeParameters = new List<KernelParameterInfo>() with get
     ///
     ///<summary>
     /// The OpenCL address-space of this parameter
@@ -65,19 +67,11 @@ type KernelParameterInfo(name:string, t: Type) =
     // For kernel return type
     member val Expr = None with get, set
     // Actual arg
-    member val ArgumentExpression = None with get, set
+    member val ArgumentExpression:Expr option = None with get, set
     ///
     ///<summary>
     /// Variable holding the parameter inside the kernel body in the abstract syntax tree
     ///</summary>
     ///
     member val Placeholder:Var option = None with get, set
-    
-type TemporaryKernelParameterInfo(parameterInfo:ParameterInfo) =
-    member val Info = parameterInfo with get, set
-    member val SizeParameters = ([]:string list) with get, set
-    member val AddressSpace = KernelParameterAddressSpace.AutoSpace with get, set
-    member val Access = KernelParameterAccessMode.NoAccess with get, set
-    // For kernel return type
-    member val Expr = None with get, set
     
