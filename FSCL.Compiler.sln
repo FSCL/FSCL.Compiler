@@ -47,7 +47,7 @@ Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "AlgorithmSample", "Samples\
 EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "VectorTypeSample", "Samples\VectorTypeSample\VectorTypeSample.fsproj", "{54A68199-9FDA-4077-97F5-313594FD4A63}"
 EndProject
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "KernelExpressionSample", "KernelExpressionSample\KernelExpressionSample.fsproj", "{E2C0607B-13E5-4782-9B93-17F07A376337}"
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "KernelExpressionSample", "Samples\KernelExpressionSample\KernelExpressionSample.fsproj", "{E2C0607B-13E5-4782-9B93-17F07A376337}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
