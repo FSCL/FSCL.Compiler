@@ -45,7 +45,7 @@ type ArrayAccessTransformation() =
                 pInfo.Access <- newMode
             
     let GetSizeParameters(var, engine:FunctionTransformationStep) =  
-        let data = engine.FunctionInfo :?> KernelInfo
+        let data = engine.FunctionInfo
         let mutable sizeParameters = new List<KernelParameterInfo>()
                 
         for pInfo in data.Parameters do

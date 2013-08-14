@@ -32,26 +32,4 @@ let main argv =
     result <- compiler.Compile(<@ Vector4DInvert @>)
     result <- compiler.Compile(<@ Vector4DManipulation @>)
     
-    let template = 
-        <@
-            fun(g_idata:int[], [<Local>]sdata:int[], n, g_odata:int[]) ->
-                let tid = get_local_id(0)
-                let i = get_group_id(0) * (get_local_size(0) * 2) + get_local_id(0)
-
-                sdata.[tid] <- if(i < n) then g_idata.[i] else 0
-                if (i + get_local_size(0) < n) then 
-                    sdata.[tid] <- sdata.[tid] + g_idata.[i + get_local_size(0)]
-
-                barrier(CLK_LOCAL_MEM_FENCE)
-                // do reduction in shared mem
-                let mutable s = get_local_size(0) >>> 1
-                while (s > 0) do 
-                    if (tid < s) then
-                        sdata.[tid] <- sdata.[tid] + sdata.[tid + s]
-                    barrier(CLK_LOCAL_MEM_FENCE)
-                    s <- s >>> 1
-
-                if (tid = 0) then 
-                    g_odata.[get_group_id(0)] <- sdata.[0]
-        @>
     0
