@@ -47,7 +47,7 @@ type AcceleratedArrayMapHandler() =
                 
             // Extract the map function 
             match computationFunction with
-            | Some(functionInfo, body) ->
+            | Some(functionInfo, functionBody) ->
                 // Now create the kernel
                 // We need to get the type of a array whose elements type is the same of the functionInfo parameter
                 let inputArrayType = Array.CreateInstance(functionInfo.GetParameters().[0].ParameterType, 0).GetType()
@@ -70,7 +70,7 @@ type AcceleratedArrayMapHandler() =
                 let globalIdVar = Quotations.Var("global_id", typeof<int>)
                 let getElementMethodInfo, _ = AcceleratedCollectionUtil.GetArrayAccessMethodInfo(inputArrayType.GetElementType())
                 let _, setElementMethodInfo = AcceleratedCollectionUtil.GetArrayAccessMethodInfo(outputArrayType.GetElementType())
-                let body = 
+                let kernelBody = 
                     Expr.Let(globalIdVar,
                                 Expr.Call(AcceleratedCollectionUtil.FilterCall(<@ get_global_id @>, fun(e, mi, a) -> mi).Value, [ Expr.Value(0) ]),
                                 Expr.Call(setElementMethodInfo,
@@ -86,7 +86,7 @@ type AcceleratedArrayMapHandler() =
 
                 let endpoints = kcg.EndPoints
                 // Add current kernel
-                kcg.AddKernel(new KernelInfo(signature, body)) 
+                kcg.AddKernel(new KernelInfo(signature, kernelBody)) 
                 
                 // Detect is device attribute set
                 let device = functionInfo.GetCustomAttribute(typeof<DeviceAttribute>)
@@ -94,7 +94,7 @@ type AcceleratedArrayMapHandler() =
                     kcg.GetKernel(signature).Device <- device :?> DeviceAttribute
 
                 // Add the computation function and connect it to the kernel
-                kcg.AddFunction(new FunctionInfo(functionInfo, body))
+                kcg.AddFunction(new FunctionInfo(functionInfo, functionBody))
                 kcg.AddCall(signature, functionInfo)
                 // Connect with subkernel
                 if subkernel <> null then   
