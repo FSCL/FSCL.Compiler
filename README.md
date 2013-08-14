@@ -6,6 +6,10 @@ FSharp to OpenCL Compiler
 
 ### Latest news
 
+FSCL.Compiler can be compiled and all the samples are correctly executed. Sorry for the compilation and sample execution problems that you might have faced.
+
+*****
+
 In the last few commits I added a new important functionality. Now it is possible to compile not only single F# kernels (a reflected function call or reference), but also expressions resulting from composing multiple kernels.
 For example, if *F(x)* and *G(x,y)* are two F# kernels, programmers can compile *<@@ G(F(x), y) @@>*.
 
