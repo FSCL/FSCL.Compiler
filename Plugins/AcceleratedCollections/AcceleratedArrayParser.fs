@@ -25,16 +25,19 @@ type AcceleratedArrayParser() =
             
     override this.Run(o, en) =
         let engine = en :?> ModuleParsingStep
-        match FilterCall(o :?> Expr, fun a -> a) with
-        | Some(item, methodInfo, args) -> 
-            if methodInfo.DeclaringType = listModuleType then
-                if (handlers.ContainsKey(methodInfo.GetGenericMethodDefinition())) then
-                    handlers.[methodInfo.GetGenericMethodDefinition()].Process(methodInfo, args, o :?> Expr, engine)
+        if o :? Expr then
+            match FilterCall(o :?> Expr, fun a -> a) with
+            | Some(item, methodInfo, args) -> 
+                if methodInfo.DeclaringType = listModuleType then
+                    if (handlers.ContainsKey(methodInfo.GetGenericMethodDefinition())) then
+                        handlers.[methodInfo.GetGenericMethodDefinition()].Process(methodInfo, args, o :?> Expr, engine)
+                    else
+                        None
                 else
                     None
-            else
+            | _ ->
                 None
-        | _ ->
+        else
             None
              
             
