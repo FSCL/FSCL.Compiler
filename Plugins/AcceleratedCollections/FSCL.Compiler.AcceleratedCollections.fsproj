@@ -44,6 +44,7 @@
     <Compile Include="AcceleratedCollectionUtil.fs" />
     <Compile Include="AcceleratedCollectionHandler.fs" />
     <Compile Include="AcceleratedArrayMapHandler.fs" />
+    <Compile Include="AcceleratedArrayMap2Handler.fs" />
     <Compile Include="AcceleratedArrayReduceHandler.fs" />
     <Compile Include="AcceleratedArrayParser.fs" />
   </ItemGroup>
