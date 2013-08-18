@@ -25,12 +25,24 @@ type FunctionInfo(id: MethodInfo, expr:Expr) =
     ///</summary>
     ///
     member val ID = id with get   
-    
-    member val Skip = false with get, set
-
-    member val ReturnType = id.ReturnType with get, set
-
+    ///
+    ///<summary>
+    /// The name of the function
+    ///</summary>
+    ///
     member val Name = id.Name with get, set
+    ///
+    ///<summary>
+    /// The set of information about function parameters
+    ///</summary>
+    ///
+    member val Parameters = new List<KernelParameterInfo>() with get
+    ///
+    ///<summary>
+    /// The function return type
+    ///</summary>
+    ///
+    member val ReturnType = id.ReturnType with get, set
     ///
     ///<summary>
     /// The body of the function
@@ -39,19 +51,18 @@ type FunctionInfo(id: MethodInfo, expr:Expr) =
     member val Body = expr with get, set
     ///
     ///<summary>
+    /// Whether the processing of this function whould be skipped 
+    ///</summary>
+    ///
+    member val Skip = false with get, set
+    ///
+    ///<summary>
     /// The generated target code
     ///</summary>
     ///
     member val Code = "" with get, set
-    ///
-    ///<summary>
-    /// The set of information about function parameters
-    ///</summary>
-    ///
-    member val Parameters = new List<KernelParameterInfo>() with get
     member this.GetParameter(name) =
-        Seq.tryFind(fun (p: KernelParameterInfo) -> p.Name = name) (this.Parameters)
-        
+        Seq.tryFind(fun (p: KernelParameterInfo) -> p.Name = name) (this.Parameters)        
     ///
     ///<summary>
     /// A set of custom additional information to be stored in the function
@@ -78,6 +89,7 @@ type FunctionInfo(id: MethodInfo, expr:Expr) =
 [<AllowNullLiteral>]
 type KernelInfo(methodInfo: MethodInfo, expr:Expr) =
     inherit FunctionInfo(methodInfo, expr)
+    (*
     let mutable isEntryPoint = false
     let mutable isEndPoint = false
 
@@ -91,7 +103,7 @@ type KernelInfo(methodInfo: MethodInfo, expr:Expr) =
         with get() =
             isEndPoint
         and internal set(value) = 
-            isEndPoint <- value
+            isEndPoint <- value *)
 
     member val Device:DeviceAttribute = null 
         with get, set

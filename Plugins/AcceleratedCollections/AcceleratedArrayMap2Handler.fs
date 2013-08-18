@@ -108,6 +108,7 @@ type AcceleratedArrayMap2Handler() =
                 kcg.AddFunction(new FunctionInfo(functionInfo, functionBody))
                 kcg.AddCall(signature, functionInfo)
                 // Connect with subkernels
+                let argExpressions = new Dictionary<string, Expr>()
                 let mutable startParameter = 0
                 if firstSubkernel <> null then   
                     let retTypes =
@@ -121,6 +122,9 @@ type AcceleratedArrayMap2Handler() =
                             signature, 
                             ReturnValueConnection(i), ParameterConnection(signature.GetParameters().[i].Name)) 
                     startParameter <- retTypes.Length
+                else
+                    // Store the expression (actual argument) associated to this parameter
+                    argExpressions.Add("input_array_1", args.[1])
                 if secondSubkernel <> null then   
                     let retTypes =
                         if FSharpType.IsTuple(secondSubkernel.EndPoints.[0].ID.ReturnType) then
@@ -132,6 +136,11 @@ type AcceleratedArrayMap2Handler() =
                             secondSubkernel.Kernels.[0].ID, 
                             signature, 
                             ReturnValueConnection(i), ParameterConnection(signature.GetParameters().[i + startParameter].Name)) 
+                else
+                    // Store the expression (actual argument) associated to this parameter
+                    argExpressions.Add("input_array_2", args.[2])
+                // Store custom info that allows the rest of the compiler pipeline to correctly build and manipulate kernel parameters
+                kcg.GetKernel(signature).CustomInfo.Add("ARG_EXPRESSIONS", argExpressions)
                 // Return module                             
                 Some(kcg)
             | _ ->

@@ -231,6 +231,7 @@ type AcceleratedArrayReduceHandler() =
                 kcg.AddFunction(new FunctionInfo(functionInfo, body))
                 kcg.AddCall(signature, functionInfo)
                 // Connect with subkernel
+                let argExpressions = new Dictionary<string, Expr>()
                 if subkernel <> null then   
                     let retTypes =
                         if FSharpType.IsTuple(subkernel.EndPoints.[0].ID.ReturnType) then
@@ -242,6 +243,10 @@ type AcceleratedArrayReduceHandler() =
                             endpoints.[0].ID, 
                             signature, 
                             ReturnValueConnection(i), ParameterConnection(signature.GetParameters().[i].Name)) 
+                else
+                    argExpressions.Add("input_array", args.[1])
+                // Store custom info that allows the rest of the compiler pipeline to correctly build and manipulate kernel parameters
+                kcg.GetKernel(signature).CustomInfo.Add("ARG_EXPRESSIONS", argExpressions)
                 // Return module                             
                 Some(kcg)
             | _ ->

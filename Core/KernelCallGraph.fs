@@ -4,293 +4,168 @@ open System.Collections.ObjectModel
 open System.Reflection
 open Microsoft.FSharp.Quotations
 open System
+open System.Collections.ObjectModel
+open System.Collections.Generic
 
-type KernelConnection =
-| ParameterConnection of string
-| ReturnValueConnection of int
+type KernelEndpoint(id: MethodInfo,
+                    callId: int,
+                    parameter: string) =
+    let mutable call = callId
+    member val ID = id with get
+    member val Parameter = parameter with get
+    member this.CallID 
+        with get() = 
+            call
+        and internal set(v) =
+            call <- v
+    override this.Equals(o) =
+        if not (o :? KernelEndpoint) then
+            false
+        else
+            let ke = o :?> KernelEndpoint
+            (this.ID = ke.ID) && (this.CallID = ke.CallID) && (this.Parameter = ke.Parameter)
+            
+type KernelConnectionSource =
+| OutParameter of string
+| ReturnItem of int
 
 [<AllowNullLiteral>]
-type CallGraphNode(content: FunctionInfo) =
-    member val Content = content with get
-    member val OutputKernels = new Dictionary<MethodInfo, Dictionary<KernelConnection, KernelConnection>>() with get
-    member val Functions = new Dictionary<MethodInfo, unit>() with get    
-    member val Directives = new Dictionary<string, unit>() with get
-    member val GlobalTypes = new Dictionary<Type, unit>() with get
+type KernelCallInfo(id: MethodInfo) =
+    member val ID = id with get
+    
+    member val Output = new Dictionary<KernelConnectionSource, HashSet<KernelEndpoint>>() with get
+
+    member this.IsEndPoint 
+        with get() =
+            let isEnd = ref true
+            for arg in this.Output do
+                if arg.Value <> null && arg.Value.Count > 0 then
+                    isEnd := false
+            !isEnd
 
 [<AllowNullLiteral>]
-type ModuleCallGraph() =
-    member val internal functionStorage = new Dictionary<MethodInfo, CallGraphNode>()    
-    member val internal kernelStorage = new Dictionary<MethodInfo, CallGraphNode>()  
-    member val internal globalTypesStorage = new Dictionary<Type, unit>()   
-    member val internal directivesStorage = new Dictionary<string, unit>() 
-            
-    member private this.RecomputeEntryEndPoints() =
-        for k in this.kernelStorage do
-            (k.Value.Content :?> KernelInfo).IsEntryPoint <- true
-            (k.Value.Content :?> KernelInfo).IsEndPoint <- (k.Value.OutputKernels.Count = 0) 
-        for k in this.kernelStorage do
-            for k2 in k.Value.OutputKernels do
-                (this.kernelStorage.[k2.Key].Content :?> KernelInfo).IsEntryPoint <- false
-                
-    // Global-types-related methods
-    member this.HasGlobalType(info: Type) =
-        this.globalTypesStorage.ContainsKey(info)
-
-    member this.AddGlobalType(info: Type) =
-        if not (this.globalTypesStorage.ContainsKey(info)) then
-            this.globalTypesStorage.Add(info, ())
-            
-    member this.RemoveGlobalType(info: Type) =
-        if this.globalTypesStorage.ContainsKey(info) then
-            // Remove connections
-            for kernel in this.kernelStorage do
-                kernel.Value.GlobalTypes.Remove(info) |> ignore
-            for f in this.functionStorage do
-                f.Value.GlobalTypes.Remove(info) |> ignore
-            // Remove the item
-            this.globalTypesStorage.Remove(info) |> ignore
-            
-    // Directives-related methods
-    member this.HasDirective(info: string) =
-        this.directivesStorage.ContainsKey(info)
-
-    member this.AddDirective(info: string) =
-        if not (this.directivesStorage.ContainsKey(info)) then
-            this.directivesStorage.Add(info, ())
-            
-    member this.RemoveDirective(info: string) =
-        if this.directivesStorage.ContainsKey(info) then
-            // Remove connections
-            for kernel in this.kernelStorage do
-                kernel.Value.Directives.Remove(info) |> ignore
-            for f in this.functionStorage do
-                f.Value.Directives.Remove(info) |> ignore
-            // Remove the item
-            this.directivesStorage.Remove(info) |> ignore
-
-    // Kernel-related methods
-    member this.HasKernel(info: MethodInfo) =
-        this.kernelStorage.ContainsKey(info)
-            
-    member this.GetKernel(info: MethodInfo) =
-        if this.kernelStorage.ContainsKey(info) then
-            this.kernelStorage.[info].Content :?> KernelInfo
+type ModuleCallGraph() = 
+    member val internal kernelStorage = new Dictionary<MethodInfo, Dictionary<int, KernelCallInfo>>()
+    member val internal kernelCallNextId = new Dictionary<MethodInfo, int>()
+        
+    member this.AddKernelCall(id: MethodInfo) =
+        // Update id
+        if this.kernelCallNextId.ContainsKey(id) then
+            this.kernelCallNextId.[id] <- this.kernelCallNextId.[id] + 1
         else
-            null
+            this.kernelCallNextId.Add(id, 0)
+        // Store the call
+        if not (this.kernelStorage.ContainsKey(id)) then
+            this.kernelStorage.Add(id, new Dictionary<int, KernelCallInfo>())
+        this.kernelStorage.[id].Add(this.kernelCallNextId.[id], KernelCallInfo(id))
 
-    member this.AddKernel(info: KernelInfo) =
-        if not (this.kernelStorage.ContainsKey(info.ID)) then
-            this.kernelStorage.Add(info.ID, new CallGraphNode(info))
-            this.RecomputeEntryEndPoints()
-            
-    member this.RemoveKernel(info: MethodInfo) =
-        if this.kernelStorage.ContainsKey(info) then
-            // Remove connections
-            for kernel in this.kernelStorage do
-                kernel.Value.OutputKernels.Remove(info) |> ignore
-            // Remove the item
-            this.kernelStorage.Remove(info) |> ignore
-            this.RecomputeEntryEndPoints()
+    member this.RemoveKernelCall(id: MethodInfo,
+                                 callId: int) =
+        if this.kernelStorage.ContainsKey(id) then
+            this.kernelStorage.[id].Remove(callId) |> ignore
 
-    // Functions-related methods
-    member this.HasFunction(info: MethodInfo) =
-        this.functionStorage.ContainsKey(info)
-                        
-    member this.GetFunction(info: MethodInfo) =
-        if this.functionStorage.ContainsKey(info) then
-            this.functionStorage.[info].Content
+    member this.GetKernelCalls(id: MethodInfo) =
+        if this.kernelStorage.ContainsKey(id) then
+            List.ofSeq(this.kernelStorage.[id])
         else
-            null
+            []
+            
+    member this.GetKernels() =
+        List.ofSeq(this.kernelStorage.Keys)
 
-    member this.AddFunction(info: FunctionInfo) =
-        if not (this.functionStorage.ContainsKey(info.ID)) then
-            this.functionStorage.Add(info.ID, new CallGraphNode(info))
+    member this.SetOutput(id: MethodInfo, 
+                          callId: int,
+                          argument: KernelConnectionSource,
+                          output: KernelEndpoint) =
+        if this.kernelStorage.ContainsKey(id) && this.kernelStorage.[id].ContainsKey(callId) then         
+            let kernelCall = this.kernelStorage.[id].[callId]
+            if not (kernelCall.Output.ContainsKey(argument)) then
+                kernelCall.Output.Add(argument, new HashSet<KernelEndpoint>())
             
-    member this.RemoveFunction(info: MethodInfo) =
-        if this.functionStorage.ContainsKey(info) then
-            // Remove connections
-            for kernel in this.kernelStorage do
-                kernel.Value.Functions.Remove(info) |> ignore
-            for func in this.functionStorage do
-                func.Value.Functions.Remove(info) |> ignore
-            // Remove the item
-            this.functionStorage.Remove(info) |> ignore
+            if not (kernelCall.Output.[argument].Contains(output)) then
+                kernelCall.Output.[argument].Add(output) |> ignore
+                
+    member this.RemoveOutput(id: MethodInfo, 
+                             callId: int,
+                             argument: KernelConnectionSource,
+                             output: KernelEndpoint) =
+        if this.kernelStorage.ContainsKey(id) && this.kernelStorage.[id].ContainsKey(callId) then         
+            let kernelCall = this.kernelStorage.[id].[callId]
+            if kernelCall.Output.ContainsKey(argument) then
+                kernelCall.Output.[argument].Remove(output) |> ignore
+                    
+    member this.RemoveOutput(id: MethodInfo, 
+                             callId: int,
+                             argument: KernelConnectionSource) =
+        if this.kernelStorage.ContainsKey(id) && this.kernelStorage.[id].ContainsKey(callId) then         
+            let kernelCall = this.kernelStorage.[id].[callId]
+            if kernelCall.Output.ContainsKey(argument) then
+                kernelCall.Output.[argument].Clear()
+                
+    member this.GetOutput(id: MethodInfo, 
+                          callId: int,
+                          argument: KernelConnectionSource) =
+        if this.kernelStorage.ContainsKey(id) && this.kernelStorage.[id].ContainsKey(callId) then         
+            let kernelCall = this.kernelStorage.[id].[callId]
+            if kernelCall.Output.ContainsKey(argument) then
+                List.ofSeq(kernelCall.Output.[argument])
+            else
+                []
+        else
+            []
             
-    // Type-usage-related methods
-    member this.AddTypeUsage(src: MethodInfo, t: Type) =
-        if this.kernelStorage.ContainsKey(src) then
-            if this.globalTypesStorage.ContainsKey(t) then
-                this.kernelStorage.[src].GlobalTypes.Add(t, ())
-        else 
-            if this.globalTypesStorage.ContainsKey(t) then
-                this.functionStorage.[src].GlobalTypes.Add(t, ())   
-                
-    member this.RemoveTypeUsage(src: MethodInfo, t: Type) =
-        if this.kernelStorage.ContainsKey(src) then
-            if this.globalTypesStorage.ContainsKey(t) then
-                this.kernelStorage.[src].GlobalTypes.Remove(t) |> ignore
-        else 
-            if this.globalTypesStorage.ContainsKey(t) then
-                this.functionStorage.[src].GlobalTypes.Remove(t) |> ignore  
-                
-    member this.ClearTypeUsage(src: MethodInfo) =
-        if this.kernelStorage.ContainsKey(src) then
-            this.kernelStorage.[src].GlobalTypes.Clear()
-        else 
-            this.functionStorage.[src].GlobalTypes.Clear()
+    member this.GetOutputSources(id: MethodInfo, 
+                                 callId: int) =
+        if this.kernelStorage.ContainsKey(id) && this.kernelStorage.[id].ContainsKey(callId) then         
+            let kernelCall = this.kernelStorage.[id].[callId]
+            List.ofSeq(kernelCall.Output.Keys)            
+        else
+            []
 
-    member this.GetTypesUsage(src: MethodInfo) =
-        List.ofSeq(this.kernelStorage.[src].GlobalTypes.Keys)
-            
-    // Type-usage-related methods
-    member this.AddRequireDirective(src: MethodInfo, directive: String) =
-        if this.kernelStorage.ContainsKey(src) then
-            if this.directivesStorage.ContainsKey(directive) then
-                this.kernelStorage.[src].Directives.Add(directive, ())
-        else 
-            if this.directivesStorage.ContainsKey(directive) then
-                this.functionStorage.[src].Directives.Add(directive, ())   
-                
-    member this.RemoveRequireDirective(src: MethodInfo, directive: String) =
-        if this.kernelStorage.ContainsKey(src) then
-            if this.directivesStorage.ContainsKey(directive) then
-                this.kernelStorage.[src].Directives.Remove(directive) |> ignore
-        else 
-            if this.directivesStorage.ContainsKey(directive) then
-                this.functionStorage.[src].Directives.Remove(directive) |> ignore  
-                
-    member this.ClearRequireDirective(src: MethodInfo) =
-        if this.kernelStorage.ContainsKey(src) then
-            this.kernelStorage.[src].Directives.Clear()
-        else 
-            this.functionStorage.[src].Directives.Clear()
-            
-    member this.GetRequireDirectives(src: MethodInfo) =
-        List.ofSeq(this.kernelStorage.[src].Directives.Keys)
-
-    // Connection-related methods
-    member this.AddConnection(src: MethodInfo, dst: MethodInfo, inBinding: KernelConnection, outBinding: KernelConnection) =
-        if this.kernelStorage.ContainsKey(src) && this.kernelStorage.ContainsKey(dst) then
-            if not (this.kernelStorage.[src].OutputKernels.ContainsKey(dst)) then
-                this.kernelStorage.[src].OutputKernels.Add(dst, new Dictionary<KernelConnection, KernelConnection>()) 
-            this.kernelStorage.[src].OutputKernels.[dst].Add(inBinding, outBinding)
-            this.RecomputeEntryEndPoints()
-
-    member this.ChangeConnection(src: MethodInfo, dst: MethodInfo, inBinding: KernelConnection, outBinding: KernelConnection) =
-        if this.kernelStorage.ContainsKey(src) && this.kernelStorage.ContainsKey(dst) then
-            if this.kernelStorage.[src].OutputKernels.ContainsKey(dst) then
-                if this.kernelStorage.[src].OutputKernels.[dst].ContainsKey(inBinding) then
-                    this.kernelStorage.[src].OutputKernels.[dst].[inBinding] <- outBinding
-            this.RecomputeEntryEndPoints()
-            
-    member this.RemoveConnection(src: MethodInfo, dst: MethodInfo, connection: KernelConnection) =
-        if this.kernelStorage.ContainsKey(src) && this.kernelStorage.ContainsKey(dst) then
-            if this.kernelStorage.[src].OutputKernels.ContainsKey(dst) then
-                this.kernelStorage.[src].OutputKernels.[dst].Remove(connection) |> ignore
-            this.RecomputeEntryEndPoints()
-                
-    member this.RemoveConnection(src: MethodInfo, dst: MethodInfo) =
-        if this.kernelStorage.ContainsKey(src) && this.kernelStorage.ContainsKey(dst) then
-            this.kernelStorage.[src].OutputKernels.Remove(dst) |> ignore
-            this.RecomputeEntryEndPoints()
-            
-    member this.ClearConnection(src: MethodInfo) =
-        if this.kernelStorage.ContainsKey(src) then
-            this.kernelStorage.[src].OutputKernels.Clear()
-            this.RecomputeEntryEndPoints()
-            
-    member this.GetOutputConnections(info: MethodInfo) =
-        let outputConnections = new Dictionary<MethodInfo, ReadOnlyDictionary<KernelConnection, KernelConnection>>()
-        for k in this.kernelStorage.[info].OutputKernels do
-            outputConnections.Add(k.Key, new ReadOnlyDictionary<KernelConnection, KernelConnection>(k.Value))
-        new ReadOnlyDictionary<MethodInfo, ReadOnlyDictionary<KernelConnection, KernelConnection>>(outputConnections)
-
-    member this.GetInputConnections(info: MethodInfo) =        
-        let inputConnections = new Dictionary<MethodInfo, ReadOnlyDictionary<KernelConnection, KernelConnection>>()
+    member this.GetEndPoints() =
+        let endPoints = new List<KernelCallInfo>()
         for k in this.kernelStorage do
-            for next in k.Value.OutputKernels do
-                if next.Key = info then
-                    inputConnections.Add(k.Key, new ReadOnlyDictionary<KernelConnection, KernelConnection>(next.Value))
-        new ReadOnlyDictionary<MethodInfo, ReadOnlyDictionary<KernelConnection, KernelConnection>>(inputConnections)
-                
-    // Call-related methods
-    member this.AddCall(src: MethodInfo, dst: MethodInfo) =
-        if this.kernelStorage.ContainsKey(src) && this.functionStorage.ContainsKey(dst) then
-            if not (this.kernelStorage.[src].Functions.ContainsKey(dst)) then
-                this.kernelStorage.[src].Functions.Add(dst, ()) 
-            
-    member this.RemoveCall(src: MethodInfo, dst: MethodInfo) =
-        if this.kernelStorage.ContainsKey(src) && this.functionStorage.ContainsKey(dst) then
-            this.kernelStorage.[src].Functions.Remove(dst) |> ignore 
-            
-    member this.ClearCall(src: MethodInfo) =
-        if this.kernelStorage.ContainsKey(src) then
-            this.kernelStorage.[src].Functions.Clear()
-        if this.functionStorage.ContainsKey(src) then
-            this.functionStorage.[src].Functions.Clear()
+            for call in k.Value do
+                if call.Value.IsEndPoint then
+                    endPoints.Add(call.Value)
+        List.ofSeq(endPoints)
 
-    member this.GetOutputCalls(info: MethodInfo) =
-        if this.kernelStorage.ContainsKey(info) then
-            new ReadOnlyDictionary<MethodInfo, unit>(this.kernelStorage.[info].Functions)
-        else 
-            new ReadOnlyDictionary<MethodInfo, unit>(this.functionStorage.[info].Functions)
-            
-    member this.GetInputCalls(info: MethodInfo) =
-        if this.functionStorage.ContainsKey(info) then
-            let inputConnections = new Dictionary<MethodInfo, unit>()
-            for k in this.kernelStorage do
-                for next in k.Value.Functions do
-                    if next.Key = info then
-                        inputConnections.Add(k.Key, ())      
-            for k in this.functionStorage do
-                for next in k.Value.Functions do
-                    if next.Key = info then
-                        inputConnections.Add(k.Key, ())   
-            new ReadOnlyDictionary<MethodInfo, unit>(inputConnections)
-        else
-            new ReadOnlyDictionary<MethodInfo, unit>(new Dictionary<MethodInfo, unit>())
+    member this.RefactorCallIDs(id: MethodInfo,
+                                callIdStart: int) =
+        if this.kernelCallNextId.ContainsKey(id) then
+            this.kernelCallNextId.[id] <- callIdStart
+        // Reset thte call ids
+        for oldCallId in this.kernelStorage.[id].Keys do
+            if oldCallId < callIdStart then
+                // Add a copy of the call and remove the old one
+                this.kernelStorage.[id].Add(this.kernelCallNextId.[id], this.kernelStorage.[id].[oldCallId])
+                this.kernelStorage.[id].Remove(oldCallId) |> ignore
+                // Fix calls whose output is this call
+                for kernel in this.kernelStorage do
+                    if kernel.Key <> id then
+                        for call in kernel.Value do
+                            for conn in call.Value.Output do
+                                for kc in conn.Value do
+                                    if kc.ID = id && kc.CallID = oldCallId then
+                                       kc.CallID <- this.kernelCallNextId.[id]
+                // Update next id
+                this.kernelCallNextId.[id] <- this.kernelCallNextId.[id] + 1
 
     // Other methods
     member this.MergeWith(kcg: ModuleCallGraph) =
-        for k in kcg.Kernels do
-            this.AddKernel(k)
+        for k in kcg.GetKernels() do
+            for 
+            this.(k)
         for f in kcg.Functions do
             this.AddFunction(f)
         for k in kcg.Kernels do
-            for connSet in this.kernelStorage.[k.ID].OutputKernels do
+            for connSet in kcg.GetOutputConnections(k.ID) do
                 for conn in connSet.Value do
                     this.AddConnection(k.ID, connSet.Key, conn.Key, conn.Value)
-            for connSet in this.kernelStorage.[k.ID].Functions do
+            for connSet in kcg.GetOutputCalls(k.ID) do
                 this.AddCall(k.ID, connSet.Key)
         for f in kcg.Functions do
-            for connSet in this.functionStorage.[f.ID].Functions do
+            for connSet in kcg.GetOutputCalls(f.ID) do
                 this.AddCall(f.ID, connSet.Key)
         this.RecomputeEntryEndPoints()
-        
-    member this.EntyPoints = 
-        this.kernelStorage.Values |> (Seq.filter(fun (n: CallGraphNode) -> (n.Content :?> KernelInfo).IsEntryPoint) >> Seq.map(fun(n: CallGraphNode) -> n.Content :?> KernelInfo) >> List.ofSeq) 
-    member this.EndPoints =  
-        this.kernelStorage.Values |> (Seq.filter(fun (n: CallGraphNode) -> (n.Content :?> KernelInfo).IsEndPoint) >> Seq.map(fun(n: CallGraphNode) -> n.Content :?> KernelInfo) >> List.ofSeq)
-      
-    // Return in a breath-first mode
-    member this.Kernels 
-        with get() =
-            let l = new List<KernelInfo>()
-            l.AddRange(this.EntyPoints)
-            for i = 0 to l.Count - 1 do
-                for next in this.kernelStorage.[l.[i].ID].OutputKernels.Keys do
-                    l.Add(this.kernelStorage.[next].Content :?> KernelInfo)
-            List.ofSeq(l)
-        
-    member this.Functions
-        with get() =
-            this.functionStorage.Values |> (Seq.map(fun (n: CallGraphNode) -> n.Content)) |> List.ofSeq
-        
-    member this.GlobalTypes 
-        with get() =
-            List.ofSeq(this.globalTypesStorage.Keys)
-                        
-    member this.Directives 
-        with get() =
-            List.ofSeq(this.directivesStorage.Keys)
         
