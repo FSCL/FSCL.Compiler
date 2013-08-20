@@ -15,7 +15,7 @@ type ModuleParsingStep(tm: TypeManager,
         let mutable index = 0
         let mutable output = None
         while (output.IsNone) && (index < processors.Length) do
-            output <- processors.[index].Execute(expr, this) :?> ModuleCallGraph option
+            output <- processors.[index].Execute(expr, this) :?> KernelModule option
             index <- index + 1
         output
         
@@ -23,7 +23,7 @@ type ModuleParsingStep(tm: TypeManager,
         let mutable index = 0
         let mutable output = None
         while (output.IsNone) && (index < processors.Length) do
-            output <- processors.[index].Execute(expr, this) :?> ModuleCallGraph option
+            output <- processors.[index].Execute(expr, this) :?> KernelModule option
             index <- index + 1
         if output.IsNone then
             raise (CompilerException("The engine is not able to parse a kernel inside the expression [" + expr.ToString() + "]"))
@@ -31,7 +31,8 @@ type ModuleParsingStep(tm: TypeManager,
 
     override this.Run((expr, kmodule)) =
         let cg = this.Process(expr)
-        kmodule.CallGraph.MergeWith(cg)
+        kmodule.MergeWith(cg)
+        kmodule.CallGraph <- cg.CallGraph
         kmodule
 
         

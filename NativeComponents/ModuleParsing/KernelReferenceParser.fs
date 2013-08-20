@@ -20,16 +20,16 @@ type KernelReferenceParser() =
             match QuotationAnalysis.GetKernelFromName(expr :?> Expr) with
             | Some(mi, b) ->                 
                 // Create signleton kernel call graph
-                let kcg = new ModuleCallGraph()
-                kcg.AddKernel(new KernelInfo(mi, b))
+                let kernelModule = new KernelModule()
+                kernelModule.AddKernel(new KernelInfo(mi, b))
 
                 // Detect is device attribute set
                 let device = mi.GetCustomAttribute(typeof<DeviceAttribute>)
                 if device <> null then
-                    kcg.Kernels.[0].Device <- device :?> DeviceAttribute
+                    kernelModule.GetKernel(mi).Info.Device <- device :?> DeviceAttribute
 
                 // Create module
-                Some(kcg)
+                Some(kernelModule)
             | _ ->
                 None
         else

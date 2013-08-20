@@ -24,6 +24,8 @@ type ArrayParametersManipulationProcessor() =
          String.Format("{0}_length_{1}", name, n.ToString())
 
     override this.Run(fInfo, en) =
+        let step = en :?> FunctionPreprocessingStep
+
         // Store size parameters separately to enqueue them at the end
         let sizeParameters = new List<KernelParameterInfo>()
 
@@ -51,5 +53,8 @@ type ArrayParametersManipulationProcessor() =
 
         // Add size parameters to the list of kernel params
         fInfo.Parameters.AddRange(sizeParameters)
+        // Add the arguments to the call graph
+        for p in sizeParameters do
+            step.SetArgument(p.Name, RuntimeImplicit)
 
             

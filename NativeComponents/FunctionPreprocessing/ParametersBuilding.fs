@@ -24,11 +24,6 @@ type ArgumentsBuildingProcessor() =
             let parameterEntry = new KernelParameterInfo(p.Name, p.ParameterType)
             // Set var to be used in kernel body
             parameterEntry.Placeholder <- Some(Quotations.Var(p.Name, p.ParameterType, false))
-            // If the custom info "ARG_EXPRESSIONS" is set, check if there is an input expression for this parameter
-            if fInfo.CustomInfo.ContainsKey("ARG_EXPRESSIONS") then
-                let argExpressions = fInfo.CustomInfo.["ARG_EXPRESSIONS"] :?> Dictionary<string, Expr>
-                if argExpressions.ContainsKey(p.Name) then
-                    parameterEntry.ArgumentExpression <- Some(argExpressions.[p.Name])
             // Determine the memory space of this parameter via custom attributes
             let constantAttribute = p.GetCustomAttribute<ConstantAttribute>()
             let localAttribute = p.GetCustomAttribute<LocalAttribute>()

@@ -60,9 +60,7 @@ type FunctionInfo(id: MethodInfo, expr:Expr) =
     /// The generated target code
     ///</summary>
     ///
-    member val Code = "" with get, set
-    member this.GetParameter(name) =
-        Seq.tryFind(fun (p: KernelParameterInfo) -> p.Name = name) (this.Parameters)        
+    member val Code = "" with get, set       
     ///
     ///<summary>
     /// A set of custom additional information to be stored in the function
@@ -73,6 +71,10 @@ type FunctionInfo(id: MethodInfo, expr:Expr) =
     ///
     member val CustomInfo = new Dictionary<String, Object>() with get
     
+    member this.GetParameter(name) =
+        Seq.tryFind(fun (p: KernelParameterInfo) -> p.Name = name) (this.Parameters) 
+   
+   
 ///
 ///<summary>
 /// The set of information about kernels collected and maintained by the compiler
@@ -85,25 +87,10 @@ type FunctionInfo(id: MethodInfo, expr:Expr) =
 /// KernelInfo is kept an independent, different class from FunctionInfo with the purpose to trigger different compiler processing on the basis of the
 /// actual type.
 ///</remarks>
-///
+///     
 [<AllowNullLiteral>]
 type KernelInfo(methodInfo: MethodInfo, expr:Expr) =
     inherit FunctionInfo(methodInfo, expr)
-    (*
-    let mutable isEntryPoint = false
-    let mutable isEndPoint = false
-
-    member this.IsEntryPoint 
-        with get() =
-            isEntryPoint
-        and internal set(value) = 
-            isEntryPoint <- value
-
-    member this.IsEndPoint 
-        with get() =
-            isEndPoint
-        and internal set(value) = 
-            isEndPoint <- value *)
 
     member val Device:DeviceAttribute = null 
-        with get, set
+        with get, set             

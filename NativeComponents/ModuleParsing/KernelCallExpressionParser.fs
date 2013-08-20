@@ -25,41 +25,35 @@ type KernelCallExpressionParser() =
                 
     override this.Run(mi, en) =
         let engine = en :?> ModuleParsingStep
-        let kcg = new ModuleCallGraph() 
+        let kernelModule = new KernelModule()
         if (mi :? Expr) then
             match mi :?> Expr with
             // Case k2(k1(args), ...) where k1 doesn't return a tuple value
             | Patterns.Call(o, m, args) ->
-                // Extract sub kernels
+                // Add the current kernel
+                kernelModule.MergeWith(engine.Process(m))
+                // Extract and add eventual subkernels
                 let subkernels = List.map(fun (e: Expr) -> 
                                             match engine.TryProcess(e) with
                                             | Some(result) ->
-                                                kcg.MergeWith(result)
+                                                kernelModule.MergeWith(result)
                                                 result
                                             | _ ->
                                                 null) args
-                // Get endpoints
-                let endpoints = kcg.EndPoints
-                // Add the current kernel
-                let currentKernel = engine.Process(m)
-                kcg.AddKernel(currentKernel.Kernels.[0])
-                // Set argument expressions as custom info
-                let argExpressions = new Dictionary<string, Expr>()
-                for i = 0 to subkernels.Length - 1 do
+                // Update kernel call graph
+                kernelModule.CallGraph <- CallGraphNode(m)
+                for i = 0 to m.GetParameters().Length - 1 do
                     if subkernels.[i] = null then
-                        argExpressions.Add(m.GetParameters().[i].Name, args.[i])
-                currentKernel.Kernels.[0].CustomInfo.Add("ARG_EXPRESSIONS", argExpressions)
+                        kernelModule.CallGraph.Arguments.Add(m.GetParameters().[i].Name,
+                                                             RuntimeValue(args.[i]))
+                    else
+                        kernelModule.CallGraph.Arguments.Add(m.GetParameters().[i].Name,
+                                                             KernelOutput(subkernels.[i].CallGraph, ReturnValue(0)))
+
+                        
+                //kernelModule.GetKernel(currentKernelID).Info.CustomInfo.Add("ARG_EXPRESSIONS", argExpressions)
                 // Setup connections ret-type -> parameter
-                let mutable endpointIndex = 0
-                for i = 0 to subkernels.Length - 1 do
-                    if subkernels.[i] <> null then
-                        kcg.AddConnection(
-                            endpoints.[endpointIndex].ID, 
-                            currentKernel.Kernels.[0].ID, 
-                            ReturnValueConnection(0), ParameterConnection(currentKernel.Kernels.[0].ID.GetParameters().[i].Name))
-                        endpointIndex <- endpointIndex + 1
-                // Return module
-                Some(kcg)                
+                Some(kernelModule)                
             | Patterns.Let(v, value, body) ->
                 (* 
                  * Check if we have something like:
@@ -73,34 +67,34 @@ type KernelCallExpressionParser() =
                 if v.Name = "tupledArg" then
                     let lifted = LiftArgExtraction(body)
                     match lifted with
-                    | Patterns.Call(o, mi, args) ->              
+                    | Patterns.Call(o, mi, args) ->   
+                        // Add the current kernel
+                        kernelModule.MergeWith(engine.Process(mi))
+                        // Extract and add the eventual subkernel
                         let subkernel =                         
                             match engine.TryProcess(value) with
                             | Some(result) ->
-                                kcg.MergeWith(result)
+                                kernelModule.MergeWith(result)
                                 result
                             | _ ->
                                 null
-                        // Get endpoints
-                        let endpoints = kcg.EndPoints
-                        // Add the current kernel
-                        let currentKernel = engine.Process(mi)
-                        let ki = currentKernel.Kernels.[0]
-                        kcg.AddKernel(ki)
-                        let kp = ki.ID.GetParameters()
+                        // Update call graph
+                        kernelModule.CallGraph <- CallGraphNode(mi)
                         // Setup connections ret-type -> parameter                            
                         if subkernel <> null then   
                             let retTypes =
-                                if FSharpType.IsTuple(subkernel.EndPoints.[0].ID.ReturnType) then
-                                    FSharpType.GetTupleElements(subkernel.EndPoints.[0].ID.ReturnType)
+                                if FSharpType.IsTuple(subkernel.GetKernel(subkernel.CallGraph.KernelID).Info.ReturnType) then
+                                    FSharpType.GetTupleElements(subkernel.GetKernel(subkernel.CallGraph.KernelID).Info.ReturnType)
                                 else
-                                    [| subkernel.EndPoints.[0].ID.ReturnType |]
-                            for i = 0 to retTypes.Length - 1 do                     
-                                kcg.AddConnection(
-                                    endpoints.[0].ID, 
-                                    ki.ID, 
-                                    ReturnValueConnection(i), ParameterConnection(kp.[i].Name))
-                        Some(kcg)
+                                    [| subkernel.GetKernel(subkernel.CallGraph.KernelID).Info.ReturnType |]
+                            for i = 0 to retTypes.Length - 1 do        
+                                kernelModule.CallGraph.Arguments.Add(mi.GetParameters().[i].Name,
+                                                                     KernelOutput(subkernel.CallGraph, ReturnValue(i)))
+                        else
+                            for i = 0 to mi.GetParameters().Length - 1 do
+                                kernelModule.CallGraph.Arguments.Add(mi.GetParameters().[i].Name, 
+                                                                     RuntimeValue(args.[i]))
+                        Some(kernelModule)
                     | _ ->
                         None
                 else

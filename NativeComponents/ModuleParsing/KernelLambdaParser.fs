@@ -16,9 +16,9 @@ type KernelLambdaParser() =
             match QuotationAnalysis.LambdaToMethod(mi :?> Expr) with
             | Some(mi, b) -> 
                 // Create signleton kernel call graph
-                let kcg = new ModuleCallGraph()
-                kcg.AddKernel(new KernelInfo(mi, b))
-                Some(kcg)
+                let kernelModule = new KernelModule()
+                kernelModule.AddKernel(new KernelInfo(mi, b))
+                Some(kernelModule)
             | _ ->
                 None
         else

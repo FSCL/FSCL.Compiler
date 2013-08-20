@@ -17,34 +17,42 @@ type FunctionPreprocessingStep(tm: TypeManager,
     
     member val private currentFunction:FunctionInfo = null with get, set
     member val private currentModule:KernelModule = null with get, set
+    
+    member private this.ChangeKernelOutputPoint(oldPoint: KernelOutputPoint,
+                                                newPoint: KernelOutputPoint,
+                                                currentNode: CallGraphNode) =
+        for arg in List.ofSeq(currentNode.Arguments.Keys) do
+            match currentNode.Arguments.[arg] with
+            | KernelOutput(node, point) ->
+                if node.KernelID = this.currentFunction.ID && point = oldPoint then
+                    currentNode.Arguments.[arg] <- KernelOutput(node, newPoint)
+                // Recursive search
+                this.ChangeKernelOutputPoint(oldPoint, newPoint, node)
+            | _ ->
+                ()
+                
+    member private this.SetArgument(argument: string,
+                                    value: CallGraphNodeArgument,
+                                    currentNode: CallGraphNode) =
+        if currentNode.KernelID = this.currentFunction.ID then
+            if currentNode.Arguments.ContainsKey(argument) then
+                currentNode.Arguments.[argument] <- value
+            else
+                currentNode.Arguments.Add(argument, value)
+        for arg in List.ofSeq(currentNode.Arguments.Keys) do 
+            match currentNode.Arguments.[arg] with
+            | KernelOutput(node, point) ->
+                this.SetArgument(argument, value, node)
+            | _ ->
+                ()
 
-    member this.RemoveInConnection(conn) =
-        let conns = this.currentModule.CallGraph.GetInputConnections(this.currentFunction.ID)
-        for caller in conns do
-            for c in caller.Value do
-                if c.Value = conn then
-                    this.currentModule.CallGraph.RemoveConnection(caller.Key, this.currentFunction.ID, c.Key)
-                    
-    member this.RemoveOutConnection(conn) =
-        let conns = this.currentModule.CallGraph.GetOutputConnections(this.currentFunction.ID)
-        for connection in conns do
-            for c in connection.Value do
-                if c.Key = conn then
-                    this.currentModule.CallGraph.RemoveConnection(this.currentFunction.ID, connection.Key, c.Key)
-                    
-    member this.ChangeInConnection(before, after) =
-        let conns = this.currentModule.CallGraph.GetInputConnections(this.currentFunction.ID)
-        for caller in conns do
-            for c in caller.Value do
-                if c.Value = before then
-                    this.currentModule.CallGraph.ChangeConnection(caller.Key, this.currentFunction.ID, c.Key, after)
-                    
-    member this.ChangeOutConnection(before, after) =
-        let conns = this.currentModule.CallGraph.GetOutputConnections(this.currentFunction.ID)
-        for connection in conns do
-            for c in connection.Value do
-                if c.Key = before then
-                    this.currentModule.CallGraph.ChangeConnection(this.currentFunction.ID, connection.Key, after, c.Value)
+    member this.ChangeKernelOutputPoint(oldPoint: KernelOutputPoint,
+                                        newPoint: KernelOutputPoint) =
+        this.ChangeKernelOutputPoint(oldPoint, newPoint, this.currentModule.CallGraph)
+        
+    member this.SetArgument(argument: string,
+                            value: CallGraphNodeArgument) =
+        this.SetArgument(argument, value, this.currentModule.CallGraph)
 
     member private this.FunctionInfo 
         with get() =
@@ -59,12 +67,12 @@ type FunctionPreprocessingStep(tm: TypeManager,
                
     override this.Run(km: KernelModule) =
         this.currentModule <- km
-        for k in km.CallGraph.Kernels do
-            if not (k.Skip) then
-                this.Process(k)
-        for f in km.CallGraph.Functions do
-            if not (f.Skip) then
-                this.Process(f)
+        for k in km.GetKernels() do
+            if not (k.Info.Skip) then
+                this.Process(k.Info)
+        for f in km.GetFunctions() do
+            if not (f.Info.Skip) then
+                this.Process(f.Info)
         km
 
 

@@ -131,7 +131,7 @@ type NoResult = unit
 ///The type of the processors of the module parsing step. Alias of CompilerStepProcessor&lt;obj, KernelModule option&gt;
 ///</summary>
 /// 
-type ModuleParsingProcessor = CompilerStepProcessor<obj, ModuleCallGraph option>
+type ModuleParsingProcessor = CompilerStepProcessor<obj, KernelModule option>
 ///
 ///<summary>
 ///The type of the processors of the module preprocessing step. Alias of CompilerStepProcessor&lt;KernelModule&gt;

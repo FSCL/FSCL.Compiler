@@ -89,12 +89,12 @@ type FunctionCodegenStep(tm: TypeManager,
     ///</returns>
     ///       
     override this.Run(km: KernelModule) =    
-        for k in km.CallGraph.Kernels do
-            if not (k.Skip) then
-                this.Process(k)
-        for f in km.CallGraph.Functions do
-            if not (f.Skip) then
-                this.Process(f)
+        for k in km.GetKernels() do
+            if not (k.Info.Skip) then
+                this.Process(k.Info)
+        for f in km.GetFunctions() do
+            if not (f.Info.Skip) then
+                this.Process(f.Info)
         km
     (*
         let mutable output = ""

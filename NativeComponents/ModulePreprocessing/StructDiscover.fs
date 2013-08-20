@@ -38,11 +38,10 @@ type StructDiscover() =
 
     override this.Run(km, en) =
         let engine = en :?> ModulePreprocessingStep
-        for k in km.CallGraph.Kernels do
+        for k in km.GetKernels() do
             let structsDict = new Dictionary<Type, unit>()
-            CollectStructs(k.Body, structsDict)
+            CollectStructs(k.Info.Body, structsDict)
             for t in structsDict.Keys do
-                km.CallGraph.AddGlobalType(t)
-                km.CallGraph.AddTypeUsage(k.ID, t)
+                k.RequiredGlobalTypes.Add(t) |> ignore
              
             

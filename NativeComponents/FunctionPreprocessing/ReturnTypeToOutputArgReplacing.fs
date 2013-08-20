@@ -42,11 +42,9 @@ type ReturnTypeToOutputArgProcessor() =
                 kernelInfo.Parameters.Add(pInfo)
             
             // Change connections bound to the return types of this kernel
-            // NB: this modifies the call graphv
+            // NB: this modifies the call graph
             for i = 0 to returnedVars.Length - 1 do
-                step.ChangeOutConnection(ReturnValueConnection(i), 
-                                         ParameterConnection((fst returnedVars.[i]).Name))
-
+                step.ChangeKernelOutputPoint(ReturnValue(i), OutArgument((fst returnedVars.[i]).Name))
        
     member private this.FindReturnedArraysAllocationExpression(expr:Expr, step:FunctionPreprocessingStep, kernel:FunctionInfo) =
         match expr with

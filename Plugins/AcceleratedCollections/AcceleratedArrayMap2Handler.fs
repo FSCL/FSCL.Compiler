@@ -16,7 +16,7 @@ type AcceleratedArrayMap2Handler() =
     interface IAcceleratedCollectionHandler with
         member this.Process(methodInfo, args, root, step) =
                 
-            let kcg = new ModuleCallGraph()
+            let kernelModule = new KernelModule()
             (*
                 Array map looks like: Array.map fun collection
                 At first we check if fun is a lambda (first argument)
@@ -43,14 +43,14 @@ type AcceleratedArrayMap2Handler() =
                 with
                     :? CompilerException -> null
             if firstSubkernel <> null then
-                kcg.MergeWith(firstSubkernel)
+                kernelModule.MergeWith(firstSubkernel)
             let secondSubkernel =
                 try
                     step.Process(args.[2])
                 with
                     :? CompilerException -> null
             if secondSubkernel <> null then
-                kcg.MergeWith(secondSubkernel)
+                kernelModule.MergeWith(secondSubkernel)
                 
             // Extract the map2 function 
             match computationFunction with
@@ -95,53 +95,50 @@ type AcceleratedArrayMap2Handler() =
                                                     ])
                                         ]))
 
-                let endpoints = kcg.EndPoints
                 // Add current kernel
-                kcg.AddKernel(new KernelInfo(signature, kernelBody)) 
+                kernelModule.AddKernel(new KernelInfo(signature, kernelBody))  
+                // Update call graph
+                kernelModule.CallGraph <- CallGraphNode(signature)
                 
                 // Detect is device attribute set
                 let device = functionInfo.GetCustomAttribute(typeof<DeviceAttribute>)
                 if device <> null then
-                    kcg.GetKernel(signature).Device <- device :?> DeviceAttribute
+                    kernelModule.GetKernel(signature).Info.Device <- device :?> DeviceAttribute
 
-                // Add the computation function and connect it to the kernel
-                kcg.AddFunction(new FunctionInfo(functionInfo, functionBody))
-                kcg.AddCall(signature, functionInfo)
+                // Add the computation function and set that it is required by the kernel
+                kernelModule.AddFunction(new FunctionInfo(functionInfo, functionBody))
+                kernelModule.GetKernel(signature).RequiredFunctions.Add(functionInfo) |> ignore
+                
+                // Set that the return value is encoded in the parameter output_array
+                kernelModule.GetKernel(signature).Info.CustomInfo.Add("RETURN_PARAMETER_NAME", "output_array")
+
                 // Connect with subkernels
-                let argExpressions = new Dictionary<string, Expr>()
-                let mutable startParameter = 0
-                if firstSubkernel <> null then   
-                    let retTypes =
-                        if FSharpType.IsTuple(firstSubkernel.EndPoints.[0].ID.ReturnType) then
-                            FSharpType.GetTupleElements(firstSubkernel.EndPoints.[0].ID.ReturnType)
-                        else
-                            [| firstSubkernel.EndPoints.[0].ID.ReturnType |]
-                    for i = 0 to retTypes.Length - 1 do                     
-                        kcg.AddConnection(
-                            firstSubkernel.Kernels.[0].ID, 
-                            signature, 
-                            ReturnValueConnection(i), ParameterConnection(signature.GetParameters().[i].Name)) 
-                    startParameter <- retTypes.Length
+                if firstSubkernel <> null then           
+                    // If the subkernel has set a custom info to inform about the parameter used to return a value
+                    if firstSubkernel.GetKernel(firstSubkernel.CallGraph.KernelID).Info.CustomInfo.ContainsKey("RETURN_PARAMETER_NAME") then                    
+                        kernelModule.CallGraph.Arguments.Add("input_array_1",
+                                                             KernelOutput(firstSubkernel.CallGraph, OutArgument(firstSubkernel.GetKernel(firstSubkernel.CallGraph.KernelID).Info.CustomInfo.["RETURN_PARAMETER_NAME"] :?> string)))            
+                    else
+                        kernelModule.CallGraph.Arguments.Add(
+                            "input_array_1",
+                            KernelOutput(firstSubkernel.CallGraph, ReturnValue(0)))
                 else
                     // Store the expression (actual argument) associated to this parameter
-                    argExpressions.Add("input_array_1", args.[1])
-                if secondSubkernel <> null then   
-                    let retTypes =
-                        if FSharpType.IsTuple(secondSubkernel.EndPoints.[0].ID.ReturnType) then
-                            FSharpType.GetTupleElements(secondSubkernel.EndPoints.[0].ID.ReturnType)
-                        else
-                            [| secondSubkernel.EndPoints.[0].ID.ReturnType |]
-                    for i = 0 to retTypes.Length - 1 do                     
-                        kcg.AddConnection(
-                            secondSubkernel.Kernels.[0].ID, 
-                            signature, 
-                            ReturnValueConnection(i), ParameterConnection(signature.GetParameters().[i + startParameter].Name)) 
+                    kernelModule.CallGraph.Arguments.Add("input_array_1", RuntimeValue(args.[1]))
+                if secondSubkernel <> null then        
+                    // If the subkernel has set a custom info to inform about the parameter used to return a value
+                    if secondSubkernel.GetKernel(secondSubkernel.CallGraph.KernelID).Info.CustomInfo.ContainsKey("RETURN_PARAMETER_NAME") then                    
+                        kernelModule.CallGraph.Arguments.Add("input_array_2",
+                                                             KernelOutput(secondSubkernel.CallGraph, OutArgument(secondSubkernel.GetKernel(secondSubkernel.CallGraph.KernelID).Info.CustomInfo.["RETURN_PARAMETER_NAME"] :?> string)))            
+                    else
+                        kernelModule.CallGraph.Arguments.Add(
+                            "input_array_2",
+                            KernelOutput(secondSubkernel.CallGraph, ReturnValue(0)))
                 else
                     // Store the expression (actual argument) associated to this parameter
-                    argExpressions.Add("input_array_2", args.[2])
-                // Store custom info that allows the rest of the compiler pipeline to correctly build and manipulate kernel parameters
-                kcg.GetKernel(signature).CustomInfo.Add("ARG_EXPRESSIONS", argExpressions)
+                    kernelModule.CallGraph.Arguments.Add("input_array_2", RuntimeValue(args.[2]))
+                kernelModule.CallGraph.Arguments.Add("output_array", RuntimeImplicit)
                 // Return module                             
-                Some(kcg)
+                Some(kernelModule)
             | _ ->
                 None
