@@ -53,8 +53,5 @@ type ArrayParametersManipulationProcessor() =
 
         // Add size parameters to the list of kernel params
         fInfo.Parameters.AddRange(sizeParameters)
-        // Add the arguments to the call graph
-        for p in sizeParameters do
-            step.SetArgument(p.Name, RuntimeImplicit)
 
             

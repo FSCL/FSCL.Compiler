@@ -32,6 +32,7 @@ type KernelCallExpressionParser() =
             | Patterns.Call(o, m, args) ->
                 // Add the current kernel
                 kernelModule.MergeWith(engine.Process(m))
+
                 // Extract and add eventual subkernels
                 let subkernels = List.map(fun (e: Expr) -> 
                                             match engine.TryProcess(e) with
@@ -41,10 +42,9 @@ type KernelCallExpressionParser() =
                                             | _ ->
                                                 null) args
                 // Update kernel call graph
-                kernelModule.CallGraph <- CallGraphNode(m)
                 for i = 0 to m.GetParameters().Length - 1 do
                     if subkernels.[i] = null then
-                        kernelModule.CallGraph.Arguments.Add(m.GetParameters().[i].Name,
+                        kernelModule.FlowGraph..Arguments.Add(m.GetParameters().[i].Name,
                                                              RuntimeValue(args.[i]))
                     else
                         kernelModule.CallGraph.Arguments.Add(m.GetParameters().[i].Name,

@@ -98,7 +98,7 @@ type AcceleratedArrayMap2Handler() =
                 // Add current kernel
                 kernelModule.AddKernel(new KernelInfo(signature, kernelBody))  
                 // Update call graph
-                kernelModule.CallGraph <- CallGraphNode(signature)
+                kernelModule.FlowGraph <- FlowGraph(FlowGraphKernelNode(signature))
                 
                 // Detect is device attribute set
                 let device = functionInfo.GetCustomAttribute(typeof<DeviceAttribute>)
@@ -115,8 +115,8 @@ type AcceleratedArrayMap2Handler() =
                 // Connect with subkernels
                 if firstSubkernel <> null then           
                     // If the subkernel has set a custom info to inform about the parameter used to return a value
-                    if firstSubkernel.GetKernel(firstSubkernel.CallGraph.KernelID).Info.CustomInfo.ContainsKey("RETURN_PARAMETER_NAME") then                    
-                        kernelModule.CallGraph.Arguments.Add("input_array_1",
+                    if firstSubkernel.GetKernel(firstSubkernel.FlowGraph.MainEndPoint.KernelID).Info.CustomInfo.ContainsKey("RETURN_PARAMETER_NAME") then                    
+                        kernelModule.FlowGraph.GetKernelNodes.Add("input_array_1",
                                                              KernelOutput(firstSubkernel.CallGraph, OutArgument(firstSubkernel.GetKernel(firstSubkernel.CallGraph.KernelID).Info.CustomInfo.["RETURN_PARAMETER_NAME"] :?> string)))            
                     else
                         kernelModule.CallGraph.Arguments.Add(

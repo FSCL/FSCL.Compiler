@@ -118,7 +118,7 @@ type KernelModule() =
     /// The set of utility functions (i.e. functions called somewere in one or more kernels)
     ///</summary>
     ///
-    member val FlowGraph:FlowGraph = new FlowGraph() with get
+    member val FlowGraph:FlowGraph = null with get, set
     ///
     ///<summary>
     /// A set of custom additional information to be stored in the module
@@ -227,4 +227,5 @@ type KernelModule() =
                 this.GetKernel(k.Info.ID).RequiredGlobalTypes.Add(t) |> ignore
             for d in k.RequiredDirectives do
                 this.GetKernel(k.Info.ID).RequiredDirectives.Add(d) |> ignore
+        this.FlowGraph.MergeWith(m.FlowGraph)
     
