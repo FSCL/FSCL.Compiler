@@ -32,7 +32,7 @@ type ModuleParsingStep(tm: TypeManager,
     override this.Run((expr, kmodule)) =
         let cg = this.Process(expr)
         kmodule.MergeWith(cg)
-        kmodule.CallGraph <- cg.CallGraph
+        kmodule.FlowGraph <- cg.FlowGraph
         kmodule
 
         

@@ -29,11 +29,16 @@ type ArrayParametersManipulationProcessor() =
         // Store size parameters separately to enqueue them at the end
         let sizeParameters = new List<KernelParameterInfo>()
 
+        // Get node input for each flow graph node instance of this kernel
+        let nodes = FlowGraphManager.GetKernelNodes(fInfo.ID,  step.FlowGraph)
+
         // Process each parameter
         for p in fInfo.Parameters do
-            if p.Type.IsArray then
+            if p.Type.IsArray then                
                 // Get dimensions (rank)
                 let dimensions = GetArrayDimensions(p.Type) 
+                // Get "GetLength" method info
+                let getLengthMethod = p.Type.GetMethod("GetLength")
                 // Flatten dimensions (1D array type)
                 let pType = p.Type.GetElementType().MakeArrayType()
                 p.Type <- pType
@@ -47,7 +52,13 @@ type ArrayParametersManipulationProcessor() =
                     // Set this to be a size parameter
                     sizeP.IsSizeParameter <- true
                     p.SizeParameters.Add(sizeP)
-                    sizeParameters.Add(sizeP)                 
+                    sizeParameters.Add(sizeP)              
+                    // Update flow graph nodes input
+                    for n in nodes do
+                        let inputBinding = FlowGraphManager.GetNodeInput(n)
+                        FlowGraphManager.SetNodeInput(n, 
+                                                      sizeP.Name,
+                                                      ImplicitValue)
                 // Set var to be used in kernel body
                 p.Placeholder <- Some(Quotations.Var(p.Name, pType, false))
 

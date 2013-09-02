@@ -7,6 +7,7 @@ open System.Reflection
 open System
 open Microsoft.FSharp.Quotations
 open Microsoft.FSharp.Reflection
+open Microsoft.FSharp.Linq.QuotationEvaluation
 
 [<StepProcessor("FSCL_CALL_EXPRESSION_PARSING_PROCESSOR", "FSCL_MODULE_PARSING_STEP")>]
 type KernelCallExpressionParser() =      
@@ -32,6 +33,8 @@ type KernelCallExpressionParser() =
             | Patterns.Call(o, m, args) ->
                 // Add the current kernel
                 kernelModule.MergeWith(engine.Process(m))
+                // Set the root of the flow graph
+                kernelModule.FlowGraph <- FlowGraphNode(m)
 
                 // Extract and add eventual subkernels
                 let subkernels = List.map(fun (e: Expr) -> 
@@ -41,14 +44,14 @@ type KernelCallExpressionParser() =
                                                 result
                                             | _ ->
                                                 null) args
-                // Update kernel call graph
+                // Update flow graph
                 for i = 0 to m.GetParameters().Length - 1 do
                     if subkernels.[i] = null then
-                        kernelModule.FlowGraph..Arguments.Add(m.GetParameters().[i].Name,
-                                                             RuntimeValue(args.[i]))
+                        FlowGraphManager.SetNodeInput(kernelModule.FlowGraph, 
+                                                      m.GetParameters().[i].Name,
+                                                      ActualArgument(args.[i]))
                     else
-                        kernelModule.CallGraph.Arguments.Add(m.GetParameters().[i].Name,
-                                                             KernelOutput(subkernels.[i].CallGraph, ReturnValue(0)))
+                        FlowGraphManager.SetNodeInput(kernelModule.FlowGraph, m.GetParameters().[i].Name, KernelOutput(subkernels.[i].FlowGraph, 0))
 
                         
                 //kernelModule.GetKernel(currentKernelID).Info.CustomInfo.Add("ARG_EXPRESSIONS", argExpressions)
@@ -79,21 +82,23 @@ type KernelCallExpressionParser() =
                             | _ ->
                                 null
                         // Update call graph
-                        kernelModule.CallGraph <- CallGraphNode(mi)
+                        kernelModule.FlowGraph <- FlowGraphNode(mi)
                         // Setup connections ret-type -> parameter                            
                         if subkernel <> null then   
                             let retTypes =
-                                if FSharpType.IsTuple(subkernel.GetKernel(subkernel.CallGraph.KernelID).Info.ReturnType) then
-                                    FSharpType.GetTupleElements(subkernel.GetKernel(subkernel.CallGraph.KernelID).Info.ReturnType)
+                                if FSharpType.IsTuple(subkernel.GetKernel(subkernel.FlowGraph.KernelID).Info.ReturnType) then
+                                    FSharpType.GetTupleElements(subkernel.GetKernel(subkernel.FlowGraph.KernelID).Info.ReturnType)
                                 else
-                                    [| subkernel.GetKernel(subkernel.CallGraph.KernelID).Info.ReturnType |]
+                                    [| subkernel.GetKernel(subkernel.FlowGraph.KernelID).Info.ReturnType |]
                             for i = 0 to retTypes.Length - 1 do        
-                                kernelModule.CallGraph.Arguments.Add(mi.GetParameters().[i].Name,
-                                                                     KernelOutput(subkernel.CallGraph, ReturnValue(i)))
+                                FlowGraphManager.SetNodeInput(kernelModule.FlowGraph,
+                                                              mi.GetParameters().[i].Name,
+                                                              KernelOutput(subkernel.FlowGraph, i))
                         else
                             for i = 0 to mi.GetParameters().Length - 1 do
-                                kernelModule.CallGraph.Arguments.Add(mi.GetParameters().[i].Name, 
-                                                                     RuntimeValue(args.[i]))
+                                FlowGraphManager.SetNodeInput(kernelModule.FlowGraph,
+                                                              mi.GetParameters().[i].Name, 
+                                                              ActualArgument(args.[i]))
                         Some(kernelModule)
                     | _ ->
                         None

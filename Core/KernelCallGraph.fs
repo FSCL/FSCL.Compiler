@@ -7,135 +7,129 @@ open System
 open System.Collections.ObjectModel
 open System.Collections.Generic
 
-type FlowGraphNodeBindingPoint =
-| ParameterBindingPoint of string
-| ReturnValueBindingPoint of int
-| ImplicitBindingPoint
+type ReturnedBufferAllocationSizeExpression =
+| ExplicitAllocationSize of int64
+| BufferReferenceAllocationExpression of string
 
-type FlowGraphNode =
-| RuntimeValueNode of Expr
-| StaticValueNode of obj
-| KernelNode of FlowGraphKernelNode
+type FlowGraphNodeInput =
+| KernelOutput of FlowGraphNode * int
+| ActualArgument of Expr
+| ReturnedBufferAllocationSize of (Dictionary<string, obj> * int array * int array -> ReturnedBufferAllocationSizeExpression)
+| CompilerPrecomputedValue of (Dictionary<string, obj> * int array * int array -> obj)
+| ImplicitValue
 
-and [<AllowNullLiteral>] FlowGraphKernelNode(kernelId: MethodInfo) =
+and [<AllowNullLiteral>] FlowGraphNode(kernelId: MethodInfo) =
     member val KernelID = kernelId with get
-    member val internal Input = new Dictionary<string, FlowGraphNode * FlowGraphNodeBindingPoint>() with get
-    member val internal Output = new Dictionary<FlowGraphNodeBindingPoint, HashSet<FlowGraphKernelNode * FlowGraphNodeBindingPoint>>() with get
+    member val internal Input = new Dictionary<string, FlowGraphNodeInput>() with get
+    member val internal Output = (null, new Dictionary<int, string>()) with get, set
   
     member this.IsEntryPoint 
-
         with get() =
             (Seq.tryFind(
-                fun(k: KeyValuePair<string, FlowGraphNode * FlowGraphNodeBindingPoint>) ->
+                fun(k: KeyValuePair<string, FlowGraphNodeInput>) ->
                     match k.Value with 
-                    |(node, point) ->
-                        match node with
-                        | KernelNode(n) ->
-                            true
-                        | _ ->
-                            false
+                    | KernelOutput(n, i) ->
+                        true
+                    | _ ->
+                        false
                 ) (this.Input)).IsNone
             
     member this.IsEndPoint 
         with get() =
-            this.Output.Count = 0
+            fst(this.Output) = null
 
 [<AllowNullLiteral>]
-type FlowGraph(mainEndPoint: FlowGraphKernelNode) =
-    let kernelNodes = new Dictionary<MethodInfo, List<FlowGraphKernelNode>>()
-    let nodes = new List<FlowGraphNode>()
-    
-    member val MainEndPoint = mainEndPoint with get
+type FlowGraphManager() =
+    static member GetNodeInput(n: FlowGraphNode) =
+        new ReadOnlyDictionary<string, FlowGraphNodeInput>(n.Input)
 
-    member this.GetNodes() =
-        List.ofSeq(nodes)
-
-    member this.GetKernelNodes(id: MethodInfo) =
-        if kernelNodes.ContainsKey(id) then
-            List.ofSeq(kernelNodes.[id])
+    static member GetNodeOutput(n: FlowGraphNode) =
+        List.ofSeq(snd(n.Output))
+                        
+    static member SetNodeInput(node: FlowGraphNode, 
+                               par: string,
+                               input: FlowGraphNodeInput) =        
+        FlowGraphManager.RemoveNodeInput(node, par)  
+        // Set dest
+        if node.Input.ContainsKey(par) then
+            node.Input.[par] <- input
+        else
+            node.Input.Add(par, input)
+        // Set source
+        match input with
+        | KernelOutput(n, returnIndex) ->
+            if fst(n.Output) = null || (fst(n.Output) <> node) then
+                n.Output <- (node, new Dictionary<int, string>())
+                snd(n.Output).Add(returnIndex, par)
+            else
+                if snd(n.Output).ContainsKey(returnIndex) then
+                    snd(n.Output).[returnIndex] <- par
+                else
+                    snd(n.Output).Add(returnIndex, par)
+        | _ ->
+            ()                                      
+        
+    static member RemoveNodeInput(node: FlowGraphNode, 
+                                  par: string) =
+        if node.Input.ContainsKey(par) then
+            match node.Input.[par] with
+            | KernelOutput(n, returnIndex) ->
+                match n.Output with
+                | _, mapping ->
+                    mapping.Remove(returnIndex) |> ignore
+            | _ ->
+                ()                         
+            node.Input.Remove(par) |> ignore      
+            
+    static member GetEntryPoints(root: FlowGraphNode) =
+        let entries = new List<FlowGraphNode>([ root ])
+        let mutable currentIndex = 0
+        while(currentIndex < entries.Count) do
+            let current = entries.[currentIndex]
+            if current.IsEntryPoint then
+                currentIndex <- currentIndex + 1
+            else
+                for item in FlowGraphManager.GetNodeInput(current) do
+                    match item.Value with
+                    | KernelOutput(k, i) ->
+                        entries.Add(k)
+                    | _ ->
+                        ()
+                entries.RemoveAt(currentIndex)
+        List.ofSeq(entries)    
+        
+    static member Flatten(root: FlowGraphNode) =
+        let partialOrder = new List<FlowGraphNode>([ root ])
+        let mutable currentIndex = 0
+        while(currentIndex < partialOrder.Count) do
+            let current = partialOrder.[currentIndex]
+            for item in FlowGraphManager.GetNodeInput(current) do
+                match item.Value with
+                | KernelOutput(k, i) ->
+                    partialOrder.Add(k)
+                | _ ->
+                    ()
+            currentIndex <- currentIndex + 1
+        List.ofSeq(partialOrder)
+        
+    static member GetKernelNodes(id: MethodInfo,
+                                 root: FlowGraphNode) =
+        if root <> null then
+            let nodes = new List<FlowGraphNode>()
+            if root.KernelID = id then
+                nodes.Add(root)
+            for item in root.Input do
+                match item.Value with
+                | KernelOutput(n, i) ->
+                    nodes.AddRange(FlowGraphManager.GetKernelNodes(id, n))
+                | _ ->
+                    ()
+            List.ofSeq(nodes)
         else
             []
-            
-    member this.AppendNode(node: FlowGraphNode) =
-        match node with
-        | KernelNode(cgn) ->
-            if not (kernelNodes.ContainsKey(cgn.KernelID)) then
-                kernelNodes.Add(cgn.KernelID, new List<FlowGraphKernelNode>())
-            kernelNodes.[cgn.KernelID].Add(cgn)
-        | _ ->
-            ()
-        nodes.Add(node)
-        
-    member this.GetNodeInputConnection(node: FlowGraphKernelNode,
-                                       par: string) =
-        if node.Input.ContainsKey(par) then
-            Some(node.Input.[par])
-        else
-            None
-            
-    member this.GetNodeOutputConnections(node: FlowGraphKernelNode,
-                                         point: FlowGraphNodeBindingPoint) =
-        if node.Output.ContainsKey(point) then
-            Some(List.ofSeq(node.Output.[point]))
-        else
-            None
 
-    member this.GetNodeInputConnections(node: FlowGraphKernelNode) =
-        ReadOnlyDictionary<string, FlowGraphNode * FlowGraphNodeBindingPoint>(node.Input)
-        
-    member this.GetNodeOutputConnections(node: FlowGraphKernelNode) =
-        let d = new Dictionary<FlowGraphNodeBindingPoint, (FlowGraphKernelNode * FlowGraphNodeBindingPoint) list>()
-        for item in node.Output do            
-            d.Add(item.Key, List.ofSeq(item.Value))
-        ReadOnlyDictionary<FlowGraphNodeBindingPoint, (FlowGraphKernelNode * FlowGraphNodeBindingPoint) list>(d)
-
-    member this.SetNodeConnection(before: FlowGraphNode,
-                                  after: FlowGraphKernelNode,
-                                  beforePoint: FlowGraphNodeBindingPoint,
-                                  afterPoint: FlowGraphNodeBindingPoint) =
-        match before, after with
-        | RuntimeValueNode(v), n ->
-            match afterPoint with
-            | ParameterBindingPoint(p) ->
-                if n.Input.ContainsKey(p) then
-                    n.Input.[p] <- (before, ImplicitBindingPoint)
-                else
-                    n.Input.Add(p, (before, ImplicitBindingPoint))
-            | _ ->
-                raise (FlowGraphException("Cannot set a connection to a kernel node with a binding point different from ParameterBindingPoint"))
-        | StaticValueNode(v), n ->
-            match afterPoint with
-            | ParameterBindingPoint(p) ->
-                if n.Input.ContainsKey(p) then
-                    n.Input.[p] <- (before, ImplicitBindingPoint)
-                else
-                    n.Input.Add(p, (before, ImplicitBindingPoint))
-            | _ ->
-                raise (FlowGraphException("Cannot set a connection to a kernel node with a binding point different from ParameterBindingPoint"))
-        | KernelNode(n1), n2 ->
-            match beforePoint, afterPoint with
-            | ParameterBindingPoint(p1), ParameterBindingPoint(p2) ->
-                if n2.Input.ContainsKey(p2) then
-                    n2.Input.[p2] <- (before, beforePoint)
-                else
-                    n2.Input.Add(p2, (before, beforePoint))
-                if not (n1.Output.ContainsKey(beforePoint)) then
-                    n1.Output.Add(beforePoint, new HashSet<FlowGraphKernelNode * FlowGraphNodeBindingPoint>())
-                n1.Output.[beforePoint].Add(after, afterPoint) |> ignore                
-            | ReturnValueBindingPoint(index), ParameterBindingPoint(p2) ->
-                if n2.Input.ContainsKey(p2) then
-                    n2.Input.[p2] <- (before, beforePoint)
-                else
-                    n2.Input.Add(p2, (before, beforePoint))
-                if not (n1.Output.ContainsKey(beforePoint)) then
-                    n1.Output.Add(beforePoint, new HashSet<FlowGraphKernelNode * FlowGraphNodeBindingPoint>())
-                n1.Output.[beforePoint].Add(after, afterPoint) |> ignore
-            | _, _ ->
-                raise (FlowGraphException("Two kernel calls can be connected only in a parameter-parameter or in a returnValue-parameter mode"))  
-        
-    member this.MergeWith(fg: FlowGraph) =
-        for item in fg.GetNodes() do
-            this.AppendNode(item)
+         
+            
         
                 
 

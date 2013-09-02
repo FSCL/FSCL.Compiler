@@ -5,6 +5,7 @@ open System.Text
 open System.Security.Cryptography
 open System.Reflection
 open System.Reflection.Emit
+open System.Collections.Generic
 open Microsoft.FSharp.Reflection
 open Microsoft.FSharp.Quotations
 open Microsoft.FSharp.Quotations.Patterns
@@ -143,5 +144,6 @@ module QuotationAnalysis =
             Some(signature, body)
         else
             None
-            
+    
+        
 

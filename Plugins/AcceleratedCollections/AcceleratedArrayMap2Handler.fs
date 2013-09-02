@@ -11,6 +11,7 @@ open System
 open Microsoft.FSharp.Reflection
 open AcceleratedCollectionUtil
 open FSCL.Compiler.Core.Util
+open Microsoft.FSharp.Linq.QuotationEvaluation
 
 type AcceleratedArrayMap2Handler() =
     interface IAcceleratedCollectionHandler with
@@ -98,7 +99,7 @@ type AcceleratedArrayMap2Handler() =
                 // Add current kernel
                 kernelModule.AddKernel(new KernelInfo(signature, kernelBody))  
                 // Update call graph
-                kernelModule.FlowGraph <- FlowGraph(FlowGraphKernelNode(signature))
+                kernelModule.FlowGraph <- FlowGraphNode(signature)
                 
                 // Detect is device attribute set
                 let device = functionInfo.GetCustomAttribute(typeof<DeviceAttribute>)
@@ -114,30 +115,27 @@ type AcceleratedArrayMap2Handler() =
 
                 // Connect with subkernels
                 if firstSubkernel <> null then           
-                    // If the subkernel has set a custom info to inform about the parameter used to return a value
-                    if firstSubkernel.GetKernel(firstSubkernel.FlowGraph.MainEndPoint.KernelID).Info.CustomInfo.ContainsKey("RETURN_PARAMETER_NAME") then                    
-                        kernelModule.FlowGraph.GetKernelNodes.Add("input_array_1",
-                                                             KernelOutput(firstSubkernel.CallGraph, OutArgument(firstSubkernel.GetKernel(firstSubkernel.CallGraph.KernelID).Info.CustomInfo.["RETURN_PARAMETER_NAME"] :?> string)))            
-                    else
-                        kernelModule.CallGraph.Arguments.Add(
-                            "input_array_1",
-                            KernelOutput(firstSubkernel.CallGraph, ReturnValue(0)))
+                    FlowGraphManager.SetNodeInput(kernelModule.FlowGraph,
+                                                  "input_array_1",
+                                                  KernelOutput(firstSubkernel.FlowGraph, 0))
                 else
                     // Store the expression (actual argument) associated to this parameter
-                    kernelModule.CallGraph.Arguments.Add("input_array_1", RuntimeValue(args.[1]))
-                if secondSubkernel <> null then        
-                    // If the subkernel has set a custom info to inform about the parameter used to return a value
-                    if secondSubkernel.GetKernel(secondSubkernel.CallGraph.KernelID).Info.CustomInfo.ContainsKey("RETURN_PARAMETER_NAME") then                    
-                        kernelModule.CallGraph.Arguments.Add("input_array_2",
-                                                             KernelOutput(secondSubkernel.CallGraph, OutArgument(secondSubkernel.GetKernel(secondSubkernel.CallGraph.KernelID).Info.CustomInfo.["RETURN_PARAMETER_NAME"] :?> string)))            
-                    else
-                        kernelModule.CallGraph.Arguments.Add(
-                            "input_array_2",
-                            KernelOutput(secondSubkernel.CallGraph, ReturnValue(0)))
+                    FlowGraphManager.SetNodeInput(kernelModule.FlowGraph,
+                                                  "input_array_1",
+                                                  ActualArgument(args.[1]))
+                if secondSubkernel <> null then           
+                    FlowGraphManager.SetNodeInput(kernelModule.FlowGraph,
+                                                  "input_array_2",
+                                                  KernelOutput(secondSubkernel.FlowGraph, 0))
                 else
                     // Store the expression (actual argument) associated to this parameter
-                    kernelModule.CallGraph.Arguments.Add("input_array_2", RuntimeValue(args.[2]))
-                kernelModule.CallGraph.Arguments.Add("output_array", RuntimeImplicit)
+                    FlowGraphManager.SetNodeInput(kernelModule.FlowGraph,
+                                                  "input_array_2",
+                                                  ActualArgument(args.[2]))
+                FlowGraphManager.SetNodeInput(kernelModule.FlowGraph,
+                                              "output_array",
+                                              ReturnedBufferAllocationSize(fun(args, localSize, globalSize) ->
+                                                                            )
                 // Return module                             
                 Some(kernelModule)
             | _ ->

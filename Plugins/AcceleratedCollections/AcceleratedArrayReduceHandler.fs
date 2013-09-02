@@ -12,21 +12,23 @@ open FSCL.Compiler.Core.Util
 open Microsoft.FSharp.Reflection
 open AcceleratedCollectionUtil
 open FSCL.Compiler.Tools
+open System.Runtime.InteropServices
+open Microsoft.FSharp.Linq.QuotationEvaluation
 
 type AcceleratedArrayReduceHandler() =
     let placeholderComp (a:int) (b:int) =
         a + b
     let template = 
         <@
-            fun(g_idata:int[], [<Local>]sdata:int[], n, g_odata:int[]) ->
+            fun(g_idata:int[], [<Local>]sdata:int[], g_odata:int[]) ->
                 let tid = get_local_id(0)
                 let i = get_group_id(0) * (get_local_size(0) * 2) + get_local_id(0)
 
-                if(i < n) then 
+                if(i < g_idata.Length) then 
                     sdata.[tid] <- g_idata.[i] 
                 else 
                     sdata.[tid] <- 0
-                if (i + get_local_size(0) < n) then 
+                if (i + get_local_size(0) < g_idata.Length) then 
                     sdata.[tid] <- placeholderComp (sdata.[tid]) (g_idata.[i + get_local_size(0)])
 
                 barrier(CLK_LOCAL_MEM_FENCE)
@@ -198,13 +200,12 @@ type AcceleratedArrayReduceHandler() =
                                                     functionInfo.GetParameters().[1].ParameterType],
                                                     functionInfo.Name), 
                                         MethodAttributes.Public ||| MethodAttributes.Static, typeof<unit>, 
-                                        [| inputArrayType; outputArrayType; typeof<int>; outputArrayType |])
+                                        [| inputArrayType; outputArrayType; outputArrayType |])
                 let attributeBuilder = new CustomAttributeBuilder(typeof<LocalAttribute>.GetConstructors().[0], [||])
                 let paramBuilder = methodBuilder.DefineParameter(1, ParameterAttributes.In, "input_array")
                 let paramBuilder = methodBuilder.DefineParameter(2, ParameterAttributes.In, "local_array")
                 paramBuilder.SetCustomAttribute(attributeBuilder)
-                let paramBuilder = methodBuilder.DefineParameter(3, ParameterAttributes.In, "n")
-                let paramBuilder = methodBuilder.DefineParameter(4, ParameterAttributes.In, "output_array")
+                let paramBuilder = methodBuilder.DefineParameter(3, ParameterAttributes.In, "output_array")
                 // Body (simple return) of the method must be set to build the module and get the MethodInfo that we need as signature
                 methodBuilder.GetILGenerator().Emit(OpCodes.Ret)
                 moduleBuilder.CreateGlobalFunctions()
@@ -214,7 +215,7 @@ type AcceleratedArrayReduceHandler() =
                 let parameterMatching = new Dictionary<Var, Var>()
                 parameterMatching.Add(templateParameters.[0], inputArrayPlaceholder)
                 parameterMatching.Add(templateParameters.[1], localArrayPlaceholder)
-                parameterMatching.Add(templateParameters.[3], outputArrayPlaceholder)
+                parameterMatching.Add(templateParameters.[2], outputArrayPlaceholder)
 
                 // Replace functions and references to parameters
                 let functionMatching = new Dictionary<string, MethodInfo>()
@@ -224,28 +225,27 @@ type AcceleratedArrayReduceHandler() =
                 let signature = moduleBuilder.GetMethod(methodBuilder.Name) 
                 kernelModule.AddKernel(new KernelInfo(signature, newBody)) 
                 // Update call graph
-                kernelModule.CallGraph <- CallGraphNode(signature)
-                
-                // Set that the return value is encoded in the parameter output_array
-                kernelModule.GetKernel(signature).Info.CustomInfo.Add("RETURN_PARAMETER_NAME", "output_array")
-                    
+                kernelModule.FlowGraph <- FlowGraphNode(signature)
+                                    
                 // Add the computation function and connect it to the kernel
                 kernelModule.AddFunction(new FunctionInfo(functionInfo, body))
                 kernelModule.GetKernel(signature).RequiredFunctions.Add(functionInfo) |> ignore
                 // Define arguments for call graph
                 let argExpressions = new Dictionary<string, Expr>()
-                if subkernel <> null then                                       
-                    if subkernel.GetKernel(subkernel.CallGraph.KernelID).Info.CustomInfo.ContainsKey("RETURN_PARAMETER_NAME") then                    
-                        kernelModule.CallGraph.Arguments.Add("input_array",
-                                                             KernelOutput(subkernel.CallGraph, OutArgument(subkernel.GetKernel(subkernel.CallGraph.KernelID).Info.CustomInfo.["RETURN_PARAMETER_NAME"] :?> string)))                               
-                    else
-                        kernelModule.CallGraph.Arguments.Add("input_array",
-                                                             KernelOutput(subkernel.CallGraph, ReturnValue(0)))
+                if subkernel <> null then       
+                    FlowGraphManager.SetNodeInput(kernelModule.FlowGraph,
+                                                  "input_array",
+                                                  KernelOutput(subkernel.FlowGraph, 0))                                
                 else
-                    kernelModule.CallGraph.Arguments.Add("input_array", RuntimeValue(args.[1]))
-                kernelModule.CallGraph.Arguments.Add("local_array", RuntimeImplicit)
-                kernelModule.CallGraph.Arguments.Add("output_array", RuntimeImplicit)
-                kernelModule.CallGraph.Arguments.Add("n", RuntimeImplicit)
+                    FlowGraphManager.SetNodeInput(kernelModule.FlowGraph,
+                                                  "input_array",
+                                                  ActualArgument(args.[1]))        
+                // Set local array input value                                   
+                FlowGraphManager.SetNodeInput(kernelModule.FlowGraph,
+                                             "local_array",
+                                             CompilerPrecomputedValue(fun(args, localSize, _) -> 
+                                                                         let elementType = args.["output_array"].GetType().GetElementType()
+                                                                         Marshal.SizeOf(elementType) * localSize.[0] :> obj))            
                 // Return module                             
                 Some(kernelModule)
             | _ ->
