@@ -6,7 +6,9 @@ FSharp to OpenCL Compiler
 
 ### Latest news
 
-FSCL.Compiler can be compiled and all the samples are correctly executed. Sorry for the compilation and sample execution problems that you might have faced.
+*****
+
+October 15, 2013: FSCL.Compiler and Runtime compiles correctly. Various updates to the Runtime. Sorry for the inconvenience.
 
 *****
 
