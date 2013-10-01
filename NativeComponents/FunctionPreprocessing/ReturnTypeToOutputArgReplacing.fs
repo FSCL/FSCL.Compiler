@@ -69,10 +69,9 @@ type ReturnTypeToOutputArgProcessor() =
                                                              args: Dictionary<string, obj>, 
                                                              localSize: int array,
                                                              globalSize: int array) =        
-        let totalSize = sizes |> 
-                        List.map(fun (e:Expr) -> this.LiftArgumentsAndKernelCalls(e, args, localSize, globalSize).EvalUntyped() :?> int64) |> 
-                        List.reduce(fun (a:int64) (b:int64) -> a + b)
-        (int64 (Marshal.SizeOf(t))) * totalSize            
+        let intSizes = sizes |> 
+                        List.map(fun (e:Expr) -> this.LiftArgumentsAndKernelCalls(e, args, localSize, globalSize).EvalUntyped() :?> int)
+        ExplicitAllocationSize(intSizes |> List.toArray)           
 
     member private this.AddReturnTypeVar(kernel:FunctionInfo, var:Var, args:Expr list) =
         if (var.IsMutable) then

@@ -8,7 +8,7 @@ open System.Collections.ObjectModel
 open System.Collections.Generic
 
 type ReturnedBufferAllocationSizeExpression =
-| ExplicitAllocationSize of int64
+| ExplicitAllocationSize of int array
 | BufferReferenceAllocationExpression of string
 
 type FlowGraphNodeInput =

@@ -135,7 +135,7 @@ type AcceleratedArrayMap2Handler() =
                 FlowGraphManager.SetNodeInput(kernelModule.FlowGraph,
                                               "output_array",
                                               ReturnedBufferAllocationSize(fun(args, localSize, globalSize) ->
-                                                                            )
+                                                                            BufferReferenceAllocationExpression("input_array_1")))
                 // Return module                             
                 Some(kernelModule)
             | _ ->
