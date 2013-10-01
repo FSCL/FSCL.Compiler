@@ -8,7 +8,7 @@ FSharp to OpenCL Compiler
 
 *****
 
-October 15, 2013: FSCL.Compiler and Runtime compiles correctly. Various updates to the Runtime. Sorry for the inconvenience.
+October 15, 2013: FSCL.Compiler and Runtime compile correctly. Various updates to the Runtime. Sorry for the inconvenience.
 
 *****
 
