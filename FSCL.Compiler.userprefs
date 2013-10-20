@@ -1,0 +1,13 @@
+﻿<Properties>
+  <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" />
+  <MonoDevelop.Ide.Workbench ActiveDocument="../../../../Library/Frameworks/Mono.framework/Versions/3.2.3/lib/mono/4.0/Microsoft.Common.targets">
+    <Files>
+      <File FileName="../../../../Library/Frameworks/Mono.framework/Versions/3.2.3/lib/mono/4.0/Microsoft.Common.targets" Line="325" Column="61" />
+      <File FileName="Samples/CompilerConfigurationSample/App.config" Line="1" Column="1" />
+    </Files>
+  </MonoDevelop.Ide.Workbench>
+  <MonoDevelop.Ide.DebuggingService.Breakpoints>
+    <BreakpointStore />
+  </MonoDevelop.Ide.DebuggingService.Breakpoints>
+  <MonoDevelop.Ide.DebuggingService.PinnedWatches />
+</Properties>

@@ -5,12 +5,13 @@
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>54a68199-9fda-4077-97f5-313594fd4a63</ProjectGuid>
+    <ProjectGuid>54A68199-9FDA-4077-97F5-313594FD4A63</ProjectGuid>
     <OutputType>Exe</OutputType>
     <RootNamespace>VectorTypeSample</RootNamespace>
     <AssemblyName>VectorTypeSample</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <Name>VectorTypeSample</Name>
+    <ProductVersion>12.0.0</ProductVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -37,9 +38,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="mscorlib" />
-    <Reference Include="FSharp.Core, Version=4.3.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
-      <Private>True</Private>
-    </Reference>
+    <Reference Include="FSharp.Core, Version=4.3.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Numerics" />
@@ -51,13 +50,11 @@
   <ItemGroup>
     <ProjectReference Include="..\..\Compiler\FSCL.Compiler.fsproj">
       <Name>FSCL.Compiler</Name>
-      <Project>{5d7c3db1-3300-455e-bf2a-3fb52bdc0595}</Project>
-      <Private>True</Private>
+      <Project>5D7C3DB1-3300-455E-BF2A-3FB52BDC0595</Project>
     </ProjectReference>
     <ProjectReference Include="..\..\Language\FSCL.Compiler.Core.Language.fsproj">
       <Name>FSCL.Compiler.Core.Language</Name>
-      <Project>{02cc39bd-a326-49f6-b5e6-2987eada1ba2}</Project>
-      <Private>True</Private>
+      <Project>{02CC39BD-A326-49F6-B5E6-2987EADA1BA2}</Project>
     </ProjectReference>
   </ItemGroup>
   <PropertyGroup>

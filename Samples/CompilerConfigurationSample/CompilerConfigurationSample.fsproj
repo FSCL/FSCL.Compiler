@@ -1,16 +1,17 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>b97d9326-d6ba-4328-b015-01ca3f1c04f7</ProjectGuid>
+    <ProjectGuid>B97D9326-D6BA-4328-B015-01CA3F1C04F7</ProjectGuid>
     <OutputType>Exe</OutputType>
     <RootNamespace>CompilerConfigurationSample</RootNamespace>
     <AssemblyName>CompilerConfigurationSample</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <Name>CompilerConfigurationSample</Name>
+    <ProductVersion>12.0.0</ProductVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -23,6 +24,11 @@
     <PlatformTarget>AnyCPU</PlatformTarget>
     <DocumentationFile>bin\Debug\CompilerConfigurationSample.XML</DocumentationFile>
     <Prefer32Bit>true</Prefer32Bit>
+    <CustomCommands>
+      <CustomCommands>
+        <Command type="AfterBuild" />
+      </CustomCommands>
+    </CustomCommands>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -47,9 +53,7 @@
   </ItemGroup>
   <ItemGroup>
     <Reference Include="mscorlib" />
-    <Reference Include="FSharp.Core, Version=4.3.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
-      <Private>True</Private>
-    </Reference>
+    <Reference Include="FSharp.Core, Version=4.3.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Numerics" />
@@ -58,59 +62,45 @@
   <ItemGroup>
     <ProjectReference Include="..\..\Compiler\FSCL.Compiler.fsproj">
       <Name>FSCL.Compiler</Name>
-      <Project>{5d7c3db1-3300-455e-bf2a-3fb52bdc0595}</Project>
-      <Private>True</Private>
+      <Project>5D7C3DB1-3300-455E-BF2A-3FB52BDC0595</Project>
     </ProjectReference>
     <ProjectReference Include="..\..\Core\FSCL.Compiler.Core.fsproj">
       <Name>FSCL.Compiler.Core</Name>
-      <Project>{7635ade1-ac00-4587-8117-3faa15be9318}</Project>
-      <Private>True</Private>
+      <Project>7635ADE1-AC00-4587-8117-3FAA15BE9318</Project>
     </ProjectReference>
     <ProjectReference Include="..\..\Language\FSCL.Compiler.Core.Language.fsproj">
       <Name>FSCL.Compiler.Core.Language</Name>
-      <Project>{02cc39bd-a326-49f6-b5e6-2987eada1ba2}</Project>
-      <Private>True</Private>
+      <Project>{02CC39BD-A326-49F6-B5E6-2987EADA1BA2}</Project>
     </ProjectReference>
     <ProjectReference Include="..\..\NativeComponents\FunctionCodegen\FSCL.Compiler.Core.FunctionCodegen.fsproj">
       <Name>FSCL.Compiler.Core.FunctionCodegen</Name>
-      <Project>{a0eb369a-a29e-4bb9-8b16-cf406e42f534}</Project>
-      <Private>True</Private>
+      <Project>A0EB369A-A29E-4BB9-8B16-CF406E42F534</Project>
     </ProjectReference>
     <ProjectReference Include="..\..\NativeComponents\FunctionPreprocessing\FSCL.Compiler.Core.FunctionPreprocessing.fsproj">
       <Name>FSCL.Compiler.Core.FunctionPreprocessing</Name>
-      <Project>{ed8c50cd-4155-4d3a-a682-76757fb2b8d7}</Project>
-      <Private>True</Private>
+      <Project>ED8C50CD-4155-4D3A-A682-76757FB2B8D7</Project>
     </ProjectReference>
     <ProjectReference Include="..\..\NativeComponents\FunctionTransformation\FSCL.Compiler.Core.FunctionTransformation.fsproj">
       <Name>FSCL.Compiler.Core.FunctionTransformation</Name>
-      <Project>{76611cb9-7f4f-4842-bee6-03eecaf79894}</Project>
-      <Private>True</Private>
+      <Project>76611CB9-7F4F-4842-BEE6-03EECAF79894</Project>
     </ProjectReference>
     <ProjectReference Include="..\..\NativeComponents\ModuleCodegen\FSCL.Compiler.Core.ModuleCodegen.fsproj">
       <Name>FSCL.Compiler.Core.ModuleCodegen</Name>
-      <Project>{431cb9ed-c613-46be-ad84-b4a0d8532487}</Project>
-      <Private>True</Private>
+      <Project>431CB9ED-C613-46BE-AD84-B4A0D8532487</Project>
     </ProjectReference>
     <ProjectReference Include="..\..\NativeComponents\ModuleParsing\FSCL.Compiler.Core.ModuleParsing.fsproj">
       <Name>FSCL.Compiler.Core.ModuleParsing</Name>
-      <Project>{a42da267-4d0e-4f14-a7e0-f2f9ab587005}</Project>
-      <Private>True</Private>
+      <Project>A42DA267-4D0E-4F14-A7E0-F2F9AB587005</Project>
     </ProjectReference>
     <ProjectReference Include="..\..\NativeComponents\ModulePreprocessing\FSCL.Compiler.Core.ModulePreprocessing.fsproj">
       <Name>FSCL.Compiler.Core.ModulePreprocessing</Name>
-      <Project>{898f5ec0-3903-40e0-98bd-ee2e5746620f}</Project>
-      <Private>True</Private>
+      <Project>898F5EC0-3903-40E0-98BD-EE2E5746620F</Project>
     </ProjectReference>
     <ProjectReference Include="..\..\Types\FSCL.Compiler.Core.Types.fsproj">
       <Name>FSCL.Compiler.Core.Types</Name>
-      <Project>{ec288651-4f88-44d7-9206-7a0260552ecc}</Project>
-      <Private>True</Private>
+      <Project>EC288651-4F88-44D7-9206-7A0260552ECC</Project>
     </ProjectReference>
   </ItemGroup>
-  <PropertyGroup>
-    <PostBuildEvent>COPY $(ProjectDir)ImplicitConfiguration.xml $(TargetDir)
-COPY $(ProjectDir)ExplicitConfiguration.xml $(TargetDir)</PostBuildEvent>
-  </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">

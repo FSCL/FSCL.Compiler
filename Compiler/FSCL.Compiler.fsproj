@@ -5,12 +5,13 @@
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>5d7c3db1-3300-455e-bf2a-3fb52bdc0595</ProjectGuid>
+    <ProjectGuid>5D7C3DB1-3300-455E-BF2A-3FB52BDC0595</ProjectGuid>
     <OutputType>Library</OutputType>
     <RootNamespace>FSCL.Compiler</RootNamespace>
     <AssemblyName>FSCL.Compiler</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <Name>FSCL.Compiler</Name>
+    <ProductVersion>12.0.0</ProductVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -33,9 +34,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="mscorlib" />
-    <Reference Include="FSharp.Core, Version=4.3.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
-      <Private>True</Private>
-    </Reference>
+    <Reference Include="FSharp.Core, Version=4.3.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Numerics" />
@@ -52,48 +51,39 @@
   <ItemGroup>
     <ProjectReference Include="..\Core\FSCL.Compiler.Core.fsproj">
       <Name>FSCL.Compiler.Core</Name>
-      <Project>{7635ade1-ac00-4587-8117-3faa15be9318}</Project>
-      <Private>True</Private>
+      <Project>7635ADE1-AC00-4587-8117-3FAA15BE9318</Project>
     </ProjectReference>
     <ProjectReference Include="..\NativeComponents\FunctionCodegen\FSCL.Compiler.Core.FunctionCodegen.fsproj">
       <Name>FSCL.Compiler.Core.FunctionCodegen</Name>
-      <Project>{a0eb369a-a29e-4bb9-8b16-cf406e42f534}</Project>
-      <Private>True</Private>
+      <Project>A0EB369A-A29E-4BB9-8B16-CF406E42F534</Project>
     </ProjectReference>
     <ProjectReference Include="..\NativeComponents\FunctionPreprocessing\FSCL.Compiler.Core.FunctionPreprocessing.fsproj">
       <Name>FSCL.Compiler.Core.FunctionPreprocessing</Name>
-      <Project>{ed8c50cd-4155-4d3a-a682-76757fb2b8d7}</Project>
-      <Private>True</Private>
+      <Project>ED8C50CD-4155-4D3A-A682-76757FB2B8D7</Project>
     </ProjectReference>
     <ProjectReference Include="..\NativeComponents\FunctionTransformation\FSCL.Compiler.Core.FunctionTransformation.fsproj">
       <Name>FSCL.Compiler.Core.FunctionTransformation</Name>
-      <Project>{76611cb9-7f4f-4842-bee6-03eecaf79894}</Project>
-      <Private>True</Private>
+      <Project>76611CB9-7F4F-4842-BEE6-03EECAF79894</Project>
     </ProjectReference>
     <ProjectReference Include="..\NativeComponents\ModuleCodegen\FSCL.Compiler.Core.ModuleCodegen.fsproj">
       <Name>FSCL.Compiler.Core.ModuleCodegen</Name>
-      <Project>{431cb9ed-c613-46be-ad84-b4a0d8532487}</Project>
-      <Private>True</Private>
+      <Project>431CB9ED-C613-46BE-AD84-B4A0D8532487</Project>
     </ProjectReference>
     <ProjectReference Include="..\NativeComponents\ModuleParsing\FSCL.Compiler.Core.ModuleParsing.fsproj">
       <Name>FSCL.Compiler.Core.ModuleParsing</Name>
-      <Project>{a42da267-4d0e-4f14-a7e0-f2f9ab587005}</Project>
-      <Private>True</Private>
+      <Project>A42DA267-4D0E-4F14-A7E0-F2F9AB587005</Project>
     </ProjectReference>
     <ProjectReference Include="..\NativeComponents\ModulePreprocessing\FSCL.Compiler.Core.ModulePreprocessing.fsproj">
       <Name>FSCL.Compiler.Core.ModulePreprocessing</Name>
-      <Project>{898f5ec0-3903-40e0-98bd-ee2e5746620f}</Project>
-      <Private>True</Private>
+      <Project>898F5EC0-3903-40E0-98BD-EE2E5746620F</Project>
     </ProjectReference>
     <ProjectReference Include="..\Tools\FSCL.Compiler.Tools.fsproj">
       <Name>FSCL.Compiler.Tools</Name>
-      <Project>{2581b89a-f555-48a7-94be-9b21654901a7}</Project>
-      <Private>True</Private>
+      <Project>2581B89A-F555-48A7-94BE-9B21654901A7</Project>
     </ProjectReference>
     <ProjectReference Include="..\Types\FSCL.Compiler.Core.Types.fsproj">
       <Name>FSCL.Compiler.Core.Types</Name>
-      <Project>{ec288651-4f88-44d7-9206-7a0260552ecc}</Project>
-      <Private>True</Private>
+      <Project>EC288651-4F88-44D7-9206-7A0260552ECC</Project>
     </ProjectReference>
   </ItemGroup>
   <PropertyGroup>

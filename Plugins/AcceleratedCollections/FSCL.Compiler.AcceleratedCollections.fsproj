@@ -5,12 +5,13 @@
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>5da99afc-09cc-4d46-9145-ddad276bb68e</ProjectGuid>
+    <ProjectGuid>5DA99AFC-09CC-4D46-9145-DDAD276BB68E</ProjectGuid>
     <OutputType>Library</OutputType>
     <RootNamespace>FSCL.Compiler.AcceleratedCollections</RootNamespace>
     <AssemblyName>FSCL.Compiler.AcceleratedCollections</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <Name>FSCL.Compiler.AcceleratedCollections</Name>
+    <ProductVersion>12.0.0</ProductVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -33,9 +34,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="mscorlib" />
-    <Reference Include="FSharp.Core, Version=4.3.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
-      <Private>True</Private>
-    </Reference>
+    <Reference Include="FSharp.Core, Version=4.3.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Numerics" />
@@ -51,33 +50,27 @@
   <ItemGroup>
     <ProjectReference Include="..\..\Compiler\FSCL.Compiler.fsproj">
       <Name>FSCL.Compiler</Name>
-      <Project>{5d7c3db1-3300-455e-bf2a-3fb52bdc0595}</Project>
-      <Private>True</Private>
+      <Project>5D7C3DB1-3300-455E-BF2A-3FB52BDC0595</Project>
     </ProjectReference>
     <ProjectReference Include="..\..\Core\FSCL.Compiler.Core.fsproj">
       <Name>FSCL.Compiler.Core</Name>
-      <Project>{7635ade1-ac00-4587-8117-3faa15be9318}</Project>
-      <Private>True</Private>
+      <Project>7635ADE1-AC00-4587-8117-3FAA15BE9318</Project>
     </ProjectReference>
     <ProjectReference Include="..\..\Language\FSCL.Compiler.Core.Language.fsproj">
       <Name>FSCL.Compiler.Core.Language</Name>
-      <Project>{02cc39bd-a326-49f6-b5e6-2987eada1ba2}</Project>
-      <Private>True</Private>
+      <Project>{02CC39BD-A326-49F6-B5E6-2987EADA1BA2}</Project>
     </ProjectReference>
     <ProjectReference Include="..\..\NativeComponents\ModuleParsing\FSCL.Compiler.Core.ModuleParsing.fsproj">
       <Name>FSCL.Compiler.Core.ModuleParsing</Name>
-      <Project>{a42da267-4d0e-4f14-a7e0-f2f9ab587005}</Project>
-      <Private>True</Private>
+      <Project>A42DA267-4D0E-4F14-A7E0-F2F9AB587005</Project>
     </ProjectReference>
     <ProjectReference Include="..\..\Tools\FSCL.Compiler.Tools.fsproj">
       <Name>FSCL.Compiler.Tools</Name>
-      <Project>{2581b89a-f555-48a7-94be-9b21654901a7}</Project>
-      <Private>True</Private>
+      <Project>2581B89A-F555-48A7-94BE-9B21654901A7</Project>
     </ProjectReference>
     <ProjectReference Include="..\..\Util\FSCL.Compiler.Core.Util.fsproj">
       <Name>FSCL.Compiler.Core.Util</Name>
-      <Project>{2089ba93-e786-42e3-b717-58105c53bb7a}</Project>
-      <Private>True</Private>
+      <Project>{2089BA93-E786-42E3-B717-58105C53BB7A}</Project>
     </ProjectReference>
   </ItemGroup>
   <PropertyGroup>
