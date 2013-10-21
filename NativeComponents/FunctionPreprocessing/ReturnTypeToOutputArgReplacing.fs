@@ -38,6 +38,7 @@ type ReturnTypeToOutputArgProcessor() =
                                                     localSize: int array,
                                                     globalSize: int array) =
         match e with
+        // Return allocation expression can contain a call to global_size, local_size, num_groups or work_dim
         | Patterns.Call(o, m, arguments) ->
             if m.DeclaringType.Name = "KernelLanguage" && (m.Name = "get_global_size") then
                 Expr.Value(globalSize.[arguments.[0].EvalUntyped() :?> int])
@@ -50,12 +51,16 @@ type ReturnTypeToOutputArgProcessor() =
             else if m.DeclaringType.Name = "KernelLanguage" && (m.Name = "get_work_dim") then
                 Expr.Value(globalSize.Rank)
             else
-                e
+                if o.IsSome then
+                    Expr.Call(o.Value, m, List.map(fun (e: Expr) -> this.LiftArgumentsAndKernelCalls(e, args, localSize, globalSize)) arguments)
+                else
+                    Expr.Call(m, List.map(fun (e: Expr) -> this.LiftArgumentsAndKernelCalls(e, args, localSize, globalSize)) arguments)
+        // Return allocation expression can contain references to arguments
         | Patterns.Var(v) ->
             if (args.ContainsKey(v.Name)) then
                 Expr.Value(args.[v.Name])
             else
-                e
+                e                
         | ExprShape.ShapeVar(v) ->
             e
         | ExprShape.ShapeLambda(l, b) ->
@@ -68,10 +73,13 @@ type ReturnTypeToOutputArgProcessor() =
                                                              sizes: Expr list,
                                                              args: Dictionary<string, obj>, 
                                                              localSize: int array,
-                                                             globalSize: int array) =        
-        let intSizes = sizes |> 
-                        List.map(fun (e:Expr) -> this.LiftArgumentsAndKernelCalls(e, args, localSize, globalSize).EvalUntyped() :?> int)
-        ExplicitAllocationSize(intSizes |> List.toArray)           
+                                                             globalSize: int array) =   
+        let intSizes = new List<int>()    
+        for exp in sizes do
+            let lifted = this.LiftArgumentsAndKernelCalls(exp, args, localSize, globalSize)
+            let evaluated = lifted.EvalUntyped()
+            intSizes.Add(evaluated :?> int)
+        ExplicitAllocationSize(intSizes |> Seq.toArray)           
 
     member private this.AddReturnTypeVar(kernel:FunctionInfo, var:Var, args:Expr list) =
         if (var.IsMutable) then
