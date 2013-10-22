@@ -25,14 +25,20 @@ type ArgumentsBuildingProcessor() =
             // Set var to be used in kernel body
             parameterEntry.Placeholder <- Some(Quotations.Var(p.Name, p.ParameterType, false))
             // Determine the memory space of this parameter via custom attributes
-            let constantAttribute = p.GetCustomAttribute<ConstantAttribute>()
-            let localAttribute = p.GetCustomAttribute<LocalAttribute>()
-            if constantAttribute <> null then
-                parameterEntry.AddressSpace <- KernelParameterAddressSpace.ConstantSpace
-            elif localAttribute <> null then
-                parameterEntry.AddressSpace <- KernelParameterAddressSpace.LocalSpace
-            else    
-                parameterEntry.AddressSpace <- KernelParameterAddressSpace.GlobalSpace 
+            try
+                let constantAttribute = p.GetCustomAttribute<ConstantAttribute>()
+                let localAttribute = p.GetCustomAttribute<LocalAttribute>()
+                if constantAttribute <> null then
+                    parameterEntry.AddressSpace <- KernelParameterAddressSpace.ConstantSpace
+                elif localAttribute <> null then
+                    parameterEntry.AddressSpace <- KernelParameterAddressSpace.LocalSpace
+                else    
+                    parameterEntry.AddressSpace <- KernelParameterAddressSpace.GlobalSpace 
+            with 
+                | :? NotSupportedException ->
+                    Console.WriteLine("Warning - [FSCL.Compiler] - [AcceleratedCollections] - Constant and Local attributes are not available in lambda functions");
+                    parameterEntry.AddressSpace <- KernelParameterAddressSpace.GlobalSpace 
+                    
             // If the parameter is not an array set the access mode to read
             if not (p.GetType().IsArray) then
                 parameterEntry.Access <- ReadOnly

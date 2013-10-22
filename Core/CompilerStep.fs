@@ -13,7 +13,7 @@ open Microsoft.FSharp.Quotations
 ///Developers of step processors should not inherit from this class but from the generic CompilerStepProcessor and provide an implementation to the method "Run"
 ///</remarks>
 ///
-type ICompilerStepProcessor() =   
+type ICompilerStepProcessor = 
     ///
     ///<summary>
     ///The method to be called to execute the processor
@@ -25,10 +25,7 @@ type ICompilerStepProcessor() =
     ///<param name="owner">The owner step</param>
     ///<returns>The output produced by this processor</returns>
     /// 
-    member this.Execute(obj, owner) =
-        let methods = this.GetType().GetMethods()
-        let meth = Array.tryFind(fun (meth: MethodInfo) -> meth.Name = "Run") methods
-        meth.Value.Invoke(this, [| obj; owner |])
+    abstract member Execute: obj * ICompilerStep -> obj
 
 ///
 ///<summary>
@@ -61,10 +58,7 @@ and [<AbstractClass>] ICompilerStep(tm: TypeManager, processors:ICompilerStepPro
     ///<param name="obj">The input of the step</param>
     ///<returns>The output produced by this step</returns>
     /// 
-    member this.Execute(obj) =
-        let methods = this.GetType().GetMethods()
-        let meth = Array.tryFind(fun (meth: MethodInfo) -> meth.Name = "Run") methods
-        meth.Value.Invoke(this, [| obj |])
+    abstract member Execute: obj -> obj
         
 ///
 ///<summary>
@@ -85,14 +79,15 @@ type CompilerStep<'T,'U>(tm, processors) =
     /// 
     abstract member Run: 'T -> 'U
     
+    override this.Execute(obj) =
+        this.Run(obj :?> 'T) :> obj
+    
 ///
 ///<summary>
 ///The generic base class of compiler step processors
 ///</summary>
 /// 
 type [<AbstractClass>] CompilerStepProcessor<'T,'U>() =
-    inherit ICompilerStepProcessor()
-    
     ///
     ///<summary>
     ///The abstract method that every step processors must implement to define the behavior of the processor
@@ -102,15 +97,16 @@ type [<AbstractClass>] CompilerStepProcessor<'T,'U>() =
     ///<returns>An instance of type 'U</returns>
     /// 
     abstract member Run: 'T * ICompilerStep -> 'U
-        
+    
+    interface ICompilerStepProcessor with
+        member this.Execute(obj, owner) =
+            this.Run(obj :?> 'T, owner) :> obj
 ///
 ///<summary>
 ///The generic base class of step processors that don't produce any output
 ///</summary>
 /// 
 type [<AbstractClass>] CompilerStepProcessor<'T>() =
-    inherit ICompilerStepProcessor()
-    
     ///
     ///<summary>
     ///The abstract method that the step processors must implement to define their behaviour
@@ -119,6 +115,10 @@ type [<AbstractClass>] CompilerStepProcessor<'T>() =
     ///<param name="param1">The owner step</param>
     /// 
     abstract member Run: 'T * ICompilerStep -> unit
+    
+    interface ICompilerStepProcessor with
+        member this.Execute(obj, owner) =
+            this.Run(obj :?> 'T, owner) :> obj    
     
 ///
 ///<summary>

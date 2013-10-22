@@ -51,10 +51,20 @@ type ReturnTypeToOutputArgProcessor() =
             else if m.DeclaringType.Name = "KernelLanguage" && (m.Name = "get_work_dim") then
                 Expr.Value(globalSize.Rank)
             else
+                (*
                 if o.IsSome then
-                    Expr.Call(o.Value, m, List.map(fun (e: Expr) -> this.LiftArgumentsAndKernelCalls(e, args, localSize, globalSize)) arguments)
-                else
                     Expr.Call(m, List.map(fun (e: Expr) -> this.LiftArgumentsAndKernelCalls(e, args, localSize, globalSize)) arguments)
+                else
+                    Expr.Call(m, List.map(fun (e: Expr) -> this.LiftArgumentsAndKernelCalls(e, args, localSize, globalSize)) arguments)*)
+                if m.DeclaringType <> null && m.DeclaringType.Name = "Array" && m.Name = "GetLength" then
+                    match arguments.[0] with
+                    | Patterns.Value(v) ->
+                        let size = o.Value.GetType().GetMethod("GetLength").Invoke(o.Value, [| v |])
+                        Expr.Value(size)
+                    | _ ->
+                        failwith "Error in substituting parameters"
+                else
+                    failwith "Error in substituting parameters"
         // Return allocation expression can contain references to arguments
         | Patterns.Var(v) ->
             if (args.ContainsKey(v.Name)) then
@@ -74,11 +84,11 @@ type ReturnTypeToOutputArgProcessor() =
                                                              args: Dictionary<string, obj>, 
                                                              localSize: int array,
                                                              globalSize: int array) =   
-        let intSizes = new List<int>()    
+        let intSizes = new List<int64>()    
         for exp in sizes do
             let lifted = this.LiftArgumentsAndKernelCalls(exp, args, localSize, globalSize)
             let evaluated = lifted.EvalUntyped()
-            intSizes.Add(evaluated :?> int)
+            intSizes.Add(evaluated :?> int64)
         ExplicitAllocationSize(intSizes |> Seq.toArray)           
 
     member private this.AddReturnTypeVar(kernel:FunctionInfo, var:Var, args:Expr list) =
