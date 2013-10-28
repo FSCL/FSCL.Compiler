@@ -261,6 +261,7 @@ module KernelLanguage =
 
     let fmod(x: float, y: float) =
         x - y * (Math.Truncate(x / y))
+        
     (*
     let fract(x, iptr) =
       
@@ -283,6 +284,13 @@ component the mantissa returned is a float with
 magnitude in the interval [1/2, 1) or 0. Each 
 component of x equals mantissa returned * 2exp *)
 
+    let clamp(a, min, max) =
+        if a < min then
+            min
+        elif a > max then
+            max
+        else
+            a
     ///
     ///<summary>
     ///The container of workspace related functions
@@ -369,35 +377,57 @@ component of x equals mantissa returned * 2exp *)
     // Datatype mapping    
     ///
     ///<summary>
-    ///Alias of <see cref="System.Char"/>
+    ///Alias of <see cref="System.SByte"/>
     ///</summary>
     ///
-    type uchar = UChar  
+    type char = sbyte  
+    //let char c =
+      //  c |> sbyte
+    // Datatype mapping    
+    ///
+    ///<summary>
+    ///Alias of <see cref="System.Byte"/>
+    ///</summary>
+    ///
+    type uchar = byte  
+  //  let uchar c =
+    //    c |> byte
     ///
     ///<summary>
     ///Alias of <see cref="System.UInt32"/>
     ///</summary>
     ///
-    type uint = UInt32      
+    type uint = uint32  
+  //  let uint c = 
+    //    c |> uint32    
     ///
     ///<summary>
     ///Alias of <see cref="System.UInt32"/>
     ///</summary>
     ///
-    type size_t = UInt32      
+    type size_t = uint32     
+ //   let size_t c = 
+   //     c |> uint32   
     ///
     ///<summary>
     ///Alias of <see cref="System.Float16"/>
     ///</summary>
     ///
-    type half = Float16  
+    type half = Float16
+    ///
+    ///<summary>
+    ///Alias of <see cref="System.Long"/>
+    ///</summary>
+    ///
+    type long = int64  
     ///
     ///<summary>
     ///Alias of <see cref="System.ULong"/>
     ///</summary>
     ///
-    type ulong = ULong
-
+    type ulong = uint64  
+  //  let ulong c = 
+    //    c |> uint64
 
     
 

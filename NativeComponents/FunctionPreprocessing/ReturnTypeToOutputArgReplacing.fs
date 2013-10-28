@@ -51,20 +51,21 @@ type ReturnTypeToOutputArgProcessor() =
             else if m.DeclaringType.Name = "KernelLanguage" && (m.Name = "get_work_dim") then
                 Expr.Value(globalSize.Rank)
             else
-                (*
                 if o.IsSome then
-                    Expr.Call(m, List.map(fun (e: Expr) -> this.LiftArgumentsAndKernelCalls(e, args, localSize, globalSize)) arguments)
+                    Expr.Call(o.Value, m, List.map(fun (e: Expr) -> this.LiftArgumentsAndKernelCalls(e, args, localSize, globalSize)) arguments)
                 else
-                    Expr.Call(m, List.map(fun (e: Expr) -> this.LiftArgumentsAndKernelCalls(e, args, localSize, globalSize)) arguments)*)
+                    Expr.Call(m, List.map(fun (e: Expr) -> this.LiftArgumentsAndKernelCalls(e, args, localSize, globalSize)) arguments)
+                    (*
                 if m.DeclaringType <> null && m.DeclaringType.Name = "Array" && m.Name = "GetLength" then
                     match arguments.[0] with
                     | Patterns.Value(v) ->
-                        let size = o.Value.GetType().GetMethod("GetLength").Invoke(o.Value, [| v |])
+                        let t = o.Value.GetType()
+                        let size = t.GetMethod("GetLength").Invoke(o.Value, [| v |])
                         Expr.Value(size)
                     | _ ->
                         failwith "Error in substituting parameters"
                 else
-                    failwith "Error in substituting parameters"
+                    failwith "Error in substituting parameters"*)
         // Return allocation expression can contain references to arguments
         | Patterns.Var(v) ->
             if (args.ContainsKey(v.Name)) then

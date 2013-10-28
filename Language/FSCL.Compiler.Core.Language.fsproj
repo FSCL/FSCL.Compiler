@@ -12,6 +12,16 @@
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <Name>FSCL.Compiler.Language</Name>
     <ProductVersion>12.0.0</ProductVersion>
+    <BuildOrder>
+      <BuildOrder>
+        <String>KernelLanguage.fs</String>
+        <String>IntVectors.fs</String>
+        <String>FloatVectors.fs</String>
+        <String>DoubleVectors.fs</String>
+        <String>SByteVectors.fs</String>
+        <String>ByteVectors.fs</String>
+      </BuildOrder>
+    </BuildOrder>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -44,6 +54,8 @@
     <Compile Include="IntVectors.fs" />
     <Compile Include="FloatVectors.fs" />
     <Compile Include="DoubleVectors.fs" />
+    <Compile Include="SByteVectors.fs" />
+    <Compile Include="ByteVectors.fs" />
   </ItemGroup>
   <PropertyGroup>
     <MinimumVisualStudioVersion Condition="'$(MinimumVisualStudioVersion)' == ''">11</MinimumVisualStudioVersion>
