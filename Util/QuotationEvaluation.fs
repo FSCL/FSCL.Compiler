@@ -1,10 +1,4 @@
-﻿// Copyright (c) Microsoft Corporation 2005-2008.
-// This sample code is provided "as is" without warranty of any kind. 
-// We disclaim all warranties, either express or implied, including the 
-// warranties of merchantability and fitness for a particular purpose. 
-//
-
-namespace Microsoft.FSharp.Linq
+﻿namespace Microsoft.FSharp.Linq
 
 open System
 open System.Linq
@@ -414,8 +408,6 @@ module QuotationEvaluation =
     let (|ConvUInt16Q|_|) = (|SpecificCall|_|) <@ uint16 @>
     let (|ConvUInt32Q|_|) = (|SpecificCall|_|) <@ uint32 @>
     let (|ConvUInt64Q|_|) = (|SpecificCall|_|) <@ uint64 @>
-    // Fix    
-    let (|ConvDoubleQ|_|) = (|SpecificCall|_|) <@ double @>
 
     let (|CheckedConvCharQ|_|) = (|SpecificCall|_|) <@ Checked.char @>
     let (|CheckedConvSByteQ|_|) = (|SpecificCall|_|) <@ Checked.sbyte @>
@@ -441,9 +433,6 @@ module QuotationEvaluation =
         // Generic cases 
         | Patterns.Var(v) -> 
                 try
-                    for el in env.varEnv.ToArray() do
-                        let eq = el.Key = v
-                        eq |> ignore
                     Map.find v env.varEnv
                 with
                 |   :? KeyNotFoundException when v.Name = "this" ->
@@ -574,7 +563,6 @@ module QuotationEvaluation =
             | ConvUInt16Q (_, [ty],[x1]) -> Expression.Convert(ConvExpr env x1, typeof<uint16>) |> asExpr
             | ConvUInt32Q (_, [ty],[x1]) -> Expression.Convert(ConvExpr env x1, typeof<uint32>) |> asExpr
             | ConvUInt64Q (_, [ty],[x1]) -> Expression.Convert(ConvExpr env x1, typeof<uint64>) |> asExpr
-            | ConvDoubleQ (_, [ty],[x1]) -> Expression.Convert(ConvExpr env x1, typeof<double>) |> asExpr
              /// REVIEW: convert with method witness
 
             | CheckedConvCharQ (_, [ty],[x1])  -> Expression.ConvertChecked(ConvExpr env x1, typeof<char>) |> asExpr
@@ -871,7 +859,6 @@ open QuotationEvaluation
 type QuotationEvaluator() = 
 
     static member ToLinqExpression (e: Microsoft.FSharp.Quotations.Expr) = e.ToLinqExpression()
-
    
     static member CompileUntyped (e : Microsoft.FSharp.Quotations.Expr) = e.CompileUntyped()
 
