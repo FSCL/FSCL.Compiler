@@ -58,16 +58,6 @@
     <Compile Include="StructAccessCodegen.fs" />
     <Compile Include="VectorElementAccessCodegen.fs" />
   </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\..\Core\FSCL.Compiler.Core.fsproj">
-      <Name>FSCL.Compiler.Core</Name>
-      <Project>7635ADE1-AC00-4587-8117-3FAA15BE9318</Project>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Types\FSCL.Compiler.Core.Types.fsproj">
-      <Name>FSCL.Compiler.Core.Types</Name>
-      <Project>EC288651-4F88-44D7-9206-7A0260552ECC</Project>
-    </ProjectReference>
-  </ItemGroup>
   <PropertyGroup>
     <MinimumVisualStudioVersion Condition="'$(MinimumVisualStudioVersion)' == ''">11</MinimumVisualStudioVersion>
   </PropertyGroup>
@@ -79,4 +69,14 @@
   <Target Name="AfterBuild">
   </Target>
   -->
+  <ItemGroup>
+    <ProjectReference Include="..\..\Core\FSCL.Compiler.Core.fsproj">
+      <Project>7635ADE1-AC00-4587-8117-3FAA15BE9318</Project>
+      <Name>FSCL.Compiler.Core</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Types\FSCL.Compiler.Core.Types.fsproj">
+      <Project>EC288651-4F88-44D7-9206-7A0260552ECC</Project>
+      <Name>FSCL.Compiler.Core.Types</Name>
+    </ProjectReference>
+  </ItemGroup>
 </Project>

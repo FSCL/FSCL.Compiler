@@ -23,6 +23,8 @@ and [<AllowNullLiteral>] FlowGraphNode(kernelId: MethodInfo) =
     member val internal Input = new Dictionary<string, FlowGraphNodeInput>() with get
     member val internal Output = (null, new Dictionary<int, string>()) with get, set
   
+    member val CustomInfo = new Dictionary<String, Object>() with get
+
     member this.IsEntryPoint 
         with get() =
             (Seq.tryFind(
