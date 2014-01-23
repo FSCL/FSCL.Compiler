@@ -25,6 +25,7 @@ and [<AllowNullLiteral>] FlowGraphNode(kernelId: MethodInfo) =
   
     member val CustomInfo = new Dictionary<String, Object>() with get
 
+
     member this.IsEntryPoint 
         with get() =
             (Seq.tryFind(
@@ -47,7 +48,8 @@ type FlowGraphManager() =
 
     static member GetNodeOutput(n: FlowGraphNode) =
         List.ofSeq(snd(n.Output))
-                        
+                
+                      
     static member SetNodeInput(node: FlowGraphNode, 
                                par: string,
                                input: FlowGraphNodeInput) =        
