@@ -47,13 +47,13 @@
     <Compile Include="KernelCallExpressionParser.fs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\Core\FSCL.Compiler.Core.fsproj">
-      <Name>FSCL.Compiler.Core</Name>
-      <Project>7635ADE1-AC00-4587-8117-3FAA15BE9318</Project>
-    </ProjectReference>
     <ProjectReference Include="..\..\Util\FSCL.Compiler.Core.Util.fsproj">
       <Name>FSCL.Compiler.Core.Util</Name>
       <Project>{2089BA93-E786-42E3-B717-58105C53BB7A}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Core\FSCL.Compiler.Core.fsproj">
+      <Project>7635ADE1-AC00-4587-8117-3FAA15BE9318</Project>
+      <Name>FSCL.Compiler.Core</Name>
     </ProjectReference>
   </ItemGroup>
   <PropertyGroup>

@@ -43,12 +43,6 @@
     <Compile Include="ModuleCodegenStep.fs" />
     <Compile Include="ModuleCodegen.fs" />
   </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\..\Core\FSCL.Compiler.Core.fsproj">
-      <Name>FSCL.Compiler.Core</Name>
-      <Project>7635ADE1-AC00-4587-8117-3FAA15BE9318</Project>
-    </ProjectReference>
-  </ItemGroup>
   <PropertyGroup>
     <MinimumVisualStudioVersion Condition="'$(MinimumVisualStudioVersion)' == ''">11</MinimumVisualStudioVersion>
   </PropertyGroup>
@@ -60,4 +54,10 @@
   <Target Name="AfterBuild">
   </Target>
   -->
+  <ItemGroup>
+    <ProjectReference Include="..\..\Core\FSCL.Compiler.Core.fsproj">
+      <Project>7635ADE1-AC00-4587-8117-3FAA15BE9318</Project>
+      <Name>FSCL.Compiler.Core</Name>
+    </ProjectReference>
+  </ItemGroup>
 </Project>

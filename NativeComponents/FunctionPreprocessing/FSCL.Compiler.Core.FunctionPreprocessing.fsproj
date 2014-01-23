@@ -47,10 +47,6 @@
     <Compile Include="RefTypeToArrayReplacing.fs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\Core\FSCL.Compiler.Core.fsproj">
-      <Name>FSCL.Compiler.Core</Name>
-      <Project>7635ADE1-AC00-4587-8117-3FAA15BE9318</Project>
-    </ProjectReference>
     <ProjectReference Include="..\..\Language\FSCL.Compiler.Core.Language.fsproj">
       <Name>FSCL.Compiler.Core.Language</Name>
       <Project>{02CC39BD-A326-49F6-B5E6-2987EADA1BA2}</Project>
@@ -58,6 +54,10 @@
     <ProjectReference Include="..\..\Util\FSCL.Compiler.Core.Util.fsproj">
       <Name>FSCL.Compiler.Core.Util</Name>
       <Project>{2089BA93-E786-42E3-B717-58105C53BB7A}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Core\FSCL.Compiler.Core.fsproj">
+      <Project>7635ADE1-AC00-4587-8117-3FAA15BE9318</Project>
+      <Name>FSCL.Compiler.Core</Name>
     </ProjectReference>
   </ItemGroup>
   <PropertyGroup>

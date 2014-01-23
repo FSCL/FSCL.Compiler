@@ -70,13 +70,13 @@
   </Target>
   -->
   <ItemGroup>
-    <ProjectReference Include="..\..\Core\FSCL.Compiler.Core.fsproj">
-      <Project>7635ADE1-AC00-4587-8117-3FAA15BE9318</Project>
-      <Name>FSCL.Compiler.Core</Name>
-    </ProjectReference>
     <ProjectReference Include="..\..\Types\FSCL.Compiler.Core.Types.fsproj">
       <Project>EC288651-4F88-44D7-9206-7A0260552ECC</Project>
       <Name>FSCL.Compiler.Core.Types</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Core\FSCL.Compiler.Core.fsproj">
+      <Project>7635ADE1-AC00-4587-8117-3FAA15BE9318</Project>
+      <Name>FSCL.Compiler.Core</Name>
     </ProjectReference>
   </ItemGroup>
 </Project>

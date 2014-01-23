@@ -48,10 +48,6 @@
     <Compile Include="AcceleratedArrayParser.fs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\Core\FSCL.Compiler.Core.fsproj">
-      <Name>FSCL.Compiler.Core</Name>
-      <Project>7635ADE1-AC00-4587-8117-3FAA15BE9318</Project>
-    </ProjectReference>
     <ProjectReference Include="..\..\Language\FSCL.Compiler.Core.Language.fsproj">
       <Name>FSCL.Compiler.Core.Language</Name>
       <Project>{02CC39BD-A326-49F6-B5E6-2987EADA1BA2}</Project>
@@ -67,6 +63,10 @@
     <ProjectReference Include="..\..\Tools\FSCL.Compiler.Tools.fsproj">
       <Project>2581B89A-F555-48A7-94BE-9B21654901A7</Project>
       <Name>FSCL.Compiler.Tools</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Core\FSCL.Compiler.Core.fsproj">
+      <Project>7635ADE1-AC00-4587-8117-3FAA15BE9318</Project>
+      <Name>FSCL.Compiler.Core</Name>
     </ProjectReference>
   </ItemGroup>
   <PropertyGroup>
