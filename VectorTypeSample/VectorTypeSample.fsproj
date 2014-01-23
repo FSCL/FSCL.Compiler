@@ -5,12 +5,12 @@
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>431CB9ED-C613-46BE-AD84-B4A0D8532487</ProjectGuid>
-    <OutputType>Library</OutputType>
-    <RootNamespace>FSCL.Compiler.Processors.ModulePrettyPrinting</RootNamespace>
-    <AssemblyName>FSCL.Compiler.Core.ModuleCodegen</AssemblyName>
+    <ProjectGuid>54A68199-9FDA-4077-97F5-313594FD4A63</ProjectGuid>
+    <OutputType>Exe</OutputType>
+    <RootNamespace>VectorTypeSample</RootNamespace>
+    <AssemblyName>VectorTypeSample</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
-    <Name>FSCL.Compiler.Core.ModuleCodegen</Name>
+    <Name>VectorTypeSample</Name>
     <ProductVersion>12.0.0</ProductVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
@@ -21,7 +21,9 @@
     <OutputPath>bin\Debug\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <WarningLevel>3</WarningLevel>
-    <DocumentationFile>bin\Debug\FSCL.Compiler.Processors.ModulePrettyPrinting.XML</DocumentationFile>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DocumentationFile>bin\Debug\VectorTypeSample.XML</DocumentationFile>
+    <Prefer32Bit>true</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -30,7 +32,9 @@
     <OutputPath>bin\Release\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
     <WarningLevel>3</WarningLevel>
-    <DocumentationFile>bin\Release\FSCL.Compiler.Processors.ModulePrettyPrinting.XML</DocumentationFile>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DocumentationFile>bin\Release\VectorTypeSample.XML</DocumentationFile>
+    <Prefer32Bit>true</Prefer32Bit>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="mscorlib" />
@@ -40,8 +44,20 @@
     <Reference Include="System.Numerics" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="ModuleCodegenStep.fs" />
-    <Compile Include="ModuleCodegen.fs" />
+    <Compile Include="Program.fs" />
+    <None Include="App.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Compiler\FSCL.Compiler.fsproj">
+      <Name>FSCL.Compiler</Name>
+      <Project>{5d7c3db1-3300-455e-bf2a-3fb52bdc0595}</Project>
+      <Private>True</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\Language\FSCL.Compiler.Core.Language.fsproj">
+      <Name>FSCL.Compiler.Core.Language</Name>
+      <Project>{02cc39bd-a326-49f6-b5e6-2987eada1ba2}</Project>
+      <Private>True</Private>
+    </ProjectReference>
   </ItemGroup>
   <PropertyGroup>
     <MinimumVisualStudioVersion Condition="'$(MinimumVisualStudioVersion)' == ''">11</MinimumVisualStudioVersion>
@@ -54,10 +70,4 @@
   <Target Name="AfterBuild">
   </Target>
   -->
-  <ItemGroup>
-    <ProjectReference Include="..\..\Core\FSCL.Compiler.Core.fsproj">
-      <Project>7635ADE1-AC00-4587-8117-3FAA15BE9318</Project>
-      <Name>FSCL.Compiler.Core</Name>
-    </ProjectReference>
-  </ItemGroup>
 </Project>

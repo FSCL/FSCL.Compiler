@@ -1,6 +1,0 @@
-[submodule "Plugins/FSCL.Compiler.Plugins.StructHandling"]
-	path = Plugins/FSCL.Compiler.Plugins.StructHandling
-	url = https://github.com/GabrieleCocco/FSCL.Compiler.Plugins.StructHandling.git
-[submodule "Plugins/FSCL.Compiler.Plugins.AcceleratedCollections"]
-	path = Plugins/FSCL.Compiler.Plugins.AcceleratedCollections
-	url = https://github.com/GabrieleCocco/FSCL.Compiler.Plugins.AcceleratedCollections.git

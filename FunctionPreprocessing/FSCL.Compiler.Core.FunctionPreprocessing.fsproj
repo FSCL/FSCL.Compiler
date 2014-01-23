@@ -5,12 +5,12 @@
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>A0EB369A-A29E-4BB9-8B16-CF406E42F534</ProjectGuid>
+    <ProjectGuid>ED8C50CD-4155-4D3A-A682-76757FB2B8D7</ProjectGuid>
     <OutputType>Library</OutputType>
-    <RootNamespace>FSCL.Compiler.Processors.PrettyPrinting</RootNamespace>
-    <AssemblyName>FSCL.Compiler.Core.FunctionCodegen</AssemblyName>
+    <RootNamespace>FSCL.Compiler.Processors.Preprocessing</RootNamespace>
+    <AssemblyName>FSCL.Compiler.Core.FunctionPreprocessing</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
-    <Name>FSCL.Compiler.Core.FunctionCodegen</Name>
+    <Name>FSCL.Compiler.Processors.FunctionPreprocessing</Name>
     <ProductVersion>12.0.0</ProductVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
@@ -21,7 +21,7 @@
     <OutputPath>bin\Debug\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <WarningLevel>3</WarningLevel>
-    <DocumentationFile>bin\Debug\FSCL.Compiler.Processors.PrettyPrinting.XML</DocumentationFile>
+    <DocumentationFile>bin\Debug\FSCL.Compiler.Processors.Preprocessing.XML</DocumentationFile>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -30,7 +30,7 @@
     <OutputPath>bin\Release\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
     <WarningLevel>3</WarningLevel>
-    <DocumentationFile>bin\Release\FSCL.Compiler.Processors.PrettyPrinting.XML</DocumentationFile>
+    <DocumentationFile>bin\Release\FSCL.Compiler.Processors.Preprocessing.XML</DocumentationFile>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="mscorlib" />
@@ -40,23 +40,28 @@
     <Reference Include="System.Numerics" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="FunctionCodegen.fs" />
-    <Compile Include="SignatureCodegen.fs" />
-    <Compile Include="ArrayAccessCodegen.fs" />
-    <Compile Include="ArithmeticOperationCodegen.fs" />
-    <Compile Include="ForInCodegen.fs" />
-    <Compile Include="CallCodegen.fs" />
-    <Compile Include="ValueCodegen.fs" />
-    <Compile Include="VarCodegen.fs" />
-    <Compile Include="IfThenElseCodegen.fs" />
-    <Compile Include="WhileLoopCodegen.fs" />
-    <Compile Include="VarSetCodegen.fs" />
-    <Compile Include="UnionCaseCodegen.fs" />
-    <Compile Include="SequentialCodegen.fs" />
-    <Compile Include="IntegerRangeLoopCodegen.fs" />
-    <Compile Include="DeclarationCodegen.fs" />
-    <Compile Include="StructAccessCodegen.fs" />
-    <Compile Include="VectorElementAccessCodegen.fs" />
+    <Compile Include="FunctionPreprocessing.fs" />
+    <Compile Include="ParametersBuilding.fs" />
+    <Compile Include="ReturnTypeToOutputArgReplacing.fs" />
+    <Compile Include="ArrayParametersManipulation.fs" />
+    <Compile Include="RefTypeToArrayReplacing.fs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Core\FSCL.Compiler.Core.fsproj">
+      <Name>FSCL.Compiler.Core</Name>
+      <Project>{7635ade1-ac00-4587-8117-3faa15be9318}</Project>
+      <Private>True</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\Language\FSCL.Compiler.Core.Language.fsproj">
+      <Name>FSCL.Compiler.Core.Language</Name>
+      <Project>{02cc39bd-a326-49f6-b5e6-2987eada1ba2}</Project>
+      <Private>True</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\Util\FSCL.Compiler.Core.Util.fsproj">
+      <Name>FSCL.Compiler.Core.Util</Name>
+      <Project>{2089ba93-e786-42e3-b717-58105c53bb7a}</Project>
+      <Private>True</Private>
+    </ProjectReference>
   </ItemGroup>
   <PropertyGroup>
     <MinimumVisualStudioVersion Condition="'$(MinimumVisualStudioVersion)' == ''">11</MinimumVisualStudioVersion>
@@ -69,14 +74,4 @@
   <Target Name="AfterBuild">
   </Target>
   -->
-  <ItemGroup>
-    <ProjectReference Include="..\..\Types\FSCL.Compiler.Core.Types.fsproj">
-      <Project>EC288651-4F88-44D7-9206-7A0260552ECC</Project>
-      <Name>FSCL.Compiler.Core.Types</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Core\FSCL.Compiler.Core.fsproj">
-      <Project>7635ADE1-AC00-4587-8117-3FAA15BE9318</Project>
-      <Name>FSCL.Compiler.Core</Name>
-    </ProjectReference>
-  </ItemGroup>
 </Project>

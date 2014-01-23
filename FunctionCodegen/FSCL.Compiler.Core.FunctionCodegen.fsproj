@@ -5,12 +5,12 @@
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>05D3D829-9EEF-411D-BBF7-FE966B2D379B</ProjectGuid>
-    <OutputType>Exe</OutputType>
-    <RootNamespace>Sample</RootNamespace>
-    <AssemblyName>Sample</AssemblyName>
+    <ProjectGuid>A0EB369A-A29E-4BB9-8B16-CF406E42F534</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <RootNamespace>FSCL.Compiler.Processors.PrettyPrinting</RootNamespace>
+    <AssemblyName>FSCL.Compiler.Core.FunctionCodegen</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
-    <Name>AlgorithmSample</Name>
+    <Name>FSCL.Compiler.Core.FunctionCodegen</Name>
     <ProductVersion>12.0.0</ProductVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
@@ -21,9 +21,7 @@
     <OutputPath>bin\Debug\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <WarningLevel>3</WarningLevel>
-    <PlatformTarget>AnyCPU</PlatformTarget>
-    <DocumentationFile>bin\Debug\Sample.XML</DocumentationFile>
-    <Prefer32Bit>true</Prefer32Bit>
+    <DocumentationFile>bin\Debug\FSCL.Compiler.Processors.PrettyPrinting.XML</DocumentationFile>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -32,9 +30,7 @@
     <OutputPath>bin\Release\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
     <WarningLevel>3</WarningLevel>
-    <PlatformTarget>AnyCPU</PlatformTarget>
-    <DocumentationFile>bin\Release\Sample.XML</DocumentationFile>
-    <Prefer32Bit>true</Prefer32Bit>
+    <DocumentationFile>bin\Release\FSCL.Compiler.Processors.PrettyPrinting.XML</DocumentationFile>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="mscorlib" />
@@ -44,20 +40,34 @@
     <Reference Include="System.Numerics" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="SimpleAlgorithms.fs" />
-    <Compile Include="AdvancedFeatures.fs" />
-    <Compile Include="Program.fs" />
-    <None Include="App.config" />
-    <None Include="Testing.fsx" />
+    <Compile Include="FunctionCodegen.fs" />
+    <Compile Include="SignatureCodegen.fs" />
+    <Compile Include="ArrayAccessCodegen.fs" />
+    <Compile Include="ArithmeticOperationCodegen.fs" />
+    <Compile Include="ForInCodegen.fs" />
+    <Compile Include="CallCodegen.fs" />
+    <Compile Include="ValueCodegen.fs" />
+    <Compile Include="VarCodegen.fs" />
+    <Compile Include="IfThenElseCodegen.fs" />
+    <Compile Include="WhileLoopCodegen.fs" />
+    <Compile Include="VarSetCodegen.fs" />
+    <Compile Include="UnionCaseCodegen.fs" />
+    <Compile Include="SequentialCodegen.fs" />
+    <Compile Include="IntegerRangeLoopCodegen.fs" />
+    <Compile Include="DeclarationCodegen.fs" />
+    <Compile Include="StructAccessCodegen.fs" />
+    <Compile Include="VectorElementAccessCodegen.fs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\Compiler\FSCL.Compiler.fsproj">
-      <Name>FSCL.Compiler</Name>
-      <Project>5D7C3DB1-3300-455E-BF2A-3FB52BDC0595</Project>
+    <ProjectReference Include="..\Core\FSCL.Compiler.Core.fsproj">
+      <Name>FSCL.Compiler.Core</Name>
+      <Project>{7635ade1-ac00-4587-8117-3faa15be9318}</Project>
+      <Private>True</Private>
     </ProjectReference>
-    <ProjectReference Include="..\..\Language\FSCL.Compiler.Core.Language.fsproj">
-      <Name>FSCL.Compiler.Core.Language</Name>
-      <Project>{02CC39BD-A326-49F6-B5E6-2987EADA1BA2}</Project>
+    <ProjectReference Include="..\Types\FSCL.Compiler.Core.Types.fsproj">
+      <Name>FSCL.Compiler.Core.Types</Name>
+      <Project>{ec288651-4f88-44d7-9206-7a0260552ecc}</Project>
+      <Private>True</Private>
     </ProjectReference>
   </ItemGroup>
   <PropertyGroup>
