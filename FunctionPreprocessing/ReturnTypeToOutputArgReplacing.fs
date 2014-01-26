@@ -52,9 +52,15 @@ type ReturnTypeToOutputArgProcessor() =
                 Expr.Value(globalSize.Rank)
             else
                 if o.IsSome then
-                    Expr.Call(o.Value, m, List.map(fun (e: Expr) -> this.LiftArgumentsAndKernelCalls(e, args, localSize, globalSize)) arguments)
+                    let evaluatedIstance = this.LiftArgumentsAndKernelCalls(o.Value, args, localSize, globalSize);
+                    let liftedArgs = List.map(fun (e: Expr) -> this.LiftArgumentsAndKernelCalls(e, args, localSize, globalSize)) arguments;
+                    Expr.Call(
+                        evaluatedIstance,
+                        m, 
+                        liftedArgs)
                 else
-                    Expr.Call(m, List.map(fun (e: Expr) -> this.LiftArgumentsAndKernelCalls(e, args, localSize, globalSize)) arguments)
+                    Expr.Call(
+                        m, List.map(fun (e: Expr) -> this.LiftArgumentsAndKernelCalls(e, args, localSize, globalSize)) arguments)
                     (*
                 if m.DeclaringType <> null && m.DeclaringType.Name = "Array" && m.Name = "GetLength" then
                     match arguments.[0] with
@@ -69,7 +75,8 @@ type ReturnTypeToOutputArgProcessor() =
         // Return allocation expression can contain references to arguments
         | Patterns.Var(v) ->
             if (args.ContainsKey(v.Name)) then
-                Expr.Value(args.[v.Name])
+                let t = args.[v.Name].GetType()
+                Expr.Value(args.[v.Name], t)
             else
                 e                
         | ExprShape.ShapeVar(v) ->
@@ -89,7 +96,7 @@ type ReturnTypeToOutputArgProcessor() =
         for exp in sizes do
             let lifted = this.LiftArgumentsAndKernelCalls(exp, args, localSize, globalSize)
             let evaluated = lifted.EvalUntyped()
-            intSizes.Add(evaluated :?> int64)
+            intSizes.Add((evaluated :?> int32) |> int64)
         ExplicitAllocationSize(intSizes |> Seq.toArray)           
 
     member private this.AddReturnTypeVar(kernel:FunctionInfo, var:Var, args:Expr list) =
