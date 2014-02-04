@@ -34,6 +34,12 @@ type ArgumentsBuildingProcessor() =
                     parameterEntry.AddressSpace <- KernelParameterAddressSpace.LocalSpace
                 else    
                     parameterEntry.AddressSpace <- KernelParameterAddressSpace.GlobalSpace 
+
+                let noReadBackAttribute = p.GetCustomAttribute<NoReadBackAttribute>()
+                if noReadBackAttribute <> null then
+                    parameterEntry.ShouldNoReadBack <- true
+                else
+                    parameterEntry.ShouldNoReadBack <- false
             with 
                 | :? NotSupportedException ->
                     Console.WriteLine("Warning - [FSCL.Compiler] - [AcceleratedCollections] - Constant and Local attributes are not available in lambda functions");

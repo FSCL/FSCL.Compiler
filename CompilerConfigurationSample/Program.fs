@@ -6,7 +6,6 @@ open FSCL.Compiler.ModuleParsing
 open FSCL.Compiler.ModulePreprocessing
 open FSCL.Compiler.ModuleCodegen
 open FSCL.Compiler.Types
-
 open FSCL.Compiler
 open FSCL.Compiler.Configuration
 open System.IO
@@ -19,10 +18,10 @@ let main argv =
     //
     // ***************************************************************************************************************    
     printf("01) Test file-based compiler configuration (storage)\n")
-    if Directory.Exists(CompilerConfigurationManager.ConfigurationRoot) then
-        printf "    Compiler configuration root exists: %s\n" CompilerConfigurationManager.ConfigurationRoot
+    if Directory.Exists(Compiler.DefaultConfigurationRoot()) then
+        printf "    Compiler configuration root exists: %s\n" (Compiler.DefaultConfigurationRoot())
     else
-        printf "    Compiler configuration root doesn't exist: %s %s\n" CompilerConfigurationManager.ConfigurationRoot 
+        printf "    Compiler configuration root doesn't exist: %s %s\n" (Compiler.DefaultConfigurationRoot())
                "\n    Please create it, copy some components into it and restart the sample\n"
     let compiler = Compiler()
             
@@ -41,35 +40,35 @@ let main argv =
     //
     // ***************************************************************************************************************
     printf("03) Test object-based compiler configuration (implicit file sources)\n")
-    let configuration = CompilerConfiguration(false, // false = Do not load core sources (explicitely listed as second parameter)
+    let configuration = PipelineConfiguration(false, // false = Do not load core sources (explicitely listed as second parameter)
                                               [
                                                 SourceConfiguration(
                                                     FileSource(Path.Combine(
-                                                                CompilerConfigurationManager.ComponentsRoot,
+                                                                Compiler.DefaultConfigurationComponentsRoot(),
                                                                 "FSCL.Compiler.Core.FunctionPreprocessing.dll")));
                                                 SourceConfiguration(
                                                     FileSource(Path.Combine(
-                                                                CompilerConfigurationManager.ComponentsRoot,
+                                                                Compiler.DefaultConfigurationComponentsRoot(),
                                                                 "FSCL.Compiler.Core.FunctionPrettyPrinting.dll")));
                                                 SourceConfiguration(
                                                     FileSource(Path.Combine(
-                                                                CompilerConfigurationManager.ComponentsRoot,
+                                                                Compiler.DefaultConfigurationComponentsRoot(),
                                                                 "FSCL.Compiler.Core.FunctionTransformation.dll")));
                                                 SourceConfiguration(
                                                     FileSource(Path.Combine(
-                                                                CompilerConfigurationManager.ComponentsRoot,
+                                                                Compiler.DefaultConfigurationComponentsRoot(),
                                                                 "FSCL.Compiler.Core.ModuleParsing.dll")));
                                                 SourceConfiguration(
                                                     FileSource(Path.Combine(
-                                                                CompilerConfigurationManager.ComponentsRoot,
+                                                                Compiler.DefaultConfigurationComponentsRoot(),
                                                                 "FSCL.Compiler.Core.ModulePreprocessing.dll")));
                                                 SourceConfiguration(
                                                     FileSource(Path.Combine(
-                                                                CompilerConfigurationManager.ComponentsRoot,
+                                                                Compiler.DefaultConfigurationComponentsRoot(),
                                                                 "FSCL.Compiler.Core.ModulePrettyPrinting.dll")));
                                                 SourceConfiguration(
                                                     FileSource(Path.Combine(
-                                                                CompilerConfigurationManager.ComponentsRoot,
+                                                                Compiler.DefaultConfigurationComponentsRoot(),
                                                                 "FSCL.Compiler.Core.Types.dll")))
                                               ])
     let compiler3 = Compiler(configuration)
@@ -80,7 +79,7 @@ let main argv =
     //
     // ***************************************************************************************************************
     printf("04) Test object-based compiler configuration (implicit assembly sources)\n")
-    let configuration = CompilerConfiguration(false, // false = Do not load core sources (explicitely listed as second parameter)
+    let configuration = PipelineConfiguration(false, // false = Do not load core sources (explicitely listed as second parameter)
                                               [
                                                 SourceConfiguration(
                                                     AssemblySource(typeof<FunctionPreprocessingStep>.Assembly));
@@ -106,7 +105,7 @@ let main argv =
     //
     // ***************************************************************************************************************
     printf("05) Test object-based compiler configuration (explicit assembly source)\n")
-    let configuration = CompilerConfiguration(false, // false = Do not load core sources (explicitely listed as second parameter)
+    let configuration = PipelineConfiguration(false, // false = Do not load core sources (explicitely listed as second parameter)
                                               [
                                                 SourceConfiguration(                                                                // Explicit source
                                                     AssemblySource(typeof<FunctionPreprocessingStep>.Assembly),                     // The assembly

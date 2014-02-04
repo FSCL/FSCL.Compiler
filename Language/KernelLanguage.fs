@@ -30,6 +30,16 @@ module KernelLanguage =
     type LocalAttribute =
         inherit Attribute
         new() =  { }
+
+    ///
+    ///<summary>
+    ///The attribute to mark a parameter to prevent automatic read at the end of kernel execution
+    ///</summary>
+    ///
+    [<AllowNullLiteral>]
+    type NoReadBackAttribute =
+        inherit Attribute
+        new() =  { }
         
     ///
     ///<summary>

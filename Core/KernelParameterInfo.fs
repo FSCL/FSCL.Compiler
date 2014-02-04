@@ -43,6 +43,7 @@ type KernelParameterInfo(name:string, t: Type) =
     member val Type = t with get, set
     member val IsSizeParameter = false with get, set
     member val IsReturnParameter = false with get, set
+    member val ShouldNoReadBack = false with get, set
     ///
     ///<summary>
     /// The set of additional parameters generated to access this parameter

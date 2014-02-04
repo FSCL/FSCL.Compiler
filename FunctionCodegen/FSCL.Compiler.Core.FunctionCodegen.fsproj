@@ -61,13 +61,11 @@
   <ItemGroup>
     <ProjectReference Include="..\Core\FSCL.Compiler.Core.fsproj">
       <Name>FSCL.Compiler.Core</Name>
-      <Project>{7635ade1-ac00-4587-8117-3faa15be9318}</Project>
-      <Private>True</Private>
+      <Project>7635ADE1-AC00-4587-8117-3FAA15BE9318</Project>
     </ProjectReference>
     <ProjectReference Include="..\Types\FSCL.Compiler.Core.Types.fsproj">
       <Name>FSCL.Compiler.Core.Types</Name>
-      <Project>{ec288651-4f88-44d7-9206-7a0260552ecc}</Project>
-      <Private>True</Private>
+      <Project>EC288651-4F88-44D7-9206-7A0260552ECC</Project>
     </ProjectReference>
   </ItemGroup>
   <PropertyGroup>

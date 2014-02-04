@@ -1,20 +1,39 @@
-﻿namespace FSCL.Compiler
+namespace FSCL.Compiler
 
 open System
 open System.IO
 open System.Reflection
 open FSCL.Compiler
 open FSCL.Compiler.Configuration
-  
+open FSCL.Compiler.ModuleParsing
+open FSCL.Compiler.ModulePreprocessing
+open FSCL.Compiler.ModuleCodegen
+open FSCL.Compiler.FunctionPreprocessing
+open FSCL.Compiler.FunctionCodegen
+open FSCL.Compiler.FunctionTransformation
+open FSCL.Compiler.Types
 ///
 ///<summary>
 ///The FSCL compiler
 ///</summary>
 ///
 type Compiler =  
+    static member private defConfRoot = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "FSCL.Compiler")
+    static member private defConfCompRoot = "Components"
+
+    static member private defComponentsAssemply = 
+        [| typeof<FunctionPreprocessingStep>; 
+           typeof<FunctionTransformationStep>; 
+           typeof<FunctionCodegenStep>; 
+           typeof<ModuleParsingStep>; 
+           typeof<ModulePreprocessingStep>; 
+           typeof<ModuleCodegenStep>; 
+           typeof<DefaultTypeHandler> |]
+
     val mutable private steps : ICompilerStep list
-    val mutable private configuration: CompilerConfiguration
-    
+    val mutable private configuration: PipelineConfiguration
+    val mutable private configurationManager: PipelineConfigurationManager
+
     ///
     ///<summary>
     ///The default constructor of the compiler
@@ -28,9 +47,11 @@ type Compiler =
     ///In addition of the 0 or more components found, the native components are always loaded (if no configuration file is found in the first step)
     ///</remarks>
     ///
-    new() as this = { steps = []; configuration = CompilerConfigurationManager.LoadConfiguration() }   
+    new() as this = { steps = []; 
+                      configurationManager = new PipelineConfigurationManager(Compiler.defComponentsAssemply, Compiler.defConfRoot, Compiler.defConfCompRoot); 
+                      configuration = this.configurationManager.DefaultConfiguration() }   
                     then
-                        this.steps <- CompilerConfigurationManager.Build()
+                        this.steps <- this.configurationManager.Build(this.configuration)
     
     ///
     ///<summary>
@@ -41,9 +62,11 @@ type Compiler =
     ///An instance of the compiler configured with the input file
     ///</returns>
     ///
-    new(file: string) as this = { steps = []; configuration = CompilerConfigurationManager.LoadConfiguration(file) }   
+    new(file: string) as this = { steps = []; 
+                                  configurationManager = new PipelineConfigurationManager(Compiler.defComponentsAssemply, Compiler.defConfRoot, Compiler.defConfCompRoot); 
+                                  configuration = this.configurationManager.LoadConfiguration(file) }   
                                 then
-                                    this.steps <- CompilerConfigurationManager.Build(file)
+                                    this.steps <- this.configurationManager.Build(this.configuration)
     ///
     ///<summary>
     ///The constructor to instantiate a compiler with an object-based configuration
@@ -53,9 +76,11 @@ type Compiler =
     ///An instance of the compiler configured with the input configuration object
     ///</returns>
     ///
-    new(conf: CompilerConfiguration) as this = { steps = []; configuration = conf }   
-                                                then
-                                                    this.steps <- CompilerConfigurationManager.Build(conf)
+    new(conf: PipelineConfiguration) as this = { steps = []; 
+                                                 configurationManager = new PipelineConfigurationManager(Compiler.defComponentsAssemply, Compiler.defConfRoot, Compiler.defConfCompRoot); 
+                                                 configuration = conf }   
+                                               then
+                                                   this.steps <- this.configurationManager.Build(this.configuration)
     ///
     ///<summary>
     ///The compiler configuration
@@ -80,6 +105,14 @@ type Compiler =
             //Console.WriteLine("Step " + (step.GetType().ToString()) + ": " + timer.ElapsedMilliseconds.ToString() + "ms")
         state
           
+    static member DefaultConfigurationRoot() =
+        Compiler.defConfCompRoot
+
+    static member DefaultConfigurationComponentsRoot() =
+        Path.Combine(Compiler.defConfCompRoot, Compiler.defConfCompRoot)
+
+    static member DefaultComponents() =
+        Compiler.defComponentsAssemply
     (*
         let typeManager = new TypeManager([ new DefaultTypeHandler();
                                             new RefVariableTypeHandler()])

@@ -19,7 +19,7 @@ let reduce (x:float32) (y:float32) =
 [<EntryPoint>]
 let main argv = 
     // Configure compiler to load accelerated collections compiler components
-    let conf = new CompilerConfiguration(true, [ SourceConfiguration(FileSource("FSCL.Compiler.AcceleratedCollections.dll")) ])
+    let conf = new PipelineConfiguration(true, [ SourceConfiguration(FileSource("FSCL.Compiler.AcceleratedCollections.dll")) ])
     let compiler = new Compiler(conf)
     
     //#1: reduce with method reference
