@@ -39,6 +39,8 @@ Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "VectorTypeSample", "VectorT
 EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "FSCL.Compiler", "Compiler\FSCL.Compiler.fsproj", "{5D7C3DB1-3300-455E-BF2A-3FB52BDC0595}"
 EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "PipelineConfigurationManager", "StepProcessorConfigurationManager\PipelineConfigurationManager.fsproj", "{F1124EAE-D35E-4C29-96FE-D88E7ADECC84}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -121,6 +123,10 @@ Global
 		{5D7C3DB1-3300-455E-BF2A-3FB52BDC0595}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5D7C3DB1-3300-455E-BF2A-3FB52BDC0595}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{5D7C3DB1-3300-455E-BF2A-3FB52BDC0595}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F1124EAE-D35E-4C29-96FE-D88E7ADECC84}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F1124EAE-D35E-4C29-96FE-D88E7ADECC84}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F1124EAE-D35E-4C29-96FE-D88E7ADECC84}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F1124EAE-D35E-4C29-96FE-D88E7ADECC84}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
