@@ -49,8 +49,9 @@ type Compiler =
     ///
     new() as this = { steps = []; 
                       configurationManager = new PipelineConfigurationManager(Compiler.defComponentsAssemply, Compiler.defConfRoot, Compiler.defConfCompRoot); 
-                      configuration = this.configurationManager.DefaultConfiguration() }   
+                      configuration = null }   
                     then
+                        this.configuration <- this.configurationManager.DefaultConfiguration()
                         this.steps <- this.configurationManager.Build(this.configuration)
     
     ///
@@ -64,8 +65,9 @@ type Compiler =
     ///
     new(file: string) as this = { steps = []; 
                                   configurationManager = new PipelineConfigurationManager(Compiler.defComponentsAssemply, Compiler.defConfRoot, Compiler.defConfCompRoot); 
-                                  configuration = this.configurationManager.LoadConfiguration(file) }   
+                                  configuration = null }   
                                 then
+                                    this.configuration <- this.configurationManager.LoadConfiguration(file)
                                     this.steps <- this.configurationManager.Build(this.configuration)
     ///
     ///<summary>

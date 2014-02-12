@@ -393,6 +393,7 @@ type SourceConfiguration(src: ComponentSource,
 ///Configuration of a compiler instance
 ///</summary>
 ///
+[<AllowNullLiteral>]
 type PipelineConfiguration(defSteps, sources: SourceConfiguration list) =
     ///
     ///<summary>
@@ -456,7 +457,7 @@ type PipelineConfiguration(defSteps, sources: SourceConfiguration list) =
             // Filter out assembly with no components even if made explicit
             let exp = item.MakeExplicit()
             if exp.IsExplicit then
-                sources.Add(item.MakeExplicit())        
+                sources.Add(exp)        
         PipelineConfiguration(this.LoadDefaultSteps, List.ofSeq sources)
         
     member internal this.MergeDefault(def: PipelineConfiguration) =

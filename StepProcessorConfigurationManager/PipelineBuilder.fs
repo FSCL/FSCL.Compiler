@@ -71,6 +71,8 @@ type internal PipelineBuilder() =
 
         // Topological sort of steps
         let sorted = graph.Sorted
+        let i = 0
+
         let steps = seq {
             if sorted.IsNone then
                 raise (PipelineBuildException("Cannot build a pipeline using the specified steps since there is a cycle in steps dependencies"))

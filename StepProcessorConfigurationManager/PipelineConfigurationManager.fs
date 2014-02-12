@@ -65,5 +65,5 @@ type PipelineConfigurationManager(defAssemblyComp:Type array, confRoot, compRoot
         
     member this.Build(conf: PipelineConfiguration) =
         let explicitConf = conf.MergeDefault(this.DefaultConfiguration())
-        this.Build(explicitConf)
+        PipelineBuilder.Build(explicitConf)
 
