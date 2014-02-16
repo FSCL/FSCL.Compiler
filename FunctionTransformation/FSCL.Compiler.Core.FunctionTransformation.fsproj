@@ -49,6 +49,7 @@
     <Compile Include="RefVariableToSingletoArrayTransformation.fs" />
     <Compile Include="ReturnExpressionLifting.fs" />
     <Compile Include="ReturnTagProcessor.fs" />
+    <Compile Include="RightHandlLetInliner.fs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Core\FSCL.Compiler.Core.fsproj">

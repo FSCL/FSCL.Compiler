@@ -40,7 +40,6 @@
     <Reference Include="System.Numerics" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="QuotationEvaluation.fs" />
     <Compile Include="CombinationGenerator.fs" />
     <Compile Include="QuotationAnalysis.fs" />
   </ItemGroup>

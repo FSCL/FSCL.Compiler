@@ -7,7 +7,7 @@ open System.Reflection
 open System
 open Microsoft.FSharp.Quotations
 open Microsoft.FSharp.Reflection
-open Microsoft.FSharp.Linq.QuotationEvaluation
+open Microsoft.FSharp.Linq.RuntimeHelpers
 
 [<StepProcessor("FSCL_CALL_EXPRESSION_PARSING_PROCESSOR", "FSCL_MODULE_PARSING_STEP")>]
 type KernelCallExpressionParser() =      

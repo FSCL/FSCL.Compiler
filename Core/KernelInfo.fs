@@ -48,6 +48,12 @@ type FunctionInfo(id: MethodInfo, expr:Expr) =
     /// The body of the function
     ///</summary>
     ///
+    member val OriginalBody = expr with get
+    ///
+    ///<summary>
+    /// The body of the function
+    ///</summary>
+    ///
     member val Body = expr with get, set
     ///
     ///<summary>
@@ -60,7 +66,13 @@ type FunctionInfo(id: MethodInfo, expr:Expr) =
     /// The generated target code
     ///</summary>
     ///
-    member val Code = "" with get, set       
+    member val Code = "" with get, set      
+    ///
+    ///<summary>
+    /// Whether this function has been generated from a lambda
+    ///</summary>
+    ///
+    member val IsLambda = false with get, set      
     ///
     ///<summary>
     /// A set of custom additional information to be stored in the function

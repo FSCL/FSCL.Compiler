@@ -4,7 +4,7 @@ open FSCL.Compiler
 open System.Collections.Generic
 open System.Reflection
 open Microsoft.FSharp.Quotations
-open Microsoft.FSharp.Linq.QuotationEvaluation
+open Microsoft.FSharp.Linq.RuntimeHelpers
 
 [<StepProcessor("FSCL_GLOBAL_VAR_REF_TRANSFORMATION_PROCESSOR", "FSCL_FUNCTION_TRANSFORMATION_STEP",
                 Dependencies = [| "FSCL_RETURN_ALLOCATION_LIFTING_TRANSFORMATION_PROCESSOR" |])>] 

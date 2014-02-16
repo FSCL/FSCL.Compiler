@@ -14,8 +14,8 @@ type ReturnedBufferAllocationSizeExpression =
 type FlowGraphNodeInput =
 | KernelOutput of FlowGraphNode * int
 | ActualArgument of Expr
-| ReturnedBufferAllocationSize of (Dictionary<string, obj> * int array * int array -> ReturnedBufferAllocationSizeExpression)
-| CompilerPrecomputedValue of (Dictionary<string, obj> * int array * int array -> obj)
+| ReturnedBufferAllocationSize of (Dictionary<string, obj> * int64 array * int64 array -> ReturnedBufferAllocationSizeExpression)
+| CompilerPrecomputedValue of (Dictionary<string, obj> * int64 array * int64 array -> obj)
 | ImplicitValue
 
 and [<AllowNullLiteral>] FlowGraphNode(kernelId: MethodInfo) =

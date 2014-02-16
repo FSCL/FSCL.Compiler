@@ -3,7 +3,7 @@
 open FSCL.Compiler
 open FSCL.Compiler.KernelLanguage
 open Microsoft.FSharp.Quotations
-open Microsoft.FSharp.Linq.QuotationEvaluation
+open Microsoft.FSharp.Linq.RuntimeHelpers
 open System.Collections.Generic
 open System.Reflection.Emit
 open System
@@ -35,18 +35,18 @@ type ReturnTypeToOutputArgProcessor() =
 
     member private this.LiftArgumentsAndKernelCalls(e: Expr,
                                                     args: Dictionary<string, obj>,
-                                                    localSize: int array,
-                                                    globalSize: int array) =
+                                                    localSize: int64 array,
+                                                    globalSize: int64 array) =
         match e with
         // Return allocation expression can contain a call to global_size, local_size, num_groups or work_dim
         | Patterns.Call(o, m, arguments) ->
             if m.DeclaringType.Name = "KernelLanguage" && (m.Name = "get_global_size") then
-                Expr.Value(globalSize.[arguments.[0].EvalUntyped() :?> int])
+                Expr.Value(globalSize.[LeafExpressionConverter.EvaluateQuotation(arguments.[0]) :?> int])
             else if m.DeclaringType.Name = "KernelLanguage" && (m.Name = "get_local_size") then
-                Expr.Value(localSize.[arguments.[0].EvalUntyped() :?> int])
+                Expr.Value(localSize.[LeafExpressionConverter.EvaluateQuotation(arguments.[0]) :?> int])
             else if m.DeclaringType.Name = "KernelLanguage" && (m.Name = "get_num_groups") then
-                let gs = globalSize.[arguments.[0].EvalUntyped() :?> int]
-                let ls = localSize.[arguments.[0].EvalUntyped() :?> int]
+                let gs = globalSize.[LeafExpressionConverter.EvaluateQuotation(arguments.[0]) :?> int]
+                let ls = localSize.[LeafExpressionConverter.EvaluateQuotation(arguments.[0]) :?> int]
                 Expr.Value(int (Math.Ceiling(float gs / float ls)))
             else if m.DeclaringType.Name = "KernelLanguage" && (m.Name = "get_work_dim") then
                 Expr.Value(globalSize.Rank)
@@ -90,12 +90,12 @@ type ReturnTypeToOutputArgProcessor() =
     member private this.EvaluateReturnedBufferAllocationSize(t: Type,
                                                              sizes: Expr list,
                                                              args: Dictionary<string, obj>, 
-                                                             localSize: int array,
-                                                             globalSize: int array) =   
+                                                             localSize: int64 array,
+                                                             globalSize: int64 array) =   
         let intSizes = new List<int64>()    
         for exp in sizes do
             let lifted = this.LiftArgumentsAndKernelCalls(exp, args, localSize, globalSize)
-            let evaluated = lifted.EvalUntyped()
+            let evaluated = LeafExpressionConverter.EvaluateQuotation(lifted)
             intSizes.Add((evaluated :?> int32) |> int64)
         ExplicitAllocationSize(intSizes |> Seq.toArray)           
 

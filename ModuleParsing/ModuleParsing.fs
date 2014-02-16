@@ -12,7 +12,7 @@ type ModuleParsingStep(tm: TypeManager,
     inherit CompilerStep<obj * KernelModule, KernelModule>(tm, processors)
 
     member this.TryProcess(expr:obj) =
-        let mutable index = 0
+        let mutable index = 0 
         let mutable output = None
         while (output.IsNone) && (index < processors.Length) do
             output <- processors.[index].Execute(expr, this) :?> KernelModule option

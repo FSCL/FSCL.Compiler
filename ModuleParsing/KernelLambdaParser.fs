@@ -17,7 +17,9 @@ type KernelLambdaParser() =
             | Some(mi, b) -> 
                 // Create signleton kernel call graph
                 let kernelModule = new KernelModule()
-                kernelModule.AddKernel(new KernelInfo(mi, b))
+                let kInfo = new KernelInfo(mi, b)
+                kInfo.IsLambda <- true
+                kernelModule.AddKernel(kInfo)
                 Some(kernelModule)
             | _ ->
                 None

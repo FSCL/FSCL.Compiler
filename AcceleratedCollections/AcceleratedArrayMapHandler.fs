@@ -11,7 +11,7 @@ open System
 open Microsoft.FSharp.Reflection
 open AcceleratedCollectionUtil
 open FSCL.Compiler.Core.Util
-open Microsoft.FSharp.Linq.QuotationEvaluation
+open Microsoft.FSharp.Linq.RuntimeHelpers
 
 type AcceleratedArrayMapHandler() =
     interface IAcceleratedCollectionHandler with
@@ -25,8 +25,10 @@ type AcceleratedArrayMapHandler() =
                 Secondly, we iterate parsing on the second argument (collection)
                 since it might be a subkernel
             *)
-            let computationFunction =
-                match GetLambdaArgument(args.[0], root) with
+            let lambda = GetLambdaArgument(args.[0], root)
+            let mutable isLambda = false
+            let computationFunction =                
+                match lambda with
                 | Some(l) ->
                     QuotationAnalysis.LambdaToMethod(l)
                 | None ->
@@ -96,7 +98,9 @@ type AcceleratedArrayMapHandler() =
                     kernelModule.GetKernel(signature).Info.Device <- device :?> DeviceAttribute
 
                 // Add the computation function and connect it to the kernel
-                kernelModule.AddFunction(new FunctionInfo(functionInfo, functionBody))
+                let mapFunctionInfo = new FunctionInfo(functionInfo, functionBody)
+                mapFunctionInfo.IsLambda <- isLambda
+                kernelModule.AddFunction(mapFunctionInfo)
                 kernelModule.GetKernel(signature).RequiredFunctions.Add(signature) |> ignore
                 // Connect with subkernel
                 let argExpressions = new Dictionary<string, Expr>()
