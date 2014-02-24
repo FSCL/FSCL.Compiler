@@ -22,11 +22,22 @@ type KernelParameterAddressSpace =
 /// Enumeration describing the access mode to a kernel parameter (R, W, RW or not used)
 ///</summary>
 ///
+[<Flags>]
 type KernelParameterAccessMode =
-| ReadOnly
-| WriteOnly
-| ReadWrite
-| NoAccess
+| NoAccess = 0
+| ReadAccess = 1
+| WriteAccess = 2
+
+///
+///<summary>
+/// Enumeration describing the transfer contraints to a kernel parameter (NoTransfer, NoTransferBack, Transfer)
+///</summary>
+///
+[<Flags>]
+type KernelParameterTransferMode =
+| NoTransfer = 1
+| NoTransferBack = 2
+| Transfer = 0
 
 ///
 ///<summary>
@@ -43,7 +54,6 @@ type KernelParameterInfo(name:string, t: Type) =
     member val Type = t with get, set
     member val IsSizeParameter = false with get, set
     member val IsReturnParameter = false with get, set
-    member val ShouldNoReadBack = false with get, set
     ///
     ///<summary>
     /// The set of additional parameters generated to access this parameter
@@ -65,6 +75,13 @@ type KernelParameterInfo(name:string, t: Type) =
     ///</summary>
     ///
     member val Access = KernelParameterAccessMode.NoAccess with get, set
+    ///
+    ///<summary>
+    /// The transfer mode of this parameter
+    ///</summary>
+    ///
+    member val Transfer = KernelParameterTransferMode.Transfer with get, set
+
     // For kernel return type
     member val Expr = None with get, set
     ///

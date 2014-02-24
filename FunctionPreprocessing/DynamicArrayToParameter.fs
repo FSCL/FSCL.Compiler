@@ -10,10 +10,11 @@ open System
 open Microsoft.FSharp.Reflection
 open System.Runtime.InteropServices
 
-[<StepProcessor("FSCL_RETURN_TYPE_TO_OUTPUT_ARG_REPLACING_PREPROCESSING_PROCESSOR", 
+//RETURN_TYPE_TO_OUTPUT_ARG_REPLACING
+[<StepProcessor("FSCL_DYNAMIC_ARRAY_TO_PARAMETER_PREPROCESSING_PROCESSOR", 
                 "FSCL_FUNCTION_PREPROCESSING_STEP",
                 Dependencies = [|"FSCL_ARGS_BUILDING_PREPROCESSING_PROCESSOR"|])>]
-type ReturnTypeToOutputArgProcessor() =
+type DynamicArrayToParameterProcessor() =
     inherit FunctionPreprocessingProcessor()
     (*
     let ExtractAllocationParameters(e: Expr) =
@@ -87,11 +88,11 @@ type ReturnTypeToOutputArgProcessor() =
             ExprShape.RebuildShapeCombination(c, List.map(fun (e: Expr) -> this.LiftArgumentsAndKernelCalls(e, args, localSize, globalSize)) argsList)
 
 
-    member private this.EvaluateReturnedBufferAllocationSize(t: Type,
-                                                             sizes: Expr list,
-                                                             args: Dictionary<string, obj>, 
-                                                             localSize: int64 array,
-                                                             globalSize: int64 array) =   
+    member private this.EvaluateBufferAllocationSize(t: Type,
+                                                     sizes: Expr list,
+                                                     args: Dictionary<string, obj>, 
+                                                     localSize: int64 array,
+                                                     globalSize: int64 array) =   
         let intSizes = new List<int64>()    
         for exp in sizes do
             let lifted = this.LiftArgumentsAndKernelCalls(exp, args, localSize, globalSize)
@@ -99,51 +100,37 @@ type ReturnTypeToOutputArgProcessor() =
             intSizes.Add((evaluated :?> int32) |> int64)
         ExplicitAllocationSize(intSizes |> Seq.toArray)           
 
-    member private this.AddReturnTypeVar(kernel:FunctionInfo, var:Var, args:Expr list) =
+    member private this.AddDynamicArrayParameter(step: FunctionPreprocessingStep, kernel:FunctionInfo, var:Var, allocationArgs:Expr list) =
         if (var.IsMutable) then
-            raise (new CompilerException("A kernel returned variable must be immutable"))
-                        
-        if not (kernel.CustomInfo.ContainsKey("KERNEL_RETURN_TYPE")) then
-            kernel.CustomInfo.Add("KERNEL_RETURN_TYPE", [ (var, args) ])
-        else 
-            let current = kernel.CustomInfo.["KERNEL_RETURN_TYPE"] :?> (Var * Expr list) list
-            // If not already added
-            if (List.tryFind(fun (v:Var, args:Expr list) -> v = var) current).IsNone then
-                kernel.CustomInfo.["KERNEL_RETURN_TYPE"] <- current @ [ (var, args) ]
-
-    member private this.CorrectSignature(kernel:FunctionInfo, step:FunctionPreprocessingStep) =    
-        if kernel.CustomInfo.ContainsKey("KERNEL_RETURN_TYPE") then
-            let returnedVars = kernel.CustomInfo.["KERNEL_RETURN_TYPE"] :?> (Var * Expr list) list
-
+            raise (new CompilerException("A kernel dynamic array must be immutable"))
+                   
             // Fix signature and kernel parameters
             let kernelInfo = kernel :?> KernelInfo
                         
             // Change return type 
-            kernelInfo.ReturnType <- typeof<unit>
+            //kernelInfo.ReturnType <- typeof<unit>
             
             // Get flow graph nodes matching the current kernel    
             let nodes = FlowGraphManager.GetKernelNodes(step.FunctionInfo.ID, step.FlowGraph)
 
-            // Add return arrays
-            for (v, sizes) in returnedVars do
-                let pInfo = new KernelParameterInfo(v.Name, v.Type)
-                pInfo.IsReturnParameter <- true
-                kernelInfo.Parameters.Add(pInfo)
+            // Add parameter
+            let pInfo = new KernelParameterInfo(var.Name, var.Type)
+            kernelInfo.Parameters.Add(pInfo)
             
-                // Set new argument    
-                for item in nodes do
-                    FlowGraphManager.SetNodeInput(item, 
-                                                  pInfo.Name, 
-                                                  ReturnedBufferAllocationSize(
-                                                    fun(args, localSize, globalSize) ->
-                                                        this.EvaluateReturnedBufferAllocationSize(v.Type.GetElementType(), sizes, args, localSize, globalSize)))
+            // Set new argument    
+            for item in nodes do
+                FlowGraphManager.SetNodeInput(item, 
+                                              pInfo.Name, 
+                                              BufferAllocationSize(
+                                                fun(args, localSize, globalSize) ->
+                                                    this.EvaluateBufferAllocationSize(var.Type.GetElementType(), allocationArgs, args, localSize, globalSize)))
             
             // Change connections bound to the return types of this kernel
             // NB: this modifies the call graph
             //for i = 0 to returnedVars.Length - 1 do
                 //step.ChangeKernelOutputPoint(ReturnValue(i), OutArgument((fst returnedVars.[i]).Name))
        
-    member private this.FindReturnedArraysAllocationExpression(expr:Expr, step:FunctionPreprocessingStep, kernel:FunctionInfo) =
+    member private this.FindArrayAllocationExpression(expr:Expr, step:FunctionPreprocessingStep, kernel:FunctionInfo) =
         match expr with
         | Patterns.Let(var, value, body) ->                        
             match value with
@@ -152,16 +139,16 @@ type ReturnTypeToOutputArgProcessor() =
                     (methodInfo.DeclaringType.Name = "Array2DModule" && methodInfo.Name = "ZeroCreate") ||
                     (methodInfo.DeclaringType.Name = "Array3DModule" && methodInfo.Name = "ZeroCreate") then
                     // Only zero create allocation is permitted and it must be assigned to a non mutable variable
-                    this.AddReturnTypeVar(kernel, var, args)
+                    this.AddDynamicArrayParameter(step, kernel, var, args)
                 for a in args do
-                    this.FindReturnedArraysAllocationExpression(a, step, kernel)
+                    this.FindArrayAllocationExpression(a, step, kernel)
             | _ ->
-                this.FindReturnedArraysAllocationExpression(value, step, kernel)
-            this.FindReturnedArraysAllocationExpression(body, step, kernel)
+                this.FindArrayAllocationExpression(value, step, kernel)
+            this.FindArrayAllocationExpression(body, step, kernel)
         | ExprShape.ShapeLambda(v, e) ->   
-            this.FindReturnedArraysAllocationExpression(e, step, kernel)
+            this.FindArrayAllocationExpression(e, step, kernel)
         | ExprShape.ShapeCombination(o, args) ->   
-            List.iter(fun (e:Expr) ->  this.FindReturnedArraysAllocationExpression(e, step, kernel)) args
+            List.iter(fun (e:Expr) ->  this.FindArrayAllocationExpression(e, step, kernel)) args
         | ExprShape.ShapeVar(v) ->
             ()
         
@@ -175,7 +162,5 @@ type ReturnTypeToOutputArgProcessor() =
             else
                 [| fInfo.Signature.ReturnType |] *)
         // Look for declaration of a variable for each element in the set of returned types
-        this.FindReturnedArraysAllocationExpression(fInfo.Body, engine, fInfo)
-        // Fix signature
-        this.CorrectSignature(fInfo, engine)
+        this.FindArrayAllocationExpression(fInfo.Body, engine, fInfo)
        

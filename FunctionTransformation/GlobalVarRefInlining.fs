@@ -7,7 +7,7 @@ open Microsoft.FSharp.Quotations
 open Microsoft.FSharp.Linq.RuntimeHelpers
 
 [<StepProcessor("FSCL_GLOBAL_VAR_REF_TRANSFORMATION_PROCESSOR", "FSCL_FUNCTION_TRANSFORMATION_STEP",
-                Dependencies = [| "FSCL_RETURN_ALLOCATION_LIFTING_TRANSFORMATION_PROCESSOR" |])>] 
+                Dependencies = [| "FSCL_DYNAMIC_ALLOCATION_LIFTING_TRANSFORMATION_PROCESSOR" |])>] 
 type GlobalVarRefTransformation() =   
     inherit FunctionTransformationProcessor()
 

@@ -9,7 +9,9 @@ open System
 
 [<StepProcessor("FSCL_RETURN_LIFTING_TRANSFORMATION_PROCESSOR", "FSCL_FUNCTION_TRANSFORMATION_STEP",
                 Dependencies = [| "FSCL_ARG_LIFTING_TRANSFORMATION_PROCESSOR";
-                                  "FSCL_RETURN_ALLOCATION_LIFTING_TRANSFORMATION_PROCESSOR";
+                                  "FSCL_FUNCTION_RETURN_DISCOVERY_PROCESSOR";
+                                  "FSCL_KERNEL_RETURN_DISCOVERY_PROCESSOR";
+                                  "FSCL_DYNAMIC_ALLOCATION_LIFTING_TRANSFORMATION_PROCESSOR";
                                   "FSCL_GLOBAL_VAR_REF_TRANSFORMATION_PROCESSOR";
                                   "FSCL_CONDITIONAL_ASSIGN_TRANSFORMATION_PROCESSOR";
                                   "FSCL_ARRAY_ACCESS_TRANSFORMATION_PROCESSOR";
@@ -42,19 +44,19 @@ type ReturnLifting() =
                 result <- false
         result && (temp.Count = 0)
 
-    let LiftReturn (expr:Expr, retV:Quotations.Var list, engine:FunctionTransformationStep) =
+    let LiftReturn (expr:Expr, retV:Quotations.Var, engine:FunctionTransformationStep) =
         if isPotentialReturnExpression then
             match expr with
-            | Patterns.Let(v, value, body) ->
-                if retV.Length = 1 then
-                    match body with
-                    | Patterns.Var(var) ->                    
-                        if var.Name = retV.[0].Name then
-                            Expr.Let(v, value, Expr.Value(()))
-                        else
-                            Expr.Let(v, value, Expr.Var(var))
-                    | _ ->                                        
-                        Expr.Let(v, value, engine.Continue(body))
+            | Patterns.Let(v, value, body) ->                
+                match body with
+                | Patterns.Var(var) ->                    
+                    if var.Name = retV.Name then
+                        Expr.Let(v, value, Expr.Value(()))
+                    else
+                        Expr.Let(v, value, Expr.Var(var))
+                | _ ->                                        
+                    Expr.Let(v, value, engine.Continue(body))
+                (*
                 else
                     // Look for return tuple expression
                     match body with
@@ -76,7 +78,7 @@ type ReturnLifting() =
                             Expr.Let(v, value, Expr.NewTuple(args))
                     | _ ->                                        
                         Expr.Let(v, value, engine.Continue(body))
-
+                        *)
             | Patterns.Sequential(e1, e2) ->
                 isPotentialReturnExpression <- false
                 let pe1 = engine.Continue(e1)
@@ -89,7 +91,7 @@ type ReturnLifting() =
                 let pe2 = engine.Continue(elsexp)
                 Expr.IfThenElse(cond, pe1, pe2)
                         
-            | Patterns.NewTuple(args) -> 
+            | Patterns.NewTuple(args) -> (*
                 // If all the tuple components are var refs                       
                 if isVarsTuple(args) then
                     let vl = List.map(fun (e:Expr) -> 
@@ -103,20 +105,20 @@ type ReturnLifting() =
                         Expr.Value(())
                     else
                         Expr.NewTuple(List.map(fun (e:Expr) -> engine.Continue(e)) args)                                
-                else 
-                    Expr.NewTuple(List.map(fun (e:Expr) -> engine.Continue(e)) args)    
+                else *)
+                Expr.NewTuple(List.map(fun (e:Expr) -> engine.Continue(e)) args)    
 
             | ExprShape.ShapeLambda(v, e) ->
                 let e1 = engine.Continue(e)
-                if retV.Length = 1 then
-                    match e1 with
-                    | Patterns.Var(var) ->
-                        if var.Name = retV.[0].Name then
-                            Expr.Lambda(v, Expr.Value(()))
-                        else
-                            Expr.Lambda(v, e1)
-                    | _ ->
+                match e1 with
+                | Patterns.Var(var) ->
+                    if var.Name = retV.Name then
+                        Expr.Lambda(v, Expr.Value(()))
+                    else
                         Expr.Lambda(v, e1)
+                | _ ->
+                    Expr.Lambda(v, e1)
+                (*
                 else
                     // Look for return tuple expression
                     match e1 with
@@ -138,14 +140,11 @@ type ReturnLifting() =
                             Expr.Lambda(v, e1)  
                     | _ ->       
                         Expr.Lambda(v, e1)          
-
+                        *)
             | ExprShape.ShapeVar(var) ->
-                if retV.Length = 1 then
-                    if var.Name = retV.[0].Name then   
-                        Expr.Value(())
-                    else         
-                        expr
-                else
+                if var.Name = retV.Name then   
+                    Expr.Value(())
+                else         
                     expr
 
             | ExprShape.ShapeCombination(o, args) ->
@@ -156,9 +155,9 @@ type ReturnLifting() =
             
     override this.Run(expr, en) =
         let engine = en :?> FunctionTransformationStep
-        if not (engine.FunctionInfo.CustomInfo.ContainsKey("KERNEL_RETURN_TYPE")) then
+        if not (engine.FunctionInfo.CustomInfo.ContainsKey("RETURN_VARIABLE")) then
             engine.Default(expr)
         else
-            let vars, exprs = List.unzip(engine.FunctionInfo.CustomInfo.["KERNEL_RETURN_TYPE"] :?> (Var * Expr list) list)            
-            LiftReturn(expr, vars, engine)
+            let rv = engine.FunctionInfo.CustomInfo.["RETURN_VARIABLE"] :?> Var            
+            LiftReturn(expr, rv, engine)
 

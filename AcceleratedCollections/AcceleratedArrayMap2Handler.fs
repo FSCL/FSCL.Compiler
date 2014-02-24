@@ -70,7 +70,7 @@ type AcceleratedArrayMap2Handler() =
                 let outputArrayPlaceholder = Expr.Var(Quotations.Var("output_array", outputArrayType))
                     
                 // Now we can create the signature and define parameter name
-                let signature = DynamicMethod("ArrayMap2_" + functionInfo.Name, typeof<unit>, [| firstInputArrayType; secondInputArrayType; outputArrayType |])
+                let signature = DynamicMethod("ArrayMap2_" + functionInfo.Name, outputArrayType, [| firstInputArrayType; secondInputArrayType; outputArrayType |])
                 signature.DefineParameter(1, ParameterAttributes.In, "input_array_1") |> ignore
                 signature.DefineParameter(2, ParameterAttributes.In, "input_array_2") |> ignore
                 signature.DefineParameter(3, ParameterAttributes.In, "output_array") |> ignore
@@ -83,7 +83,8 @@ type AcceleratedArrayMap2Handler() =
                 let kernelBody = 
                     Expr.Let(globalIdVar,
                                 Expr.Call(AcceleratedCollectionUtil.FilterCall(<@ get_global_id @>, fun(e, mi, a) -> mi).Value, [ Expr.Value(0) ]),
-                                Expr.Call(setElementMethodInfo,
+                                Expr.Sequential(
+                                    Expr.Call(setElementMethodInfo,
                                         [ outputArrayPlaceholder;
                                             Expr.Var(globalIdVar);
                                             Expr.Call(functionInfo,
@@ -96,7 +97,9 @@ type AcceleratedArrayMap2Handler() =
                                                                     Expr.Var(globalIdVar) 
                                                                 ])
                                                     ])
-                                        ]))
+                                        ]),
+                                     outputArrayPlaceholder))
+                                    
 
                 // Add current kernel
                 kernelModule.AddKernel(new KernelInfo(signature, kernelBody))  
@@ -138,7 +141,7 @@ type AcceleratedArrayMap2Handler() =
                                                   ActualArgument(args.[2]))
                 FlowGraphManager.SetNodeInput(kernelModule.FlowGraph,
                                               "output_array",
-                                              ReturnedBufferAllocationSize(fun(args, localSize, globalSize) ->
+                                              BufferAllocationSize(fun(args, localSize, globalSize) ->
                                                                             BufferReferenceAllocationExpression("input_array_1")))
                 // Return module                             
                 Some(kernelModule)

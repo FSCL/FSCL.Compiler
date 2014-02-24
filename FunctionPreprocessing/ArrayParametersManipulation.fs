@@ -9,7 +9,7 @@ open Microsoft.FSharp.Quotations
 open System
 
 [<StepProcessor("FSCL_ARRAY_PARAMETERS_MANIPULATION_PREPROCESSING_PROCESSOR", "FSCL_FUNCTION_PREPROCESSING_STEP", 
-                Dependencies = [|"FSCL_RETURN_TYPE_TO_OUTPUT_ARG_REPLACING_PREPROCESSING_PROCESSOR"|])>] 
+                Dependencies = [|"FSCL_DYNAMIC_ARRAY_TO_PARAMETER_PREPROCESSING_PROCESSOR"|])>] 
 type ArrayParametersManipulationProcessor() =        
     inherit FunctionPreprocessingProcessor()
 
@@ -46,7 +46,7 @@ type ArrayParametersManipulationProcessor() =
                 for d = 0 to dimensions - 1 do
                     let sizeP = new KernelParameterInfo(GenerateSizeAdditionalArg(p.Name, d), typeof<int>)
                     // A non-array parameter access is always read only
-                    sizeP.Access <- ReadOnly
+                    sizeP.Access <- KernelParameterAccessMode.ReadAccess
                     // Set var to be used in kernel body
                     sizeP.Placeholder <- Some(Quotations.Var(GenerateSizeAdditionalArg(p.Name, d), typeof<int>, false))
                     // Set this to be a size parameter

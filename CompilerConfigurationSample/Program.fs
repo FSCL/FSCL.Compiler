@@ -115,7 +115,7 @@ let main argv =
                                                                         [ "FSCL_MODULE_PREPROCESSING_STEP"; "FSCL_MODULE_PARSING_STEP" ]) ],
                                                     [ StepProcessorConfiguration("FSCL_RTTOA_PREPROCESSING_PROCESSOR",     // Explicitely define processors
                                                                                  "FSCL_FUNCTION_PREPROCESSING_STEP",
-                                                                                 typeof<ReturnTypeToOutputArgProcessor>);
+                                                                                 typeof<DynamicArrayToParameterProcessor>);
                                                       StepProcessorConfiguration("FSCL_ALAI_PREPROCESSING_PROCESSOR", 
                                                                                  "FSCL_FUNCTION_PREPROCESSING_STEP",
                                                                                  typeof<ArrayParametersManipulationProcessor>,

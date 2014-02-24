@@ -7,14 +7,14 @@ open System
 open System.Collections.ObjectModel
 open System.Collections.Generic
 
-type ReturnedBufferAllocationSizeExpression =
+type BufferAllocationSizeExpression =
 | ExplicitAllocationSize of int64 array
 | BufferReferenceAllocationExpression of string
 
 type FlowGraphNodeInput =
 | KernelOutput of FlowGraphNode * int
 | ActualArgument of Expr
-| ReturnedBufferAllocationSize of (Dictionary<string, obj> * int64 array * int64 array -> ReturnedBufferAllocationSizeExpression)
+| BufferAllocationSize of (Dictionary<string, obj> * int64 array * int64 array -> BufferAllocationSizeExpression)
 | CompilerPrecomputedValue of (Dictionary<string, obj> * int64 array * int64 array -> obj)
 | ImplicitValue
 

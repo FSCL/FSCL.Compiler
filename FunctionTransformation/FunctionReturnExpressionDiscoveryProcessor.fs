@@ -5,17 +5,16 @@ open Microsoft.FSharp.Quotations
 open System.Collections.Generic
 open System.Reflection
 
-[<StepProcessor("FSCL_RETURN_TAG_PROCESSOR", "FSCL_FUNCTION_TRANSFORMATION_STEP",
+[<StepProcessor("FSCL_FUNCTION_RETURN_DISCOVERY_PROCESSOR", "FSCL_FUNCTION_TRANSFORMATION_STEP",
                 Dependencies = [| "FSCL_ARG_LIFTING_TRANSFORMATION_PROCESSOR";
-                                  "FSCL_RETURN_ALLOCATION_LIFTING_TRANSFORMATION_PROCESSOR";
-                                  "FSCL_RETURN_LIFTING_TRANSFORMATION_PROCESSOR";
+                                  "FSCL_DYNAMIC_ALLOCATION_LIFTING_TRANSFORMATION_PROCESSOR";
                                   "FSCL_GLOBAL_VAR_REF_TRANSFORMATION_PROCESSOR";
                                   "FSCL_CONDITIONAL_ASSIGN_TRANSFORMATION_PROCESSOR";
                                   "FSCL_ARRAY_ACCESS_TRANSFORMATION_PROCESSOR";
                                   "FSCL_REF_VAR_TRANSFORMATION_PROCESSOR" |])>]
-type ReturnTagProcessor() =                
+type FunctionReturnExpressionDiscoveryProcessor() =                
     inherit FunctionTransformationProcessor()
-
+    
     let rec SearchReturnExpression(expr:Expr, returnExpressions: List<Expr>, engine:FunctionTransformationStep) =
         match expr with
         | Patterns.Let(v, value, body) ->
@@ -33,7 +32,8 @@ type ReturnTagProcessor() =
             
     override this.Run(expr, en) =    
         let engine = en :?> FunctionTransformationStep
-        let returnTags = new List<Expr>()
-        SearchReturnExpression(expr, returnTags, engine)
-        engine.FunctionInfo.CustomInfo.Add("RETURN_EXPRESSIONS", List.ofSeq returnTags)
+        if not (engine.FunctionInfo :? KernelInfo) then
+            let returnTags = new List<Expr>()
+            SearchReturnExpression(expr, returnTags, engine)
+            engine.FunctionInfo.CustomInfo.Add("RETURN_EXPRESSIONS", List.ofSeq returnTags)
         expr

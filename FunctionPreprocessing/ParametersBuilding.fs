@@ -35,19 +35,22 @@ type ArgumentsBuildingProcessor() =
                 else    
                     parameterEntry.AddressSpace <- KernelParameterAddressSpace.GlobalSpace 
 
-                let noReadBackAttribute = p.GetCustomAttribute<NoReadBackAttribute>()
-                if noReadBackAttribute <> null then
-                    parameterEntry.ShouldNoReadBack <- true
-                else
-                    parameterEntry.ShouldNoReadBack <- false
+                let noTransferAttribute = p.GetCustomAttribute<NoTransferAttribute>()
+                let noTransferBackAttribute = p.GetCustomAttribute<NoTransferBackAttribute>()
+                let mutable transferMode = KernelParameterTransferMode.Transfer
+                if noTransferAttribute <> null then
+                    transferMode <- transferMode ||| KernelParameterTransferMode.NoTransfer
+                if noTransferBackAttribute <> null then
+                    transferMode <- transferMode ||| KernelParameterTransferMode.NoTransferBack
+                parameterEntry.Transfer <- transferMode
             with 
                 | :? NotSupportedException ->
                     Console.WriteLine("Warning - [FSCL.Compiler] - [AcceleratedCollections] - Constant and Local attributes are not available in lambda functions");
                     parameterEntry.AddressSpace <- KernelParameterAddressSpace.GlobalSpace 
                     
             // If the parameter is not an array set the access mode to read
-            if not (p.GetType().IsArray) then
-                parameterEntry.Access <- ReadOnly
+            if not (p.ParameterType.IsArray) then
+                parameterEntry.Access <- KernelParameterAccessMode.ReadAccess
             // Add the parameter to the list of kernel params
             fInfo.Parameters.Add(parameterEntry)
 

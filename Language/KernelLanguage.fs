@@ -13,6 +13,15 @@ module KernelLanguage =
             with get() = s
     ///
     ///<summary>
+    ///The attribute to mark a parameter to be allocated in the global address-space
+    ///</summary>
+    ///
+    [<AllowNullLiteral>]
+    type GlobalAttribute =
+        inherit Attribute
+        new() =  { }
+    ///
+    ///<summary>
     ///The attribute to mark a parameter to be allocated in the constant address-space
     ///</summary>
     ///
@@ -30,14 +39,23 @@ module KernelLanguage =
     type LocalAttribute =
         inherit Attribute
         new() =  { }
-
+        
+    ///
+    ///<summary>
+    ///The attribute to mark a parameter to prevent automatic initialization at the beginning of kernel execution
+    ///</summary>
+    ///
+    [<AllowNullLiteral>]
+    type NoTransferAttribute =
+        inherit Attribute
+        new() =  { }
     ///
     ///<summary>
     ///The attribute to mark a parameter to prevent automatic read at the end of kernel execution
     ///</summary>
     ///
     [<AllowNullLiteral>]
-    type NoReadBackAttribute =
+    type NoTransferBackAttribute =
         inherit Attribute
         new() =  { }
         

@@ -33,12 +33,18 @@ type CallCodegen() =
         | Patterns.Call (o, mi, a) ->
             // Check if the call is the last thing done in the function body
             // If so, prepend "return"
-            let returnTags = engine.FunctionInfo.CustomInfo.["RETURN_EXPRESSIONS"] :?> Expr list
+
             let returnPrefix = 
-                if (List.tryFind(fun (e:Expr) -> e = expr) returnTags).IsSome then
-                    "return "
+                if(engine.FunctionInfo.CustomInfo.ContainsKey("RETURN_EXPRESSIONS")) then
+                    let returnTags = 
+                        engine.FunctionInfo.CustomInfo.["RETURN_EXPRESSIONS"] :?> Expr list
+                    if (List.tryFind(fun (e:Expr) -> e = expr) returnTags).IsSome then
+                        "return "
+                    else
+                        ""
                 else
                     ""
+
             let returnPostfix = if returnPrefix.Length > 0 then ";\n" else ""
 
             let args = String.concat ", " (List.map (fun (e:Expr) -> engine.Continue(e)) a)

@@ -31,11 +31,14 @@ type ArithmeticOperationCodegen() =
     override this.Run(expr, en) =
         let engine = en :?> FunctionCodegenStep
         match expr with 
-        | Patterns.Call(o, mi, args) ->
-            let returnTags = engine.FunctionInfo.CustomInfo.["RETURN_EXPRESSIONS"] :?> Expr list
+        | Patterns.Call(o, mi, args) ->            
             let returnPrefix = 
-                if (List.tryFind(fun (e:Expr) -> e = expr) returnTags).IsSome then
-                    "return "
+                if engine.FunctionInfo.CustomInfo.ContainsKey("RETURN_EXPRESSIONS") then
+                    let returnTags = engine.FunctionInfo.CustomInfo.["RETURN_EXPRESSIONS"] :?> Expr list
+                    if (List.tryFind(fun (e:Expr) -> e = expr) returnTags).IsSome then
+                        "return "
+                    else
+                        ""
                 else
                     ""
             let returnPostfix = if returnPrefix.Length > 0 then ";\n" else ""

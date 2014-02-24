@@ -42,13 +42,14 @@
   <ItemGroup>
     <Compile Include="FunctionTransformation.fs" />
     <Compile Include="ArgLifting.fs" />
-    <Compile Include="ReturnAllocationLifting.fs" />
+    <Compile Include="DynamicAllocationLifting.fs" />
     <Compile Include="GlobalVarRefInlining.fs" />
     <Compile Include="ConditionalAssignmentNormalization.fs" />
     <Compile Include="ArrayAccessFlattening.fs" />
     <Compile Include="RefVariableToSingletoArrayTransformation.fs" />
+    <Compile Include="FunctionReturnExpressionDiscoveryProcessor.fs" />
+    <Compile Include="KernelReturnVarDiscoveryProcessor.fs" />
     <Compile Include="ReturnExpressionLifting.fs" />
-    <Compile Include="ReturnTagProcessor.fs" />
     <Compile Include="RightHandlLetInliner.fs" />
   </ItemGroup>
   <ItemGroup>

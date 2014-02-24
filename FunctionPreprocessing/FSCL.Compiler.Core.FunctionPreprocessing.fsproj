@@ -42,7 +42,7 @@
   <ItemGroup>
     <Compile Include="FunctionPreprocessing.fs" />
     <Compile Include="ParametersBuilding.fs" />
-    <Compile Include="ReturnTypeToOutputArgReplacing.fs" />
+    <Compile Include="DynamicArrayToParameter.fs" />
     <Compile Include="ArrayParametersManipulation.fs" />
     <Compile Include="RefTypeToArrayReplacing.fs" />
   </ItemGroup>

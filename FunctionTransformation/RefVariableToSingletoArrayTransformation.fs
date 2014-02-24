@@ -8,7 +8,7 @@ open System.Reflection
 open Microsoft.FSharp.Core.LanguagePrimitives
 
 [<StepProcessor("FSCL_REF_VAR_TRANSFORMATION_PROCESSOR", "FSCL_FUNCTION_TRANSFORMATION_STEP",
-                Dependencies = [| "FSCL_RETURN_ALLOCATION_LIFTING_TRANSFORMATION_PROCESSOR";
+                Dependencies = [| "FSCL_DYNAMIC_ALLOCATION_LIFTING_TRANSFORMATION_PROCESSOR";
                                   "FSCL_GLOBAL_VAR_REF_TRANSFORMATION_PROCESSOR";
                                   "FSCL_CONDITIONAL_ASSIGN_TRANSFORMATION_PROCESSOR";
                                   "FSCL_ARRAY_ACCESS_TRANSFORMATION_PROCESSOR" |])>]
@@ -32,15 +32,7 @@ type RefVariableTransformationProcessor() =
         for pInfo in data.Parameters do
             if pInfo.Name = var then
                 let newMode = 
-                    match mode, pInfo.Access with
-                    | _, KernelParameterAccessMode.ReadWrite
-                    | KernelParameterAccessMode.ReadWrite, _ ->
-                        KernelParameterAccessMode.ReadWrite
-                    | KernelParameterAccessMode.ReadOnly, KernelParameterAccessMode.WriteOnly
-                    | KernelParameterAccessMode.WriteOnly, KernelParameterAccessMode.ReadOnly ->
-                        KernelParameterAccessMode.ReadWrite
-                    | _, _ ->
-                        mode
+                    mode ||| pInfo.Access
                 pInfo.Access <- newMode
                     
     let GetPlaceholderVar(var, engine:FunctionTransformationStep) = 
@@ -64,7 +56,7 @@ type RefVariableTransformationProcessor() =
                 // Find the placeholder holding the variable of the "arrayzed" ref 
                 let placeholder = GetPlaceholderVar(v.Name, engine)
                 // Update the access mode of this ref
-                UpdateArrayAccessMode(v.Name, KernelParameterAccessMode.ReadOnly, engine)
+                UpdateArrayAccessMode(v.Name, KernelParameterAccessMode.ReadAccess, engine)
                 // Create new array access expression
                 let (readArr, _) = GetArrayAccessMethodInfo (placeholder.Type.GetElementType())
                 Expr.Call(readArr, [Expr.Var(placeholder); Expr.Value(0)])
@@ -76,7 +68,7 @@ type RefVariableTransformationProcessor() =
                 // Find the placeholder holding the variable of the "arrayzed" ref 
                 let placeholder = GetPlaceholderVar(v.Name, engine)
                 // Update the access mode of this ref
-                UpdateArrayAccessMode(v.Name, KernelParameterAccessMode.WriteOnly, engine)
+                UpdateArrayAccessMode(v.Name, KernelParameterAccessMode.WriteAccess, engine)
                 // Create new array access expression
                 let (_, writeArr) = GetArrayAccessMethodInfo (placeholder.Type.GetElementType())
                 Expr.Call(writeArr, [Expr.Var(placeholder); Expr.Value(0); engine.Continue(args.[1])])
