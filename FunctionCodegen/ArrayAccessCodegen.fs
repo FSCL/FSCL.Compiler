@@ -23,7 +23,7 @@ type ArrayAccessCodegen() =
     ///The target code for the array access if the AST node can be processed (i.e. if the source node is an array access expression)
     ///</returns>
     ///  
-    override this.Run(expr, en) =        
+    override this.Run(expr, en, opts) =        
         let engine = en :?> FunctionCodegenStep
         match expr with
         | Patterns.Call(o, methodInfo, args) ->

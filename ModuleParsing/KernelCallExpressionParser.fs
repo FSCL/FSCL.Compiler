@@ -24,7 +24,7 @@ type KernelCallExpressionParser() =
         | _ ->
             (expr)
                 
-    override this.Run(mi, en) =
+    override this.Run(mi, en, opts) =
         let engine = en :?> ModuleParsingStep
         let kernelModule = new KernelModule()
         if (mi :? Expr) then

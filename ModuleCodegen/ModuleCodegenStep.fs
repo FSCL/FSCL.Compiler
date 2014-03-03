@@ -19,8 +19,8 @@ type ModuleCodegenStep(tm: TypeManager,
                        processors: ICompilerStepProcessor list) = 
     inherit CompilerStep<KernelModule, KernelModule * String>(tm, processors)
         
-    override this.Run(k) =
+    override this.Run(k, opts) =
         let state = ref ""
         for p in processors do
-            state := p.Execute((k, !state), this) :?> string
+            state := p.Execute((k, !state), this, opts) :?> string
         (k, !state)

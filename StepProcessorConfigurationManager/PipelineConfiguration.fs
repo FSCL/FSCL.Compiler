@@ -32,6 +32,9 @@ type StepConfiguration(i: string, t: Type, ?dependencies: string list, ?before: 
     ///The ID of the step
     ///</summary>
     ///
+    new() = 
+        new StepConfiguration("", typeof<Object>, [], [])
+
     member val ID = i with get
     ///
     ///<summary>
@@ -167,13 +170,19 @@ type StepProcessorConfiguration(i: string, s: string, t: Type, ?dependencies, ?b
 ///Configuration of a type handler
 ///</summary>
 ///
-type TypeHandlerConfiguration(i:string, t:Type, ?before: string list) =
+type TypeHandlerConfiguration(i:string, t:Type, ?dependencies, ?before: string list) =
     ///
     ///<summary>
     ///Type handler ID
     ///</summary>
     ///
     member val ID = i with get
+    ///
+    ///<summary>
+    ///The type handler dependencies
+    ///</summary>
+    ///
+    member val Dependencies = if dependencies.IsSome then dependencies.Value else [] with get
     ///
     ///<summary>
     ///The set of type handlers that must taken into account only is this one is not able to handle a type
@@ -191,6 +200,11 @@ type TypeHandlerConfiguration(i:string, t:Type, ?before: string list) =
                     XName.Get(this.GetType().Name),
                     new XAttribute(XName.Get("ID"), this.ID),
                     new XAttribute(XName.Get("Type"), this.Type),
+                    new XElement(XName.Get("Dependencies"),
+                        Array.ofSeq(seq {
+                            for item in this.Dependencies do
+                                yield XElement(XName.Get("Item"), XAttribute(XName.Get("ID"), item))
+                        })),
                     new XElement(XName.Get("Before"),
                         Array.ofSeq(seq {
                             for item in this.Before do
@@ -198,11 +212,15 @@ type TypeHandlerConfiguration(i:string, t:Type, ?before: string list) =
                         })))
         el
     static member internal FromXml(el:XElement, a:Assembly) =
-        let before = List<string>()
+        let deps = List<string>()
+        let bef = List<string>()
+        for d in el.Elements(XName.Get("Dependencies")) do
+            for item in d.Elements(XName.Get("Item")) do
+                deps.Add(item.Attribute(XName.Get("ID")).Value)
         for d in el.Elements(XName.Get("Before")) do
             for item in d.Elements(XName.Get("Item")) do
-                before.Add(item.Attribute(XName.Get("ID")).Value)
-        TypeHandlerConfiguration(el.Attribute(XName.Get("ID")).Value, a.GetType(el.Attribute(XName.Get("Type")).Value), List.ofSeq before)   
+                bef.Add(item.Attribute(XName.Get("ID")).Value)
+        TypeHandlerConfiguration(el.Attribute(XName.Get("ID")).Value, a.GetType(el.Attribute(XName.Get("Type")).Value), List.ofSeq deps, List.ofSeq bef)   
                 
 ///
 ///<summary>
@@ -403,11 +421,74 @@ type PipelineConfiguration(defSteps, sources: SourceConfiguration list) =
     member val Sources = sources    
     ///
     ///<summary>
-    //Instantiates a default configuration, which is made by the set of sources of the native compiler components
+    //Instantiates a default configuration with the set of sources of the native compiler components
+    ///</summary>
+    ///
+    new() =
+        PipelineConfiguration(true, [])    
+    ///
+    ///<summary>
+    //Instantiates a default configuration with or without native compiler components
     ///</summary>
     ///
     new(defSteps) =
         PipelineConfiguration(defSteps, [])        
+            
+    ///
+    ///<summary>
+    //Instantiates a configuration with explicit stepe, processors and type handlers
+    new(defSteps, steps:ICompilerStep list, handlers:TypeHandler list) =
+        let sourceDic = new Dictionary<Assembly, List<TypeHandlerConfiguration> * List<StepConfiguration> * List<StepProcessorConfiguration>>()
+        // Fake ids to produce dependency
+        let mutable stepID = 0
+        for i = 0 to steps.Length do 
+            let step = steps.[i]
+            let mutable stepProcID = 0
+            // Build processors configuration
+            for i = 0 to step.Processors.Length do
+                let proc = step.Processors.[i]
+                let assembly = proc.GetType().Assembly
+                if not (sourceDic.ContainsKey(assembly)) then
+                    sourceDic.Add(assembly, (new List<TypeHandlerConfiguration>(), new List<StepConfiguration>(), new List<StepProcessorConfiguration>()))
+                let thc, sc, spc = sourceDic.[assembly]
+                spc.Add(new StepProcessorConfiguration("sp" + stepProcID.ToString(),
+                                                        "s" + stepID.ToString(), 
+                                                        proc.GetType(), 
+                                                        if stepProcID = 0 then [] else [ "sp" + (stepProcID - 1).ToString() ]))
+                stepProcID <- stepProcID + 1
+
+            // Add step configuration
+            let assembly = step.GetType().Assembly
+            if not (sourceDic.ContainsKey(assembly)) then
+                sourceDic.Add(assembly, (new List<TypeHandlerConfiguration>(), new List<StepConfiguration>(), new List<StepProcessorConfiguration>()))
+            let thc, sc, spc = sourceDic.[assembly]
+            sc.Add(new StepConfiguration("s" + stepID.ToString(),
+                                         step.GetType(), 
+                                         if stepID = 0 then [] else [ "s" + (stepProcID - 1).ToString() ]))
+            stepID <- stepID + 1
+
+        // Type handlers
+        let mutable typeHandlerID = 0
+        for i = 0 to handlers.Length do
+            let th = handlers.[i]
+            let assembly = th.GetType().Assembly
+            if not (sourceDic.ContainsKey(assembly)) then
+                sourceDic.Add(assembly, (new List<TypeHandlerConfiguration>(), new List<StepConfiguration>(), new List<StepProcessorConfiguration>()))
+            let thc, sc, spc = sourceDic.[assembly]
+            thc.Add(new TypeHandlerConfiguration("th" + typeHandlerID.ToString(), 
+                                                 th.GetType(), 
+                                                 if typeHandlerID = 0 then [] else [ "th" + (typeHandlerID - 1).ToString() ]))
+            typeHandlerID <- typeHandlerID + 1
+
+        // Create assembly based configuration
+        new PipelineConfiguration(defSteps, List.ofSeq(seq {
+                                                                    for item in sourceDic do
+                                                                        let thc, sc, spc = item.Value                                                                        
+                                                                        yield new SourceConfiguration(AssemblySource(item.Key), List.ofSeq thc, List.ofSeq sc, List.ofSeq spc)     
+                                                               }))
+        
+    ///</summary>
+    ///
     ///
     ///<summary>
     ///Whether or not this configuration is a default configuration
@@ -471,6 +552,9 @@ type PipelineConfiguration(defSteps, sources: SourceConfiguration list) =
             PipelineConfiguration(false, List.ofSeq sources)
         else
             this.MakeExplicit()
+
+                                                          
+        
 
                             
        

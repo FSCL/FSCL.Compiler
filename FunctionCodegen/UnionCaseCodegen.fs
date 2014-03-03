@@ -8,7 +8,7 @@ open Microsoft.FSharp.Quotations
 [<StepProcessor("FSCL_UNION_CASE_CODEGEN_PROCESSOR", "FSCL_FUNCTION_CODEGEN_STEP")>]
 type UnionCaseCodegen() =   
     inherit FunctionBodyCodegenProcessor()
-    override this.Run(e, en) =
+    override this.Run(e, en, opts) =
         let engine = en :?> FunctionCodegenStep
         match e with
         | Patterns.NewUnionCase(ui, args) ->

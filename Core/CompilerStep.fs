@@ -4,6 +4,7 @@ open System
 open System.Reflection
 open System.Collections.Generic
 open Microsoft.FSharp.Quotations
+open System.Collections.ObjectModel
 
 ///
 ///<summary>
@@ -25,7 +26,7 @@ type ICompilerStepProcessor =
     ///<param name="owner">The owner step</param>
     ///<returns>The output produced by this processor</returns>
     /// 
-    abstract member Execute: obj * ICompilerStep -> obj
+    abstract member Execute: obj * ICompilerStep * ReadOnlyDictionary<string, obj> -> obj
 
 ///
 ///<summary>
@@ -58,7 +59,7 @@ and [<AbstractClass>] ICompilerStep(tm: TypeManager, processors:ICompilerStepPro
     ///<param name="obj">The input of the step</param>
     ///<returns>The output produced by this step</returns>
     /// 
-    abstract member Execute: obj -> obj
+    abstract member Execute: obj * ReadOnlyDictionary<string, obj> -> obj
         
 ///
 ///<summary>
@@ -77,10 +78,10 @@ type CompilerStep<'T,'U>(tm, processors) =
     ///<param name="param0">An instance of type 'T</param>
     ///<returns>An instance of type 'U</returns>
     /// 
-    abstract member Run: 'T -> 'U
+    abstract member Run: 'T * ReadOnlyDictionary<string, obj> -> 'U
     
-    override this.Execute(obj) =
-        this.Run(obj :?> 'T) :> obj
+    override this.Execute(obj, opts) =
+        this.Run(obj :?> 'T, opts) :> obj
     
 ///
 ///<summary>
@@ -96,11 +97,11 @@ type [<AbstractClass>] CompilerStepProcessor<'T,'U>() =
     ///<param name="param1">The owner step</param>
     ///<returns>An instance of type 'U</returns>
     /// 
-    abstract member Run: 'T * ICompilerStep -> 'U
+    abstract member Run: 'T * ICompilerStep * ReadOnlyDictionary<string, obj> -> 'U
     
     interface ICompilerStepProcessor with
-        member this.Execute(obj, owner) =
-            this.Run(obj :?> 'T, owner) :> obj
+        member this.Execute(obj, step, opts) =
+            this.Run(obj :?> 'T, step, opts) :> obj
 ///
 ///<summary>
 ///The generic base class of step processors that don't produce any output
@@ -114,11 +115,11 @@ type [<AbstractClass>] CompilerStepProcessor<'T>() =
     ///<param name="param0">An instance of type 'T</param>
     ///<param name="param1">The owner step</param>
     /// 
-    abstract member Run: 'T * ICompilerStep -> unit
+    abstract member Run: 'T * ICompilerStep * ReadOnlyDictionary<string, obj> -> unit
     
     interface ICompilerStepProcessor with
-        member this.Execute(obj, owner) =
-            this.Run(obj :?> 'T, owner) :> obj    
+        member this.Execute(obj, owner, opts) =
+            this.Run(obj :?> 'T, owner, opts) :> obj    
     
 ///
 ///<summary>

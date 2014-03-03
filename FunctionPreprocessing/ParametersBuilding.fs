@@ -12,7 +12,7 @@ open System
 type ArgumentsBuildingProcessor() =        
     inherit FunctionPreprocessingProcessor()
 
-    override this.Run(fInfo, en) =
+    override this.Run(fInfo, en, opts) =
         // Get kernel info
         let kernelInfo = fInfo
         // Get kernel signature

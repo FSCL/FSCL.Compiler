@@ -36,7 +36,7 @@ type StructDiscover() =
                     structs.Add(t, ())
             List.iter(fun (e:Expr) -> CollectStructs(e, structs)) l
 
-    override this.Run(km, en) =
+    override this.Run(km, en, opts) =
         let engine = en :?> ModulePreprocessingStep
         for k in km.GetKernels() do
             let structsDict = new Dictionary<Type, unit>()

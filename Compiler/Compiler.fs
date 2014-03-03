@@ -12,6 +12,8 @@ open FSCL.Compiler.FunctionPreprocessing
 open FSCL.Compiler.FunctionCodegen
 open FSCL.Compiler.FunctionTransformation
 open FSCL.Compiler.Types
+open System.Collections.ObjectModel
+open System.Collections.Generic
 ///
 ///<summary>
 ///The FSCL compiler
@@ -96,16 +98,19 @@ type Compiler =
     ///The method to be invoke to compile a managed kernel
     ///</summary>
     ///  
-    member this.Compile(input) =
+    member this.Compile(input, opts) =
         let mutable state = (input :> obj, new KernelModule()) :> obj
         //let timer = new System.Diagnostics.Stopwatch()
         for step in this.steps do
             //timer.Reset()
             //timer.Start()
-            state <- step.Execute(state)
+            state <- step.Execute(state, opts)
             //timer.Stop()
             //Console.WriteLine("Step " + (step.GetType().ToString()) + ": " + timer.ElapsedMilliseconds.ToString() + "ms")
         state
+        
+    member this.Compile(input) =
+        this.Compile(input, new ReadOnlyDictionary<string, obj>(new Dictionary<string, obj>()))
           
     static member DefaultConfigurationRoot() =
         Compiler.defConfCompRoot

@@ -21,7 +21,7 @@ type ModuleCodegen() =
         print <- print + "}\n";
         print
 
-    override this.Run((km, currOut), en) =
+    override this.Run((km, currOut), en, opts) =
         let engine = en :?> ModuleCodegenStep
         let directives = String.concat "\n\n" (km.GetFlattenRequiredDirectives())
         let structs = km.GetFlattenRequiredGlobalTypes()

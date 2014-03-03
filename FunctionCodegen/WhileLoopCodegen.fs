@@ -8,7 +8,7 @@ open Microsoft.FSharp.Quotations
 [<StepProcessor("FSCL_WHILE_LOOP_CODEGEN_PROCESSOR", "FSCL_FUNCTION_CODEGEN_STEP")>]
 type WhileLoopCodegen() =   
     inherit FunctionBodyCodegenProcessor()
-    override this.Run(expr, en) =
+    override this.Run(expr, en, opts) =
         let engine = en :?> FunctionCodegenStep
         match expr with
         | Patterns.WhileLoop(cond, body) ->

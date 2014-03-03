@@ -10,7 +10,7 @@ open Microsoft.FSharp.Quotations
 type KernelMethodInfoParser() =      
     inherit ModuleParsingProcessor() 
         
-    override this.Run(mi, en) =
+    override this.Run(mi, en, opts) =
         let engine = en :?> ModuleParsingStep
         if (mi :? MethodInfo) then
             match QuotationAnalysis.GetKernelFromMethodInfo(mi :?> MethodInfo) with

@@ -23,8 +23,8 @@ type ArrayParametersManipulationProcessor() =
     let GenerateSizeAdditionalArg (name:string, n:obj) =
          String.Format("{0}_length_{1}", name, n.ToString())
 
-    override this.Run(fInfo, en) =
-        let step = en :?> FunctionPreprocessingStep
+    override this.Run(fInfo, s, opts) =
+        let step = s :?> FunctionPreprocessingStep
 
         // Store size parameters separately to enqueue them at the end
         let sizeParameters = new List<KernelParameterInfo>()

@@ -139,5 +139,22 @@ let main argv =
                                               ])
                                               
     let compiler5 = Compiler(configuration)
-
+       
+    // ***************************************************************************************************************
+    //
+    // 06: Instance-based compiler configuration (the dependency is implicit in the components order, useful for rapid debugging)
+    //
+    // ***************************************************************************************************************
+   (* printf("06) Test instance-based compiler configuration\n")
+    let configuration = PipelineConfiguration(true, [
+                                                new ModuleParsingStep(
+                                                    null,
+                                                    [
+                                                        new KernelReferenceParser();
+                                                        new KernelMethodInfoParser()
+                                                    ])
+                                              ],
+                                              [])
+    let compiler3 = Compiler(configuration)
+     *)                                         
     0

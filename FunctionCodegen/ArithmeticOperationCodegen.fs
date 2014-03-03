@@ -28,7 +28,7 @@ type ArithmeticOperationCodegen() =
     ///The target code for the arithmetic or logic expression if the AST node can be processed (i.e. if the source node is an arithmetic or logic expression expression)
     ///</returns>
     ///  
-    override this.Run(expr, en) =
+    override this.Run(expr, en, opts) =
         let engine = en :?> FunctionCodegenStep
         match expr with 
         | Patterns.Call(o, mi, args) ->            

@@ -26,6 +26,8 @@ type FunctionCodegenStep(tm: TypeManager,
                                 processors: ICompilerStepProcessor list) = 
     inherit CompilerStep<KernelModule, KernelModule>(tm, processors)
     
+    let mutable opts = null
+
     let signatureProcessors = List.map(fun (p:ICompilerStepProcessor) ->
                                         p :?> FunctionSignatureCodegenProcessor) (List.filter (fun (p:ICompilerStepProcessor) -> 
                                                                                  typeof<FunctionSignatureCodegenProcessor>.IsAssignableFrom(p.GetType())) processors)
@@ -50,7 +52,7 @@ type FunctionCodegenStep(tm: TypeManager,
         let mutable index = 0
         let mutable output = None        
         while (output.IsNone) && (index < bodyProcessors.Length) do
-            output <- bodyProcessors.[index].Run(expression, this)
+            output <- bodyProcessors.[index].Run(expression, this, opts)
             index <- index + 1
         // If no suitable generic processor, use specific ones
         if (output.IsNone) then
@@ -62,7 +64,7 @@ type FunctionCodegenStep(tm: TypeManager,
         let mutable index = 0
         let mutable output = None        
         while (output.IsNone) && (index < signatureProcessors.Length) do
-            output <- signatureProcessors.[index].Run((name, List.ofSeq(parameters)), this)
+            output <- signatureProcessors.[index].Run((name, List.ofSeq(parameters)), this, opts)
             index <- index + 1
         // If no suitable generic processor, use specific ones
         if (output.IsNone) then
@@ -88,7 +90,8 @@ type FunctionCodegenStep(tm: TypeManager,
     ///The modified kernel module
     ///</returns>
     ///       
-    override this.Run(km: KernelModule) =    
+    override this.Run(km: KernelModule, opt) =    
+        opts <- opt
         for k in km.GetKernels() do
             if not (k.Info.Skip) then
                 this.Process(k.Info)

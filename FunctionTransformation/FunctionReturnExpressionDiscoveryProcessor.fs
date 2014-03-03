@@ -30,7 +30,7 @@ type FunctionReturnExpressionDiscoveryProcessor() =
             if returnType <> typeof<unit> then
                 returnExpressions.Add(expr)
             
-    override this.Run(expr, en) =    
+    override this.Run(expr, en, opts) =    
         let engine = en :?> FunctionTransformationStep
         if not (engine.FunctionInfo :? KernelInfo) then
             let returnTags = new List<Expr>()

@@ -10,7 +10,7 @@ open Microsoft.FSharp.Quotations
                 Dependencies =[| "FSCL_FOR_RANGE_CODEGEN_PROCESSOR" |])>]
 type DeclarationCodegen() =   
     inherit FunctionBodyCodegenProcessor()
-    override this.Run(expr, en) =
+    override this.Run(expr, en, opts) =
         let engine = en :?> FunctionCodegenStep
         match expr with
         | Patterns.Let(v, value, body) ->

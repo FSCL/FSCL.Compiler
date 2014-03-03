@@ -152,7 +152,7 @@ type DynamicArrayToParameterProcessor() =
         | ExprShape.ShapeVar(v) ->
             ()
         
-    override this.Run(fInfo, en) =
+    override this.Run(fInfo, en, opts) =
         let engine = en :?> FunctionPreprocessingStep
         (*
         // Split components types in case of tuple return type

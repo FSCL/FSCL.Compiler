@@ -60,7 +60,7 @@ type ArrayAccessTransformation() =
             raise (CompilerException("Cannot determine the parameter referred by the kernel body " + var))
         placeholder.Value
 
-    override this.Run(expr, en) =
+    override this.Run(expr, en, opts) =
         let engine = en :?> FunctionTransformationStep
         match expr with
         | Patterns.Call(o, methodInfo, args) ->

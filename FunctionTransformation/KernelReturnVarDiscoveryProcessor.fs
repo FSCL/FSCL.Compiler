@@ -48,7 +48,7 @@ type KernelReturnExpressionDiscoveryProcessor() =
                 | _ ->
                     raise (new CompilerException("Only a reference to a parameter can be returned from within a kernel"))            
             
-    override this.Run(expr, en) =    
+    override this.Run(expr, en, opts) =    
         let engine = en :?> FunctionTransformationStep
         let returnVariable = ref None
 

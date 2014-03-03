@@ -10,7 +10,7 @@ open Microsoft.FSharp.Quotations
 type KernelLambdaParser() =      
     inherit ModuleParsingProcessor()
         
-    override this.Run(mi, en) =
+    override this.Run(mi, en, opts) =
         let engine = en :?> ModuleParsingStep
         if (mi :? Expr) then
             match QuotationAnalysis.LambdaToMethod(mi :?> Expr) with

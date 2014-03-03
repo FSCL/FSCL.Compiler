@@ -15,13 +15,13 @@ type ModulePreprocessingStep(tm: TypeManager,
                              processors: ICompilerStepProcessor list) = 
     inherit CompilerStep<KernelModule, KernelModule>(tm, processors)
            
-    member private this.Process(km) =
+    member private this.Process(km, opts) =
         for p in processors do
-            p.Execute(km, this) |> ignore
+            p.Execute(km, this, opts) |> ignore
         km
 
-    override this.Run(data) =
-        this.Process(data)
+    override this.Run(data, opts) =
+        this.Process(data, opts)
 
         
 

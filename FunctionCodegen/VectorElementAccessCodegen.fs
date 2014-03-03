@@ -9,7 +9,7 @@ open System.Reflection
 [<StepProcessor("FSCL_VECTOR_ELEMENT_ACCESS_CODEGEN_PROCESSOR", "FSCL_FUNCTION_CODEGEN_STEP")>] 
 type VectorElementAccessCodegen() =                 
     inherit FunctionBodyCodegenProcessor()
-    override this.Run(expr, en) =
+    override this.Run(expr, en, opts) =
         let engine = en :?> FunctionCodegenStep
         match expr with    
         | Patterns.PropertyGet(e, propertyInfo, args) ->

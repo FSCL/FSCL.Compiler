@@ -8,7 +8,7 @@ open Microsoft.FSharp.Quotations
 [<StepProcessor("FSCL_INTEGER_RANGE_LOOP_CODEGEN_PROCESSOR", "FSCL_FUNCTION_CODEGEN_STEP")>]
 type IntegerRangeLoopCodegen() =   
     inherit FunctionBodyCodegenProcessor()
-    override this.Run(expr, en) =
+    override this.Run(expr, en, opts) =
         let engine = en :?> FunctionCodegenStep
         match expr with
         | Patterns.ForIntegerRangeLoop(var, startexpr, endexp, body) ->

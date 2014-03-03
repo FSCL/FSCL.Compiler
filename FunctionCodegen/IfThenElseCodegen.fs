@@ -35,7 +35,7 @@ type IfThenElseCodegen() =
         | _ ->
             None              
 
-    override this.Run(expr, en) =
+    override this.Run(expr, en, opts) =
         let engine = en :?> FunctionCodegenStep
         match expr with
         | Patterns.IfThenElse(cond, ifb, elseb) ->

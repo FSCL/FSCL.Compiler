@@ -31,7 +31,7 @@ type ArgExtractionPreprocessor() =
         | _ ->
             expr
         
-    override this.Run(exp, en) =
+    override this.Run(exp, en, opts) =
         let step = en :?> FunctionTransformationStep
         LiftArgExtraction(exp, step.FunctionInfo)
             

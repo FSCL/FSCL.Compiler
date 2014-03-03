@@ -55,7 +55,7 @@ type ConditionalAssignmentTransformation() =
         | _ ->
             raise (CompilerException("Cannot determine variable assignment in if-then-else construct. Try to transform v = if .. else ..; into v; if .. v <- .. else .. v <- .."))
                                                  
-    override this.Run(expr, en) =
+    override this.Run(expr, en, opts) =
         let engine = en :?> FunctionTransformationStep
         match expr with
         | Patterns.Let(v, e, body) ->

@@ -23,7 +23,7 @@ type AcceleratedArrayParser() =
         handlers.Add(FilterCall(<@ Array.map2 @>, fun(e, mi, a) -> mi.GetGenericMethodDefinition()).Value, new AcceleratedArrayMap2Handler())
         handlers.Add(FilterCall(<@ Array.reduce @>, fun(e, mi, a) -> mi.GetGenericMethodDefinition()).Value, new AcceleratedArrayReduceHandler())
             
-    override this.Run(o, en) =
+    override this.Run(o, en, opts) =
         let engine = en :?> ModuleParsingStep
         if o :? Expr then
             match FilterCall(o :?> Expr, fun a -> a) with

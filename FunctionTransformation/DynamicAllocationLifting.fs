@@ -13,7 +13,7 @@ open System.Reflection
 type DynamicllocationLiftingProcessor() =
     inherit FunctionTransformationProcessor()
             
-    override this.Run(expr, en) =
+    override this.Run(expr, en, opts) =
         let engine = en :?> FunctionTransformationStep
         match expr with
         | Patterns.Let(var, value, body) ->

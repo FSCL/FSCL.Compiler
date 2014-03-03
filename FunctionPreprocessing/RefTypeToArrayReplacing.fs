@@ -18,7 +18,7 @@ type RefTypeToArrayReplacingProcessor() =
         else 
             false
 
-    override this.Run(fi, en) =
+    override this.Run(fi, en, opts) =
         // Get kernel info
         let kernelInfo = fi
 

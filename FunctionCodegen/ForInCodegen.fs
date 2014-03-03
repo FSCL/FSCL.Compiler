@@ -23,7 +23,7 @@ type ForInCodegen() =
     ///The target code for the for-in-range expression if the AST node can be processed
     ///</returns>
     ///  
-    override this.Run(expr, en) =
+    override this.Run(expr, en, opts) =
         let engine = en :?> FunctionCodegenStep
         match expr with
         | Patterns.Let (inputSequence, value, body) ->

@@ -36,7 +36,7 @@ type FunctionReferenceDiscover() =
         DiscoverFunctionRefInner(k.Body)
         foundFunctions
 
-    override this.Run(m, en) =
+    override this.Run(m, en, opts) =
         let engine = en :?> ModulePreprocessingStep
         for k in m.GetKernels() do
             let found = DiscoverFunctionRef(k.Info)

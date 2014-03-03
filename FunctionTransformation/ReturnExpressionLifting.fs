@@ -153,7 +153,7 @@ type ReturnLifting() =
         else
             engine.Default(expr)
             
-    override this.Run(expr, en) =
+    override this.Run(expr, en, opts) =
         let engine = en :?> FunctionTransformationStep
         if not (engine.FunctionInfo.CustomInfo.ContainsKey("RETURN_VARIABLE")) then
             engine.Default(expr)

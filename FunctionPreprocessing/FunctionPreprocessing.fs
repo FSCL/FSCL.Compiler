@@ -24,19 +24,19 @@ type FunctionPreprocessingStep(tm: TypeManager,
         and private set(v) =
             this.currentFunction <- v
 
-    member private this.Process(k) =
+    member private this.Process(k, opts) =
         this.FunctionInfo <- k
         for p in processors do
-            p.Execute(k, this) |> ignore
+            p.Execute(k, this, opts) |> ignore
                
-    override this.Run(km: KernelModule) =
+    override this.Run(km: KernelModule, opts) =
         this.FlowGraph <- km.FlowGraph
         for k in km.GetKernels() do
             if not (k.Info.Skip) then
-                this.Process(k.Info)
+                this.Process(k.Info, opts)
         for f in km.GetFunctions() do
             if not (f.Info.Skip) then
-                this.Process(f.Info)
+                this.Process(f.Info, opts)
         km
 
 

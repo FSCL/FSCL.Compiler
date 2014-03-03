@@ -27,7 +27,7 @@ type CallCodegen() =
     ///The target code for the method call (a function call in the target)if the AST node can be processed (i.e. if the source node is a method call)
     ///</returns>
     ///  
-    override this.Run(expr, en) =
+    override this.Run(expr, en, opts) =
         let engine = en :?> FunctionCodegenStep
         match expr with
         | Patterns.Call (o, mi, a) ->

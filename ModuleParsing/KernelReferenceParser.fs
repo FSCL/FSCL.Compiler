@@ -14,7 +14,7 @@ do()
 type KernelReferenceParser() =      
     inherit ModuleParsingProcessor()
     
-    override this.Run(expr, en) =
+    override this.Run(expr, en, opts) =
         let engine = en :?> ModuleParsingStep
         if (expr :? Expr) then
             match QuotationAnalysis.GetKernelFromName(expr :?> Expr) with

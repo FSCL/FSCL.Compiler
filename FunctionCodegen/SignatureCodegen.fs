@@ -38,7 +38,7 @@ type SignatureCodegen() =
     ///The target code for the signature
     ///</returns>
     ///       
-    override this.Run((name, parameters), en) =
+    override this.Run((name, parameters), en, opts) =
         let engine = en :?> FunctionCodegenStep
         // Convert params and produce additional params
         if engine.FunctionInfo.GetType() = typeof<KernelInfo> then
