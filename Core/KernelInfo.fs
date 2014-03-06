@@ -12,19 +12,32 @@ type DeviceAttribute(platform: int, device: int) =
     member val Platform = platform with get
     member val Device = device with get
 
+type FunctionInfoID =
+    | LambdaID of string
+    | MethodID of MethodInfo
 ///
 ///<summary>
 /// The set of information about utility functions collected and maintained by the compiler
 ///</summary>
 ///
 [<AllowNullLiteral>]
-type FunctionInfo(id: MethodInfo, expr:Expr) =
+type FunctionInfo(id: MethodInfo, expr: Expr, isLambda: bool) =
     ///
     ///<summary>
-    /// The original signature of the function
+    /// The ID of the function
     ///</summary>
     ///
-    member val ID = id with get   
+    abstract member ID: FunctionInfoID
+
+    default this.ID 
+        with get() =     
+            // A lambda kernels/function is identified by its AST    
+            if isLambda then
+                LambdaID(expr.ToString())
+            else
+                MethodID(id)
+
+    member val Signature = id with get
     ///
     ///<summary>
     /// The name of the function
@@ -72,7 +85,7 @@ type FunctionInfo(id: MethodInfo, expr:Expr) =
     /// Whether this function has been generated from a lambda
     ///</summary>
     ///
-    member val IsLambda = false with get, set      
+    member val IsLambda = isLambda with get
     ///
     ///<summary>
     /// A set of custom additional information to be stored in the function
@@ -85,7 +98,7 @@ type FunctionInfo(id: MethodInfo, expr:Expr) =
     
     member this.GetParameter(name) =
         Seq.tryFind(fun (p: KernelParameterInfo) -> p.Name = name) (this.Parameters) 
-   
+
    
 ///
 ///<summary>
@@ -101,8 +114,8 @@ type FunctionInfo(id: MethodInfo, expr:Expr) =
 ///</remarks>
 ///     
 [<AllowNullLiteral>]
-type KernelInfo(methodInfo: MethodInfo, expr:Expr) =
-    inherit FunctionInfo(methodInfo, expr)
+type KernelInfo(methodInfo: MethodInfo, expr:Expr, isLambda) =
+    inherit FunctionInfo(methodInfo, expr, isLambda)
 
     member val Device:DeviceAttribute = null 
         with get, set             

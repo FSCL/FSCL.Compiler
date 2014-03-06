@@ -57,6 +57,7 @@
     <Compile Include="DeclarationCodegen.fs" />
     <Compile Include="StructAccessCodegen.fs" />
     <Compile Include="VectorElementAccessCodegen.fs" />
+    <Compile Include="CastCodegen.fs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Core\FSCL.Compiler.Core.fsproj">

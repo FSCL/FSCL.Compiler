@@ -121,13 +121,7 @@ module QuotationAnalysis =
             let sb = new StringBuilder("lambda_")
             for i = 0 to hash.Length - 1 do
                 sb.Append(hash.[i].ToString("x2")) |> ignore
-               (*
-            // Create appropriate MethodInfo
-            let newSignature = new DynamicMethod(sb.ToString(), body.Type, Array.ofList(List.map(fun (v: Var) -> v.Type) parameters))
-            for p = 1 to parameters.Length do
-                newSignature.DefineParameter(p, ParameterAttributes.None, parameters.[p-1].Name) |> ignore
-            Some(newSignature :> MethodInfo, body)
-            *)            
+
             let assemblyName = sb.ToString() + "_module";
             let assemblyBuilder = AppDomain.CurrentDomain.DefineDynamicAssembly(new AssemblyName(assemblyName), AssemblyBuilderAccess.Run);
             let moduleBuilder = assemblyBuilder.DefineDynamicModule(sb.ToString() + "_module");

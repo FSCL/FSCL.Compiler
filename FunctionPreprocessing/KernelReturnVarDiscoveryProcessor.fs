@@ -1,21 +1,17 @@
-﻿namespace FSCL.Compiler.FunctionTransformation
+﻿namespace FSCL.Compiler.FunctionPreprocessing
 
 open FSCL.Compiler
 open Microsoft.FSharp.Quotations
 open System.Collections.Generic
 open System.Reflection
 
-[<StepProcessor("FSCL_KERNEL_RETURN_DISCOVERY_PROCESSOR", "FSCL_FUNCTION_TRANSFORMATION_STEP",
-                Dependencies = [| "FSCL_ARG_LIFTING_TRANSFORMATION_PROCESSOR";
-                                  "FSCL_DYNAMIC_ALLOCATION_LIFTING_TRANSFORMATION_PROCESSOR";
-                                  "FSCL_GLOBAL_VAR_REF_TRANSFORMATION_PROCESSOR";
-                                  "FSCL_CONDITIONAL_ASSIGN_TRANSFORMATION_PROCESSOR";
-                                  "FSCL_ARRAY_ACCESS_TRANSFORMATION_PROCESSOR";
-                                  "FSCL_REF_VAR_TRANSFORMATION_PROCESSOR" |])>]
+[<StepProcessor("FSCL_KERNEL_RETURN_DISCOVERY_PROCESSOR", 
+                "FSCL_FUNCTION_PREPROCESSING_STEP",
+                Dependencies = [| "FSCL_DYNAMIC_ARRAY_TO_PARAMETER_PREPROCESSING_PROCESSOR" |])>]
 type KernelReturnExpressionDiscoveryProcessor() =                
-    inherit FunctionTransformationProcessor()
+    inherit FunctionPreprocessingProcessor()
 
-    let rec SearchReturnExpression(expr:Expr, returnExpression: Var option ref, engine:FunctionTransformationStep) =
+    let rec SearchReturnExpression(expr:Expr, returnExpression: Var option ref, engine:FunctionPreprocessingStep) =
         match expr with
         | Patterns.Let(v, value, body) ->
             SearchReturnExpression(body, returnExpression, engine)
@@ -24,6 +20,8 @@ type KernelReturnExpressionDiscoveryProcessor() =
         | Patterns.IfThenElse(e, ifb, elseb) ->
             SearchReturnExpression(ifb, returnExpression, engine)
             SearchReturnExpression(elseb, returnExpression, engine)
+        | Patterns.Lambda(v, e) ->
+            SearchReturnExpression(e, returnExpression, engine)            
         | _ ->
             // This could be a return expression if its type is subtype of return type
             let returnType = expr.Type
@@ -42,21 +40,24 @@ type KernelReturnExpressionDiscoveryProcessor() =
                         let p = Seq.tryFind(fun (e:KernelParameterInfo) -> e.Name = v.Name) (engine.FunctionInfo.Parameters)
                         if p.IsNone then
                             raise (new CompilerException("Kernels can only return a reference to a parameter or to a dynamically allocated array"))
-                        
-                        p.Value.IsReturnParameter <- true    
+                         
                         returnExpression := Some(v)
                 | _ ->
                     raise (new CompilerException("Only a reference to a parameter can be returned from within a kernel"))            
             
-    override this.Run(expr, en, opts) =    
-        let engine = en :?> FunctionTransformationStep
-        let returnVariable = ref None
+    override this.Run(info, s, opts) =    
+        let engine = s :?> FunctionPreprocessingStep
+        let returnVariable:Var option ref = ref None
 
         if engine.FunctionInfo :? KernelInfo then
-            SearchReturnExpression(expr, returnVariable , engine)
+            SearchReturnExpression(info.Body, returnVariable , engine)
 
             // Verify that return expressions are all references
             if returnVariable.Value.IsSome then
                 engine.FunctionInfo.CustomInfo.Add("RETURN_VARIABLE", returnVariable.Value.Value)
-        expr
+                // Set return parameter to void
+                engine.FunctionInfo.ReturnType <- typeof<unit>
+                // Mark parameter returned as ReturnParameter
+                let p = engine.FunctionInfo.GetParameter(returnVariable.Value.Value.Name)
+                p.Value.IsReturnParameter <- true
         

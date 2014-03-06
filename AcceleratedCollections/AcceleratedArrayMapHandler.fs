@@ -88,20 +88,22 @@ type AcceleratedArrayMapHandler() =
                                         ]))
 
                 // Add current kernel
-                kernelModule.AddKernel(new KernelInfo(signature, kernelBody)) 
+                let kInfo = new AcceleratedKernelInfo(signature, kernelBody, "Array.map", functionBody)
+                kInfo.CustomInfo.Add("IS_ACCELERATED_COLLECTION_KERNEL", true)
+                kernelModule.AddKernel(kInfo) 
                 // Update call graph
-                kernelModule.FlowGraph <- FlowGraphNode(signature)
+                kernelModule.FlowGraph <- FlowGraphNode(kInfo.ID)
 
                 // Detect if device attribute set
                 let device = functionInfo.GetCustomAttribute(typeof<DeviceAttribute>)
                 if device <> null then
-                    kernelModule.GetKernel(signature).Info.Device <- device :?> DeviceAttribute
+                    kernelModule.GetKernel(kInfo.ID).Info.Device <- device :?> DeviceAttribute
 
                 // Add the computation function and connect it to the kernel
-                let mapFunctionInfo = new FunctionInfo(functionInfo, functionBody)
-                mapFunctionInfo.IsLambda <- isLambda
+                let mapFunctionInfo = new FunctionInfo(functionInfo, functionBody, isLambda)
                 kernelModule.AddFunction(mapFunctionInfo)
-                kernelModule.GetKernel(signature).RequiredFunctions.Add(signature) |> ignore
+                kernelModule.GetKernel(kInfo.ID).RequiredFunctions.Add(mapFunctionInfo.ID) |> ignore
+
                 // Connect with subkernel
                 let argExpressions = new Dictionary<string, Expr>()
                 if subkernel <> null then   
@@ -112,6 +114,10 @@ type AcceleratedArrayMapHandler() =
                     FlowGraphManager.SetNodeInput(kernelModule.FlowGraph,
                                                   "input_array",
                                                   ActualArgument(args.[1]))
+                FlowGraphManager.SetNodeInput(kernelModule.FlowGraph,
+                                              "output_array",
+                                              BufferAllocationSize(fun(args, localSize, globalSize) ->
+                                                                            BufferReferenceAllocationExpression("input_array")))
                 // Return module                             
                 Some(kernelModule)
             | _ ->

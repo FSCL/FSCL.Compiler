@@ -21,7 +21,7 @@ type FunctionReferenceDiscover() =
                     match mi with
                     | DerivedPatterns.MethodWithReflectedDefinition(b) ->
                         if not (foundFunctions.ContainsKey(mi)) then
-                            foundFunctions.Add(mi, new FunctionInfo(mi, b))
+                            foundFunctions.Add(mi, new FunctionInfo(mi, b, false))
                     | _ ->
                         ()
                 with

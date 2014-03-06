@@ -43,8 +43,9 @@
     <Compile Include="FunctionPreprocessing.fs" />
     <Compile Include="ParametersBuilding.fs" />
     <Compile Include="DynamicArrayToParameter.fs" />
-    <Compile Include="ArrayParametersManipulation.fs" />
+    <Compile Include="KernelReturnVarDiscoveryProcessor.fs" />
     <Compile Include="RefTypeToArrayReplacing.fs" />
+    <Compile Include="ArrayLenghtArgumentsGenerator.fs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Core\FSCL.Compiler.Core.fsproj">

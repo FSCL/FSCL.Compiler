@@ -41,7 +41,7 @@ type SignatureCodegen() =
     override this.Run((name, parameters), en, opts) =
         let engine = en :?> FunctionCodegenStep
         // Convert params and produce additional params
-        if engine.FunctionInfo.GetType() = typeof<KernelInfo> then
+        if engine.FunctionInfo :? KernelInfo then
             let kernelInfo = engine.FunctionInfo :?> KernelInfo
             let paramsPrint = List.map(fun (p:KernelParameterInfo) ->
                 if p.Type.IsArray then

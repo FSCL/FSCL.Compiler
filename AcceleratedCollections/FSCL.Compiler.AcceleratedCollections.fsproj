@@ -40,6 +40,7 @@
     <Reference Include="System.Numerics" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AcceleratedKernelInfo.fs" />
     <Compile Include="AcceleratedCollectionUtil.fs" />
     <Compile Include="AcceleratedCollectionHandler.fs" />
     <Compile Include="AcceleratedArrayMapHandler.fs" />

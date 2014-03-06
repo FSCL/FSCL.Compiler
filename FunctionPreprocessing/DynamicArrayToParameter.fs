@@ -16,24 +16,7 @@ open System.Runtime.InteropServices
                 Dependencies = [|"FSCL_ARGS_BUILDING_PREPROCESSING_PROCESSOR"|])>]
 type DynamicArrayToParameterProcessor() =
     inherit FunctionPreprocessingProcessor()
-    (*
-    let ExtractAllocationParameters(e: Expr) =
-        match e with
-        | Patterns.Call(o, methodInfo, args) ->               
-            let elementType = 
-                if (methodInfo.DeclaringType.Name = "ArrayModule" && methodInfo.Name = "ZeroCreate") ||
-                    (methodInfo.DeclaringType.Name = "Array2DModule" && methodInfo.Name = "ZeroCreate") ||
-                    (methodInfo.DeclaringType.Name = "Array3DModule" && methodInfo.Name = "ZeroCreate") then
-                        Some(methodInfo.GetGenericArguments().[0])
-                else
-                    None
-            if elementType.IsSome then
-                Some(elementType.Value, args)
-            else
-                None
-        | _ ->
-            None *)
-
+    
     member private this.LiftArgumentsAndKernelCalls(e: Expr,
                                                     args: Dictionary<string, obj>,
                                                     localSize: int64 array,
@@ -104,31 +87,30 @@ type DynamicArrayToParameterProcessor() =
         if (var.IsMutable) then
             raise (new CompilerException("A kernel dynamic array must be immutable"))
                    
-            // Fix signature and kernel parameters
-            let kernelInfo = kernel :?> KernelInfo
+        // Fix signature and kernel parameters
+        let kernelInfo = kernel :?> KernelInfo
                         
-            // Change return type 
-            //kernelInfo.ReturnType <- typeof<unit>
-            
-            // Get flow graph nodes matching the current kernel    
-            let nodes = FlowGraphManager.GetKernelNodes(step.FunctionInfo.ID, step.FlowGraph)
+        // Get flow graph nodes matching the current kernel    
+        let nodes = FlowGraphManager.GetKernelNodes(step.FunctionInfo.ID, step.FlowGraph)
 
-            // Add parameter
-            let pInfo = new KernelParameterInfo(var.Name, var.Type)
-            kernelInfo.Parameters.Add(pInfo)
+        // Add parameter
+        let pInfo = new KernelParameterInfo(var.Name, var.Type)
+        kernelInfo.Parameters.Add(pInfo)
+        pInfo.IsDynamicArrayParameter <- true
+        pInfo.DynamicAllocationArguments <- allocationArgs
             
-            // Set new argument    
-            for item in nodes do
-                FlowGraphManager.SetNodeInput(item, 
-                                              pInfo.Name, 
-                                              BufferAllocationSize(
-                                                fun(args, localSize, globalSize) ->
-                                                    this.EvaluateBufferAllocationSize(var.Type.GetElementType(), allocationArgs, args, localSize, globalSize)))
+        // Set new argument    
+        for item in nodes do
+            FlowGraphManager.SetNodeInput(item, 
+                                          pInfo.Name, 
+                                          BufferAllocationSize(
+                                            fun(args, localSize, globalSize) ->
+                                                this.EvaluateBufferAllocationSize(var.Type.GetElementType(), allocationArgs, args, localSize, globalSize)))
             
-            // Change connections bound to the return types of this kernel
-            // NB: this modifies the call graph
-            //for i = 0 to returnedVars.Length - 1 do
-                //step.ChangeKernelOutputPoint(ReturnValue(i), OutArgument((fst returnedVars.[i]).Name))
+        // Change connections bound to the return types of this kernel
+        // NB: this modifies the call graph
+        //for i = 0 to returnedVars.Length - 1 do
+            //step.ChangeKernelOutputPoint(ReturnValue(i), OutArgument((fst returnedVars.[i]).Name))
        
     member private this.FindArrayAllocationExpression(expr:Expr, step:FunctionPreprocessingStep, kernel:FunctionInfo) =
         match expr with

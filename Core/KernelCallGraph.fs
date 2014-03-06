@@ -18,7 +18,7 @@ type FlowGraphNodeInput =
 | CompilerPrecomputedValue of (Dictionary<string, obj> * int64 array * int64 array -> obj)
 | ImplicitValue
 
-and [<AllowNullLiteral>] FlowGraphNode(kernelId: MethodInfo) =
+and [<AllowNullLiteral>] FlowGraphNode(kernelId: FunctionInfoID) =
     member val KernelID = kernelId with get
     member val internal Input = new Dictionary<string, FlowGraphNodeInput>() with get
     member val internal Output = (null, new Dictionary<int, string>()) with get, set
@@ -116,7 +116,7 @@ type FlowGraphManager() =
             currentIndex <- currentIndex + 1
         List.ofSeq(partialOrder)
         
-    static member GetKernelNodes(id: MethodInfo,
+    static member GetKernelNodes(id: FunctionInfoID,
                                  root: FlowGraphNode) =
         if root <> null then
             let nodes = new List<FlowGraphNode>()

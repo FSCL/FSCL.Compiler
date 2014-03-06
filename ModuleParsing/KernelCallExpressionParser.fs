@@ -34,7 +34,7 @@ type KernelCallExpressionParser() =
                 // Add the current kernel
                 kernelModule.MergeWith(engine.Process(m))
                 // Set the root of the flow graph
-                kernelModule.FlowGraph <- FlowGraphNode(m)
+                kernelModule.FlowGraph <- FlowGraphNode(MethodID(m))
 
                 // Extract and add eventual subkernels
                 let subkernels = List.map(fun (e: Expr) -> 
@@ -82,7 +82,7 @@ type KernelCallExpressionParser() =
                             | _ ->
                                 null
                         // Update call graph
-                        kernelModule.FlowGraph <- FlowGraphNode(mi)
+                        kernelModule.FlowGraph <- FlowGraphNode(MethodID(mi))
                         // Setup connections ret-type -> parameter                            
                         if subkernel <> null then   
                             let retTypes =

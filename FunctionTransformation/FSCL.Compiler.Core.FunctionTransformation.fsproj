@@ -48,7 +48,6 @@
     <Compile Include="ArrayAccessFlattening.fs" />
     <Compile Include="RefVariableToSingletoArrayTransformation.fs" />
     <Compile Include="FunctionReturnExpressionDiscoveryProcessor.fs" />
-    <Compile Include="KernelReturnVarDiscoveryProcessor.fs" />
     <Compile Include="ReturnExpressionLifting.fs" />
     <Compile Include="RightHandlLetInliner.fs" />
   </ItemGroup>

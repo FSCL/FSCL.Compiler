@@ -17,12 +17,12 @@ type KernelMethodInfoParser() =
             | Some(mi, b) -> 
                 // Create signleton kernel call graph
                 let kernelModule = new KernelModule()
-                kernelModule.AddKernel(new KernelInfo(mi, b))
+                kernelModule.AddKernel(new KernelInfo(mi, b, false))
                 
                 // Detect is device attribute set
                 let device = mi.GetCustomAttribute(typeof<DeviceAttribute>)
                 if device <> null then
-                    kernelModule.GetKernel(mi).Info.Device <- device :?> DeviceAttribute
+                    kernelModule.GetKernel(MethodID(mi)).Info.Device <- device :?> DeviceAttribute
 
                 // Create module
                 Some(kernelModule)

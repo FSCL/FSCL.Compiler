@@ -9,7 +9,7 @@ open Microsoft.FSharp.Reflection
 open System
 
 [<StepProcessor("FSCL_REF_TYPE_TO_ARRAY_REPLACING_PREPROCESSING_PROCESSOR", "FSCL_FUNCTION_PREPROCESSING_STEP",
-                Dependencies = [|"FSCL_ARRAY_PARAMETERS_MANIPULATION_PREPROCESSING_PROCESSOR"|])>] 
+                Dependencies = [|"FSCL_KERNEL_RETURN_DISCOVERY_PROCESSOR"|])>] 
 type RefTypeToArrayReplacingProcessor() =        
     inherit FunctionPreprocessingProcessor()
     let IsRef(t:Type) =

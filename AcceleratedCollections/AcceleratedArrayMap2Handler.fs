@@ -101,24 +101,25 @@ type AcceleratedArrayMap2Handler() =
                                      outputArrayPlaceholder))
                                     
 
-                // Add current kernel
-                kernelModule.AddKernel(new KernelInfo(signature, kernelBody))  
+                // Add current kernelbody
+                let kInfo = new AcceleratedKernelInfo(signature, kernelBody, "Array.map2", functionBody)
+                kInfo.CustomInfo.Add("IS_ACCELERATED_COLLECTION_KERNEL", true)
+                kernelModule.AddKernel(kInfo)  
                 // Update call graph
-                kernelModule.FlowGraph <- FlowGraphNode(signature)
+                kernelModule.FlowGraph <- FlowGraphNode(kInfo.ID)
                 
                 // Detect is device attribute set
                 let device = functionInfo.GetCustomAttribute(typeof<DeviceAttribute>)
                 if device <> null then
-                    kernelModule.GetKernel(signature).Info.Device <- device :?> DeviceAttribute
+                    kernelModule.GetKernel(kInfo.ID).Info.Device <- device :?> DeviceAttribute
 
                 // Add the computation function and set that it is required by the kernel
-                let mapFunctionInfo = new FunctionInfo(functionInfo, functionBody)
-                mapFunctionInfo.IsLambda <- isLambda
+                let mapFunctionInfo = new FunctionInfo(functionInfo, functionBody, isLambda)
                 kernelModule.AddFunction(mapFunctionInfo)
-                kernelModule.GetKernel(signature).RequiredFunctions.Add(functionInfo) |> ignore
+                kernelModule.GetKernel(kInfo.ID).RequiredFunctions.Add(mapFunctionInfo.ID) |> ignore
                 
                 // Set that the return value is encoded in the parameter output_array
-                kernelModule.GetKernel(signature).Info.CustomInfo.Add("RETURN_PARAMETER_NAME", "output_array")
+                kernelModule.GetKernel(kInfo.ID).Info.CustomInfo.Add("RETURN_PARAMETER_NAME", "output_array")
 
                 // Connect with subkernels
                 if firstSubkernel <> null then           

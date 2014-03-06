@@ -17,11 +17,14 @@ type internal PipelineBuilder() =
         // Explode sources and group by component type (conf must be explicit)
         for s in conf.Sources do
             for th in s.TypeHandlers do
-                typeHandlers.Add(th.ID, th)
+                if not (typeHandlers.ContainsKey(th.ID)) then
+                    typeHandlers.Add(th.ID, th)
             for st in s.Steps do
-                steps.Add(st.ID, st)
+                if not (steps.ContainsKey(st.ID)) then
+                    steps.Add(st.ID, st)
             for sp in s.StepProcessors do
-                processors.Add(sp.ID, sp)
+                if not (processors.ContainsKey(sp.ID)) then
+                    processors.Add(sp.ID, sp)
 
         // Build type handlers and type manager
         let th = seq { 

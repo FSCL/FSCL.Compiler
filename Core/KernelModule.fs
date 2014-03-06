@@ -9,7 +9,7 @@ open System.Collections.ObjectModel
 [<AllowNullLiteral>]
 type FunctionEnvironment(f: FunctionInfo) =
     member val Info = f with get
-    member val RequiredFunctions = new HashSet<MethodInfo>() with get
+    member val RequiredFunctions = new HashSet<FunctionInfoID>() with get
     member val RequiredGlobalTypes = new HashSet<Type>() with get
     member val RequiredDirectives = new HashSet<String>() with get
 
@@ -32,8 +32,8 @@ type KernelEnvironment(f: KernelInfo) =
 ///
 [<AllowNullLiteral>]
 type KernelModule() =  
-    member val internal kernelStorage = new Dictionary<MethodInfo, KernelEnvironment>()  
-    member val internal functionStorage = new Dictionary<MethodInfo, FunctionEnvironment>()  
+    member val internal kernelStorage = new Dictionary<FunctionInfoID, KernelEnvironment>()  
+    member val internal functionStorage = new Dictionary<FunctionInfoID, FunctionEnvironment>()  
     (*
     // Global-types-related methods
     member this.AddRequiredGlobalType(f: MethodInfo, 
@@ -78,12 +78,12 @@ type KernelModule() =
             k.Value.RequiredDirectives.Remove(info) |> ignore
     *)
     // Kernel-related methods
-    member this.HasKernel(info: MethodInfo) =
-        this.kernelStorage.ContainsKey(info)
+    member this.HasKernel(id: FunctionInfoID) =
+        this.kernelStorage.ContainsKey(id)
             
-    member this.GetKernel(info: MethodInfo) =
-        if this.kernelStorage.ContainsKey(info) then
-            this.kernelStorage.[info]
+    member this.GetKernel(id: FunctionInfoID) =
+        if this.kernelStorage.ContainsKey(id) then
+            this.kernelStorage.[id]
         else
             null
 
@@ -91,17 +91,17 @@ type KernelModule() =
         if not (this.kernelStorage.ContainsKey(info.ID)) then
             this.kernelStorage.Add(info.ID, new KernelEnvironment(info))
             
-    member this.RemoveKernel(info: MethodInfo) =
-        if this.kernelStorage.ContainsKey(info) then
-            this.kernelStorage.Remove(info) |> ignore
+    member this.RemoveKernel(id: FunctionInfoID) =
+        if this.kernelStorage.ContainsKey(id) then
+            this.kernelStorage.Remove(id) |> ignore
 
     // Functions-related methods
-    member this.HasFunction(info: MethodInfo) =
-        this.functionStorage.ContainsKey(info)
+    member this.HasFunction(id: FunctionInfoID) =
+        this.functionStorage.ContainsKey(id)
             
-    member this.GetFunction(info: MethodInfo) =
-        if this.functionStorage.ContainsKey(info) then
-            this.functionStorage.[info]
+    member this.GetFunction(id: FunctionInfoID) =
+        if this.functionStorage.ContainsKey(id) then
+            this.functionStorage.[id]
         else
             null
 
@@ -109,9 +109,9 @@ type KernelModule() =
         if not (this.functionStorage.ContainsKey(info.ID)) then
             this.functionStorage.Add(info.ID, new FunctionEnvironment(info))
             
-    member this.RemoveFunction(info: MethodInfo) =
-        if this.functionStorage.ContainsKey(info) then
-            this.functionStorage.Remove(info) |> ignore
+    member this.RemoveFunction(id: FunctionInfoID) =
+        if this.functionStorage.ContainsKey(id) then
+            this.functionStorage.Remove(id) |> ignore
             
     ///
     ///<summary>
@@ -139,14 +139,14 @@ type KernelModule() =
     member this.GetFlattenRequiredFunctions() =
         this.GetFunctions()
 
-    member this.GetFlattenRequiredFunctions(f: MethodInfo) =
+    member this.GetFlattenRequiredFunctions(id: FunctionInfoID) =
         let depStack = new Stack<FunctionEnvironment>()
         let requiredFunctionsFlatten = new HashSet<FunctionEnvironment>()
         let functionEnvironment = 
-            if this.kernelStorage.ContainsKey(f) then
-                this.kernelStorage.[f] :> FunctionEnvironment
+            if this.kernelStorage.ContainsKey(id) then
+                this.kernelStorage.[id] :> FunctionEnvironment
             else
-                this.functionStorage.[f]
+                this.functionStorage.[id]
 
         for f in functionEnvironment.RequiredFunctions do
             depStack.Push(this.functionStorage.[f])
@@ -169,16 +169,16 @@ type KernelModule() =
                 requiredTypesFlatten.Add(t) |> ignore
         List.ofSeq(requiredTypesFlatten)
         
-    member this.GetFlattenRequiredGlobalTypes(f: MethodInfo) =
+    member this.GetFlattenRequiredGlobalTypes(id: FunctionInfoID) =
         let requiredTypesFlatten = new HashSet<Type>()
         let functionEnvironment = 
-            if this.kernelStorage.ContainsKey(f) then
-                this.kernelStorage.[f] :> FunctionEnvironment
+            if this.kernelStorage.ContainsKey(id) then
+                this.kernelStorage.[id] :> FunctionEnvironment
             else
-                this.functionStorage.[f]
+                this.functionStorage.[id]
         for t in functionEnvironment.RequiredGlobalTypes do
             requiredTypesFlatten.Add(t) |> ignore
-        for df in this.GetFlattenRequiredFunctions(f) do
+        for df in this.GetFlattenRequiredFunctions(id) do
             for t in df.RequiredGlobalTypes do
                 requiredTypesFlatten.Add(t) |> ignore
         List.ofSeq(requiredTypesFlatten)
@@ -193,16 +193,16 @@ type KernelModule() =
                 requiredDirectivesFlatten.Add(t) |> ignore
         List.ofSeq(requiredDirectivesFlatten)
 
-    member this.GetFlattenRequiredDirectives(f: MethodInfo) =
+    member this.GetFlattenRequiredDirectives(id: FunctionInfoID) =
         let requiredDirectivesFlatten = new HashSet<String>()
         let functionEnvironment = 
-            if this.kernelStorage.ContainsKey(f) then
-                this.kernelStorage.[f] :> FunctionEnvironment
+            if this.kernelStorage.ContainsKey(id) then
+                this.kernelStorage.[id] :> FunctionEnvironment
             else
-                this.functionStorage.[f]
+                this.functionStorage.[id]
         for t in functionEnvironment.RequiredDirectives do
             requiredDirectivesFlatten.Add(t) |> ignore
-        for df in this.GetFlattenRequiredFunctions(f) do
+        for df in this.GetFlattenRequiredFunctions(id) do
             for t in df.RequiredDirectives do
                 requiredDirectivesFlatten.Add(t) |> ignore
         List.ofSeq(requiredDirectivesFlatten)

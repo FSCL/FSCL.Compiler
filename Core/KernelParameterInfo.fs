@@ -54,6 +54,9 @@ type KernelParameterInfo(name:string, t: Type) =
     member val Type = t with get, set
     member val IsSizeParameter = false with get, set
     member val IsReturnParameter = false with get, set
+    member val IsDynamicArrayParameter = false with get, set
+
+    member val DynamicAllocationArguments:Expr list = [] with get, set
     ///
     ///<summary>
     /// The set of additional parameters generated to access this parameter

@@ -8,9 +8,9 @@ open System.Reflection.Emit
 open Microsoft.FSharp.Quotations
 open System
 
-[<StepProcessor("FSCL_ARRAY_PARAMETERS_MANIPULATION_PREPROCESSING_PROCESSOR", "FSCL_FUNCTION_PREPROCESSING_STEP", 
-                Dependencies = [|"FSCL_DYNAMIC_ARRAY_TO_PARAMETER_PREPROCESSING_PROCESSOR"|])>] 
-type ArrayParametersManipulationProcessor() =        
+[<StepProcessor("FSCL_ARRAY_LENGHT_ARGS_GENERATOR_PREPROCESSING_PROCESSOR", "FSCL_FUNCTION_PREPROCESSING_STEP", 
+                Dependencies = [| "FSCL_REF_TYPE_TO_ARRAY_REPLACING_PREPROCESSING_PROCESSOR" |])>] 
+type ArrayLenghtArgumentsGenerator() =        
     inherit FunctionPreprocessingProcessor()
 
     let GetArrayDimensions (t:Type) =

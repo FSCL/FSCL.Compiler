@@ -8,7 +8,8 @@ open System.Reflection.Emit
 open Microsoft.FSharp.Quotations
 open System
 
-[<StepProcessor("FSCL_ARGS_BUILDING_PREPROCESSING_PROCESSOR", "FSCL_FUNCTION_PREPROCESSING_STEP")>] 
+[<StepProcessor("FSCL_ARGS_BUILDING_PREPROCESSING_PROCESSOR", 
+                "FSCL_FUNCTION_PREPROCESSING_STEP")>] 
 type ArgumentsBuildingProcessor() =        
     inherit FunctionPreprocessingProcessor()
 
@@ -16,7 +17,7 @@ type ArgumentsBuildingProcessor() =
         // Get kernel info
         let kernelInfo = fInfo
         // Get kernel signature
-        let methodInfo = kernelInfo.ID
+        let methodInfo = kernelInfo.Signature
 
         // Process each parameter
         for p in methodInfo.GetParameters() do
