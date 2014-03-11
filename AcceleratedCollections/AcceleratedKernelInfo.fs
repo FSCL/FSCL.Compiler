@@ -1,7 +1,7 @@
 ﻿namespace FSCL.Compiler.Plugins.AcceleratedCollections
 
 open FSCL.Compiler
-open FSCL.Compiler.KernelLanguage
+open FSCL.Compiler.Language
 open System.Collections.Generic
 open System.Reflection
 open System.Collections.Generic
@@ -9,7 +9,7 @@ open System.Reflection.Emit
 open Microsoft.FSharp.Quotations
 open Microsoft.FSharp.Core.LanguagePrimitives
 open System
-open FSCL.Compiler.Core.Util
+open FSCL.Compiler.Util
 
 type AcceleratedKernelInfo(methodInfo: MethodInfo, expr:Expr, collectionFunction: string, appliedFunction: Expr) =
     inherit KernelInfo(methodInfo, expr, false)

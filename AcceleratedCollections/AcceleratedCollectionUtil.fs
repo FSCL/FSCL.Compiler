@@ -1,7 +1,7 @@
 ﻿namespace FSCL.Compiler.Plugins.AcceleratedCollections
 
 open FSCL.Compiler
-open FSCL.Compiler.KernelLanguage
+open FSCL.Compiler.Language
 open System.Collections.Generic
 open System.Reflection
 open System.Collections.Generic
@@ -9,7 +9,7 @@ open System.Reflection.Emit
 open Microsoft.FSharp.Quotations
 open Microsoft.FSharp.Core.LanguagePrimitives
 open System
-open FSCL.Compiler.Core.Util
+open FSCL.Compiler.Util
 
 module AcceleratedCollectionUtil =
     // Check if the expr is a function reference (name)
@@ -59,6 +59,26 @@ module AcceleratedCollectionUtil =
                 None
         | _ ->
             None
+
+    let ExtractComputationFunction(args: Expr list, root) =     
+        let lambda = GetLambdaArgument(args.[0], root)
+        let computationFunction =                
+            match lambda with
+            | Some(l) ->
+                match QuotationAnalysis.LambdaToMethod(l) with                
+                | Some(m, b, attrs) ->
+                    Some(m, b)
+                | _ ->
+                    failwith ("Cannot parse the body of the computation function " + root.ToString())
+            | None ->
+                FilterCall(args.[0], 
+                    fun (e, mi, a) ->                         
+                        match mi with
+                        | DerivedPatterns.MethodWithReflectedDefinition(body) ->
+                            (mi, body)
+                        | _ ->
+                            failwith ("Cannot parse the body of the computation function " + mi.Name))
+        lambda, computationFunction
 
     (* 
      * Replace the arguments of a call

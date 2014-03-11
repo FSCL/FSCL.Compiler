@@ -1,7 +1,7 @@
 ﻿module AdvancedFeatures
 
 open FSCL
-open FSCL.Compiler.KernelLanguage
+open FSCL.Compiler.Language
 
 // Demonstrate the usage of math functions
 [<ReflectedDefinition>]

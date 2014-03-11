@@ -4,13 +4,7 @@ open System.Reflection
 open Microsoft.FSharp.Quotations
 open System
 open System.Collections.Generic
-
-[<AllowNullLiteral>]
-type DeviceAttribute(platform: int, device: int) =
-    inherit Attribute()
-
-    member val Platform = platform with get
-    member val Device = device with get
+open System.Collections.ObjectModel
 
 type FunctionInfoID =
     | LambdaID of string
@@ -22,6 +16,13 @@ type FunctionInfoID =
 ///
 [<AllowNullLiteral>]
 type FunctionInfo(id: MethodInfo, expr: Expr, isLambda: bool) =
+    let dynamicAttributes = 
+        let dictionary = new DynamicKernelAttributeCollection()        
+        for item in id.GetCustomAttributes() do
+            if typeof<DynamicKernelAttributeAttribute>.IsAssignableFrom(item.GetType()) then
+                dictionary.Add(item.GetType(), item :?> DynamicKernelAttributeAttribute)
+        new ReadOnlyDynamicKernelAttributeCollection(dictionary)
+        
     ///
     ///<summary>
     /// The ID of the function
@@ -95,10 +96,15 @@ type FunctionInfo(id: MethodInfo, expr: Expr, isLambda: bool) =
     ///</remarks>
     ///
     member val CustomInfo = new Dictionary<String, Object>() with get
+    ///
+    ///<summary>
+    /// The static attributes of the function
+    ///</summary>
+    ///
+    member val Attributes = dynamicAttributes with get
     
     member this.GetParameter(name) =
-        Seq.tryFind(fun (p: KernelParameterInfo) -> p.Name = name) (this.Parameters) 
-
+        Seq.tryFind(fun (p: KernelParameterInfo) -> p.Name = name) (this.Parameters)         
    
 ///
 ///<summary>
@@ -116,6 +122,3 @@ type FunctionInfo(id: MethodInfo, expr: Expr, isLambda: bool) =
 [<AllowNullLiteral>]
 type KernelInfo(methodInfo: MethodInfo, expr:Expr, isLambda) =
     inherit FunctionInfo(methodInfo, expr, isLambda)
-
-    member val Device:DeviceAttribute = null 
-        with get, set             

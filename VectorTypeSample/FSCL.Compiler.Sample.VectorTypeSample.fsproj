@@ -10,7 +10,7 @@
     <RootNamespace>VectorTypeSample</RootNamespace>
     <AssemblyName>VectorTypeSample</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
-    <Name>VectorTypeSample</Name>
+    <Name>FSCL.Compiler.Sample.VectorTypeSample</Name>
     <ProductVersion>12.0.0</ProductVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">

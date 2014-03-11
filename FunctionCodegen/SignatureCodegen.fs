@@ -46,10 +46,10 @@ type SignatureCodegen() =
             let paramsPrint = List.map(fun (p:KernelParameterInfo) ->
                 if p.Type.IsArray then
                     // If the parameters is tagged with Contant attribute, prepend constant keyword, else global
-                    let addressSpace = p.AddressSpace
-                    if addressSpace = KernelParameterAddressSpace.LocalSpace then
+                    let addressSpace = p.
+                    if addressSpace = AddressSpace.LocalSpace then
                         "local " + engine.TypeManager.Print(p.Type) + p.Name
-                    elif addressSpace = KernelParameterAddressSpace.ConstantSpace then
+                    elif addressSpace = AddressSpace.ConstantSpace then
                         "constant " + engine.TypeManager.Print(p.Type) + p.Name
                     else
                         "global " + engine.TypeManager.Print(p.Type) + p.Name

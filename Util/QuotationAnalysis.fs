@@ -1,4 +1,4 @@
-﻿namespace FSCL.Compiler.Core.Util
+﻿namespace FSCL.Compiler.Util
 
 open System
 open System.Text
@@ -10,8 +10,79 @@ open Microsoft.FSharp.Reflection
 open Microsoft.FSharp.Quotations
 open Microsoft.FSharp.Quotations.Patterns
 open Microsoft.FSharp.Quotations.DerivedPatterns
+open Microsoft.FSharp.Linq.RuntimeHelpers
+open FSCL.Compiler.Language
+open FSCL.Compiler
+open System.Collections.ObjectModel
 
 module QuotationAnalysis =
+    let private ParseDynamicAttributes<'T>(expr, attrs: Dictionary<Type, 'T>) =
+        let rec ParseDynamicAttributesInternal(expr) =
+            match expr with
+            | Patterns.Call(o, mi, args) ->
+                let dynamicAttributeFunction = mi.GetCustomAttribute<DynamicAttributeFunctionAttribute>()
+                if dynamicAttributeFunction <> null then
+                    // Get attribute type
+                    let attrType = dynamicAttributeFunction.Attribute
+                    if typeof<'T> = attrType then
+                        // First n - 1 args are the parameters to instantiate attribute, last is one is target (forwarded)
+                        let attrArgs = args |> 
+                                        Seq.take(args.Length - 1) |> 
+                                        Seq.map(fun (e:Expr) -> LeafExpressionConverter.EvaluateQuotation(e)) |> 
+                                        Seq.toArray
+                        let attrArgsType = args |> 
+                                            Seq.take(args.Length - 1) |> 
+                                            Seq.map(fun (e:Expr) -> e.Type) |> 
+                                            Seq.toArray
+                        // Instantiate attribute
+                        let constr = attrType.GetConstructor(attrArgsType)
+                        if constr = null then
+                            raise (new CompilerException("Cannot instantiate attribute " + (attrType.ToString()) + " cause a proper constructor cannot be found"))
+                        else
+                            let attr = constr.Invoke(attrArgs) :?> 'T
+                            if not (attrs.ContainsKey(attrType)) then
+                                attrs.Add(attrType, attr)
+                            else
+                                attrs.[attrType] <- attr
+                            // Continue processing body
+                            ParseDynamicAttributesInternal(args.[args.Length - 1])
+                    else
+                        let attrArgs = args |> 
+                                       List.map(fun (e:Expr) -> ParseDynamicAttributesInternal(e))
+                        if o.IsSome then
+                            Expr.Call(o.Value, mi, attrArgs)
+                        else
+                            Expr.Call(mi, attrArgs)
+                else
+                    expr
+            | _ ->
+                expr
+        ParseDynamicAttributesInternal(expr)
+
+    let ParseDynamicKernelAttributeFunctions(expr) =
+        // Process dynamic attributes
+        let attrs = new DynamicKernelAttributeCollection()
+        (ParseDynamicAttributes<DynamicKernelAttributeAttribute>(expr, attrs), attrs)
+        
+    let ParseDynamicParameterAttributeFunctions(expr) =
+        // Process dynamic attributes
+        let attrs = new DynamicParameterAttributeCollection()
+        (ParseDynamicAttributes<DynamicParameterAttributeAttribute>(expr, attrs), attrs)
+                                        
+    let ParseDynamicKernelAttributes(m: MethodInfo) =
+        let dictionary = new DynamicKernelAttributeCollection()        
+        for item in m.GetCustomAttributes() do
+            if typeof<DynamicKernelAttributeAttribute>.IsAssignableFrom(item.GetType()) then
+                dictionary.Add(item.GetType(), item :?> DynamicKernelAttributeAttribute)
+        new ReadOnlyDynamicKernelAttributeCollection(dictionary)
+        
+    let ParseDynamicParameterAttributes(p: ParameterInfo) =
+        let dictionary = new DynamicParameterAttributeCollection()        
+        for item in p.GetCustomAttributes() do
+            if typeof<DynamicParameterAttributeAttribute>.IsAssignableFrom(item.GetType()) then
+                dictionary.Add(item.GetType(), item :?> DynamicParameterAttributeAttribute)
+        new ReadOnlyDynamicParameterAttributeCollection(dictionary)
+                
     let LiftTupledCallArgs(expr) =
         let rec GetCallArgs(expr, parameters: Var list) =
             match expr with
@@ -47,14 +118,19 @@ module QuotationAnalysis =
         | _ ->
             None
             
-    let IsKernel(mi: MethodInfo) =     
-        match mi with
-        | DerivedPatterns.MethodWithReflectedDefinition(b) ->
-            true
+    let rec ParseCall(expr) =                 
+        match expr with
+        | Patterns.Lambda(v, e) -> 
+            ParseCall (e)
+        | Patterns.Let (v, e1, e2) ->
+            ParseCall (e2)
+        | Patterns.Call (e, mi, a) ->
+            Some(e, mi, a)
         | _ ->
-            false
-
-    let rec GetKernelFromName(expr) =                    
+            None 
+            
+    let rec GetKernelFromName(e) =                    
+        let expr, attrs = ParseDynamicKernelAttributeFunctions(e)
         match expr with
         | Patterns.Lambda(v, e) -> 
             GetKernelFromName (e)
@@ -63,7 +139,20 @@ module QuotationAnalysis =
         | Patterns.Call (e, mi, a) ->
             match mi with
             | DerivedPatterns.MethodWithReflectedDefinition(b) ->
-                Some(mi, b)
+                Some(mi, b, attrs)
+            | _ ->
+                None
+        | _ ->
+            None
+                
+    let rec GetKernelFromCall(e) =                    
+        let expr, attrs = ParseDynamicKernelAttributeFunctions(e)
+        match expr with
+        | Patterns.Call (e, mi, a) ->
+            match mi with
+            | DerivedPatterns.MethodWithReflectedDefinition(b) ->
+                let cleanArgs, paramAttrs = a |> List.map (fun (pe:Expr) -> ParseDynamicParameterAttributeFunctions(pe)) |> List.unzip
+                Some(mi, cleanArgs, b, attrs, paramAttrs)
             | _ ->
                 None
         | _ ->
@@ -96,7 +185,9 @@ module QuotationAnalysis =
         | _ ->
             false  
         
-    let LambdaToMethod(expr) = 
+    let LambdaToMethod(e) = 
+        let expr, attrs = ParseDynamicKernelAttributeFunctions(e)
+
         let mutable body = expr
         let mutable parameters = []
         
@@ -135,7 +226,7 @@ module QuotationAnalysis =
             methodBuilder.GetILGenerator().Emit(OpCodes.Ret)
             moduleBuilder.CreateGlobalFunctions()
             let signature = moduleBuilder.GetMethod(methodBuilder.Name) 
-            Some(signature, body)
+            Some(signature, body, attrs)
         else
             None
     

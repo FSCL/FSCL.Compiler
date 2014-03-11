@@ -1,34 +1,41 @@
 ﻿namespace FSCL.Compiler
 
 open System 
+open Cloo
+
 ///
 ///<summary>
 ///The module exposing functions and constructs that programmers can use inside kernels
 ///</summary>
 ///
-module KernelLanguage =
+module Language =
+    [<AllowNullLiteral>]
     type AlternativeFunctionAttribute(s:string) =
         inherit Attribute()
         member this.AlternativeFunctionName 
             with get() = s
+            
+    [<AllowNullLiteral>]
+    type DynamicAttributeFunctionAttribute(t: Type) =
+        inherit Attribute()
+        member val Attribute = t with get
+
     ///
     ///<summary>
     ///The attribute to mark a parameter to be allocated in the global address-space
     ///</summary>
     ///
     [<AllowNullLiteral>]
-    type GlobalAttribute =
-        inherit Attribute
-        new() =  { }
+    type GlobalAttribute() =
+        inherit DynamicAttributeAttribute()
     ///
     ///<summary>
     ///The attribute to mark a parameter to be allocated in the constant address-space
     ///</summary>
     ///
     [<AllowNullLiteral>]
-    type ConstantAttribute =
-        inherit Attribute
-        new() =  { }
+    type ConstantAttribute() =
+        inherit DynamicAttributeAttribute()
     
     ///
     ///<summary>
@@ -36,29 +43,58 @@ module KernelLanguage =
     ///</summary>
     ///
     [<AllowNullLiteral>]
-    type LocalAttribute =
-        inherit Attribute
-        new() =  { }
+    type LocalAttribute() =
+        inherit DynamicAttributeAttribute()
         
     ///
     ///<summary>
-    ///The attribute to mark a parameter to prevent automatic initialization at the beginning of kernel execution
+    ///The attribute to specify the transfer mode for a kernel paramater
     ///</summary>
     ///
     [<AllowNullLiteral>]
-    type NoTransferAttribute =
-        inherit Attribute
-        new() =  { }
+    type TransferModeAttribute(mode: TransferMode) =
+        inherit DynamicAttributeAttribute()
+        member val Mode = mode with get
+         
     ///
     ///<summary>
-    ///The attribute to mark a parameter to prevent automatic read at the end of kernel execution
+    ///The attribute to specify the memory flags for a kernel paramater
     ///</summary>
     ///
     [<AllowNullLiteral>]
-    type NoTransferBackAttribute =
-        inherit Attribute
-        new() =  { }
+    type MemoryFlagsAttribute(flags: ComputeMemoryFlags) =
+        inherit DynamicAttributeAttribute()
+        member val Flags = flags with get
         
+    ///
+    ///<summary>
+    ///The attribute to specify a device in the environment as a pair (platform index, device index)
+    ///</summary>
+    ///
+    [<AllowNullLiteral>]
+    type DeviceAttribute(platform: int, device: int) =
+        inherit DynamicAttributeAttribute()
+
+        member val Platform = platform with get
+        member val Device = device with get
+
+    // Functions matching attributes for dynamic marking of parameters
+    [<DynamicAttributeFunction(typeof<GlobalAttribute>)>]
+    let globalSpace = id        
+    [<DynamicAttributeFunction(typeof<LocalAttribute>)>]
+    let localSpace = id        
+    [<DynamicAttributeFunction(typeof<ConstantAttribute>)>]
+    let constantSpace = id
+    [<DynamicAttributeFunction(typeof<TransferModeAttribute>)>]
+    let transferMode(m: TransferMode, a) = 
+        a
+    [<DynamicAttributeFunction(typeof<MemoryFlagsAttribute>)>]
+    let memoryFlags(m: ComputeMemoryFlags, a) = 
+        a     
+    [<DynamicAttributeFunction(typeof<DeviceAttribute>)>]
+    let device(pi: int, di: int, a) =
+        a
+
     ///
     ///<summary>
     ///Memory fance modes

@@ -1,4 +1,4 @@
-﻿namespace FSCL.Compiler.Core.Util
+﻿namespace FSCL.Compiler.Util
 
 module CombinationGenerator =
     // All ordered picks {x_i1, x_i2, .. , x_ik} of k out of n elements {x_1,..,x_n}

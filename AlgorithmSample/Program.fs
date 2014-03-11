@@ -1,7 +1,7 @@
 ﻿// Compiler user interface
 open FSCL.Compiler
 // Kernel language library
-open FSCL.Compiler.KernelLanguage
+open FSCL.Compiler.Language
     
 [<EntryPoint>]
 let main argv =

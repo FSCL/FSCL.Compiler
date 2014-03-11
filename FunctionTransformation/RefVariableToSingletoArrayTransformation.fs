@@ -27,7 +27,7 @@ type RefVariableTransformationProcessor() =
         let set = GetGenericMethodInfoFromExpr(<@@ LanguagePrimitives.IntrinsicFunctions.SetArray<int> null 0 0 @@>, ty)
         (get, set)
 
-    let UpdateArrayAccessMode(var:string, mode:KernelParameterAccessMode, engine:FunctionTransformationStep) =  
+    let UpdateArrayAccessMode(var:string, mode:AccessMode, engine:FunctionTransformationStep) =  
         let data = engine.FunctionInfo :?> KernelInfo
         for pInfo in data.Parameters do
             if pInfo.Name = var then
@@ -56,7 +56,7 @@ type RefVariableTransformationProcessor() =
                 // Find the placeholder holding the variable of the "arrayzed" ref 
                 let placeholder = GetPlaceholderVar(v.Name, engine)
                 // Update the access mode of this ref
-                UpdateArrayAccessMode(v.Name, KernelParameterAccessMode.ReadAccess, engine)
+                UpdateArrayAccessMode(v.Name, AccessMode.ReadAccess, engine)
                 // Create new array access expression
                 let (readArr, _) = GetArrayAccessMethodInfo (placeholder.Type.GetElementType())
                 Expr.Call(readArr, [Expr.Var(placeholder); Expr.Value(0)])
@@ -68,7 +68,7 @@ type RefVariableTransformationProcessor() =
                 // Find the placeholder holding the variable of the "arrayzed" ref 
                 let placeholder = GetPlaceholderVar(v.Name, engine)
                 // Update the access mode of this ref
-                UpdateArrayAccessMode(v.Name, KernelParameterAccessMode.WriteAccess, engine)
+                UpdateArrayAccessMode(v.Name, AccessMode.WriteAccess, engine)
                 // Create new array access expression
                 let (_, writeArr) = GetArrayAccessMethodInfo (placeholder.Type.GetElementType())
                 Expr.Call(writeArr, [Expr.Var(placeholder); Expr.Value(0); engine.Continue(args.[1])])

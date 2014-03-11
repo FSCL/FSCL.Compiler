@@ -6,7 +6,9 @@ open System.Reflection
 open Microsoft.FSharp.Quotations
 open System
 
-[<StepProcessor("FSCL_FUNCTIONS_DISCOVERY_PROCESSOR", "FSCL_MODULE_PREPROCESSING_STEP")>] 
+[<StepProcessor("FSCL_FUNCTIONS_DISCOVERY_PROCESSOR", 
+                "FSCL_MODULE_PREPROCESSING_STEP",
+                Dependencies = [| "FSCL_DEFAULT_COMPILATION_FILTER_PROCESSOR" |])>] 
 type FunctionReferenceDiscover() =      
     inherit ModulePreprocessingProcessor()
 

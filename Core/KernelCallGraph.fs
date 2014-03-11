@@ -18,19 +18,64 @@ type FlowGraphNodeInput =
 | CompilerPrecomputedValue of (Dictionary<string, obj> * int64 array * int64 array -> obj)
 | ImplicitValue
 
-and [<AllowNullLiteral>] FlowGraphNode(kernelId: FunctionInfoID) =
+and FlowGraphNodeInputInfo(i: FlowGraphNodeInput, 
+                           p: ParameterInfo option,
+                           attrs: DynamicParameterAttributeCollection) =
+
+    let getStaticAttrsAndMerge(dyn: DynamicParameterAttributeCollection, p: ParameterInfo option) =        
+        if p.IsNone then
+            if dyn = null then
+                new ReadOnlyDynamicParameterAttributeCollection(new DynamicParameterAttributeCollection())
+            else
+                new ReadOnlyDynamicParameterAttributeCollection(dyn)
+        else
+            let attrs = 
+                if dyn = null then
+                    new DynamicParameterAttributeCollection()
+                else
+                    new DynamicParameterAttributeCollection(dyn)
+            for item in p.Value.GetCustomAttributes() do
+                if typeof<DynamicParameterAttributeAttribute>.IsAssignableFrom(item.GetType()) then
+                    if not (attrs.ContainsKey(item.GetType())) then
+                        attrs.Add(item.GetType(), item :?> DynamicParameterAttributeAttribute)
+            new ReadOnlyDynamicParameterAttributeCollection(attrs)
+
+    member val Input = i with get
+    member val Attributes = getStaticAttrsAndMerge(attrs, p) with get
+
+and [<AllowNullLiteral>] FlowGraphNode(kernelId: FunctionInfoID, 
+                                       mi: MethodInfo option,
+                                       attrs: DynamicKernelAttributeCollection) =
+    let getStaticAttrsAndMerge(dyn: DynamicKernelAttributeCollection, mi: MethodInfo option) =        
+        if mi.IsNone then
+            if dyn = null then
+                new ReadOnlyDynamicKernelAttributeCollection(new DynamicKernelAttributeCollection())
+            else
+                new ReadOnlyDynamicKernelAttributeCollection(dyn)
+        else
+            let attrs = 
+                if dyn = null then
+                    new DynamicKernelAttributeCollection()
+                else
+                    new DynamicKernelAttributeCollection(dyn)
+            for item in mi.Value.GetCustomAttributes() do
+                if typeof<DynamicKernelAttributeAttribute>.IsAssignableFrom(item.GetType()) then
+                    if not (attrs.ContainsKey(item.GetType())) then
+                        attrs.Add(item.GetType(), item :?> DynamicKernelAttributeAttribute)
+            new ReadOnlyDynamicKernelAttributeCollection(attrs)
+            
     member val KernelID = kernelId with get
-    member val internal Input = new Dictionary<string, FlowGraphNodeInput>() with get
+    member val internal Input = new Dictionary<string, FlowGraphNodeInputInfo>() with get
     member val internal Output = (null, new Dictionary<int, string>()) with get, set
   
     member val CustomInfo = new Dictionary<String, Object>() with get
-
-
+    member val Attributes = getStaticAttrsAndMerge(attrs, mi) with get
+    
     member this.IsEntryPoint 
         with get() =
             (Seq.tryFind(
-                fun(k: KeyValuePair<string, FlowGraphNodeInput>) ->
-                    match k.Value with 
+                fun(k: KeyValuePair<string, FlowGraphNodeInputInfo>) ->
+                    match k.Value.Input with 
                     | KernelOutput(n, i) ->
                         true
                     | _ ->
@@ -44,7 +89,7 @@ and [<AllowNullLiteral>] FlowGraphNode(kernelId: FunctionInfoID) =
 [<AllowNullLiteral>]
 type FlowGraphManager() =
     static member GetNodeInput(n: FlowGraphNode) =
-        new ReadOnlyDictionary<string, FlowGraphNodeInput>(n.Input)
+        new ReadOnlyDictionary<string, FlowGraphNodeInputInfo>(n.Input)
 
     static member GetNodeOutput(n: FlowGraphNode) =
         List.ofSeq(snd(n.Output))
@@ -52,7 +97,7 @@ type FlowGraphManager() =
                       
     static member SetNodeInput(node: FlowGraphNode, 
                                par: string,
-                               input: FlowGraphNodeInput) =        
+                               input: FlowGraphNodeInputInfo) =        
         FlowGraphManager.RemoveNodeInput(node, par)  
         // Set dest
         if node.Input.ContainsKey(par) then
@@ -60,7 +105,7 @@ type FlowGraphManager() =
         else
             node.Input.Add(par, input)
         // Set source
-        match input with
+        match input.Input with
         | KernelOutput(n, returnIndex) ->
             if fst(n.Output) = null || (fst(n.Output) <> node) then
                 n.Output <- (node, new Dictionary<int, string>())
@@ -76,7 +121,7 @@ type FlowGraphManager() =
     static member RemoveNodeInput(node: FlowGraphNode, 
                                   par: string) =
         if node.Input.ContainsKey(par) then
-            match node.Input.[par] with
+            match node.Input.[par].Input with
             | KernelOutput(n, returnIndex) ->
                 match n.Output with
                 | _, mapping ->
@@ -94,7 +139,7 @@ type FlowGraphManager() =
                 currentIndex <- currentIndex + 1
             else
                 for item in FlowGraphManager.GetNodeInput(current) do
-                    match item.Value with
+                    match item.Value.Input with
                     | KernelOutput(k, i) ->
                         entries.Add(k)
                     | _ ->
@@ -108,7 +153,7 @@ type FlowGraphManager() =
         while(currentIndex < partialOrder.Count) do
             let current = partialOrder.[currentIndex]
             for item in FlowGraphManager.GetNodeInput(current) do
-                match item.Value with
+                match item.Value.Input with
                 | KernelOutput(k, i) ->
                     partialOrder.Add(k)
                 | _ ->
@@ -123,7 +168,7 @@ type FlowGraphManager() =
             if root.KernelID = id then
                 nodes.Add(root)
             for item in root.Input do
-                match item.Value with
+                match item.Value.Input with
                 | KernelOutput(n, i) ->
                     nodes.AddRange(FlowGraphManager.GetKernelNodes(id, n))
                 | _ ->

@@ -1,17 +1,16 @@
 ﻿namespace FSCL.Compiler.Plugins.AcceleratedCollections
 
 open FSCL.Compiler
-open FSCL.Compiler.KernelLanguage
+open FSCL.Compiler.Language
 open System.Reflection
 open System.Reflection.Emit
 open Microsoft.FSharp.Quotations
 open Microsoft.FSharp.Core.LanguagePrimitives
 open System.Collections.Generic
 open System
-open FSCL.Compiler.Core.Util
+open FSCL.Compiler.Util
 open Microsoft.FSharp.Reflection
 open AcceleratedCollectionUtil
-open FSCL.Compiler.Tools
 open System.Runtime.InteropServices
 open Microsoft.FSharp.Linq.RuntimeHelpers
 
@@ -173,7 +172,7 @@ type AcceleratedArrayReduceHandler() =
         r2
 
     interface IAcceleratedCollectionHandler with
-        member this.Process(methodInfo, args, root, step) =            
+        member this.Process(methodInfo, cleanArgs, root, kernelAttrs, paramAttrs, step) =            
             let kernelModule = new KernelModule()
             (*
                 Array map looks like: Array.map fun collection
@@ -182,25 +181,13 @@ type AcceleratedArrayReduceHandler() =
                 Secondly, we iterate parsing on the second argument (collection)
                 since it might be a subkernel
             *)
-            let lambda = GetLambdaArgument(args.[0], root)
-            let mutable isLambda = false
-            let computationFunction =                
-                match lambda with
-                | Some(l) ->
-                    isLambda <- true
-                    QuotationAnalysis.LambdaToMethod(l)
-                | None ->
-                    AcceleratedCollectionUtil.FilterCall(args.[0], 
-                        fun (e, mi, a) ->                         
-                            match mi with
-                            | DerivedPatterns.MethodWithReflectedDefinition(body) ->
-                                (mi, body)
-                            | _ ->
-                                failwith ("Cannot parse the body of the computation function " + mi.Name))
+            let lambda, computationFunction =                
+                AcceleratedCollectionUtil.ExtractComputationFunction(cleanArgs, root)
+
             // Merge with the eventual subkernel
             let subkernel =
                 try
-                    step.Process(args.[1])
+                    step.Process(cleanArgs.[1])
                 with
                     :? CompilerException -> null
             if subkernel <> null then
@@ -262,13 +249,13 @@ type AcceleratedArrayReduceHandler() =
                 
                 kernelModule.AddKernel(kInfo) 
                 // Update call graph
-                kernelModule.FlowGraph <- FlowGraphNode(kInfo.ID)
+                kernelModule.FlowGraph <- FlowGraphNode(kInfo.ID, None, kernelAttrs)
                                     
                 // Add the computation function and connect it to the kernel
-                let reduceFunctionInfo = new FunctionInfo(functionInfo, body, isLambda)
+                let reduceFunctionInfo = new FunctionInfo(functionInfo, body, lambda.IsSome)
                 
                 // Store the called function (runtime execution will use it to perform latest iterations of reduction)
-                if isLambda then
+                if lambda.IsNone then
                     kInfo.CustomInfo.Add("ReduceFunction", lambda.Value)
                 else
                     kInfo.CustomInfo.Add("ReduceFunction", fst computationFunction.Value)
@@ -281,15 +268,24 @@ type AcceleratedArrayReduceHandler() =
                 if subkernel <> null then       
                     FlowGraphManager.SetNodeInput(kernelModule.FlowGraph,
                                                   "input_array",
-                                                  KernelOutput(subkernel.FlowGraph, 0))                                
+                                                  new FlowGraphNodeInputInfo(
+                                                    KernelOutput(subkernel.FlowGraph, 0),
+                                                    None,
+                                                    paramAttrs.[1]))                             
                 else
                     FlowGraphManager.SetNodeInput(kernelModule.FlowGraph,
                                                   "input_array",
-                                                  ActualArgument(args.[1]))        
+                                                  new FlowGraphNodeInputInfo(
+                                                    ActualArgument(cleanArgs.[1]),
+                                                    None,
+                                                    paramAttrs.[1]))    
                 // Set local array input value                                   
                 FlowGraphManager.SetNodeInput(kernelModule.FlowGraph,
                                              "local_array",
-                                             ImplicitValue)            
+                                             new FlowGraphNodeInputInfo(
+                                                ImplicitValue,
+                                                None,
+                                                new DynamicParameterAttributeCollection()))          
                 
                 // Return module                             
                 Some(kernelModule)

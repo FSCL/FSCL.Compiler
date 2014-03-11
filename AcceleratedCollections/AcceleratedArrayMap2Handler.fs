@@ -1,7 +1,7 @@
 ﻿namespace FSCL.Compiler.Plugins.AcceleratedCollections
 
 open FSCL.Compiler
-open FSCL.Compiler.KernelLanguage
+open FSCL.Compiler.Language
 open System.Collections.Generic
 open System.Reflection
 open System.Reflection.Emit
@@ -10,12 +10,12 @@ open Microsoft.FSharp.Core.LanguagePrimitives
 open System
 open Microsoft.FSharp.Reflection
 open AcceleratedCollectionUtil
-open FSCL.Compiler.Core.Util
+open FSCL.Compiler.Util
 open Microsoft.FSharp.Linq.RuntimeHelpers
 
 type AcceleratedArrayMap2Handler() =
     interface IAcceleratedCollectionHandler with
-        member this.Process(methodInfo, args, root, step) =
+        member this.Process(methodInfo, cleanArgs, root, kernelAttrs, paramAttrs, step) =
                 
             let kernelModule = new KernelModule()
             (*
@@ -25,31 +25,20 @@ type AcceleratedArrayMap2Handler() =
                 Secondly, we iterate parsing on the second argument (collection)
                 since it might be a subkernel
             *)
-            let lambda = GetLambdaArgument(args.[0], root)
-            let mutable isLambda = false
-            let computationFunction =                
-                match lambda with
-                | Some(l) ->
-                    QuotationAnalysis.LambdaToMethod(l)
-                | None ->
-                    AcceleratedCollectionUtil.FilterCall(args.[0], 
-                        fun (e, mi, a) ->                         
-                            match mi with
-                            | DerivedPatterns.MethodWithReflectedDefinition(body) ->
-                                (mi, body)
-                            | _ ->
-                                failwith ("Cannot parse the body of the computation function " + mi.Name))
+            let lambda, computationFunction =                
+                AcceleratedCollectionUtil.ExtractComputationFunction(cleanArgs, root)
+
             // Merge with the eventual subkernels
             let firstSubkernel =
                 try
-                    step.Process(args.[1])
+                    step.Process(cleanArgs.[1])
                 with
                     :? CompilerException -> null
             if firstSubkernel <> null then
                 kernelModule.MergeWith(firstSubkernel)
             let secondSubkernel =
                 try
-                    step.Process(args.[2])
+                    step.Process(cleanArgs.[2])
                 with
                     :? CompilerException -> null
             if secondSubkernel <> null then
@@ -106,15 +95,10 @@ type AcceleratedArrayMap2Handler() =
                 kInfo.CustomInfo.Add("IS_ACCELERATED_COLLECTION_KERNEL", true)
                 kernelModule.AddKernel(kInfo)  
                 // Update call graph
-                kernelModule.FlowGraph <- FlowGraphNode(kInfo.ID)
+                kernelModule.FlowGraph <- FlowGraphNode(kInfo.ID, None, kernelAttrs)
                 
-                // Detect is device attribute set
-                let device = functionInfo.GetCustomAttribute(typeof<DeviceAttribute>)
-                if device <> null then
-                    kernelModule.GetKernel(kInfo.ID).Info.Device <- device :?> DeviceAttribute
-
                 // Add the computation function and set that it is required by the kernel
-                let mapFunctionInfo = new FunctionInfo(functionInfo, functionBody, isLambda)
+                let mapFunctionInfo = new FunctionInfo(functionInfo, functionBody, lambda.IsSome)
                 kernelModule.AddFunction(mapFunctionInfo)
                 kernelModule.GetKernel(kInfo.ID).RequiredFunctions.Add(mapFunctionInfo.ID) |> ignore
                 
@@ -125,25 +109,40 @@ type AcceleratedArrayMap2Handler() =
                 if firstSubkernel <> null then           
                     FlowGraphManager.SetNodeInput(kernelModule.FlowGraph,
                                                   "input_array_1",
-                                                  KernelOutput(firstSubkernel.FlowGraph, 0))
+                                                  new FlowGraphNodeInputInfo(
+                                                    KernelOutput(firstSubkernel.FlowGraph, 0),
+                                                    None,
+                                                    paramAttrs.[1]))
                 else
                     // Store the expression (actual argument) associated to this parameter
                     FlowGraphManager.SetNodeInput(kernelModule.FlowGraph,
                                                   "input_array_1",
-                                                  ActualArgument(args.[1]))
+                                                  new FlowGraphNodeInputInfo(
+                                                    ActualArgument(cleanArgs.[1]),
+                                                    None,
+                                                    paramAttrs.[1]))
                 if secondSubkernel <> null then           
                     FlowGraphManager.SetNodeInput(kernelModule.FlowGraph,
                                                   "input_array_2",
-                                                  KernelOutput(secondSubkernel.FlowGraph, 0))
+                                                  new FlowGraphNodeInputInfo(
+                                                    KernelOutput(secondSubkernel.FlowGraph, 0),
+                                                    None,
+                                                    paramAttrs.[2]))
                 else
                     // Store the expression (actual argument) associated to this parameter
                     FlowGraphManager.SetNodeInput(kernelModule.FlowGraph,
                                                   "input_array_2",
-                                                  ActualArgument(args.[2]))
+                                                  new FlowGraphNodeInputInfo(
+                                                    ActualArgument(cleanArgs.[2]),
+                                                    None,
+                                                    paramAttrs.[2]))
                 FlowGraphManager.SetNodeInput(kernelModule.FlowGraph,
                                               "output_array",
-                                              BufferAllocationSize(fun(args, localSize, globalSize) ->
-                                                                            BufferReferenceAllocationExpression("input_array_1")))
+                                              new FlowGraphNodeInputInfo(
+                                                BufferAllocationSize(fun(args, localSize, globalSize) ->
+                                                                            BufferReferenceAllocationExpression("input_array_1")),
+                                                None,
+                                                new DynamicParameterAttributeCollection()))
                 // Return module                             
                 Some(kernelModule)
             | _ ->

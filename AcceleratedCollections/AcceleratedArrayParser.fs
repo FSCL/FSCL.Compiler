@@ -1,6 +1,7 @@
 ﻿namespace FSCL.Compiler.Plugins.AcceleratedCollections
 
 open FSCL.Compiler
+open FSCL.Compiler.Util
 open FSCL.Compiler.ModuleParsing
 open System.Collections.Generic
 open System.Reflection
@@ -23,14 +24,20 @@ type AcceleratedArrayParser() =
         handlers.Add(FilterCall(<@ Array.map2 @>, fun(e, mi, a) -> mi.GetGenericMethodDefinition()).Value, new AcceleratedArrayMap2Handler())
         handlers.Add(FilterCall(<@ Array.reduce @>, fun(e, mi, a) -> mi.GetGenericMethodDefinition()).Value, new AcceleratedArrayReduceHandler())
             
-    override this.Run(o, en, opts) =
-        let engine = en :?> ModuleParsingStep
+    override this.Run(o, s, opts) =
+        let step = s :?> ModuleParsingStep
         if o :? Expr then
-            match FilterCall(o :?> Expr, fun a -> a) with
-            | Some(item, methodInfo, args) -> 
+            // Lift and get potential kernel attributes
+            let expr, kernelAttrs = QuotationAnalysis.ParseDynamicKernelAttributeFunctions(o :?> Expr)
+            // Filter out potential Lambda/Let (if the function is referenced, not applied)
+            match QuotationAnalysis.ParseCall(expr) with
+            | Some(o, methodInfo, args) -> 
                 if methodInfo.DeclaringType = listModuleType then
                     if (handlers.ContainsKey(methodInfo.GetGenericMethodDefinition())) then
-                        handlers.[methodInfo.GetGenericMethodDefinition()].Process(methodInfo, args, o :?> Expr, engine)
+                        // Clean arguments of potential parameter attributes
+                        let cleanArgs, paramAttrs = args |> List.map (fun (pe:Expr) -> QuotationAnalysis.ParseDynamicParameterAttributeFunctions(pe)) |> List.unzip
+                        // Run the appropriate handler
+                        handlers.[methodInfo.GetGenericMethodDefinition()].Process(methodInfo, cleanArgs, expr, kernelAttrs, paramAttrs, step)
                     else
                         None
                 else

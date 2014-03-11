@@ -1,7 +1,7 @@
 ﻿namespace FSCL.Compiler.FunctionPreprocessing
 
 open FSCL.Compiler
-open FSCL.Compiler.KernelLanguage
+open FSCL.Compiler.Language
 open System.Collections.Generic
 open System.Reflection
 open System.Reflection.Emit
@@ -46,7 +46,7 @@ type ArrayLenghtArgumentsGenerator() =
                 for d = 0 to dimensions - 1 do
                     let sizeP = new KernelParameterInfo(GenerateSizeAdditionalArg(p.Name, d), typeof<int>)
                     // A non-array parameter access is always read only
-                    sizeP.Access <- KernelParameterAccessMode.ReadAccess
+                    sizeP.Access <- AccessMode.ReadAccess
                     // Set var to be used in kernel body
                     sizeP.Placeholder <- Some(Quotations.Var(GenerateSizeAdditionalArg(p.Name, d), typeof<int>, false))
                     // Set this to be a size parameter
@@ -58,7 +58,10 @@ type ArrayLenghtArgumentsGenerator() =
                         let inputBinding = FlowGraphManager.GetNodeInput(n)
                         FlowGraphManager.SetNodeInput(n, 
                                                       sizeP.Name,
-                                                      ImplicitValue)
+                                                      FlowGraphNodeInputInfo(
+                                                        ImplicitValue,
+                                                        None,
+                                                        null))
                 // Set var to be used in kernel body
                 p.Placeholder <- Some(Quotations.Var(p.Name, pType, false))
 

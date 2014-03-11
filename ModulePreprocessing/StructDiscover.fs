@@ -9,7 +9,9 @@ open Microsoft.FSharp.Quotations
 open Microsoft.FSharp.Reflection
 open System
     
-[<StepProcessor("FSCL_STRUCT_DISCOVERY_PROCESSOR", "FSCL_MODULE_PREPROCESSING_STEP")>] 
+[<StepProcessor("FSCL_STRUCT_DISCOVERY_PROCESSOR", 
+                "FSCL_MODULE_PREPROCESSING_STEP",
+                Dependencies = [| "FSCL_FUNCTIONS_DISCOVERY_PROCESSOR" |])>] 
 type StructDiscover() = 
     inherit ModulePreprocessingProcessor()
     let rec CollectStructs(e: Expr, structs: Dictionary<Type, unit>) =

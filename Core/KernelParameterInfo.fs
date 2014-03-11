@@ -4,13 +4,40 @@ open System.Reflection
 open Microsoft.FSharp.Quotations
 open System
 open System.Collections.Generic
+open System.Collections.ObjectModel
+open Cloo
+
+///
+///<summary>
+/// Base classes for Dynamic Attributes (Attributes with matching functions to be used in kernel calls)
+///</summary>
+///
+[<AllowNullLiteral>]
+type DynamicAttributeAttribute() =
+    inherit Attribute()
+    
+[<AllowNullLiteral>]
+[<AttributeUsage(AttributeTargets.Method, AllowMultiple = false, Inherited = true)>]
+type DynamicKernelAttributeAttribute() =
+    inherit DynamicAttributeAttribute()
+    
+[<AllowNullLiteral>]
+[<AttributeUsage(AttributeTargets.Parameter, AllowMultiple = false, Inherited = true)>]
+type DynamicParameterAttributeAttribute() =
+    inherit DynamicAttributeAttribute()
+    
+
+type DynamicParameterAttributeCollection = Dictionary<Type, DynamicParameterAttributeAttribute>
+type DynamicKernelAttributeCollection = Dictionary<Type, DynamicKernelAttributeAttribute>
+type ReadOnlyDynamicParameterAttributeCollection = ReadOnlyDictionary<Type, DynamicParameterAttributeAttribute>
+type ReadOnlyDynamicKernelAttributeCollection = ReadOnlyDictionary<Type, DynamicKernelAttributeAttribute>
 
 ///
 ///<summary>
 /// Enumeration describing the address spaces exposed by OpenCL
 ///</summary>
 ///
-type KernelParameterAddressSpace =
+type AddressSpace =
 | GlobalSpace
 | ConstantSpace
 | LocalSpace
@@ -23,7 +50,7 @@ type KernelParameterAddressSpace =
 ///</summary>
 ///
 [<Flags>]
-type KernelParameterAccessMode =
+type AccessMode =
 | NoAccess = 0
 | ReadAccess = 1
 | WriteAccess = 2
@@ -34,17 +61,26 @@ type KernelParameterAccessMode =
 ///</summary>
 ///
 [<Flags>]
-type KernelParameterTransferMode =
+type TransferMode =
 | NoTransfer = 1
 | NoTransferBack = 2
 | Transfer = 0
-
+   
 ///
 ///<summary>
 /// The set of information about a kernel parameter collected and maintained by the compiler
 ///</summary>
 ///
-type KernelParameterInfo(name:string, t: Type) =
+type KernelParameterInfo(name:string, t: Type, ?methodInfoParameter: ParameterInfo) =
+    let dynamicAttributes = 
+        let dictionary = new DynamicParameterAttributeCollection()
+        if methodInfoParameter.IsSome then
+            for item in methodInfoParameter.Value.GetCustomAttributes() do
+                if typeof<DynamicParameterAttributeAttribute>.IsAssignableFrom(item.GetType()) then
+                    dictionary.Add(item.GetType(), item :?> DynamicParameterAttributeAttribute)
+            new ReadOnlyDynamicParameterAttributeCollection(dictionary)
+        else
+            new ReadOnlyDynamicParameterAttributeCollection(new DynamicParameterAttributeCollection())
     ///
     ///<summary>
     /// .NET-related information about the kernel (method) parameter
@@ -68,24 +104,15 @@ type KernelParameterInfo(name:string, t: Type) =
     member val SizeParameters = new List<KernelParameterInfo>() with get
     ///
     ///<summary>
-    /// The OpenCL address-space of this parameter
-    ///</summary>
-    ///
-    member val AddressSpace = KernelParameterAddressSpace.AutoSpace with get, set
-    ///
-    ///<summary>
     /// The access mode of this parameter
     ///</summary>
     ///
-    member val Access = KernelParameterAccessMode.NoAccess with get, set
+    member val Access = AccessMode.NoAccess with get, set
     ///
     ///<summary>
-    /// The transfer mode of this parameter
+    /// The return expression for this parameter (only if return parameter is true)
     ///</summary>
     ///
-    member val Transfer = KernelParameterTransferMode.Transfer with get, set
-
-    // For kernel return type
     member val Expr = None with get, set
     ///
     ///<summary>
@@ -93,4 +120,11 @@ type KernelParameterInfo(name:string, t: Type) =
     ///</summary>
     ///
     member val Placeholder:Var option = None with get, set
+    ///
+    ///<summary>
+    /// The static attributes of the method parameter (if some)
+    ///</summary>
+    ///
+    member val Attributes = dynamicAttributes with get
+
     

@@ -10,7 +10,7 @@
     <RootNamespace>CompilerConfigurationSample</RootNamespace>
     <AssemblyName>CompilerConfigurationSample</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
-    <Name>CompilerConfigurationSample</Name>
+    <Name>FSCL.Compiler.Sample.CompilerConfigurationSample</Name>
     <ProductVersion>12.0.0</ProductVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">

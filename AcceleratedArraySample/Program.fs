@@ -3,7 +3,7 @@
 
 open FSCL.Compiler
 open FSCL.Compiler.Configuration
-open FSCL.Compiler.KernelLanguage
+open FSCL.Compiler.Language
 // The plugin
 open FSCL.Compiler.Plugins.AcceleratedCollections
 open System.Reflection

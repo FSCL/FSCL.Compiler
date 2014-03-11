@@ -45,7 +45,7 @@ type internal PipelineBuilder() =
                 raise (PipelineBuildException("The step processor " + p.Key + " belongs to the step " + p.Value.Step + " but this step has not been found"))
             for dep in p.Value.Dependencies do
                 if not (processors.ContainsKey(dep)) then
-                raise (PipelineBuildException("The step processor " + p.Key + " requires processor " + dep + " but this step has not been found"))
+                    raise (PipelineBuildException("The step processor " + p.Key + " requires processor " + dep + " but this step has not been found"))
        
         // Create graph of steps
         let graph = new Graph<StepConfiguration, string>()

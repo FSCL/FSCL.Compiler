@@ -5,12 +5,12 @@
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>05D3D829-9EEF-411D-BBF7-FE966B2D379B</ProjectGuid>
+    <ProjectGuid>E2C0607B-13E5-4782-9B93-17F07A376337</ProjectGuid>
     <OutputType>Exe</OutputType>
-    <RootNamespace>Sample</RootNamespace>
-    <AssemblyName>Sample</AssemblyName>
+    <RootNamespace>KernelExpressionSample</RootNamespace>
+    <AssemblyName>KernelExpressionSample</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
-    <Name>AlgorithmSample</Name>
+    <Name>FSCL.Compiler.Sample.KernelExpressionSample</Name>
     <ProductVersion>12.0.0</ProductVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
@@ -22,7 +22,7 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <WarningLevel>3</WarningLevel>
     <PlatformTarget>AnyCPU</PlatformTarget>
-    <DocumentationFile>bin\Debug\Sample.XML</DocumentationFile>
+    <DocumentationFile>bin\Debug\KernelExpressionSample.XML</DocumentationFile>
     <Prefer32Bit>true</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
@@ -33,7 +33,7 @@
     <DefineConstants>TRACE</DefineConstants>
     <WarningLevel>3</WarningLevel>
     <PlatformTarget>AnyCPU</PlatformTarget>
-    <DocumentationFile>bin\Release\Sample.XML</DocumentationFile>
+    <DocumentationFile>bin\Release\KernelExpressionSample.XML</DocumentationFile>
     <Prefer32Bit>true</Prefer32Bit>
   </PropertyGroup>
   <ItemGroup>
@@ -44,11 +44,8 @@
     <Reference Include="System.Numerics" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="SimpleAlgorithms.fs" />
-    <Compile Include="AdvancedFeatures.fs" />
     <Compile Include="Program.fs" />
     <None Include="App.config" />
-    <None Include="Testing.fsx" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Compiler\FSCL.Compiler.fsproj">

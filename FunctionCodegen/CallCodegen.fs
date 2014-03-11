@@ -48,7 +48,7 @@ type CallCodegen() =
             let returnPostfix = if returnPrefix.Length > 0 then ";\n" else ""
 
             let args = String.concat ", " (List.map (fun (e:Expr) -> engine.Continue(e)) a)
-            if mi.DeclaringType <> null && mi.DeclaringType.Name = "KernelLanguage" &&  mi.Name = "barrier" then
+            if mi.DeclaringType <> null && mi.DeclaringType.Name = "Language" &&  mi.Name = "barrier" then
                 // the function is defined in FSCL
                 Some(returnPrefix + mi.Name + "(" + args + ");" + returnPostfix)
             else

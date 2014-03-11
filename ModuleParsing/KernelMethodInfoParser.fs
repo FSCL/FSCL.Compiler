@@ -1,10 +1,11 @@
 ﻿namespace FSCL.Compiler.ModuleParsing
 
 open FSCL.Compiler
-open FSCL.Compiler.Core.Util
+open FSCL.Compiler.Util
 open System.Collections.Generic
 open System.Reflection
 open Microsoft.FSharp.Quotations
+open FSCL.Compiler.Language
 
 [<StepProcessor("FSCL_METHOD_INFO_PARSING_PROCESSOR", "FSCL_MODULE_PARSING_STEP")>]
 type KernelMethodInfoParser() =      
@@ -18,11 +19,6 @@ type KernelMethodInfoParser() =
                 // Create signleton kernel call graph
                 let kernelModule = new KernelModule()
                 kernelModule.AddKernel(new KernelInfo(mi, b, false))
-                
-                // Detect is device attribute set
-                let device = mi.GetCustomAttribute(typeof<DeviceAttribute>)
-                if device <> null then
-                    kernelModule.GetKernel(MethodID(mi)).Info.Device <- device :?> DeviceAttribute
 
                 // Create module
                 Some(kernelModule)

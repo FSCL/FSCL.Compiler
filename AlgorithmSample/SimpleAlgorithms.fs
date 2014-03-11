@@ -1,7 +1,7 @@
 ﻿module SimpleAlgorithms 
 
 open FSCL.Compiler
-open FSCL.Compiler.KernelLanguage
+open FSCL.Compiler.Language
     
 // Vector addition
 [<ReflectedDefinition>]

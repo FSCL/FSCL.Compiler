@@ -5,8 +5,6 @@ Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "FSCL.Compiler.Core.Util", "
 EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "FSCL.Compiler.Core", "Core\FSCL.Compiler.Core.fsproj", "{7635ADE1-AC00-4587-8117-3FAA15BE9318}"
 EndProject
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "FSCL.Compiler.Tools", "Tools\FSCL.Compiler.Tools.fsproj", "{2581B89A-F555-48A7-94BE-9B21654901A7}"
-EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "FSCL.Compiler.Core.Language", "Language\FSCL.Compiler.Core.Language.fsproj", "{02CC39BD-A326-49F6-B5E6-2987EADA1BA2}"
 EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "FSCL.Compiler.Core.Types", "Types\FSCL.Compiler.Core.Types.fsproj", "{EC288651-4F88-44D7-9206-7A0260552ECC}"
@@ -25,21 +23,29 @@ Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "FSCL.Compiler.Core.ModulePa
 EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "FSCL.Compiler.Core.ModulePreprocessing", "ModulePreprocessing\FSCL.Compiler.Core.ModulePreprocessing.fsproj", "{898F5EC0-3903-40E0-98BD-EE2E5746620F}"
 EndProject
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "AcceleratedArraySample", "AcceleratedArraySample\AcceleratedArraySample.fsproj", "{81C780F7-9C08-4D0C-9849-93B2C65397F9}"
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "FSCL.Compiler.Sample.AcceleratedArraySample", "AcceleratedArraySample\FSCL.Compiler.Sample.AcceleratedArraySample.fsproj", "{81C780F7-9C08-4D0C-9849-93B2C65397F9}"
 EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "FSCL.Compiler.AcceleratedCollections", "AcceleratedCollections\FSCL.Compiler.AcceleratedCollections.fsproj", "{5DA99AFC-09CC-4D46-9145-DDAD276BB68E}"
 EndProject
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "AlgorithmSample", "AlgorithmSample\AlgorithmSample.fsproj", "{05D3D829-9EEF-411D-BBF7-FE966B2D379B}"
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "FSCL.Compiler.Sample.AlgorithmSample", "AlgorithmSample\FSCL.Compiler.Sample.AlgorithmSample.fsproj", "{05D3D829-9EEF-411D-BBF7-FE966B2D379B}"
 EndProject
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "CompilerConfigurationSample", "CompilerConfigurationSample\CompilerConfigurationSample.fsproj", "{B97D9326-D6BA-4328-B015-01CA3F1C04F7}"
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "FSCL.Compiler.Sample.CompilerConfigurationSample", "CompilerConfigurationSample\FSCL.Compiler.Sample.CompilerConfigurationSample.fsproj", "{B97D9326-D6BA-4328-B015-01CA3F1C04F7}"
 EndProject
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "KernelExpressionSample", "KernelExpressionSample\KernelExpressionSample.fsproj", "{E2C0607B-13E5-4782-9B93-17F07A376337}"
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "FSCL.Compiler.Sample.KernelExpressionSample", "KernelExpressionSample\FSCL.Compiler.Sample.KernelExpressionSample.fsproj", "{E2C0607B-13E5-4782-9B93-17F07A376337}"
 EndProject
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "VectorTypeSample", "VectorTypeSample\VectorTypeSample.fsproj", "{54A68199-9FDA-4077-97F5-313594FD4A63}"
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "FSCL.Compiler.Sample.VectorTypeSample", "VectorTypeSample\FSCL.Compiler.Sample.VectorTypeSample.fsproj", "{54A68199-9FDA-4077-97F5-313594FD4A63}"
 EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "FSCL.Compiler", "Compiler\FSCL.Compiler.fsproj", "{5D7C3DB1-3300-455E-BF2A-3FB52BDC0595}"
 EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "PipelineConfigurationManager", "StepProcessorConfigurationManager\PipelineConfigurationManager.fsproj", "{F1124EAE-D35E-4C29-96FE-D88E7ADECC84}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "OpenCLBinding", "OpenCLBinding", "{66D6F2F8-B2FD-4E72-A60C-FA3DA084EB7F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Cloo.VS2010", "OpenCLBinding\Cloo\Cloo.VS2010.csproj", "{656E96CE-2587-4CCC-A4DB-06D36267133A}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Samples", "Samples", "{9A8862AE-C973-41BD-A64C-6E3F2C628FCA}"
+EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "FSCL.Compiler.Sample.LanguageAttributesSample", "LanguageAttributesSample\FSCL.Compiler.Sample.LanguageAttributesSample.fsproj", "{BCC7E2B5-F686-459F-A9DD-258F9A21D503}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -55,10 +61,6 @@ Global
 		{7635ADE1-AC00-4587-8117-3FAA15BE9318}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7635ADE1-AC00-4587-8117-3FAA15BE9318}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{7635ADE1-AC00-4587-8117-3FAA15BE9318}.Release|Any CPU.Build.0 = Release|Any CPU
-		{2581B89A-F555-48A7-94BE-9B21654901A7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{2581B89A-F555-48A7-94BE-9B21654901A7}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{2581B89A-F555-48A7-94BE-9B21654901A7}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{2581B89A-F555-48A7-94BE-9B21654901A7}.Release|Any CPU.Build.0 = Release|Any CPU
 		{02CC39BD-A326-49F6-B5E6-2987EADA1BA2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{02CC39BD-A326-49F6-B5E6-2987EADA1BA2}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{02CC39BD-A326-49F6-B5E6-2987EADA1BA2}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -127,8 +129,25 @@ Global
 		{F1124EAE-D35E-4C29-96FE-D88E7ADECC84}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F1124EAE-D35E-4C29-96FE-D88E7ADECC84}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F1124EAE-D35E-4C29-96FE-D88E7ADECC84}.Release|Any CPU.Build.0 = Release|Any CPU
+		{656E96CE-2587-4CCC-A4DB-06D36267133A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{656E96CE-2587-4CCC-A4DB-06D36267133A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{656E96CE-2587-4CCC-A4DB-06D36267133A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{656E96CE-2587-4CCC-A4DB-06D36267133A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BCC7E2B5-F686-459F-A9DD-258F9A21D503}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BCC7E2B5-F686-459F-A9DD-258F9A21D503}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BCC7E2B5-F686-459F-A9DD-258F9A21D503}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BCC7E2B5-F686-459F-A9DD-258F9A21D503}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{656E96CE-2587-4CCC-A4DB-06D36267133A} = {66D6F2F8-B2FD-4E72-A60C-FA3DA084EB7F}
+		{54A68199-9FDA-4077-97F5-313594FD4A63} = {9A8862AE-C973-41BD-A64C-6E3F2C628FCA}
+		{81C780F7-9C08-4D0C-9849-93B2C65397F9} = {9A8862AE-C973-41BD-A64C-6E3F2C628FCA}
+		{05D3D829-9EEF-411D-BBF7-FE966B2D379B} = {9A8862AE-C973-41BD-A64C-6E3F2C628FCA}
+		{B97D9326-D6BA-4328-B015-01CA3F1C04F7} = {9A8862AE-C973-41BD-A64C-6E3F2C628FCA}
+		{E2C0607B-13E5-4782-9B93-17F07A376337} = {9A8862AE-C973-41BD-A64C-6E3F2C628FCA}
+		{BCC7E2B5-F686-459F-A9DD-258F9A21D503} = {9A8862AE-C973-41BD-A64C-6E3F2C628FCA}
 	EndGlobalSection
 EndGlobal

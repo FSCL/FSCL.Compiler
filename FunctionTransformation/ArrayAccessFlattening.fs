@@ -28,7 +28,7 @@ type ArrayAccessTransformation() =
         let set = GetGenericMethodInfoFromExpr(<@@ LanguagePrimitives.IntrinsicFunctions.SetArray<int> null 0 0 @@>, ty)
         (get, set)
 
-    let UpdateArrayAccessMode(var:string, mode:KernelParameterAccessMode, engine:FunctionTransformationStep) =        
+    let UpdateArrayAccessMode(var:string, mode:AccessMode, engine:FunctionTransformationStep) =        
         let data = engine.FunctionInfo :?> KernelInfo
         for pInfo in data.Parameters do
             if pInfo.Name = var then
@@ -72,7 +72,7 @@ type ArrayAccessTransformation() =
                         // Find the placeholder holding the variable of the flattened array
                         let placeholder = GetPlaceholderVar(v.Name, engine)
                         // Update the access mode of this array
-                        UpdateArrayAccessMode(v.Name, KernelParameterAccessMode.ReadAccess, engine)
+                        UpdateArrayAccessMode(v.Name, AccessMode.ReadAccess, engine)
                         // Recursively process the arguments, except the array reference
                         let processedArgs = args |> List.tail |> List.map (fun (a:Expr) -> engine.Continue(a))
                         Expr.Call(methodInfo, [Expr.Var(placeholder)] @ processedArgs)
@@ -82,7 +82,7 @@ type ArrayAccessTransformation() =
                         // Find the placeholders holding the array sizes
                         let sizePlaceHolders = List.ofSeq(Seq.map (fun (el:KernelParameterInfo) -> Expr.Var(el.Placeholder.Value)) (GetSizeParameters(v.Name, engine)))
                         // Update the access mode of this array
-                        UpdateArrayAccessMode(v.Name, KernelParameterAccessMode.ReadAccess, engine)
+                        UpdateArrayAccessMode(v.Name, AccessMode.ReadAccess, engine)
                         // Recursively process the arguments, except the array reference
                         let processedArgs = args |> List.tail |> List.map (fun (a:Expr) -> engine.Continue(a))
                         let accessIndex = <@@ ((%%(processedArgs.[0]):int) * (%%(sizePlaceHolders.[1]):int)) + %%(processedArgs.[1]):int @@>
@@ -95,7 +95,7 @@ type ArrayAccessTransformation() =
                         // Find the placeholders holding the array sizes
                         let sizePlaceHolders = List.ofSeq(Seq.map (fun (el:KernelParameterInfo) -> Expr.Var(el.Placeholder.Value)) (GetSizeParameters(v.Name, engine)))
                         // Update the access mode of this array
-                        UpdateArrayAccessMode(v.Name, KernelParameterAccessMode.ReadAccess, engine)
+                        UpdateArrayAccessMode(v.Name, AccessMode.ReadAccess, engine)
                         // Recursively process the arguments, except the array reference                   
                         let processedArgs = args |> List.tail |> List.map (fun (a:Expr) -> engine.Continue(a))
                         let accessIndex = <@@ ((%%(processedArgs.[0]):int) * (%%(sizePlaceHolders.[0]):int) * (%%(sizePlaceHolders.[1]):int)) + (%%(sizePlaceHolders.[0]):int) * (%%(processedArgs.[1]):int) + (%%(processedArgs.[2]):int) @@>
@@ -106,7 +106,7 @@ type ArrayAccessTransformation() =
                         // Find the placeholder holding the variable of the flattened array
                         let placeholder = GetPlaceholderVar(v.Name, engine)
                         // Update the access mode of this array
-                        UpdateArrayAccessMode(v.Name, KernelParameterAccessMode.WriteAccess, engine)
+                        UpdateArrayAccessMode(v.Name, AccessMode.WriteAccess, engine)
                         // Recursively process the arguments, except the array reference
                         let processedArgs = args |> List.tail |> List.map (fun (a:Expr) -> engine.Continue(a))
                         // Create a new call for the flattened array
@@ -117,7 +117,7 @@ type ArrayAccessTransformation() =
                         // Find the placeholders holding the array sizes
                         let sizePlaceHolders = List.ofSeq(Seq.map (fun (el:KernelParameterInfo) -> Expr.Var(el.Placeholder.Value)) (GetSizeParameters(v.Name, engine)))
                         // Update the access mode of this array
-                        UpdateArrayAccessMode(v.Name, KernelParameterAccessMode.WriteAccess, engine)
+                        UpdateArrayAccessMode(v.Name, AccessMode.WriteAccess, engine)
                         // Recursively process the arguments, except the array reference
                         let processedArgs = args |> List.tail |> List.map (fun (a:Expr) -> engine.Continue(a))
                         let accessIndex = <@@ ((%%(processedArgs.[0]):int) * (%%(sizePlaceHolders.[1]):int)) + %%(processedArgs.[1]):int @@>
@@ -130,7 +130,7 @@ type ArrayAccessTransformation() =
                         // Find the placeholders holding the array sizes
                         let sizePlaceHolders = List.ofSeq(Seq.map (fun (el:KernelParameterInfo) -> Expr.Var(el.Placeholder.Value)) (GetSizeParameters(v.Name, engine)))
                         // Update the access mode of this array
-                        UpdateArrayAccessMode(v.Name, KernelParameterAccessMode.WriteAccess, engine)
+                        UpdateArrayAccessMode(v.Name, AccessMode.WriteAccess, engine)
                         // Recursively process the arguments, except the array reference
                         let processedArgs = args |> List.tail |> List.map (fun (a:Expr) -> engine.Continue(a))
                         let accessIndex = <@@ ((%%(processedArgs.[0]):int) * (%%(sizePlaceHolders.[0]):int) * (%%(sizePlaceHolders.[1]):int)) + (%%(sizePlaceHolders.[0]):int) * (%%(processedArgs.[1]):int) + (%%(processedArgs.[2]):int) @@>

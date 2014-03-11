@@ -1,7 +1,7 @@
 ﻿namespace FSCL.Compiler.ModuleParsing
 
 open FSCL.Compiler
-open FSCL.Compiler.Core.Util
+open FSCL.Compiler.Util
 open System.Collections.Generic
 open System.Reflection
 open Microsoft.FSharp.Quotations
@@ -14,7 +14,7 @@ type KernelLambdaParser() =
         let engine = en :?> ModuleParsingStep
         if (mi :? Expr) then
             match QuotationAnalysis.LambdaToMethod(mi :?> Expr) with
-            | Some(mi, b) -> 
+            | Some(mi, b, kernelAttributes) -> 
                 // Create signleton kernel call graph
                 let kernelModule = new KernelModule()
                 let kInfo = new KernelInfo(mi, b, true)

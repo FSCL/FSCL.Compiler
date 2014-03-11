@@ -73,10 +73,6 @@
       <Name>FSCL.Compiler.Core.ModulePreprocessing</Name>
       <Project>898F5EC0-3903-40E0-98BD-EE2E5746620F</Project>
     </ProjectReference>
-    <ProjectReference Include="..\Tools\FSCL.Compiler.Tools.fsproj">
-      <Name>FSCL.Compiler.Tools</Name>
-      <Project>2581B89A-F555-48A7-94BE-9B21654901A7</Project>
-    </ProjectReference>
     <ProjectReference Include="..\Types\FSCL.Compiler.Core.Types.fsproj">
       <Project>EC288651-4F88-44D7-9206-7A0260552ECC</Project>
       <Name>FSCL.Compiler.Core.Types</Name>

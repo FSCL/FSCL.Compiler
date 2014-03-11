@@ -1,7 +1,7 @@
 ﻿namespace FSCL.Compiler.FunctionPreprocessing
 
 open FSCL.Compiler
-open FSCL.Compiler.KernelLanguage
+open FSCL.Compiler.Language
 open Microsoft.FSharp.Quotations
 open Microsoft.FSharp.Linq.RuntimeHelpers
 open System.Collections.Generic
@@ -24,15 +24,15 @@ type DynamicArrayToParameterProcessor() =
         match e with
         // Return allocation expression can contain a call to global_size, local_size, num_groups or work_dim
         | Patterns.Call(o, m, arguments) ->
-            if m.DeclaringType.Name = "KernelLanguage" && (m.Name = "get_global_size") then
+            if m.DeclaringType.Name = "Language" && (m.Name = "get_global_size") then
                 Expr.Value(globalSize.[LeafExpressionConverter.EvaluateQuotation(arguments.[0]) :?> int])
-            else if m.DeclaringType.Name = "KernelLanguage" && (m.Name = "get_local_size") then
+            else if m.DeclaringType.Name = "Language" && (m.Name = "get_local_size") then
                 Expr.Value(localSize.[LeafExpressionConverter.EvaluateQuotation(arguments.[0]) :?> int])
-            else if m.DeclaringType.Name = "KernelLanguage" && (m.Name = "get_num_groups") then
+            else if m.DeclaringType.Name = "Language" && (m.Name = "get_num_groups") then
                 let gs = globalSize.[LeafExpressionConverter.EvaluateQuotation(arguments.[0]) :?> int]
                 let ls = localSize.[LeafExpressionConverter.EvaluateQuotation(arguments.[0]) :?> int]
                 Expr.Value(int (Math.Ceiling(float gs / float ls)))
-            else if m.DeclaringType.Name = "KernelLanguage" && (m.Name = "get_work_dim") then
+            else if m.DeclaringType.Name = "Language" && (m.Name = "get_work_dim") then
                 Expr.Value(globalSize.Rank)
             else
                 if o.IsSome then
@@ -103,9 +103,12 @@ type DynamicArrayToParameterProcessor() =
         for item in nodes do
             FlowGraphManager.SetNodeInput(item, 
                                           pInfo.Name, 
-                                          BufferAllocationSize(
-                                            fun(args, localSize, globalSize) ->
-                                                this.EvaluateBufferAllocationSize(var.Type.GetElementType(), allocationArgs, args, localSize, globalSize)))
+                                          new FlowGraphNodeInputInfo(
+                                            BufferAllocationSize(
+                                                fun(args, localSize, globalSize) ->
+                                                    this.EvaluateBufferAllocationSize(var.Type.GetElementType(), allocationArgs, args, localSize, globalSize)),
+                                            None,
+                                            null))
             
         // Change connections bound to the return types of this kernel
         // NB: this modifies the call graph
