@@ -16,8 +16,7 @@ type FunctionPreprocessingStep(tm: TypeManager,
     inherit CompilerStep<KernelModule, KernelModule>(tm, processors)
     
     member val private currentFunction:FunctionInfo = null with get, set
-    member val FlowGraph = null with get, set
-
+   
     member this.FunctionInfo 
         with get() =
             this.currentFunction
@@ -30,13 +29,10 @@ type FunctionPreprocessingStep(tm: TypeManager,
             p.Execute(k, this, opts) |> ignore
                
     override this.Run(km: KernelModule, opts) =
-        this.FlowGraph <- km.FlowGraph
-        for k in km.GetKernels() do
-            if not (k.Info.Skip) then
-                this.Process(k.Info, opts)
         for f in km.GetFunctions() do
             if not (f.Info.Skip) then
                 this.Process(f.Info, opts)
+        this.Process(km.Kernel.Info, opts)
         km
 
 

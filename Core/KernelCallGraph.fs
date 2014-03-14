@@ -43,7 +43,7 @@ and FlowGraphNodeInputInfo(i: FlowGraphNodeInput,
     member val Input = i with get
     member val Attributes = getStaticAttrsAndMerge(attrs, p) with get
 
-and [<AllowNullLiteral>] FlowGraphNode(kernelId: FunctionInfoID, 
+and [<AllowNullLiteral>] FlowGraphNode(kernel: KernelInfo, 
                                        mi: MethodInfo option,
                                        attrs: DynamicKernelAttributeCollection) =
     let getStaticAttrsAndMerge(dyn: DynamicKernelAttributeCollection, mi: MethodInfo option) =        
@@ -64,7 +64,7 @@ and [<AllowNullLiteral>] FlowGraphNode(kernelId: FunctionInfoID,
                         attrs.Add(item.GetType(), item :?> DynamicKernelAttributeAttribute)
             new ReadOnlyDynamicKernelAttributeCollection(attrs)
             
-    member val KernelID = kernelId with get
+    member val Kernel = kernel with get
     member val internal Input = new Dictionary<string, FlowGraphNodeInputInfo>() with get
     member val internal Output = (null, new Dictionary<int, string>()) with get, set
   
@@ -160,7 +160,7 @@ type FlowGraphManager() =
                     ()
             currentIndex <- currentIndex + 1
         List.ofSeq(partialOrder)
-        
+        (*
     static member GetKernelNodes(id: FunctionInfoID,
                                  root: FlowGraphNode) =
         if root <> null then
@@ -176,7 +176,7 @@ type FlowGraphManager() =
             List.ofSeq(nodes)
         else
             []
-
+            *)
          
             
         

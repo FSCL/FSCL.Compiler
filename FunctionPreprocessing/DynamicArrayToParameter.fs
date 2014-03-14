@@ -12,8 +12,7 @@ open System.Runtime.InteropServices
 
 //RETURN_TYPE_TO_OUTPUT_ARG_REPLACING
 [<StepProcessor("FSCL_DYNAMIC_ARRAY_TO_PARAMETER_PREPROCESSING_PROCESSOR", 
-                "FSCL_FUNCTION_PREPROCESSING_STEP",
-                Dependencies = [|"FSCL_ARGS_BUILDING_PREPROCESSING_PROCESSOR"|])>]
+                "FSCL_FUNCTION_PREPROCESSING_STEP")>]
 type DynamicArrayToParameterProcessor() =
     inherit FunctionPreprocessingProcessor()
     
@@ -70,7 +69,7 @@ type DynamicArrayToParameterProcessor() =
         | ExprShape.ShapeCombination(c, argsList) ->
             ExprShape.RebuildShapeCombination(c, List.map(fun (e: Expr) -> this.LiftArgumentsAndKernelCalls(e, args, localSize, globalSize)) argsList)
 
-
+            (*
     member private this.EvaluateBufferAllocationSize(t: Type,
                                                      sizes: Expr list,
                                                      args: Dictionary<string, obj>, 
@@ -81,7 +80,7 @@ type DynamicArrayToParameterProcessor() =
             let lifted = this.LiftArgumentsAndKernelCalls(exp, args, localSize, globalSize)
             let evaluated = LeafExpressionConverter.EvaluateQuotation(lifted)
             intSizes.Add((evaluated :?> int32) |> int64)
-        ExplicitAllocationSize(intSizes |> Seq.toArray)           
+        ExplicitAllocationSize(intSizes |> Seq.toArray)            *)
 
     member private this.AddDynamicArrayParameter(step: FunctionPreprocessingStep, kernel:FunctionInfo, var:Var, allocationArgs:Expr list) =
         if (var.IsMutable) then
@@ -91,15 +90,16 @@ type DynamicArrayToParameterProcessor() =
         let kernelInfo = kernel :?> KernelInfo
                         
         // Get flow graph nodes matching the current kernel    
-        let nodes = FlowGraphManager.GetKernelNodes(step.FunctionInfo.ID, step.FlowGraph)
+        //let nodes = FlowGraphManager.GetKernelNodes(step.FunctionInfo.ID, step.FlowGraph)
 
         // Add parameter
-        let pInfo = new KernelParameterInfo(var.Name, var.Type)
+        let pInfo = new KernelParameterInfo(var.Name, var.Type, null, null)
         kernelInfo.Parameters.Add(pInfo)
         pInfo.IsDynamicArrayParameter <- true
         pInfo.DynamicAllocationArguments <- allocationArgs
             
         // Set new argument    
+        (*
         for item in nodes do
             FlowGraphManager.SetNodeInput(item, 
                                           pInfo.Name, 
@@ -108,7 +108,7 @@ type DynamicArrayToParameterProcessor() =
                                                 fun(args, localSize, globalSize) ->
                                                     this.EvaluateBufferAllocationSize(var.Type.GetElementType(), allocationArgs, args, localSize, globalSize)),
                                             None,
-                                            null))
+                                            null)) *)
             
         // Change connections bound to the return types of this kernel
         // NB: this modifies the call graph

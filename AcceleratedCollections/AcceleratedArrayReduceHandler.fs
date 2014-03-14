@@ -172,8 +172,7 @@ type AcceleratedArrayReduceHandler() =
         r2
 
     interface IAcceleratedCollectionHandler with
-        member this.Process(methodInfo, cleanArgs, root, kernelAttrs, paramAttrs, step) =            
-            let kernelModule = new KernelModule()
+        member this.Process(methodInfo, cleanArgs, root, kernelAttrs, paramAttrs, step) =       
             (*
                 Array map looks like: Array.map fun collection
                 At first we check if fun is a lambda (first argument)
@@ -183,16 +182,7 @@ type AcceleratedArrayReduceHandler() =
             *)
             let lambda, computationFunction =                
                 AcceleratedCollectionUtil.ExtractComputationFunction(cleanArgs, root)
-
-            // Merge with the eventual subkernel
-            let subkernel =
-                try
-                    step.Process(cleanArgs.[1])
-                with
-                    :? CompilerException -> null
-            if subkernel <> null then
-                kernelModule.MergeWith(subkernel)
-                
+                                
             // Extract the reduce function 
             match computationFunction with
             | Some(functionInfo, body) ->
@@ -222,7 +212,7 @@ type AcceleratedArrayReduceHandler() =
                                                     functionInfo.Name), 
                                         MethodAttributes.Public ||| MethodAttributes.Static, typeof<unit>, 
                                         [| inputArrayType; outputArrayType; outputArrayType |])
-                let attributeBuilder = new CustomAttributeBuilder(typeof<LocalAttribute>.GetConstructors().[0], [||])
+                let attributeBuilder = new CustomAttributeBuilder(typeof<AddressSpaceAttribute>.GetConstructors().[0], [| AddressSpace.Local |])
                 let paramBuilder = methodBuilder.DefineParameter(1, ParameterAttributes.In, "input_array")
                 let paramBuilder = methodBuilder.DefineParameter(2, ParameterAttributes.In, "local_array")
                 paramBuilder.SetCustomAttribute(attributeBuilder)
@@ -244,12 +234,12 @@ type AcceleratedArrayReduceHandler() =
                     
                 // Setup kernel module and return  
                 let signature = moduleBuilder.GetMethod(methodBuilder.Name) 
-                let kInfo = new AcceleratedKernelInfo(signature, newBody, "Array.reduce", body)
+                let kInfo = new AcceleratedKernelInfo(signature, newBody, Some(cleanArgs), kernelAttrs, "Array.reduce", body)
                 kInfo.CustomInfo.Add("IS_ACCELERATED_COLLECTION_KERNEL", true)
-                
-                kernelModule.AddKernel(kInfo) 
+                     
+                let kernelModule = new KernelModule(kInfo)
                 // Update call graph
-                kernelModule.FlowGraph <- FlowGraphNode(kInfo.ID, None, kernelAttrs)
+                //kernelModule.FlowGraph <- FlowGraphNode(kInfo.ID, None, kernelAttrs)
                                     
                 // Add the computation function and connect it to the kernel
                 let reduceFunctionInfo = new FunctionInfo(functionInfo, body, lambda.IsSome)
@@ -262,9 +252,9 @@ type AcceleratedArrayReduceHandler() =
                                     
                 // Store the called function (runtime execution will use it to perform latest iterations of reduction)
                 kernelModule.AddFunction(reduceFunctionInfo)
-                kernelModule.GetKernel(kInfo.ID).RequiredFunctions.Add(reduceFunctionInfo.ID) |> ignore
+                kernelModule.Kernel.RequiredFunctions.Add(reduceFunctionInfo.ID) |> ignore
                 // Define arguments for call graph
-                let argExpressions = new Dictionary<string, Expr>()
+                (*let argExpressions = new Dictionary<string, Expr>()
                 if subkernel <> null then       
                     FlowGraphManager.SetNodeInput(kernelModule.FlowGraph,
                                                   "input_array",
@@ -285,7 +275,7 @@ type AcceleratedArrayReduceHandler() =
                                              new FlowGraphNodeInputInfo(
                                                 ImplicitValue,
                                                 None,
-                                                new DynamicParameterAttributeCollection()))          
+                                                new DynamicParameterMetadataCollection()))          *)
                 
                 // Return module                             
                 Some(kernelModule)

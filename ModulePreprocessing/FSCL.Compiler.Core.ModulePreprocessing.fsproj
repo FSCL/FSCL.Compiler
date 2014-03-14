@@ -41,8 +41,9 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ModulePreprocessing.fs" />
-    <Compile Include="StructDiscover.fs" />
+    <Compile Include="DefaultKernelCompilationFilter.fs" />
     <Compile Include="FunctionReferenceDiscover.fs" />
+    <Compile Include="StructDiscover.fs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Core\FSCL.Compiler.Core.fsproj">

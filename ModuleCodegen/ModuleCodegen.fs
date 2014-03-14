@@ -26,8 +26,8 @@ type ModuleCodegen() =
         let directives = String.concat "\n\n" (km.GetFlattenRequiredDirectives())
         let structs = km.GetFlattenRequiredGlobalTypes()
         let pstructs = String.concat "\n" (List.map (fun (s: Type) -> PrintStructDefinition(s, engine)) structs)
-        let functions = String.concat "\n\n" (List.map (fun (f: FunctionEnvironment) -> f.Info.Code) (km.GetFlattenRequiredFunctions()))
-        let kernels = String.concat "\n\n" (List.map (fun (f: KernelEnvironment) -> f.Info.Code) (km.GetKernels()))
+        let functions = String.concat "\n\n" (List.map (fun (f: FunctionEnvironment) -> f.Info.Code) (km.GetFunctions()))
+        let kernels = km.Kernel.Info.Code
         String.concat "\n\n" [directives; pstructs; functions; kernels]
              
             

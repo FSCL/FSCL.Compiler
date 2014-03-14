@@ -26,19 +26,26 @@ type KernelCallExpressionParser() =
                 
     override this.Run(e, en, opts) =
         let engine = en :?> ModuleParsingStep
-        let kernelModule = new KernelModule()
         if (e :? Expr) then
             match QuotationAnalysis.GetKernelFromCall(e :?> Expr) with
             // Case k2(k1(args), ...) where k1 doesn't return a tuple value
             | Some(mi, cleanArgs, body, kernelAttrs, paramAttrs) ->
                 
                 // Add the current kernel
-                let kernel = new KernelInfo(mi, body, false)
-                kernelModule.AddKernel(kernel)
-
-                // Set the root of the flow graph
-                kernelModule.FlowGraph <- FlowGraphNode(MethodID(mi), Some(mi), kernelAttrs)
-
+                let kernel = new KernelInfo(mi, body, Some(cleanArgs), kernelAttrs, false)
+                let kernelModule = new KernelModule(kernel)
+                
+                // Process each parameter
+                let parameters = mi.GetParameters()
+                for i = 0 to parameters.Length - 1 do
+                    let p = parameters.[i]
+                    // Create parameter info
+                    let parameterEntry = new KernelParameterInfo(p.Name, p.ParameterType, p, paramAttrs.[i])
+                    // Set var to be used in kernel body
+                    parameterEntry.Placeholder <- Some(Quotations.Var(p.Name, p.ParameterType, false))         
+                    // Add the parameter to the list of kernel params
+                    kernelModule.Kernel.Info.Parameters.Add(parameterEntry)
+                (*
                 // Extract and add eventual subkernels
                 let subkernels = List.map(fun (e: Expr) -> 
                                             match engine.TryProcess(e) with
@@ -64,7 +71,7 @@ type KernelCallExpressionParser() =
                                                         Some(mi.GetParameters().[i]),
                                                         paramAttrs.[i]))
 
-                        
+                        *)
                 //kernelModule.GetKernel(currentKernelID).Info.CustomInfo.Add("ARG_EXPRESSIONS", argExpressions)
                 // Setup connections ret-type -> parameter
                 Some(kernelModule)   

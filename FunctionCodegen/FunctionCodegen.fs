@@ -92,12 +92,10 @@ type FunctionCodegenStep(tm: TypeManager,
     ///       
     override this.Run(km: KernelModule, opt) =    
         opts <- opt
-        for k in km.GetKernels() do
-            if not (k.Info.Skip) then
-                this.Process(k.Info)
         for f in km.GetFunctions() do
             if not (f.Info.Skip) then
                 this.Process(f.Info)
+        this.Process(km.Kernel.Info)
         km
     (*
         let mutable output = ""

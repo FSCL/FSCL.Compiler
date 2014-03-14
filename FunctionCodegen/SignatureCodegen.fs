@@ -1,6 +1,7 @@
 ﻿namespace FSCL.Compiler.FunctionCodegen
 
 open FSCL.Compiler
+open FSCL.Compiler.Language
 open System.Collections.Generic
 open System.Reflection
 open Microsoft.FSharp.Quotations
@@ -46,10 +47,14 @@ type SignatureCodegen() =
             let paramsPrint = List.map(fun (p:KernelParameterInfo) ->
                 if p.Type.IsArray then
                     // If the parameters is tagged with Contant attribute, prepend constant keyword, else global
-                    let addressSpace = p.
-                    if addressSpace = AddressSpace.LocalSpace then
+                    let addressSpace = 
+                        if p.GetMetadata<AddressSpaceAttribute>() <> null then
+                            p.GetMetadata<AddressSpaceAttribute>().AddressSpace
+                        else
+                            AddressSpace.Global
+                    if addressSpace = AddressSpace.Local then
                         "local " + engine.TypeManager.Print(p.Type) + p.Name
-                    elif addressSpace = AddressSpace.ConstantSpace then
+                    elif addressSpace = AddressSpace.Constant then
                         "constant " + engine.TypeManager.Print(p.Type) + p.Name
                     else
                         "global " + engine.TypeManager.Print(p.Type) + p.Name

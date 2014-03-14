@@ -28,14 +28,14 @@ type AcceleratedArrayParser() =
         let step = s :?> ModuleParsingStep
         if o :? Expr then
             // Lift and get potential kernel attributes
-            let expr, kernelAttrs = QuotationAnalysis.ParseDynamicKernelAttributeFunctions(o :?> Expr)
+            let expr, kernelAttrs = QuotationAnalysis.ParseDynamicKernelMetadataFunctions(o :?> Expr)
             // Filter out potential Lambda/Let (if the function is referenced, not applied)
             match QuotationAnalysis.ParseCall(expr) with
             | Some(o, methodInfo, args) -> 
                 if methodInfo.DeclaringType = listModuleType then
                     if (handlers.ContainsKey(methodInfo.GetGenericMethodDefinition())) then
                         // Clean arguments of potential parameter attributes
-                        let cleanArgs, paramAttrs = args |> List.map (fun (pe:Expr) -> QuotationAnalysis.ParseDynamicParameterAttributeFunctions(pe)) |> List.unzip
+                        let cleanArgs, paramAttrs = args |> List.map (fun (pe:Expr) -> QuotationAnalysis.ParseDynamicParameterMetadataFunctions(pe)) |> List.unzip
                         // Run the appropriate handler
                         handlers.[methodInfo.GetGenericMethodDefinition()].Process(methodInfo, cleanArgs, expr, kernelAttrs, paramAttrs, step)
                     else

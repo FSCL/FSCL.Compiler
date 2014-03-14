@@ -30,7 +30,7 @@ type ArrayLenghtArgumentsGenerator() =
         let sizeParameters = new List<KernelParameterInfo>()
 
         // Get node input for each flow graph node instance of this kernel
-        let nodes = FlowGraphManager.GetKernelNodes(fInfo.ID,  step.FlowGraph)
+        //let nodes = FlowGraphManager.GetKernelNodes(fInfo.ID,  step.FlowGraph)
 
         // Process each parameter
         for p in fInfo.Parameters do
@@ -44,7 +44,7 @@ type ArrayLenghtArgumentsGenerator() =
                 p.Type <- pType
                 // Create auto-generated size parameters
                 for d = 0 to dimensions - 1 do
-                    let sizeP = new KernelParameterInfo(GenerateSizeAdditionalArg(p.Name, d), typeof<int>)
+                    let sizeP = new KernelParameterInfo(GenerateSizeAdditionalArg(p.Name, d), typeof<int>, null, null)
                     // A non-array parameter access is always read only
                     sizeP.Access <- AccessMode.ReadAccess
                     // Set var to be used in kernel body
@@ -54,6 +54,7 @@ type ArrayLenghtArgumentsGenerator() =
                     p.SizeParameters.Add(sizeP)
                     sizeParameters.Add(sizeP)              
                     // Update flow graph nodes input
+                    (*
                     for n in nodes do
                         let inputBinding = FlowGraphManager.GetNodeInput(n)
                         FlowGraphManager.SetNodeInput(n, 
@@ -61,7 +62,7 @@ type ArrayLenghtArgumentsGenerator() =
                                                       FlowGraphNodeInputInfo(
                                                         ImplicitValue,
                                                         None,
-                                                        null))
+                                                        null)) *)
                 // Set var to be used in kernel body
                 p.Placeholder <- Some(Quotations.Var(p.Name, pType, false))
 

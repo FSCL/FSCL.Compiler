@@ -15,14 +15,9 @@ type FunctionInfoID =
 ///</summary>
 ///
 [<AllowNullLiteral>]
-type FunctionInfo(id: MethodInfo, expr: Expr, isLambda: bool) =
-    let dynamicAttributes = 
-        let dictionary = new DynamicKernelAttributeCollection()        
-        for item in id.GetCustomAttributes() do
-            if typeof<DynamicKernelAttributeAttribute>.IsAssignableFrom(item.GetType()) then
-                dictionary.Add(item.GetType(), item :?> DynamicKernelAttributeAttribute)
-        new ReadOnlyDynamicKernelAttributeCollection(dictionary)
-        
+type FunctionInfo(signature: MethodInfo, 
+                  body: Expr, 
+                  isLambda: bool) =        
     ///
     ///<summary>
     /// The ID of the function
@@ -34,17 +29,17 @@ type FunctionInfo(id: MethodInfo, expr: Expr, isLambda: bool) =
         with get() =     
             // A lambda kernels/function is identified by its AST    
             if isLambda then
-                LambdaID(expr.ToString())
+                LambdaID(body.ToString())
             else
-                MethodID(id)
+                MethodID(signature)
 
-    member val Signature = id with get
+    member val Signature = signature with get
     ///
     ///<summary>
     /// The name of the function
     ///</summary>
     ///
-    member val Name = id.Name with get, set
+    member val Name = signature.Name with get, set
     ///
     ///<summary>
     /// The set of information about function parameters
@@ -56,19 +51,19 @@ type FunctionInfo(id: MethodInfo, expr: Expr, isLambda: bool) =
     /// The function return type
     ///</summary>
     ///
-    member val ReturnType = id.ReturnType with get, set
+    member val ReturnType = signature.ReturnType with get, set
     ///
     ///<summary>
     /// The body of the function
     ///</summary>
     ///
-    member val OriginalBody = expr with get
+    member val OriginalBody = body with get
     ///
     ///<summary>
     /// The body of the function
     ///</summary>
     ///
-    member val Body = expr with get, set
+    member val Body = body with get, set
     ///
     ///<summary>
     /// Whether the processing of this function whould be skipped 
@@ -96,16 +91,9 @@ type FunctionInfo(id: MethodInfo, expr: Expr, isLambda: bool) =
     ///</remarks>
     ///
     member val CustomInfo = new Dictionary<String, Object>() with get
-    ///
-    ///<summary>
-    /// The static attributes of the function
-    ///</summary>
-    ///
-    member val Attributes = dynamicAttributes with get
     
     member this.GetParameter(name) =
-        Seq.tryFind(fun (p: KernelParameterInfo) -> p.Name = name) (this.Parameters)         
-   
+        Seq.tryFind(fun (p: KernelParameterInfo) -> p.Name = name) (this.Parameters)        
 ///
 ///<summary>
 /// The set of information about kernels collected and maintained by the compiler
@@ -120,5 +108,41 @@ type FunctionInfo(id: MethodInfo, expr: Expr, isLambda: bool) =
 ///</remarks>
 ///     
 [<AllowNullLiteral>]
-type KernelInfo(methodInfo: MethodInfo, expr:Expr, isLambda) =
-    inherit FunctionInfo(methodInfo, expr, isLambda)
+type KernelInfo(signature: MethodInfo, 
+                body: Expr, 
+                args: Expr list option, 
+                dynamicMetadata: DynamicKernelMetadataCollection, 
+                isLambda: bool) =
+    inherit FunctionInfo(signature, body, isLambda)
+    
+    let metadata = 
+        let dictionary = 
+            if dynamicMetadata = null then
+                new DynamicKernelMetadataCollection()
+            else        
+                new DynamicKernelMetadataCollection(dynamicMetadata)        
+        for item in signature.GetCustomAttributes() do
+            if typeof<DynamicKernelMetadataAttribute>.IsAssignableFrom(item.GetType()) then
+                if not (dictionary.ContainsKey(item.GetType())) then
+                    dictionary.Add(item.GetType(), item :?> DynamicKernelMetadataAttribute)
+        dictionary
+        
+    ///
+    ///<summary>
+    /// The actual arguments ofthe call if this kernel is resulting from parsing a call
+    ///</summary>
+    ///
+    member val CallArguments = args with get
+
+    ///
+    ///<summary>
+    /// The dynamic metadata of the kernel
+    ///</summary>
+    ///
+    member val Metadata = metadata with get 
+   
+    member this.GetMetadata<'T>() =
+        if this.Metadata.ContainsKey(typeof<'T>) then
+            this.Metadata.[typeof<'T>]
+        else
+            null

@@ -9,6 +9,49 @@ open Cloo
 ///</summary>
 ///
 module Language =
+    ///
+    ///<summary>
+    /// Enumeration describing the address spaces exposed by OpenCL
+    ///</summary>
+    ///
+    type AddressSpace =
+    | Global = 0
+    | Constant = 1
+    | Local = 2
+    | Private = 3
+    | Auto = 4
+
+    ///
+    ///<summary>
+    /// Enumeration describing the transfer contraints to a kernel parameter (NoTransfer, NoTransferBack, Transfer)
+    ///</summary>
+    ///
+    [<Flags>]
+    type TransferMode =
+    | Transfer = 0
+    | NoTransfer = 1
+    | NoTransferBack = 2
+
+    ///
+    ///<summary>
+    /// Enumeration describing the strategy to read from a buffer associated to an array parameter
+    ///</summary>
+    ///
+    [<Flags>]
+    type BufferReadMode =
+    | MapBuffer = 0
+    | EnqueueReadBuffer = 1
+   
+    ///
+    ///<summary>
+    /// Enumeration describing the strategy to write to a buffer associated to an array parameter
+    ///</summary>
+    ///
+    [<Flags>]
+    type BufferWriteMode =
+    | MapBuffer = 0
+    | EnqueueWriteBuffer = 1
+
     [<AllowNullLiteral>]
     type AlternativeFunctionAttribute(s:string) =
         inherit Attribute()
@@ -16,35 +59,19 @@ module Language =
             with get() = s
             
     [<AllowNullLiteral>]
-    type DynamicAttributeFunctionAttribute(t: Type) =
+    type DynamicMetadataFunctionAttribute(t: Type) =
         inherit Attribute()
-        member val Attribute = t with get
-
+        member val Metadata = t with get
+        
     ///
     ///<summary>
-    ///The attribute to mark a parameter to be allocated in the global address-space
+    ///The attribute to mark a parameter to be allocated in a particular address space (global, constant, local)
     ///</summary>
     ///
     [<AllowNullLiteral>]
-    type GlobalAttribute() =
-        inherit DynamicAttributeAttribute()
-    ///
-    ///<summary>
-    ///The attribute to mark a parameter to be allocated in the constant address-space
-    ///</summary>
-    ///
-    [<AllowNullLiteral>]
-    type ConstantAttribute() =
-        inherit DynamicAttributeAttribute()
-    
-    ///
-    ///<summary>
-    ///The attribute to mark a parameter to be allocated in the local address-space
-    ///</summary>
-    ///
-    [<AllowNullLiteral>]
-    type LocalAttribute() =
-        inherit DynamicAttributeAttribute()
+    type AddressSpaceAttribute(space: AddressSpace) =
+        inherit DynamicParameterMetadataAttribute()
+        member val AddressSpace = space
         
     ///
     ///<summary>
@@ -53,7 +80,7 @@ module Language =
     ///
     [<AllowNullLiteral>]
     type TransferModeAttribute(mode: TransferMode) =
-        inherit DynamicAttributeAttribute()
+        inherit DynamicParameterMetadataAttribute()
         member val Mode = mode with get
          
     ///
@@ -63,8 +90,28 @@ module Language =
     ///
     [<AllowNullLiteral>]
     type MemoryFlagsAttribute(flags: ComputeMemoryFlags) =
-        inherit DynamicAttributeAttribute()
+        inherit DynamicParameterMetadataAttribute()
         member val Flags = flags with get
+        
+    ///
+    ///<summary>
+    ///The attribute to specify the approach to read from a buffer
+    ///</summary>
+    ///
+    [<AllowNullLiteral>]
+    type BufferReadModeAttribute(mode: BufferReadMode) =
+        inherit DynamicParameterMetadataAttribute()
+        member val More = mode with get
+        
+    ///
+    ///<summary>
+    ///The attribute to specify the approach to write a buffer
+    ///</summary>
+    ///
+    [<AllowNullLiteral>]
+    type BufferWriteModeAttribute(mode: BufferWriteMode) =
+        inherit DynamicParameterMetadataAttribute()
+        member val More = mode with get
         
     ///
     ///<summary>
@@ -73,26 +120,29 @@ module Language =
     ///
     [<AllowNullLiteral>]
     type DeviceAttribute(platform: int, device: int) =
-        inherit DynamicAttributeAttribute()
+        inherit DynamicKernelMetadataAttribute()
 
         member val Platform = platform with get
         member val Device = device with get
 
     // Functions matching attributes for dynamic marking of parameters
-    [<DynamicAttributeFunction(typeof<GlobalAttribute>)>]
-    let globalSpace = id        
-    [<DynamicAttributeFunction(typeof<LocalAttribute>)>]
-    let localSpace = id        
-    [<DynamicAttributeFunction(typeof<ConstantAttribute>)>]
-    let constantSpace = id
-    [<DynamicAttributeFunction(typeof<TransferModeAttribute>)>]
-    let transferMode(m: TransferMode, a) = 
+    [<DynamicMetadataFunction(typeof<AddressSpaceAttribute>)>]
+    let ADDRESS_SPACE(m: AddressSpace, a) = 
         a
-    [<DynamicAttributeFunction(typeof<MemoryFlagsAttribute>)>]
-    let memoryFlags(m: ComputeMemoryFlags, a) = 
+    [<DynamicMetadataFunction(typeof<TransferModeAttribute>)>]
+    let TRANSFER_MODE(m: TransferMode, a) = 
+        a
+    [<DynamicMetadataFunction(typeof<MemoryFlagsAttribute>)>]
+    let MEMORY_FLAGS(m: ComputeMemoryFlags, a) = 
         a     
-    [<DynamicAttributeFunction(typeof<DeviceAttribute>)>]
-    let device(pi: int, di: int, a) =
+    [<DynamicMetadataFunction(typeof<BufferReadModeAttribute>)>]
+    let BUFFER_READ_MODE(m: BufferReadMode, a) = 
+        a     
+    [<DynamicMetadataFunction(typeof<BufferWriteModeAttribute>)>]
+    let BUFFER_WRITE_MODE(m: BufferWriteMode, a) = 
+        a     
+    [<DynamicMetadataFunction(typeof<DeviceAttribute>)>]
+    let DEVICE(pi: int, di: int, a) =
         a
 
     ///

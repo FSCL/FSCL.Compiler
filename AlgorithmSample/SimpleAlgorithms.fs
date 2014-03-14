@@ -2,6 +2,7 @@
 
 open FSCL.Compiler
 open FSCL.Compiler.Language
+open Cloo
     
 // Vector addition
 [<ReflectedDefinition>]
@@ -13,8 +14,8 @@ let VectorAdd(a: float32[], b: float32[], c: float32[]) =
 [<ReflectedDefinition>]
 let filterWidth = 3
 
-[<ReflectedDefinition>]
-let Convolution(input:float32[,], [<Constant>]filter:float32[,], output:float32[,], [<Local>]block:float32[,]) =
+[<ReflectedDefinition>][<Device(0,0)>]
+let Convolution(input:float32[,], [<AddressSpace(AddressSpace.Constant)>]filter:float32[,], output:float32[,], [<AddressSpace(AddressSpace.Local)>]block:float32[,]) =
     let output_width = get_global_size(0)
     let input_width = output_width + filterWidth - 1
     let xOut = get_global_id(0)
@@ -55,7 +56,7 @@ let MatrixMult(a: float32[,], b: float32[,], c: float32[,]) =
     
 // Array reduction
 [<ReflectedDefinition>]
-let Reduce(g_idata:int[], [<Local>]sdata:int[], n, g_odata:int[]) =
+let Reduce(g_idata:int[], [<AddressSpace(AddressSpace.Local)>]sdata:int[], n, g_odata:int[]) =
     // perform first level of reduction,
     // reading from global memory, writing to shared memory
     let tid = get_local_id(0)

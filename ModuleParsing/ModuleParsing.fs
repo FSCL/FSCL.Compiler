@@ -9,7 +9,7 @@ open FSCL.Compiler
 [<Step("FSCL_MODULE_PARSING_STEP")>] 
 type ModuleParsingStep(tm: TypeManager,
                        processors: ICompilerStepProcessor list) = 
-    inherit CompilerStep<obj * KernelModule, KernelModule>(tm, processors)
+    inherit CompilerStep<obj, KernelModule>(tm, processors)
 
     let mutable opts = null
          
@@ -31,12 +31,11 @@ type ModuleParsingStep(tm: TypeManager,
             raise (CompilerException("The engine is not able to parse a kernel inside the expression [" + expr.ToString() + "]"))
         output.Value
 
-    override this.Run((expr, kmodule), opt) =
+    override this.Run(expr, opt) =
         opts <- opt
-        let cg = this.Process(expr)
-        kmodule.MergeWith(cg)
-        kmodule.FlowGraph <- cg.FlowGraph
-        kmodule
+        this.Process(expr)
+        //kmodule.MergeWith(cg)
+        //kmodule.FlowGraph <- cg.FlowGraph
 
         
 

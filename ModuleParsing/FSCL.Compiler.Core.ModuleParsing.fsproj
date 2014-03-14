@@ -41,10 +41,10 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ModuleParsing.fs" />
+    <Compile Include="KernelCallExpressionParser.fs" />
     <Compile Include="KernelReferenceParser.fs" />
     <Compile Include="KernelMethodInfoParser.fs" />
     <Compile Include="KernelLambdaParser.fs" />
-    <Compile Include="KernelCallExpressionParser.fs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Core\FSCL.Compiler.Core.fsproj">

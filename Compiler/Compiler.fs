@@ -99,7 +99,7 @@ type Compiler =
     ///</summary>
     ///  
     member this.Compile(input, opts) =
-        let mutable state = (input :> obj, new KernelModule()) :> obj
+        let mutable state = input
         //let timer = new System.Diagnostics.Stopwatch()
         for step in this.steps do
             //timer.Reset()

@@ -17,7 +17,6 @@ type AcceleratedArrayMap2Handler() =
     interface IAcceleratedCollectionHandler with
         member this.Process(methodInfo, cleanArgs, root, kernelAttrs, paramAttrs, step) =
                 
-            let kernelModule = new KernelModule()
             (*
                 Array map looks like: Array.map fun collection
                 At first we check if fun is a lambda (first argument)
@@ -29,20 +28,6 @@ type AcceleratedArrayMap2Handler() =
                 AcceleratedCollectionUtil.ExtractComputationFunction(cleanArgs, root)
 
             // Merge with the eventual subkernels
-            let firstSubkernel =
-                try
-                    step.Process(cleanArgs.[1])
-                with
-                    :? CompilerException -> null
-            if firstSubkernel <> null then
-                kernelModule.MergeWith(firstSubkernel)
-            let secondSubkernel =
-                try
-                    step.Process(cleanArgs.[2])
-                with
-                    :? CompilerException -> null
-            if secondSubkernel <> null then
-                kernelModule.MergeWith(secondSubkernel)
                 
             // Extract the map2 function 
             match computationFunction with
@@ -91,21 +76,22 @@ type AcceleratedArrayMap2Handler() =
                                     
 
                 // Add current kernelbody
-                let kInfo = new AcceleratedKernelInfo(signature, kernelBody, "Array.map2", functionBody)
+                let kInfo = new AcceleratedKernelInfo(signature, kernelBody, Some(cleanArgs), kernelAttrs, "Array.map2", functionBody)
                 kInfo.CustomInfo.Add("IS_ACCELERATED_COLLECTION_KERNEL", true)
-                kernelModule.AddKernel(kInfo)  
+                let kernelModule = new KernelModule(kInfo)
                 // Update call graph
-                kernelModule.FlowGraph <- FlowGraphNode(kInfo.ID, None, kernelAttrs)
+                //kernelModule.FlowGraph <- FlowGraphNode(kInfo.ID, None, kernelAttrs)
                 
                 // Add the computation function and set that it is required by the kernel
-                let mapFunctionInfo = new FunctionInfo(functionInfo, functionBody, lambda.IsSome)
+                let mapFunctionInfo = new FunctionInfo(functionInfo, functionBody,  lambda.IsSome)
                 kernelModule.AddFunction(mapFunctionInfo)
-                kernelModule.GetKernel(kInfo.ID).RequiredFunctions.Add(mapFunctionInfo.ID) |> ignore
+                kernelModule.Kernel.RequiredFunctions.Add(mapFunctionInfo.ID) |> ignore
                 
                 // Set that the return value is encoded in the parameter output_array
-                kernelModule.GetKernel(kInfo.ID).Info.CustomInfo.Add("RETURN_PARAMETER_NAME", "output_array")
+                kernelModule.Kernel.Info.CustomInfo.Add("RETURN_PARAMETER_NAME", "output_array")
 
                 // Connect with subkernels
+                (*
                 if firstSubkernel <> null then           
                     FlowGraphManager.SetNodeInput(kernelModule.FlowGraph,
                                                   "input_array_1",
@@ -142,7 +128,7 @@ type AcceleratedArrayMap2Handler() =
                                                 BufferAllocationSize(fun(args, localSize, globalSize) ->
                                                                             BufferReferenceAllocationExpression("input_array_1")),
                                                 None,
-                                                new DynamicParameterAttributeCollection()))
+                                                new DynamicParameterMetadataCollection())) *)
                 // Return module                             
                 Some(kernelModule)
             | _ ->
