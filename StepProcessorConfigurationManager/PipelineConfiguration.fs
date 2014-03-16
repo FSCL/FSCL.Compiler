@@ -8,6 +8,7 @@ open System.Collections.Generic
 open System.Xml
 open System.Xml.Linq
 open Microsoft.FSharp.Reflection
+open System.Reflection.Emit
 
 ///
 ///<summary>
@@ -26,14 +27,14 @@ type ComponentSource =
 ///A step configuration contains all the information about a step that must be provided when the step is specified in a configuration file or object
 ///</remarks>
 ///
-type StepConfiguration(i: string, t: Type, ?dependencies: string list, ?before: string list) =
+type StepConfiguration(i: string, t: Type, ?dependencies: string array, ?before: string array) = //, ?metadataAffectingResult: Type array) =
     ///
     ///<summary>
     ///The ID of the step
     ///</summary>
     ///
     new() = 
-        new StepConfiguration("", typeof<Object>, [], [])
+        new StepConfiguration("", typeof<Object>, [||], [||])
 
     member val ID = i with get
     ///
@@ -41,13 +42,19 @@ type StepConfiguration(i: string, t: Type, ?dependencies: string list, ?before: 
     ///The step dependencies. See <see cref="FSCL.Compiler.StepAttribute"/>
     ///</summary>
     ///
-    member val Dependencies = if dependencies.IsSome then dependencies.Value else [] with get
+    member val Dependencies = if dependencies.IsSome then dependencies.Value else [||] with get
     ///
     ///<summary>
     ///The set of steps that must be executed after this
     ///</summary>
     ///
-    member val Before = if before.IsSome then before.Value else [] with get
+    member val Before = if before.IsSome then before.Value else [||] with get
+    ///
+    ///<summary>
+    ///The set of metadata that affect the result of this step
+    ///</summary>
+    /// 
+    //ember val MetadataAffectingResult = if metadataAffectingResult.IsSome then metadataAffectingResult.Value else [||] with get
     ///
     ///<summary>
     ///The runtime .NET type of the step
@@ -68,34 +75,51 @@ type StepConfiguration(i: string, t: Type, ?dependencies: string list, ?before: 
                             for item in this.Before do
                                 yield XElement(XName.Get("Item"), XAttribute(XName.Get("ID"), item))
                         })))
+                        (*
+                    new XElement(XName.Get("MetadataAffectingResult"),
+                        Array.ofSeq(seq {
+                            for item in this.MetadataAffectingResult do
+                                yield XElement(XName.Get("Item"), XAttribute(XName.Get("Type"), item.ToString()))
+                        }))) *)
         el
     static member internal FromXml(el:XElement, a:Assembly) =
         let deps = List<string>()
         let bef = List<string>()
+        //let meta = List<Type>()
         for d in el.Elements(XName.Get("Dependencies")) do
             for item in d.Elements(XName.Get("Item")) do
                 deps.Add(item.Attribute(XName.Get("ID")).Value)
         for d in el.Elements(XName.Get("Before")) do
             for item in d.Elements(XName.Get("Item")) do
                 bef.Add(item.Attribute(XName.Get("ID")).Value)
+        (*for d in el.Elements(XName.Get("MetadataAffectingResult")) do
+            for item in d.Elements(XName.Get("Item")) do
+                let asm = Assembly.GetExecutingAssembly();
+                let tName = item.Attribute(XName.Get("ID")).Value
+                let t = asm.GetType(tName);
+                meta.Add(t) *)
         StepConfiguration(el.Attribute(XName.Get("ID")).Value, 
                           a.GetType(el.Attribute(XName.Get("Type")).Value), 
-                          List.ofSeq deps, List.ofSeq bef)
+                          deps.ToArray(), bef.ToArray())//, meta.ToArray())
 
     override this.Equals(o) =
         if o.GetType() <> this.GetType() then
             false
         else
             let oth = o :?> StepConfiguration
-            let equal = ref(this.ID = oth.ID && this.Type = oth.Type && this.Dependencies.Length = oth.Dependencies.Length && this.Before.Length = oth.Before.Length)
+            let equal = ref(this.ID = oth.ID && this.Type = oth.Type && this.Dependencies.Length = oth.Dependencies.Length && this.Before.Length = oth.Before.Length)// && this.MetadataAffectingResult.Length = oth.MetadataAffectingResult.Length)
             if !equal then
-                List.iter (fun (item1:string) ->
-                    equal := !equal && (List.tryFind(fun (item2:string) ->
+                Array.iter (fun (item1:string) ->
+                    equal := !equal && (Array.tryFind(fun (item2:string) ->
                                         item1 = item2) oth.Dependencies).IsSome) this.Dependencies
             if !equal then
-                List.iter (fun (item1:string) ->
-                    equal := !equal && (List.tryFind(fun (item2:string) ->
+                Array.iter (fun (item1:string) ->
+                    equal := !equal && (Array.tryFind(fun (item2:string) ->
                                         item1 = item2) oth.Before).IsSome) this.Before
+            (*if !equal then
+                Array.iter (fun (item1:Type) ->
+                    equal := !equal && (Array.tryFind(fun (item2:Type) ->
+                                        item1 = item2) oth.MetadataAffectingResult).IsSome) this.MetadataAffectingResult*)
             !equal
             
 ///
@@ -103,7 +127,7 @@ type StepConfiguration(i: string, t: Type, ?dependencies: string list, ?before: 
 ///Configuration of a compiler step processor
 ///</summary>
 ///
-type StepProcessorConfiguration(i: string, s: string, t: Type, ?dependencies, ?before) =
+type StepProcessorConfiguration(i: string, s: string, t: Type, ?dependencies, ?before) = //, ?metadataAffectingResult: Type array) =
     ///
     ///<summary>
     ///The ID of the step processors
@@ -115,19 +139,25 @@ type StepProcessorConfiguration(i: string, s: string, t: Type, ?dependencies, ?b
     ///The step processors dependencies. See <see cref="FSCL.Compiler.StepProcessorAttribute"/>
     ///</summary>
     ///
-    member val Dependencies = if dependencies.IsSome then dependencies.Value else [] with get
+    member val Dependencies = if dependencies.IsSome then dependencies.Value else [||] with get
     ///
     ///<summary>
     ///The set of processors that must be executed after this
     ///</summary>
     ///
-    member val Before = if before.IsSome then before.Value else [] with get
+    member val Before = if before.IsSome then before.Value else [||] with get
     ///
     ///<summary>
     ///The runtime .NET type of the step processor
     ///</summary>
     ///
     member val Step = s with get
+    ///
+    ///<summary>
+    ///The set of metadata that affect the result of this step
+    ///</summary>
+    /// 
+    //member val MetadataAffectingResult = if metadataAffectingResult.IsSome then metadataAffectingResult.Value else [||] with get
     ///
     ///<summary>
     ///The runtime .NET type of the step
@@ -150,27 +180,60 @@ type StepProcessorConfiguration(i: string, s: string, t: Type, ?dependencies, ?b
                             for item in this.Before do
                                 yield XElement(XName.Get("Item"), XAttribute(XName.Get("ID"), item))
                         })))
+                    (*new XElement(XName.Get("MetadataAffectingResult"),
+                        Array.ofSeq(seq {
+                            for item in this.MetadataAffectingResult do
+                                yield XElement(XName.Get("Item"), XAttribute(XName.Get("Type"), item.ToString()))
+                        }))) *)
         el
+
     static member internal FromXml(el:XElement, a:Assembly) =
         let deps = List<string>()
         let bef = List<string>()
+       // let meta = List<Type>()
         for d in el.Elements(XName.Get("Dependencies")) do
             for item in d.Elements(XName.Get("Item")) do
                 deps.Add(item.Attribute(XName.Get("ID")).Value)
         for d in el.Elements(XName.Get("Before")) do
             for item in d.Elements(XName.Get("Item")) do
                 bef.Add(item.Attribute(XName.Get("ID")).Value)
+        (*for d in el.Elements(XName.Get("MetadataAffectingResult")) do
+            for item in d.Elements(XName.Get("Item")) do
+                let asm = Assembly.GetExecutingAssembly();
+                let tName = item.Attribute(XName.Get("ID")).Value
+                let t = asm.GetType(tName);
+                meta.Add(t)*)
         StepProcessorConfiguration(el.Attribute(XName.Get("ID")).Value, 
                                    el.Attribute(XName.Get("Step")).Value, 
                                    a.GetType(el.Attribute(XName.Get("Type")).Value), 
-                                   List.ofSeq deps, List.ofSeq bef)
+                                   deps.ToArray(), bef.ToArray())//, meta.ToArray())
+
+    override this.Equals(o) =
+        if o.GetType() <> this.GetType() then
+            false
+        else
+            let oth = o :?> StepProcessorConfiguration
+            let equal = ref(this.ID = oth.ID && this.Type = oth.Type && this.Step = oth.Step && this.Dependencies.Length = oth.Dependencies.Length && this.Before.Length = oth.Before.Length)// && this.MetadataAffectingResult.Length = oth.MetadataAffectingResult.Length)
+            if !equal then
+                Array.iter (fun (item1:string) ->
+                    equal := !equal && (Array.tryFind(fun (item2:string) ->
+                                        item1 = item2) oth.Dependencies).IsSome) this.Dependencies
+            if !equal then
+                Array.iter (fun (item1:string) ->
+                    equal := !equal && (Array.tryFind(fun (item2:string) ->
+                                        item1 = item2) oth.Before).IsSome) this.Before
+            (*if !equal then
+                Array.iter (fun (item1:Type) ->
+                    equal := !equal && (Array.tryFind(fun (item2:Type) ->
+                                        item1 = item2) oth.MetadataAffectingResult).IsSome) this.MetadataAffectingResult*)
+            !equal
 
 ///
 ///<summary>
 ///Configuration of a type handler
 ///</summary>
 ///
-type TypeHandlerConfiguration(i:string, t:Type, ?dependencies, ?before: string list) =
+type TypeHandlerConfiguration(i:string, t:Type, ?dependencies, ?before: string array) =
     ///
     ///<summary>
     ///Type handler ID
@@ -182,13 +245,13 @@ type TypeHandlerConfiguration(i:string, t:Type, ?dependencies, ?before: string l
     ///The type handler dependencies
     ///</summary>
     ///
-    member val Dependencies = if dependencies.IsSome then dependencies.Value else [] with get
+    member val Dependencies = if dependencies.IsSome then dependencies.Value else [||] with get
     ///
     ///<summary>
     ///The set of type handlers that must taken into account only is this one is not able to handle a type
     ///</summary>
     ///
-    member val Before = if before.IsSome then before.Value else [] with get
+    member val Before = if before.IsSome then before.Value else [||] with get
     ///
     ///<summary>
     ///The runtime .NET type of the step processor
@@ -220,7 +283,7 @@ type TypeHandlerConfiguration(i:string, t:Type, ?dependencies, ?before: string l
         for d in el.Elements(XName.Get("Before")) do
             for item in d.Elements(XName.Get("Item")) do
                 bef.Add(item.Attribute(XName.Get("ID")).Value)
-        TypeHandlerConfiguration(el.Attribute(XName.Get("ID")).Value, a.GetType(el.Attribute(XName.Get("Type")).Value), List.ofSeq deps, List.ofSeq bef)   
+        TypeHandlerConfiguration(el.Attribute(XName.Get("ID")).Value, a.GetType(el.Attribute(XName.Get("Type")).Value), deps.ToArray(), bef.ToArray())   
                 
 ///
 ///<summary>
@@ -228,9 +291,9 @@ type TypeHandlerConfiguration(i:string, t:Type, ?dependencies, ?before: string l
 ///</summary>
 ///
 type SourceConfiguration(src: ComponentSource, 
-                         th: TypeHandlerConfiguration list, 
-                         s: StepConfiguration list, 
-                         p: StepProcessorConfiguration list) =     
+                         th: TypeHandlerConfiguration array, 
+                         s: StepConfiguration array, 
+                         p: StepProcessorConfiguration array) =     
     ///
     ///<summary>
     ///The path of the source file or the instance of the source assembly
@@ -291,7 +354,7 @@ type SourceConfiguration(src: ComponentSource,
     ///</summary>
     ///
     new(src: ComponentSource) = 
-        SourceConfiguration(src, [], [], [])
+        SourceConfiguration(src, [||], [||], [||])
 
     member internal this.ToXml() =
         let el = new XElement(XName.Get(this.GetType().Name),
@@ -352,7 +415,7 @@ type SourceConfiguration(src: ComponentSource,
                 for item in el.Element(XName.Get("Components")).Element(XName.Get("StepProcessors")).Elements() do
                     sp.Add(StepProcessorConfiguration.FromXml(item, assembly))
             
-            let conf = new SourceConfiguration(source, List.ofSeq th, List.ofSeq s, List.ofSeq sp)
+            let conf = new SourceConfiguration(source, th.ToArray(), s.ToArray(), sp.ToArray())
             conf
         else
             let conf = new SourceConfiguration(source)
@@ -374,12 +437,15 @@ type SourceConfiguration(src: ComponentSource,
             for t in assembly.GetTypes() do
                 let dep = List<string>()
                 let bef = List<string>()
+                //let meta = List<Type>()
 
                 let thAttribute = t.GetCustomAttribute<TypeHandlerAttribute>()
                 if thAttribute <> null then
                     for item in thAttribute.Before do
                         bef.Add(item)
-                    th.Add(TypeHandlerConfiguration(thAttribute.ID, t, List.ofSeq bef))
+                    for item in thAttribute.Dependencies do
+                        dep.Add(item)
+                    th.Add(TypeHandlerConfiguration(thAttribute.ID, t, dep.ToArray(), bef.ToArray()))
                 dep.Clear()
                 bef.Clear()
 
@@ -389,7 +455,9 @@ type SourceConfiguration(src: ComponentSource,
                         bef.Add(item)
                     for item in sAttribute.Dependencies do
                         dep.Add(item)
-                    s.Add(StepConfiguration(sAttribute.ID, t, List.ofSeq dep, List.ofSeq bef))
+                    //for item in sAttribute.MetadataAffectingResult do
+                     //   meta.Add(item)
+                    s.Add(StepConfiguration(sAttribute.ID, t, dep.ToArray(), bef.ToArray()))//, meta.ToArray()))
                 dep.Clear()
                 bef.Clear()
                         
@@ -399,10 +467,12 @@ type SourceConfiguration(src: ComponentSource,
                         bef.Add(item)
                     for item in spAttribute.Dependencies do
                         dep.Add(item)
-                    sp.Add(StepProcessorConfiguration(spAttribute.ID, spAttribute.Step, t, List.ofSeq dep, List.ofSeq bef))
+                    //for item in sAttribute.MetadataAffectingResult do
+                      //  meta.Add(item)
+                    sp.Add(StepProcessorConfiguration(spAttribute.ID, spAttribute.Step, t, dep.ToArray(), bef.ToArray()))//, meta.ToArray()))
 
             // Return
-            SourceConfiguration(this.Source, List.ofSeq th, List.ofSeq s, List.ofSeq sp)
+            SourceConfiguration(this.Source, th.ToArray(), s.ToArray(), sp.ToArray())
         else
             this  
              
@@ -454,7 +524,7 @@ type PipelineConfiguration(defSteps, sources: SourceConfiguration list) =
                 spc.Add(new StepProcessorConfiguration("sp" + stepProcID.ToString(),
                                                         "s" + stepID.ToString(), 
                                                         proc.GetType(), 
-                                                        if stepProcID = 0 then [] else [ "sp" + (stepProcID - 1).ToString() ]))
+                                                        if stepProcID = 0 then [||] else [| "sp" + (stepProcID - 1).ToString() |]))
                 stepProcID <- stepProcID + 1
 
             // Add step configuration
@@ -464,7 +534,7 @@ type PipelineConfiguration(defSteps, sources: SourceConfiguration list) =
             let thc, sc, spc = sourceDic.[assembly]
             sc.Add(new StepConfiguration("s" + stepID.ToString(),
                                          step.GetType(), 
-                                         if stepID = 0 then [] else [ "s" + (stepProcID - 1).ToString() ]))
+                                         if stepID = 0 then [||] else [| "s" + (stepProcID - 1).ToString() |]))
             stepID <- stepID + 1
 
         // Type handlers
@@ -477,14 +547,14 @@ type PipelineConfiguration(defSteps, sources: SourceConfiguration list) =
             let thc, sc, spc = sourceDic.[assembly]
             thc.Add(new TypeHandlerConfiguration("th" + typeHandlerID.ToString(), 
                                                  th.GetType(), 
-                                                 if typeHandlerID = 0 then [] else [ "th" + (typeHandlerID - 1).ToString() ]))
+                                                 if typeHandlerID = 0 then [||] else [| "th" + (typeHandlerID - 1).ToString() |]))
             typeHandlerID <- typeHandlerID + 1
 
         // Create assembly based configuration
         new PipelineConfiguration(defSteps, List.ofSeq(seq {
                                                                     for item in sourceDic do
                                                                         let thc, sc, spc = item.Value                                                                        
-                                                                        yield new SourceConfiguration(AssemblySource(item.Key), List.ofSeq thc, List.ofSeq sc, List.ofSeq spc)     
+                                                                        yield new SourceConfiguration(AssemblySource(item.Key), thc.ToArray(), sc.ToArray(), spc.ToArray())     
                                                                }))
         
     ///</summary>

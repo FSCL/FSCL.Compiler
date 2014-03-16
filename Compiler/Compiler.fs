@@ -19,6 +19,7 @@ open System.Collections.Generic
 ///The FSCL compiler
 ///</summary>
 ///
+[<AllowNullLiteral>]
 type Compiler =  
     static member private defConfRoot = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "FSCL.Compiler")
     static member private defConfCompRoot = "Components"
@@ -32,7 +33,7 @@ type Compiler =
            typeof<ModuleCodegenStep>; 
            typeof<DefaultTypeHandler> |]
 
-    val mutable private steps : ICompilerStep list
+    val mutable private steps : ICompilerStep array
     val mutable private configuration: PipelineConfiguration
     val mutable private configurationManager: PipelineConfigurationManager
 
@@ -49,7 +50,7 @@ type Compiler =
     ///In addition of the 0 or more components found, the native components are always loaded (if no configuration file is found in the first step)
     ///</remarks>
     ///
-    new() as this = { steps = []; 
+    new() as this = { steps = [||]; 
                       configurationManager = new PipelineConfigurationManager(Compiler.defComponentsAssemply, Compiler.defConfRoot, Compiler.defConfCompRoot); 
                       configuration = null }   
                     then
@@ -65,7 +66,7 @@ type Compiler =
     ///An instance of the compiler configured with the input file
     ///</returns>
     ///
-    new(file: string) as this = { steps = []; 
+    new(file: string) as this = { steps = [||]; 
                                   configurationManager = new PipelineConfigurationManager(Compiler.defComponentsAssemply, Compiler.defConfRoot, Compiler.defConfCompRoot); 
                                   configuration = null }   
                                 then
@@ -80,7 +81,7 @@ type Compiler =
     ///An instance of the compiler configured with the input configuration object
     ///</returns>
     ///
-    new(conf: PipelineConfiguration) as this = { steps = []; 
+    new(conf: PipelineConfiguration) as this = { steps = [||]; 
                                                  configurationManager = new PipelineConfigurationManager(Compiler.defComponentsAssemply, Compiler.defConfRoot, Compiler.defConfCompRoot); 
                                                  configuration = conf }   
                                                then
@@ -93,6 +94,7 @@ type Compiler =
     member this.Configuration 
         with get() =
             this.configuration
+
     ///
     ///<summary>
     ///The method to be invoke to compile a managed kernel
@@ -100,17 +102,36 @@ type Compiler =
     ///  
     member this.Compile(input, opts) =
         let mutable state = input
-        //let timer = new System.Diagnostics.Stopwatch()
-        for step in this.steps do
-            //timer.Reset()
-            //timer.Start()
-            state <- step.Execute(state, opts)
-            //timer.Stop()
-            //Console.WriteLine("Step " + (step.GetType().ToString()) + ": " + timer.ElapsedMilliseconds.ToString() + "ms")
+        let mutable stopCompilation = false
+        let mutable i = 0
+        while not(stopCompilation) && i < this.steps.Length do
+            match this.steps.[i].Execute(state, opts) with
+            | StopCompilation(r) ->
+                state <- r
+                stopCompilation <- true
+            | ValidResult(o) ->
+                state <- o
+                i <- i + 1
         state
         
     member this.Compile(input) =
         this.Compile(input, new ReadOnlyDictionary<string, obj>(new Dictionary<string, obj>()))
+        
+    member this.CollectMetadataComparisonFunctions =
+        let comp = new List<DynamicKernelMetadataCollection * DynamicKernelMetadataCollection -> bool>()
+        for s in this.steps do
+            match s.BehaveDifferentlyWithKernelMetadata with
+            | Some(f) ->
+                comp.Add(f)
+            | _ ->
+                ()
+            for p in s.Processors do
+                match p.BehaveDifferentlyWithKernelMetadata with
+                | Some(f) ->
+                    comp.Add(f)
+                | _ ->
+                    ()                
+        comp
           
     static member DefaultConfigurationRoot() =
         Compiler.defConfCompRoot

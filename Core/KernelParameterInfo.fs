@@ -26,6 +26,7 @@ type AccessMode =
 type KernelParameterInfo(name:string, 
                          t: Type, 
                          methodInfoParameter: ParameterInfo, 
+                         arg: Expr option,
                          dynamicMetadata: DynamicParameterMetadataCollection) =
     let metadata = 
         let dictionary = 
@@ -77,6 +78,12 @@ type KernelParameterInfo(name:string,
     ///</summary>
     ///
     member val ReturnExpr = None with get, set
+    ///
+    ///<summary>
+    /// The actual arguments ofthe call if this kernel is resulting from parsing a call
+    ///</summary>
+    ///
+    member val CallExpr = arg with get
     ///
     ///<summary>
     /// Variable holding the parameter inside the kernel body in the abstract syntax tree

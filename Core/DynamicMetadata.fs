@@ -46,12 +46,4 @@ type DynamicKernelMetadataCollection = Dictionary<Type, DynamicKernelMetadataAtt
 type ReadOnlyDynamicParameterMetadataCollection = ReadOnlyDictionary<Type, DynamicParameterMetadataAttribute>
 type ReadOnlyDynamicKernelMetadataCollection = ReadOnlyDictionary<Type, DynamicKernelMetadataAttribute>
 
-///
-///<summary>
-/// Attribute to declare that a step or a processor behaves differently on the basis of the values of a set of parameters
-///</summary>
-///
-[<AllowNullLiteral>]
-type UseDynamicMetadataAttribute(t: Type array) =
-    inherit Attribute()
-    member val Metadata = t with get
+    

@@ -137,7 +137,7 @@ module QuotationAnalysis =
         | Patterns.Call (e, mi, a) ->
             match mi with
             | DerivedPatterns.MethodWithReflectedDefinition(b) ->
-                let cleanArgs, paramAttrs = a |> List.map (fun (pe:Expr) -> ParseDynamicParameterMetadataFunctions(pe)) |> List.unzip
+                let cleanArgs, paramAttrs = a |> List.toArray |> Array.map (fun (pe:Expr) -> ParseDynamicParameterMetadataFunctions(pe)) |> Array.unzip
                 Some(mi, cleanArgs, b, attrs, paramAttrs)
             | _ ->
                 None

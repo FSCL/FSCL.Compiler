@@ -51,13 +51,16 @@ type SignatureCodegen() =
                         if p.GetMetadata<AddressSpaceAttribute>() <> null then
                             p.GetMetadata<AddressSpaceAttribute>().AddressSpace
                         else
-                            AddressSpace.Global
+                            (new AddressSpaceAttribute()).AddressSpace
                     if addressSpace = AddressSpace.Local then
                         "local " + engine.TypeManager.Print(p.Type) + p.Name
                     elif addressSpace = AddressSpace.Constant then
                         "constant " + engine.TypeManager.Print(p.Type) + p.Name
+                    elif addressSpace = AddressSpace.Global then
+                        "global " + engine.TypeManager.Print(p.Type) + p.Name
                     else
                         "global " + engine.TypeManager.Print(p.Type) + p.Name
+                        
                 else
                     engine.TypeManager.Print(p.Type) + " " + p.Name) parameters
             

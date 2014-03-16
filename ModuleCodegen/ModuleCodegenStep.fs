@@ -23,4 +23,4 @@ type ModuleCodegenStep(tm: TypeManager,
         let state = ref ""
         for p in processors do
             state := p.Execute((k, !state), this, opts) :?> string
-        (k, !state)
+        ValidResult((k, !state))

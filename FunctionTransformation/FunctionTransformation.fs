@@ -53,10 +53,9 @@ type FunctionTransformationStep(tm: TypeManager,
     override this.Run(km: KernelModule, opt) =
         opts <- opt
         for f in km.GetFunctions() do
-            if not (f.Info.Skip) then
-                this.Process(f.Info)
+            this.Process(f.Info)
         this.Process(km.Kernel.Info)
-        km
+        ValidResult(km)
         
 
 

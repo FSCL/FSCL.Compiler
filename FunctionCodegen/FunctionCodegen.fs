@@ -93,10 +93,9 @@ type FunctionCodegenStep(tm: TypeManager,
     override this.Run(km: KernelModule, opt) =    
         opts <- opt
         for f in km.GetFunctions() do
-            if not (f.Info.Skip) then
-                this.Process(f.Info)
+            this.Process(f.Info)
         this.Process(km.Kernel.Info)
-        km
+        ValidResult(km)
     (*
         let mutable output = ""
         let directives = String.concat "\n" (seq { for i in km.Directives do yield i })

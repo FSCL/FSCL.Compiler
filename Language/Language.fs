@@ -28,9 +28,10 @@ module Language =
     ///
     [<Flags>]
     type TransferMode =
-    | Transfer = 0
-    | NoTransfer = 1
-    | NoTransferBack = 2
+    | TransferAlways = 0
+    | TransferIfNeeded = 1
+    | NoTransfer = 2
+    | NoTransferBack = 3
 
     ///
     ///<summary>
@@ -72,6 +73,8 @@ module Language =
     type AddressSpaceAttribute(space: AddressSpace) =
         inherit DynamicParameterMetadataAttribute()
         member val AddressSpace = space
+        new() =
+            AddressSpaceAttribute(AddressSpace.Auto)
         
     ///
     ///<summary>
@@ -82,6 +85,8 @@ module Language =
     type TransferModeAttribute(mode: TransferMode) =
         inherit DynamicParameterMetadataAttribute()
         member val Mode = mode with get
+        new() =
+            TransferModeAttribute(TransferMode.TransferIfNeeded)
          
     ///
     ///<summary>
@@ -92,6 +97,8 @@ module Language =
     type MemoryFlagsAttribute(flags: ComputeMemoryFlags) =
         inherit DynamicParameterMetadataAttribute()
         member val Flags = flags with get
+        new() =
+            MemoryFlagsAttribute(ComputeMemoryFlags.None)
         
     ///
     ///<summary>
@@ -102,6 +109,8 @@ module Language =
     type BufferReadModeAttribute(mode: BufferReadMode) =
         inherit DynamicParameterMetadataAttribute()
         member val More = mode with get
+        new() =
+            BufferReadModeAttribute(BufferReadMode.EnqueueReadBuffer)
         
     ///
     ///<summary>
@@ -112,6 +121,8 @@ module Language =
     type BufferWriteModeAttribute(mode: BufferWriteMode) =
         inherit DynamicParameterMetadataAttribute()
         member val More = mode with get
+        new() =
+            BufferWriteModeAttribute(BufferWriteMode.EnqueueWriteBuffer)    
         
     ///
     ///<summary>
@@ -121,9 +132,10 @@ module Language =
     [<AllowNullLiteral>]
     type DeviceAttribute(platform: int, device: int) =
         inherit DynamicKernelMetadataAttribute()
-
         member val Platform = platform with get
         member val Device = device with get
+        new() =
+            DeviceAttribute(0, 0)    
 
     // Functions matching attributes for dynamic marking of parameters
     [<DynamicMetadataFunction(typeof<AddressSpaceAttribute>)>]

@@ -32,7 +32,7 @@ type KernelCallExpressionParser() =
             | Some(mi, cleanArgs, body, kernelAttrs, paramAttrs) ->
                 
                 // Add the current kernel
-                let kernel = new KernelInfo(mi, body, Some(cleanArgs), kernelAttrs, false)
+                let kernel = new KernelInfo(mi, body, kernelAttrs, false)
                 let kernelModule = new KernelModule(kernel)
                 
                 // Process each parameter
@@ -40,7 +40,7 @@ type KernelCallExpressionParser() =
                 for i = 0 to parameters.Length - 1 do
                     let p = parameters.[i]
                     // Create parameter info
-                    let parameterEntry = new KernelParameterInfo(p.Name, p.ParameterType, p, paramAttrs.[i])
+                    let parameterEntry = new KernelParameterInfo(p.Name, p.ParameterType, p, Some(cleanArgs.[i]), paramAttrs.[i])
                     // Set var to be used in kernel body
                     parameterEntry.Placeholder <- Some(Quotations.Var(p.Name, p.ParameterType, false))         
                     // Add the parameter to the list of kernel params

@@ -16,12 +16,12 @@ type KernelLambdaParser() =
             match QuotationAnalysis.LambdaToMethod(mi :?> Expr) with
             | Some(mi, b, kernelAttributes) -> 
                 // Create signleton kernel call graph
-                let kernelModule = new KernelModule(new KernelInfo(mi, b, None, null, true))
+                let kernelModule = new KernelModule(new KernelInfo(mi, b, null, true))
                 
                 // Process each parameter
                 for p in mi.GetParameters() do
                     // Create parameter info
-                    let parameterEntry = new KernelParameterInfo(p.Name, p.ParameterType, p, null)
+                    let parameterEntry = new KernelParameterInfo(p.Name, p.ParameterType, p, None, null)
                     // Set var to be used in kernel body
                     parameterEntry.Placeholder <- Some(Quotations.Var(p.Name, p.ParameterType, false))         
                     // Add the parameter to the list of kernel params

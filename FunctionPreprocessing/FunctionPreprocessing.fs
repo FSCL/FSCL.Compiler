@@ -30,9 +30,8 @@ type FunctionPreprocessingStep(tm: TypeManager,
                
     override this.Run(km: KernelModule, opts) =
         for f in km.GetFunctions() do
-            if not (f.Info.Skip) then
-                this.Process(f.Info, opts)
+            this.Process(f.Info, opts)
         this.Process(km.Kernel.Info, opts)
-        km
+        ValidResult(km)
 
 

@@ -234,10 +234,29 @@ type AcceleratedArrayReduceHandler() =
                     
                 // Setup kernel module and return  
                 let signature = moduleBuilder.GetMethod(methodBuilder.Name) 
-                let kInfo = new AcceleratedKernelInfo(signature, newBody, Some(cleanArgs), kernelAttrs, "Array.reduce", body)
+                let kInfo = new AcceleratedKernelInfo(signature, newBody, kernelAttrs, "Array.reduce", body)
                 kInfo.CustomInfo.Add("IS_ACCELERATED_COLLECTION_KERNEL", true)
-                     
                 let kernelModule = new KernelModule(kInfo)
+                
+                // Create input parameter info
+                let inputParameterEntry = new KernelParameterInfo("input_array", inputArrayType, null, Some(cleanArgs.[1]), paramAttrs.[1])
+                // Set var to be used in kernel body
+                inputParameterEntry.Placeholder <- Some(Quotations.Var("input_array", inputArrayType, false))         
+                // Add the parameter to the list of kernel params
+                kernelModule.Kernel.Info.Parameters.Add(inputParameterEntry)
+                // Create local parameter info
+                let localParameterEntry = new KernelParameterInfo("local_array", outputArrayType, null, None, null)
+                // Set var to be used in kernel body
+                localParameterEntry.Placeholder <- Some(Quotations.Var("local_array", outputArrayType, false))         
+                // Add the parameter to the list of kernel params
+                kernelModule.Kernel.Info.Parameters.Add(localParameterEntry)
+                // Create output parameter info
+                let outputParameterEntry = new KernelParameterInfo("output_array", outputArrayType, null, None, null)
+                // Set var to be used in kernel body
+                outputParameterEntry.Placeholder <- Some(Quotations.Var("output_array", outputArrayType, false))         
+                // Add the parameter to the list of kernel params
+                kernelModule.Kernel.Info.Parameters.Add(outputParameterEntry)
+
                 // Update call graph
                 //kernelModule.FlowGraph <- FlowGraphNode(kInfo.ID, None, kernelAttrs)
                                     

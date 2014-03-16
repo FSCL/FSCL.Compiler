@@ -6,6 +6,10 @@ open System.Collections.Generic
 open Microsoft.FSharp.Quotations
 open System.Collections.ObjectModel
 
+type CompilerStepResult =
+| ValidResult of obj
+| StopCompilation of obj
+
 ///
 ///<summary>
 ///The base type of every compiler step processor
@@ -14,7 +18,7 @@ open System.Collections.ObjectModel
 ///Developers of step processors should not inherit from this class but from the generic CompilerStepProcessor and provide an implementation to the method "Run"
 ///</remarks>
 ///
-type ICompilerStepProcessor = 
+type [<AbstractClass>] ICompilerStepProcessor() = 
     ///
     ///<summary>
     ///The method to be called to execute the processor
@@ -27,6 +31,10 @@ type ICompilerStepProcessor =
     ///<returns>The output produced by this processor</returns>
     /// 
     abstract member Execute: obj * ICompilerStep * ReadOnlyDictionary<string, obj> -> obj
+    abstract member BehaveDifferentlyWithKernelMetadata: (DynamicKernelMetadataCollection * DynamicKernelMetadataCollection -> bool) option with get
+    default this.BehaveDifferentlyWithKernelMetadata 
+        with get() =
+            None
 
 ///
 ///<summary>
@@ -59,7 +67,12 @@ and [<AbstractClass>] ICompilerStep(tm: TypeManager, processors:ICompilerStepPro
     ///<param name="obj">The input of the step</param>
     ///<returns>The output produced by this step</returns>
     /// 
-    abstract member Execute: obj * ReadOnlyDictionary<string, obj> -> obj
+    abstract member Execute: obj * ReadOnlyDictionary<string, obj> -> CompilerStepResult
+    abstract member BehaveDifferentlyWithKernelMetadata: (DynamicKernelMetadataCollection * DynamicKernelMetadataCollection -> bool) option with get
+    default this.BehaveDifferentlyWithKernelMetadata 
+        with get() =
+            None
+        
         
 ///
 ///<summary>
@@ -78,10 +91,10 @@ type CompilerStep<'T,'U>(tm, processors) =
     ///<param name="param0">An instance of type 'T</param>
     ///<returns>An instance of type 'U</returns>
     /// 
-    abstract member Run: 'T * ReadOnlyDictionary<string, obj> -> 'U
+    abstract member Run: 'T * ReadOnlyDictionary<string, obj> -> CompilerStepResult
     
     override this.Execute(obj, opts) =
-        this.Run(obj :?> 'T, opts) :> obj
+        this.Run(obj :?> 'T, opts)
     
 ///
 ///<summary>
@@ -89,6 +102,10 @@ type CompilerStep<'T,'U>(tm, processors) =
 ///</summary>
 /// 
 type [<AbstractClass>] CompilerStepProcessor<'T,'U>() =
+    inherit ICompilerStepProcessor()
+
+    override this.Execute(obj, step, opts) =
+        this.Run(obj :?> 'T, step, opts) :> obj
     ///
     ///<summary>
     ///The abstract method that every step processors must implement to define the behavior of the processor
@@ -99,15 +116,16 @@ type [<AbstractClass>] CompilerStepProcessor<'T,'U>() =
     /// 
     abstract member Run: 'T * ICompilerStep * ReadOnlyDictionary<string, obj> -> 'U
     
-    interface ICompilerStepProcessor with
-        member this.Execute(obj, step, opts) =
-            this.Run(obj :?> 'T, step, opts) :> obj
 ///
 ///<summary>
 ///The generic base class of step processors that don't produce any output
 ///</summary>
 /// 
 type [<AbstractClass>] CompilerStepProcessor<'T>() =
+    inherit ICompilerStepProcessor()
+
+    override this.Execute(obj, owner, opts) =
+        this.Run(obj :?> 'T, owner, opts) :> obj 
     ///
     ///<summary>
     ///The abstract method that the step processors must implement to define their behaviour
@@ -116,10 +134,7 @@ type [<AbstractClass>] CompilerStepProcessor<'T>() =
     ///<param name="param1">The owner step</param>
     /// 
     abstract member Run: 'T * ICompilerStep * ReadOnlyDictionary<string, obj> -> unit
-    
-    interface ICompilerStepProcessor with
-        member this.Execute(obj, owner, opts) =
-            this.Run(obj :?> 'T, owner, opts) :> obj    
+       
     
 ///
 ///<summary>

@@ -66,12 +66,6 @@ type FunctionInfo(signature: MethodInfo,
     member val Body = body with get, set
     ///
     ///<summary>
-    /// Whether the processing of this function whould be skipped 
-    ///</summary>
-    ///
-    member val Skip = false with get, set
-    ///
-    ///<summary>
     /// The generated target code
     ///</summary>
     ///
@@ -110,7 +104,6 @@ type FunctionInfo(signature: MethodInfo,
 [<AllowNullLiteral>]
 type KernelInfo(signature: MethodInfo, 
                 body: Expr, 
-                args: Expr list option, 
                 dynamicMetadata: DynamicKernelMetadataCollection, 
                 isLambda: bool) =
     inherit FunctionInfo(signature, body, isLambda)
@@ -129,20 +122,13 @@ type KernelInfo(signature: MethodInfo,
         
     ///
     ///<summary>
-    /// The actual arguments ofthe call if this kernel is resulting from parsing a call
-    ///</summary>
-    ///
-    member val CallArguments = args with get
-
-    ///
-    ///<summary>
     /// The dynamic metadata of the kernel
     ///</summary>
     ///
     member val Metadata = metadata with get 
    
-    member this.GetMetadata<'T>() =
+    member this.GetMetadata<'T when 'T :> DynamicKernelMetadataAttribute>() =
         if this.Metadata.ContainsKey(typeof<'T>) then
-            this.Metadata.[typeof<'T>]
+            Some(this.Metadata.[typeof<'T>] :?> 'T)
         else
-            null
+            None

@@ -76,9 +76,29 @@ type AcceleratedArrayMap2Handler() =
                                     
 
                 // Add current kernelbody
-                let kInfo = new AcceleratedKernelInfo(signature, kernelBody, Some(cleanArgs), kernelAttrs, "Array.map2", functionBody)
+                let kInfo = new AcceleratedKernelInfo(signature, kernelBody, kernelAttrs, "Array.map2", functionBody)
                 kInfo.CustomInfo.Add("IS_ACCELERATED_COLLECTION_KERNEL", true)
                 let kernelModule = new KernelModule(kInfo)
+                
+                // Create input parameter info
+                let input1ParameterEntry = new KernelParameterInfo("input_array_1", firstInputArrayType, null, Some(cleanArgs.[1]), paramAttrs.[1])
+                // Set var to be used in kernel body
+                input1ParameterEntry.Placeholder <- Some(Quotations.Var("input_array_1", firstInputArrayType, false))         
+                // Add the parameter to the list of kernel params
+                kernelModule.Kernel.Info.Parameters.Add(input1ParameterEntry)
+                // Create input parameter info
+                let input2ParameterEntry = new KernelParameterInfo("input_array_2", secondInputArrayType, null, Some(cleanArgs.[2]), paramAttrs.[2])
+                // Set var to be used in kernel body
+                input2ParameterEntry.Placeholder <- Some(Quotations.Var("input_array_2", secondInputArrayType, false))         
+                // Add the parameter to the list of kernel params
+                kernelModule.Kernel.Info.Parameters.Add(input2ParameterEntry)
+                // Create output parameter info
+                let outputParameterEntry = new KernelParameterInfo("output_array", outputArrayType, null, None, null)
+                // Set var to be used in kernel body
+                outputParameterEntry.Placeholder <- Some(Quotations.Var("output_array", outputArrayType, false))         
+                // Add the parameter to the list of kernel params
+                kernelModule.Kernel.Info.Parameters.Add(outputParameterEntry)
+
                 // Update call graph
                 //kernelModule.FlowGraph <- FlowGraphNode(kInfo.ID, None, kernelAttrs)
                 

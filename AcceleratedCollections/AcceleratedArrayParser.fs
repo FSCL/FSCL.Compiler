@@ -1,6 +1,7 @@
 ﻿namespace FSCL.Compiler.Plugins.AcceleratedCollections
 
 open FSCL.Compiler
+open FSCL.Compiler.Language
 open FSCL.Compiler.Util
 open FSCL.Compiler.ModuleParsing
 open System.Collections.Generic
@@ -9,11 +10,13 @@ open System.Reflection.Emit
 open Microsoft.FSharp.Quotations
 open System
 open AcceleratedCollectionUtil
+open Cloo
 
-[<StepProcessor("FSCL_ACCELERATED_ARRAY_MODULE_PARSING_PROCESSOR", "FSCL_MODULE_PARSING_STEP")>] 
+[<StepProcessor("FSCL_ACCELERATED_ARRAY_MODULE_PARSING_PROCESSOR", 
+                "FSCL_MODULE_PARSING_STEP")>] 
 type AcceleratedArrayParser() = 
     inherit ModuleParsingProcessor()
-
+    
     // The List module type        
     let listModuleType = FilterCall(<@ Array.map @>, fun(e, mi, a) -> mi.DeclaringType).Value
 
@@ -46,5 +49,26 @@ type AcceleratedArrayParser() =
                 None
         else
             None
+            
+    override this.BehaveDifferentlyWithKernelMetadata 
+        with get() =
+            Some(fun(meta1, meta2) ->
+                    let dev1 = 
+                        if meta1.ContainsKey(typeof<DeviceAttribute>) then
+                            meta1.[typeof<DeviceAttribute>] :?> DeviceAttribute
+                        else
+                            new DeviceAttribute(0, 0)                    
+                    let dev2 = 
+                        if meta2.ContainsKey(typeof<DeviceAttribute>) then
+                            meta2.[typeof<DeviceAttribute>] :?> DeviceAttribute
+                        else
+                            new DeviceAttribute(0, 0)
+                    let plat1 = ComputePlatform.Platforms.[dev1.Platform]
+                    let plat2 = ComputePlatform.Platforms.[dev2.Platform]
+                    let dev1Type = plat1.Devices.[dev1.Device].Type
+                    let dev2Type = plat2.Devices.[dev2.Device].Type
+                    dev1Type <> dev2Type)
+
+
              
             

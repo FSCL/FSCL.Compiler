@@ -44,7 +44,7 @@ type ArrayLenghtArgumentsGenerator() =
                 p.Type <- pType
                 // Create auto-generated size parameters
                 for d = 0 to dimensions - 1 do
-                    let sizeP = new KernelParameterInfo(GenerateSizeAdditionalArg(p.Name, d), typeof<int>, null, null)
+                    let sizeP = new KernelParameterInfo(GenerateSizeAdditionalArg(p.Name, d), typeof<int>, null, None, null)
                     // A non-array parameter access is always read only
                     sizeP.Access <- AccessMode.ReadAccess
                     // Set var to be used in kernel body

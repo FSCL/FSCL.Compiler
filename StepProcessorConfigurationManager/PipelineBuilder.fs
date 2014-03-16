@@ -2,6 +2,7 @@ namespace FSCL.Compiler.Configuration
 
 open System
 open System.Collections.Generic
+open System.Collections.ObjectModel
 open FSCL.Compiler
 open System.Reflection
 open GraphUtil
@@ -33,14 +34,23 @@ type internal PipelineBuilder() =
                      }
         let tm = new TypeManager(List.ofSeq th)
                     
+        // Collect metadata affecting compilation
+        //let metadataAffectingResult = new HashSet<Type>()
+
         // Check that each step has required steps
         for s in steps do
+        //    for item in s.Value.MetadataAffectingResult do
+          //      metadataAffectingResult.Add(item) |> ignore
+
             for rs in s.Value.Dependencies do
                 if not (steps.ContainsKey(rs)) then
                     raise (PipelineBuildException("The step processor " + s.Key + " requires step " + rs + " but this step has not been found"))
         
         // Check that each processors has and owner step and a before/after processor
         for p in processors do
+          //  for item in p.Value.MetadataAffectingResult do
+            //    metadataAffectingResult.Add(item) |> ignore
+
             if not (steps.ContainsKey(p.Value.Step)) then
                 raise (PipelineBuildException("The step processor " + p.Key + " belongs to the step " + p.Value.Step + " but this step has not been found"))
             for dep in p.Value.Dependencies do
@@ -91,8 +101,8 @@ type internal PipelineBuilder() =
                         
                 yield data.Type.GetConstructors().[0].Invoke([| tm; List.ofSeq(processors) |]) :?> ICompilerStep
         }
-        let flatSteps = List.ofSeq(steps)
-        flatSteps
+        let flatSteps = Array.ofSeq(steps)
+        flatSteps//, metadataAffectingResult
       
             
         

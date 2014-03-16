@@ -33,7 +33,7 @@ type ModuleParsingStep(tm: TypeManager,
 
     override this.Run(expr, opt) =
         opts <- opt
-        this.Process(expr)
+        ValidResult(this.Process(expr))
         //kmodule.MergeWith(cg)
         //kmodule.FlowGraph <- cg.FlowGraph
 

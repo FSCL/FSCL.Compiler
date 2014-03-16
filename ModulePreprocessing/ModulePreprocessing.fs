@@ -21,7 +21,7 @@ type ModulePreprocessingStep(tm: TypeManager,
         km
 
     override this.Run(data, opts) =
-        this.Process(data, opts)
+        ValidResult(this.Process(data, opts))
 
         
 

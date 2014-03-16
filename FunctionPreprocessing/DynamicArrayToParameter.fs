@@ -93,7 +93,7 @@ type DynamicArrayToParameterProcessor() =
         //let nodes = FlowGraphManager.GetKernelNodes(step.FunctionInfo.ID, step.FlowGraph)
 
         // Add parameter
-        let pInfo = new KernelParameterInfo(var.Name, var.Type, null, null)
+        let pInfo = new KernelParameterInfo(var.Name, var.Type, null, None, null)
         kernelInfo.Parameters.Add(pInfo)
         pInfo.IsDynamicArrayParameter <- true
         pInfo.DynamicAllocationArguments <- allocationArgs

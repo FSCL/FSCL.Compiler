@@ -11,8 +11,8 @@ open Microsoft.FSharp.Core.LanguagePrimitives
 open System
 open FSCL.Compiler.Util
 
-type AcceleratedKernelInfo(signature: MethodInfo, body, args, dynamicAttributes, collectionFunction: string, appliedFunction: Expr) =
-    inherit KernelInfo(signature, body, args, dynamicAttributes, false)
+type AcceleratedKernelInfo(signature: MethodInfo, body, dynamicAttributes, collectionFunction: string, appliedFunction: Expr) =
+    inherit KernelInfo(signature, body, dynamicAttributes, false)
 
     override this.ID
         with get() =     
