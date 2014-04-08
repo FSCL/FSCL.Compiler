@@ -2,7 +2,6 @@
 
 open FSCL.Compiler
 open FSCL.Compiler.Language
-open Cloo
     
 // Vector addition
 [<ReflectedDefinition>]
@@ -14,7 +13,7 @@ let VectorAdd(a: float32[], b: float32[], c: float32[]) =
 [<ReflectedDefinition>]
 let filterWidth = 3
 
-[<ReflectedDefinition>][<Device(0,0)>]
+[<ReflectedDefinition>][<DeviceType(DeviceType.Gpu)>]
 let Convolution(input:float32[,], [<AddressSpace(AddressSpace.Constant)>]filter:float32[,], output:float32[,], [<AddressSpace(AddressSpace.Local)>]block:float32[,]) =
     let output_width = get_global_size(0)
     let input_width = output_width + filterWidth - 1

@@ -17,9 +17,47 @@ open Microsoft.FSharp.Linq.RuntimeHelpers
 type AcceleratedArrayReduceHandler() =
     let placeholderComp (a:int) (b:int) =
         a + b
+        (*__kernel
+void reduce(__global float* buffer,
+            __const int block,
+            __const int length,
+            __global float* result) {
+
+  int global_index = get_global_id(0) * block;
+  float accumulator = INFINITY;
+  int upper_bound = (get_global_id(0) + 1) * block;
+  if (upper_bound > length) upper_bound = length;
+  while (global_index < upper_bound) {
+    float element = buffer[global_index];
+    accumulator = (accumulator < element) ? accumulator : element;
+    global_index++;
+  }
+  result[get_group_id(0)] = accumulator;
+}*)
+    let cpu_template = 
+        <@
+            fun(g_idata:int[], g_odata:int[], block: int) ->
+                let mutable global_index = get_global_id(0) * block
+                let mutable upper_bound = (get_global_id(0) + 1) * block
+                if upper_bound > g_idata.Length then
+                    upper_bound <- g_idata.Length
+
+                // We don't know which is the neutral value for placeholderComp so we need to
+                // initialize it with an element of the input array
+                let mutable accumulator = 0
+                if global_index < upper_bound then
+                    accumulator <- g_idata.[global_index]
+                    global_index <- global_index + 1
+
+                while global_index < upper_bound do
+                    accumulator <- placeholderComp accumulator g_idata.[global_index]
+                    global_index <- global_index + 1
+
+                g_odata.[get_group_id(0)] <- accumulator
+        @>
 
     // NEW: Two-Stage reduction instead of multi-stage
-    let template = 
+    let gpu_template = 
         <@
             fun(g_idata:int[], [<Local>]sdata:int[], g_odata:int[]) ->
                 let mutable global_index = get_global_id(0)
@@ -172,7 +210,7 @@ type AcceleratedArrayReduceHandler() =
         r2
 
     interface IAcceleratedCollectionHandler with
-        member this.Process(methodInfo, cleanArgs, root, kernelAttrs, paramAttrs, step) =       
+        member this.Process(methodInfo, cleanArgs, root, meta, step) =       
             (*
                 Array map looks like: Array.map fun collection
                 At first we check if fun is a lambda (first argument)
@@ -196,107 +234,126 @@ type AcceleratedArrayReduceHandler() =
                 // We need to get the type of a array whose elements type is the same of the functionInfo parameter
                 let inputArrayType = Array.CreateInstance(functionInfo.GetParameters().[0].ParameterType, 0).GetType()
                 let outputArrayType = Array.CreateInstance(functionInfo.ReturnType, 0).GetType()
-                // Now that we have the types of the input and output arrays, create placeholders (var) for the kernel input and output                    
-                let inputArrayPlaceholder = Quotations.Var("input_array", inputArrayType)
-                let outputArrayPlaceholder = Quotations.Var("output_array", outputArrayType)
-                let localArrayPlaceholder = Quotations.Var("local_array", outputArrayType)
-                let accumulatorPlaceholder = Quotations.Var("accumulator", outputArrayType.GetElementType())
-                    
-                // Now we can create the signature and define parameter name in the dynamic module
-                // DynamicMethod would be simpler and would not require a dynamic module but unfortunately it doesn't support
-                // Custom attributes for ites parameters. We instead have to mark the second parameter of the kernel with [Local]
-                let methodBuilder = moduleBuilder.DefineGlobalMethod(
-                                        kernelName("ArrayReduce", 
-                                                    [functionInfo.GetParameters().[0].ParameterType; 
-                                                    functionInfo.GetParameters().[1].ParameterType],
-                                                    functionInfo.Name), 
-                                        MethodAttributes.Public ||| MethodAttributes.Static, typeof<unit>, 
-                                        [| inputArrayType; outputArrayType; outputArrayType |])
-                let attributeBuilder = new CustomAttributeBuilder(typeof<AddressSpaceAttribute>.GetConstructors().[0], [| AddressSpace.Local |])
-                let paramBuilder = methodBuilder.DefineParameter(1, ParameterAttributes.In, "input_array")
-                let paramBuilder = methodBuilder.DefineParameter(2, ParameterAttributes.In, "local_array")
-                paramBuilder.SetCustomAttribute(attributeBuilder)
-                let paramBuilder = methodBuilder.DefineParameter(3, ParameterAttributes.In, "output_array")
-                // Body (simple return) of the method must be set to build the module and get the MethodInfo that we need as signature
-                methodBuilder.GetILGenerator().Emit(OpCodes.Ret)
-                moduleBuilder.CreateGlobalFunctions()
-                    
-                // Finally, create the body of the kernel
-                let templateBody, templateParameters = AcceleratedCollectionUtil.GetKernelFromLambda(template)   
-                let parameterMatching = new Dictionary<Var, Var>()
-                parameterMatching.Add(templateParameters.[0], inputArrayPlaceholder)
-                parameterMatching.Add(templateParameters.[1], localArrayPlaceholder)
-                parameterMatching.Add(templateParameters.[2], outputArrayPlaceholder)
-
-                // Replace functions and references to parameters
-                let functionMatching = new Dictionary<string, MethodInfo>()
-                let newBody = SubstitutePlaceholders(templateBody, parameterMatching, accumulatorPlaceholder, functionInfo)  
-                    
-                // Setup kernel module and return  
-                let signature = moduleBuilder.GetMethod(methodBuilder.Name) 
-                let kInfo = new AcceleratedKernelInfo(signature, newBody, kernelAttrs, "Array.reduce", body)
-                kInfo.CustomInfo.Add("IS_ACCELERATED_COLLECTION_KERNEL", true)
-                let kernelModule = new KernelModule(kInfo)
+                // Now that we have the types of the input and output arrays, create placeholders (var) for the kernel input and output       
                 
-                // Create input parameter info
-                let inputParameterEntry = new KernelParameterInfo("input_array", inputArrayType, null, Some(cleanArgs.[1]), paramAttrs.[1])
-                // Set var to be used in kernel body
-                inputParameterEntry.Placeholder <- Some(Quotations.Var("input_array", inputArrayType, false))         
-                // Add the parameter to the list of kernel params
-                kernelModule.Kernel.Info.Parameters.Add(inputParameterEntry)
-                // Create local parameter info
-                let localParameterEntry = new KernelParameterInfo("local_array", outputArrayType, null, None, null)
-                // Set var to be used in kernel body
-                localParameterEntry.Placeholder <- Some(Quotations.Var("local_array", outputArrayType, false))         
-                // Add the parameter to the list of kernel params
-                kernelModule.Kernel.Info.Parameters.Add(localParameterEntry)
-                // Create output parameter info
-                let outputParameterEntry = new KernelParameterInfo("output_array", outputArrayType, null, None, null)
-                // Set var to be used in kernel body
-                outputParameterEntry.Placeholder <- Some(Quotations.Var("output_array", outputArrayType, false))         
-                // Add the parameter to the list of kernel params
-                kernelModule.Kernel.Info.Parameters.Add(outputParameterEntry)
+                // Check device target
+                let targetType = meta.KernelMeta.Get<DeviceTypeAttribute>()
+            
+                let kModule = 
+                    // GPU CODE
+                    match targetType.Type with
+                    | DeviceType.Gpu ->                    
+                        // Now we can create the signature and define parameter name in the dynamic module
+                        // DynamicMethod would be simpler and would not require a dynamic module but unfortunately it doesn't support
+                        // Custom attributes for ites parameters. We instead have to mark the second parameter of the kernel with [Local]
+                        let methodBuilder = moduleBuilder.DefineGlobalMethod(
+                                                kernelName("ArrayReduce", 
+                                                            [functionInfo.GetParameters().[0].ParameterType; 
+                                                            functionInfo.GetParameters().[1].ParameterType],
+                                                            functionInfo.Name), 
+                                                MethodAttributes.Public ||| MethodAttributes.Static, typeof<unit>, 
+                                                [| inputArrayType; outputArrayType; outputArrayType |])
+                        let paramBuilder = methodBuilder.DefineParameter(1, ParameterAttributes.In, "input_array")
+                        let paramBuilder = methodBuilder.DefineParameter(2, ParameterAttributes.In, "local_array")
+                        let paramBuilder = methodBuilder.DefineParameter(3, ParameterAttributes.In, "output_array")
+                        // Body (simple return) of the method must be set to build the module and get the MethodInfo that we need as signature
+                        methodBuilder.GetILGenerator().Emit(OpCodes.Ret)
+                        moduleBuilder.CreateGlobalFunctions()
+                        let signature = moduleBuilder.GetMethod(methodBuilder.Name) 
+                        
+                        // Create parameters placeholders
+                        let inputHolder = Quotations.Var("input_array", inputArrayType)
+                        let localHolder = Quotations.Var("local_array", outputArrayType)
+                        let outputHolder = Quotations.Var("output_array", outputArrayType)
+                        let accumulatorPlaceholder = Quotations.Var("accumulator", outputArrayType.GetElementType())
 
-                // Update call graph
-                //kernelModule.FlowGraph <- FlowGraphNode(kInfo.ID, None, kernelAttrs)
-                                    
-                // Add the computation function and connect it to the kernel
+                        // Finally, create the body of the kernel
+                        let templateBody, templateParameters = AcceleratedCollectionUtil.GetKernelFromLambda(gpu_template)   
+                        let parameterMatching = new Dictionary<Var, Var>()
+                        parameterMatching.Add(templateParameters.[0], inputHolder)
+                        parameterMatching.Add(templateParameters.[1], localHolder)
+                        parameterMatching.Add(templateParameters.[2], outputHolder)
+
+                        // Replace functions and references to parameters
+                        let functionMatching = new Dictionary<string, MethodInfo>()
+                        let newBody = SubstitutePlaceholders(templateBody, parameterMatching, accumulatorPlaceholder, functionInfo)  
+                    
+                        let kInfo = new AcceleratedKernelInfo(signature, 
+                                                              newBody, 
+                                                              meta, 
+                                                              "Array.reduce", body)
+                        let kernelModule = new KernelModule(kInfo, cleanArgs)
+                        
+                        // Store placeholders
+                        (kernelModule.Kernel.OriginalParameters.[0] :?> FunctionParameter).Placeholder <- inputHolder
+                        (kernelModule.Kernel.OriginalParameters.[1] :?> FunctionParameter).Placeholder <- localHolder
+                        (kernelModule.Kernel.OriginalParameters.[2] :?> FunctionParameter).Placeholder <- outputHolder
+
+                        kernelModule                
+                    |_ ->
+                        // CPU CODE                    
+                        // Now we can create the signature and define parameter name in the dynamic module
+                        // DynamicMethod would be simpler and would not require a dynamic module but unfortunately it doesn't support
+                        // Custom attributes for ites parameters. We instead have to mark the second parameter of the kernel with [Local]
+                        let methodBuilder = moduleBuilder.DefineGlobalMethod(
+                                                kernelName("ArrayReduce", 
+                                                            [functionInfo.GetParameters().[0].ParameterType; 
+                                                            functionInfo.GetParameters().[1].ParameterType],
+                                                            functionInfo.Name), 
+                                                MethodAttributes.Public ||| MethodAttributes.Static, typeof<unit>, 
+                                                [| inputArrayType; typeof<int>; outputArrayType |])
+                        let paramBuilder = methodBuilder.DefineParameter(1, ParameterAttributes.In, "input_array")
+                        let paramBuilder = methodBuilder.DefineParameter(2, ParameterAttributes.In, "output_array")
+                        let paramBuilder = methodBuilder.DefineParameter(3, ParameterAttributes.In, "block")
+                        // Body (simple return) of the method must be set to build the module and get the MethodInfo that we need as signature
+                        methodBuilder.GetILGenerator().Emit(OpCodes.Ret)
+                        moduleBuilder.CreateGlobalFunctions()
+                        let signature = moduleBuilder.GetMethod(methodBuilder.Name) 
+                    
+                        // Create parameters placeholders
+                        let inputHolder = Quotations.Var("input_array", inputArrayType)
+                        let blockHolder = Quotations.Var("block", typeof<int>)
+                        let outputHolder = Quotations.Var("output_array", outputArrayType)
+                        let accumulatorPlaceholder = Quotations.Var("accumulator", outputArrayType.GetElementType())
+
+                        // Finally, create the body of the kernel
+                        let templateBody, templateParameters = AcceleratedCollectionUtil.GetKernelFromLambda(cpu_template)   
+                        let parameterMatching = new Dictionary<Var, Var>()
+                        parameterMatching.Add(templateParameters.[0], inputHolder)
+                        parameterMatching.Add(templateParameters.[1], outputHolder)
+                        parameterMatching.Add(templateParameters.[2], blockHolder)
+
+                        // Replace functions and references to parameters
+                        let functionMatching = new Dictionary<string, MethodInfo>()
+                        let newBody = SubstitutePlaceholders(templateBody, parameterMatching, accumulatorPlaceholder, functionInfo)  
+                    
+                        // Setup kernel module and return
+                        let kInfo = new AcceleratedKernelInfo(signature, 
+                                                              newBody, 
+                                                              meta, 
+                                                              "Array.reduce", body)
+                        let kernelModule = new KernelModule(kInfo, cleanArgs)
+                        
+                        // Store placeholders
+                        (kernelModule.Kernel.OriginalParameters.[0] :?> FunctionParameter).Placeholder <- inputHolder
+                        (kernelModule.Kernel.OriginalParameters.[1] :?> FunctionParameter).Placeholder <- outputHolder
+                        (kernelModule.Kernel.OriginalParameters.[2] :?> FunctionParameter).Placeholder <- blockHolder
+
+                        kernelModule 
+
+                // Add applied function                                 
                 let reduceFunctionInfo = new FunctionInfo(functionInfo, body, lambda.IsSome)
                 
                 // Store the called function (runtime execution will use it to perform latest iterations of reduction)
-                if lambda.IsNone then
-                    kInfo.CustomInfo.Add("ReduceFunction", lambda.Value)
+                if lambda.IsSome then
+                    kModule.Kernel.CustomInfo.Add("ReduceFunction", lambda.Value)
                 else
-                    kInfo.CustomInfo.Add("ReduceFunction", fst computationFunction.Value)
+                    kModule.Kernel.CustomInfo.Add("ReduceFunction", fst computationFunction.Value)
                                     
                 // Store the called function (runtime execution will use it to perform latest iterations of reduction)
-                kernelModule.AddFunction(reduceFunctionInfo)
-                kernelModule.Kernel.RequiredFunctions.Add(reduceFunctionInfo.ID) |> ignore
-                // Define arguments for call graph
-                (*let argExpressions = new Dictionary<string, Expr>()
-                if subkernel <> null then       
-                    FlowGraphManager.SetNodeInput(kernelModule.FlowGraph,
-                                                  "input_array",
-                                                  new FlowGraphNodeInputInfo(
-                                                    KernelOutput(subkernel.FlowGraph, 0),
-                                                    None,
-                                                    paramAttrs.[1]))                             
-                else
-                    FlowGraphManager.SetNodeInput(kernelModule.FlowGraph,
-                                                  "input_array",
-                                                  new FlowGraphNodeInputInfo(
-                                                    ActualArgument(cleanArgs.[1]),
-                                                    None,
-                                                    paramAttrs.[1]))    
-                // Set local array input value                                   
-                FlowGraphManager.SetNodeInput(kernelModule.FlowGraph,
-                                             "local_array",
-                                             new FlowGraphNodeInputInfo(
-                                                ImplicitValue,
-                                                None,
-                                                new DynamicParameterMetadataCollection()))          *)
-                
+                kModule.Functions.Add(reduceFunctionInfo.ID, reduceFunctionInfo)
                 // Return module                             
-                Some(kernelModule)
+                Some(kModule)
+
             | _ ->
                 None

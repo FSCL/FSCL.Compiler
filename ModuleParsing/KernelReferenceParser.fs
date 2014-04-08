@@ -17,23 +17,16 @@ do()
 type KernelReferenceParser() =      
     inherit ModuleParsingProcessor()
     
-    override this.Run(expr, en, opts) =
-        let engine = en :?> ModuleParsingStep
+    override this.Run(expr, s, opts) =
+        let step = s :?> ModuleParsingStep
         if (expr :? Expr) then
             match QuotationAnalysis.GetKernelFromName(expr :?> Expr) with
-            | Some(mi, b, kernelAttributes) ->                 
-                // Create signleton kernel call graph
-                let kernelModule = new KernelModule(new KernelInfo(mi, b, null, false))
-                
-                // Process each parameter
-                for p in mi.GetParameters() do
-                    // Create parameter info
-                    let parameterEntry = new KernelParameterInfo(p.Name, p.ParameterType, p, None, null)
-                    // Set var to be used in kernel body
-                    parameterEntry.Placeholder <- Some(Quotations.Var(p.Name, p.ParameterType, false))         
-                    // Add the parameter to the list of kernel params
-                    kernelModule.Kernel.Info.Parameters.Add(parameterEntry)
+            | Some(mi, b, kMeta, rMeta, pMeta) ->              
+                // Filter and finalize metadata
+                let finalMeta = step.ProcessMeta(kMeta, rMeta, pMeta, null)
 
+                let kernelModule = new KernelModule(new KernelInfo(mi, b, finalMeta, false))
+                
                 // Create module
                 Some(kernelModule)
             | _ ->

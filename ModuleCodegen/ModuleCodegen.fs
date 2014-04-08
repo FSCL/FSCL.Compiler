@@ -23,11 +23,9 @@ type ModuleCodegen() =
 
     override this.Run((km, currOut), en, opts) =
         let engine = en :?> ModuleCodegenStep
-        let directives = String.concat "\n\n" (km.GetFlattenRequiredDirectives())
-        let structs = km.GetFlattenRequiredGlobalTypes()
-        let pstructs = String.concat "\n" (List.map (fun (s: Type) -> PrintStructDefinition(s, engine)) structs)
-        let functions = String.concat "\n\n" (List.map (fun (f: FunctionEnvironment) -> f.Info.Code) (km.GetFunctions()))
-        let kernels = km.Kernel.Info.Code
+        let directives = String.concat "\n\n" (km.Directives)
+        let structs = km.GlobalTypes
+        let pstructs = String.concat "\n" (Seq.map (fun (s: Type) -> PrintStructDefinition(s, engine)) structs)
+        let functions = String.concat "\n\n" (Seq.map (fun (f: KeyValuePair<FunctionInfoID, IFunctionInfo>) -> f.Value.Code) (km.Functions))
+        let kernels = km.Kernel.Code
         String.concat "\n\n" [directives; pstructs; functions; kernels]
-             
-            

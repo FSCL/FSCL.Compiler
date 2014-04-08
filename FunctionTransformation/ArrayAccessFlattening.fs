@@ -7,8 +7,6 @@ open System.Collections.Generic
 open System.Reflection
 open Microsoft.FSharp.Core.LanguagePrimitives
 
-type internal KernelParameterTable = Dictionary<String, KernelParameterInfo>
-
 [<StepProcessor("FSCL_ARRAY_ACCESS_TRANSFORMATION_PROCESSOR", "FSCL_FUNCTION_TRANSFORMATION_STEP",
                 Dependencies = [| "FSCL_DYNAMIC_ALLOCATION_LIFTING_TRANSFORMATION_PROCESSOR";
                                   "FSCL_GLOBAL_VAR_REF_TRANSFORMATION_PROCESSOR";
@@ -38,13 +36,13 @@ type ArrayAccessTransformation() =
             
     let GetSizeParameters(var, engine:FunctionTransformationStep) =  
         let data = engine.FunctionInfo
-        let mutable sizeParameters = new List<KernelParameterInfo>()
+        let mutable sizeParameters = null
                 
         for pInfo in data.Parameters do
             if pInfo.Name = var then
                 sizeParameters <- pInfo.SizeParameters
                 
-        if sizeParameters.Count = 0 then
+        if sizeParameters = null then
             raise (CompilerException("Cannot determine the size variables of array " + var + ". This means it is not a kernel parameter or you are eploying aliasing"))
         sizeParameters
         
@@ -54,7 +52,7 @@ type ArrayAccessTransformation() =
                 
         for pInfo in data.Parameters do
             if pInfo.Name = var then
-                placeholder <- pInfo.Placeholder
+                placeholder <- Some(pInfo.Placeholder)
                 
         if placeholder.IsNone then
             raise (CompilerException("Cannot determine the parameter referred by the kernel body " + var))
@@ -80,7 +78,7 @@ type ArrayAccessTransformation() =
                         // Find the placeholder holding the variable of the flattened array
                         let placeholder = GetPlaceholderVar(v.Name, engine)
                         // Find the placeholders holding the array sizes
-                        let sizePlaceHolders = List.ofSeq(Seq.map (fun (el:KernelParameterInfo) -> Expr.Var(el.Placeholder.Value)) (GetSizeParameters(v.Name, engine)))
+                        let sizePlaceHolders = List.ofSeq(Seq.map (fun (el:IFunctionParameter) -> Expr.Var(el.Placeholder)) (GetSizeParameters(v.Name, engine)))
                         // Update the access mode of this array
                         UpdateArrayAccessMode(v.Name, AccessMode.ReadAccess, engine)
                         // Recursively process the arguments, except the array reference
@@ -93,7 +91,7 @@ type ArrayAccessTransformation() =
                         // Find the placeholder holding the variable of the flattened array
                         let placeholder = GetPlaceholderVar(v.Name, engine)
                         // Find the placeholders holding the array sizes
-                        let sizePlaceHolders = List.ofSeq(Seq.map (fun (el:KernelParameterInfo) -> Expr.Var(el.Placeholder.Value)) (GetSizeParameters(v.Name, engine)))
+                        let sizePlaceHolders = List.ofSeq(Seq.map (fun (el:IFunctionParameter) -> Expr.Var(el.Placeholder)) (GetSizeParameters(v.Name, engine)))
                         // Update the access mode of this array
                         UpdateArrayAccessMode(v.Name, AccessMode.ReadAccess, engine)
                         // Recursively process the arguments, except the array reference                   
@@ -115,7 +113,7 @@ type ArrayAccessTransformation() =
                             // Find the placeholder holding the variable of the flattened array
                         let placeholder = GetPlaceholderVar(v.Name, engine)
                         // Find the placeholders holding the array sizes
-                        let sizePlaceHolders = List.ofSeq(Seq.map (fun (el:KernelParameterInfo) -> Expr.Var(el.Placeholder.Value)) (GetSizeParameters(v.Name, engine)))
+                        let sizePlaceHolders = List.ofSeq(Seq.map (fun (el:IFunctionParameter) -> Expr.Var(el.Placeholder)) (GetSizeParameters(v.Name, engine)))
                         // Update the access mode of this array
                         UpdateArrayAccessMode(v.Name, AccessMode.WriteAccess, engine)
                         // Recursively process the arguments, except the array reference
@@ -128,7 +126,7 @@ type ArrayAccessTransformation() =
                             // Find the placeholder holding the variable of the flattened array
                         let placeholder = GetPlaceholderVar(v.Name, engine)
                         // Find the placeholders holding the array sizes
-                        let sizePlaceHolders = List.ofSeq(Seq.map (fun (el:KernelParameterInfo) -> Expr.Var(el.Placeholder.Value)) (GetSizeParameters(v.Name, engine)))
+                        let sizePlaceHolders = List.ofSeq(Seq.map (fun (el:IFunctionParameter) -> Expr.Var(el.Placeholder)) (GetSizeParameters(v.Name, engine)))
                         // Update the access mode of this array
                         UpdateArrayAccessMode(v.Name, AccessMode.WriteAccess, engine)
                         // Recursively process the arguments, except the array reference
@@ -151,7 +149,7 @@ type ArrayAccessTransformation() =
                     match args.[0] with
                     | Patterns.Value(v, ty) -> 
                         let sizePlaceholder = arraySizeParameters.[v :?> int].Placeholder
-                        Expr.Var(sizePlaceholder.Value)
+                        Expr.Var(sizePlaceholder)
                     | _ -> 
                         engine.Default(expr)
                 | _ ->
@@ -167,7 +165,7 @@ type ArrayAccessTransformation() =
                     let arraySizeParameters = GetSizeParameters(arrayName, engine)
                     if pInfo.DeclaringType.Name = "Array" && pInfo.Name = "Length" then
                         let sizePlaceholder = arraySizeParameters.[0].Placeholder
-                        Expr.Var(sizePlaceholder.Value)
+                        Expr.Var(sizePlaceholder)
                     else
                         engine.Default(expr)
                 | _ ->

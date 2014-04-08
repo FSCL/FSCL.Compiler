@@ -64,11 +64,6 @@
       <Project>{02cc39bd-a326-49f6-b5e6-2987eada1ba2}</Project>
       <Private>True</Private>
     </ProjectReference>
-    <ProjectReference Include="..\OpenCLBinding\Cloo\Cloo.VS2010.csproj">
-      <Name>Cloo.VS2010</Name>
-      <Project>{656e96ce-2587-4ccc-a4db-06d36267133a}</Project>
-      <Private>True</Private>
-    </ProjectReference>
     <ProjectReference Include="..\StepProcessorConfigurationManager\PipelineConfigurationManager.fsproj">
       <Name>PipelineConfigurationManager</Name>
       <Project>{f1124eae-d35e-4c29-96fe-d88e7adecc84}</Project>

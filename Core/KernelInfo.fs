@@ -14,17 +14,98 @@ type FunctionInfoID =
 /// The set of information about utility functions collected and maintained by the compiler
 ///</summary>
 ///
+
+[<AllowNullLiteral>]
+type IFunctionInfo =
+    abstract ID: FunctionInfoID with get
+    abstract Signature: MethodInfo with get
+
+    abstract OriginalParameters: ReadOnlyCollection<IFunctionParameter> with get
+    abstract GeneratedParameters: ReadOnlyCollection<IFunctionParameter> with get
+    abstract Parameters: ReadOnlyCollection<IFunctionParameter> with get
+    abstract ReturnType: Type with get
+    abstract Body: Expr with get
+
+    abstract member Code: string with get
+    
+    abstract IsLambda: bool with get
+    abstract CustomInfo: IReadOnlyDictionary<string, obj> with get
+
+    abstract GetParameter: string -> IFunctionParameter option
+
+[<AllowNullLiteral>]
+type IKernelInfo =
+    inherit IFunctionInfo
+    abstract Meta: ReadOnlyMetaCollection with get
+    abstract CloneTo: IKernelInfo -> unit
+    
 [<AllowNullLiteral>]
 type FunctionInfo(signature: MethodInfo, 
                   body: Expr, 
-                  isLambda: bool) =        
+                  isLambda: bool) =   
+
+    let parameters =
+        (signature.GetParameters()) |> 
+        Array.map(fun (p:ParameterInfo) ->
+                    OriginalFunctionParameter(p, None) :> FunctionParameter)  |>
+        List.ofArray
+
+    interface IFunctionInfo with
+        member this.ID 
+            with get() = 
+                this.ID
+        member this.Signature 
+            with get() =
+                this.Signature
+        member this.OriginalParameters
+            with get() =
+                let roList = new List<IFunctionParameter>()
+                for item in this.OriginalParameters do
+                    roList.Add(item)
+                roList.AsReadOnly()
+        member this.GeneratedParameters 
+            with get() =
+                let roList = new List<IFunctionParameter>()
+                for item in this.GeneratedParameters do
+                    roList.Add(item)
+                roList.AsReadOnly()
+        member this.Parameters 
+            with get() =
+                let roList = new List<IFunctionParameter>()
+                for item in this.OriginalParameters do
+                    roList.Add(item)
+                for item in this.GeneratedParameters do
+                    roList.Add(item)
+                roList.AsReadOnly()
+        member this.ReturnType
+            with get() =
+                this.ReturnType
+        member this.Body
+            with get() =
+                this.Body
+        member this.Code
+            with get() =
+                this.Code
+        member this.IsLambda 
+            with get() =
+                this.IsLambda
+        member this.CustomInfo
+            with get() =
+                this.CustomInfo :> IReadOnlyDictionary<string, obj>
+        member this.GetParameter(name) =
+            match this.GetParameter(name) with
+            | Some(p) ->
+                Some(p :> IFunctionParameter)
+            | _ ->
+                None
+
+    // Get-Set properties
     ///
     ///<summary>
     /// The ID of the function
     ///</summary>
     ///
     abstract member ID: FunctionInfoID
-
     default this.ID 
         with get() =     
             // A lambda kernels/function is identified by its AST    
@@ -36,16 +117,27 @@ type FunctionInfo(signature: MethodInfo,
     member val Signature = signature with get
     ///
     ///<summary>
-    /// The name of the function
+    /// The set of information about original (signature-extracted) function parameters
     ///</summary>
     ///
-    member val Name = signature.Name with get, set
+    abstract member OriginalParameters: FunctionParameter list
+    default this.OriginalParameters 
+        with get() =
+            parameters
     ///
     ///<summary>
-    /// The set of information about function parameters
+    /// The set of information about generated function parameters
     ///</summary>
     ///
-    member val Parameters = new List<KernelParameterInfo>() with get
+    member val GeneratedParameters = new List<FunctionParameter>() with get
+    ///
+    ///<summary>
+    /// The set of information about all the function parameters
+    ///</summary>
+    ///
+    member this.Parameters 
+        with get() =
+            this.OriginalParameters @ List.ofSeq(this.GeneratedParameters)
     ///
     ///<summary>
     /// The function return type
@@ -87,7 +179,12 @@ type FunctionInfo(signature: MethodInfo,
     member val CustomInfo = new Dictionary<String, Object>() with get
     
     member this.GetParameter(name) =
-        Seq.tryFind(fun (p: KernelParameterInfo) -> p.Name = name) (this.Parameters)        
+        let r =  Seq.tryFind(fun (p: FunctionParameter) -> p.Name = name) (this.OriginalParameters)
+        match r with
+        | Some(p) ->
+            Some(p)
+        | _ ->
+            Seq.tryFind(fun (p: FunctionParameter) -> p.Name = name) (this.GeneratedParameters)
 ///
 ///<summary>
 /// The set of information about kernels collected and maintained by the compiler
@@ -104,31 +201,90 @@ type FunctionInfo(signature: MethodInfo,
 [<AllowNullLiteral>]
 type KernelInfo(signature: MethodInfo, 
                 body: Expr, 
-                dynamicMetadata: DynamicKernelMetadataCollection, 
+                meta: ReadOnlyMetaCollection, 
                 isLambda: bool) =
     inherit FunctionInfo(signature, body, isLambda)
     
-    let metadata = 
-        let dictionary = 
-            if dynamicMetadata = null then
-                new DynamicKernelMetadataCollection()
-            else        
-                new DynamicKernelMetadataCollection(dynamicMetadata)        
-        for item in signature.GetCustomAttributes() do
-            if typeof<DynamicKernelMetadataAttribute>.IsAssignableFrom(item.GetType()) then
-                if not (dictionary.ContainsKey(item.GetType())) then
-                    dictionary.Add(item.GetType(), item :?> DynamicKernelMetadataAttribute)
-        dictionary
+    let parameters =
+        (signature.GetParameters()) |>
+        Array.mapi(fun i (p:ParameterInfo) ->
+                        OriginalFunctionParameter(p, Some(meta.ParamMeta.[i])) :> FunctionParameter) |> 
+        List.ofArray
+
+    // Get static kernel and return meta
+    (*
+    let metaCollection = 
+        let staticKernelMeta = new KernelMetaCollection()
+        let staticReturnMeta = new ParamMetaCollection()
+        let staticParamMeta = new List<ReadOnlyParamMetaCollection>()
         
+        for attr in signature.GetCustomAttributes() do
+            if typeof<ParameterMetadataAttribute>.IsAssignableFrom(attr.GetType()) then
+                staticReturnMeta.Add(attr.GetType(), attr :?> ParameterMetadataAttribute)
+            else if typeof<KernelMetadataAttribute>.IsAssignableFrom(attr.GetType()) then
+                staticKernelMeta.Add(attr.GetType(), attr :?> KernelMetadataAttribute)
+        for p in signature.GetParameters() do
+            let coll = new ParamMetaCollection()
+            for attr in p.GetCustomAttributes() do
+                if typeof<ParameterMetadataAttribute>.IsAssignableFrom(attr.GetType()) then
+                    coll.Add(attr.GetType(), attr :?> ParameterMetadataAttribute)
+            staticParamMeta.Add(coll)
+                
+        // Merge with dynamic meta
+        for item in meta.KernelMeta do
+            if staticKernelMeta.ContainsKey(item.Key) then
+                staticKernelMeta.[item.Key] <- item.Value
+            else
+                staticKernelMeta.Add(item.Key, item.Value)
+        for item in meta.ReturnMeta do
+            if staticReturnMeta.ContainsKey(item.Key) then
+                staticReturnMeta.[item.Key] <- item.Value
+            else
+                staticReturnMeta.Add(item.Key, item.Value)
+        for i = 0 to  signature.GetParameters().Length - 1 do
+            for item in meta.ParamMeta.[i] do
+                if staticParamMeta.[i].ContainsKey(item.Key) then
+                    (staticParamMeta.[i] :?> ParamMetaCollection).[item.Key] <- item.Value
+                else
+                    (staticParamMeta.[i] :?> ParamMetaCollection).Add(item.Key, item.Value)
+
+        new ReadOnlyMetaCollection(staticKernelMeta, staticReturnMeta, List.ofSeq staticParamMeta)
+     *)
+    override this.OriginalParameters
+        with get() =
+            parameters
     ///
     ///<summary>
     /// The dynamic metadata of the kernel
     ///</summary>
     ///
-    member val Metadata = metadata with get 
-   
-    member this.GetMetadata<'T when 'T :> DynamicKernelMetadataAttribute>() =
-        if this.Metadata.ContainsKey(typeof<'T>) then
-            Some(this.Metadata.[typeof<'T>] :?> 'T)
-        else
-            None
+    member val Meta = meta 
+        with get
+
+    interface IKernelInfo with
+        member this.Meta 
+            with get() =
+                this.Meta
+                
+        member this.CloneTo(ikInfo: IKernelInfo) =
+            let kInfo = ikInfo :?> KernelInfo
+            // Copy kernel info fields
+            kInfo.Body <- this.Body
+            kInfo.Code <- this.Code
+            for item in this.CustomInfo do
+                if not (kInfo.CustomInfo.ContainsKey(item.Key)) then
+                    kInfo.CustomInfo.Add(item.Key, item.Value)
+            for item in this.GeneratedParameters do
+                kInfo.GeneratedParameters.Add(item)
+            for i = 0 to this.OriginalParameters.Length - 1 do
+                let oldParameter = this.OriginalParameters.[i]
+                let newParameter = kInfo.OriginalParameters.[i]
+                newParameter.Access <- oldParameter.Access
+                newParameter.DataType <- oldParameter.DataType
+                newParameter.IsReturned <- oldParameter.IsReturned
+                newParameter.ReturnExpr <- oldParameter.ReturnExpr
+                newParameter.Placeholder <- oldParameter.Placeholder
+                for i = 0 to oldParameter.SizeParameters.Count - 1 do
+                    newParameter.SizeParameters.Add(oldParameter.SizeParameters.[i])
+            kInfo.ReturnType <- this.ReturnType            
+

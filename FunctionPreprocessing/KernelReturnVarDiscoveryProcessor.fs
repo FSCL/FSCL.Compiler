@@ -37,7 +37,7 @@ type KernelReturnExpressionDiscoveryProcessor() =
                             raise (new CompilerException("Cannot return different variables/parameters from within a kernel"))
                     else
                         // CHECK THAT THIS IS A REFERENCE TO A PARAMETER
-                        let p = Seq.tryFind(fun (e:KernelParameterInfo) -> e.Name = v.Name) (engine.FunctionInfo.Parameters)
+                        let p = Seq.tryFind(fun (e:FunctionParameter) -> e.Name = v.Name) (engine.FunctionInfo.Parameters)
                         if p.IsNone then
                             raise (new CompilerException("Kernels can only return a reference to a parameter or to a dynamically allocated array"))
                          
@@ -49,7 +49,7 @@ type KernelReturnExpressionDiscoveryProcessor() =
         let engine = s :?> FunctionPreprocessingStep
         let returnVariable:Var option ref = ref None
 
-        if engine.FunctionInfo :? KernelInfo then
+        if info :? KernelInfo then
             SearchReturnExpression(info.Body, returnVariable , engine)
 
             // Verify that return expressions are all references
@@ -58,6 +58,6 @@ type KernelReturnExpressionDiscoveryProcessor() =
                 // Set return parameter to void
                 engine.FunctionInfo.ReturnType <- typeof<unit>
                 // Mark parameter returned as ReturnParameter
-                let p = engine.FunctionInfo.GetParameter(returnVariable.Value.Value.Name)
-                p.Value.IsReturnParameter <- true
+                let p = engine.FunctionInfo.GetParameter(returnVariable.Value.Value.Name).Value 
+                p.IsReturned <- true
         

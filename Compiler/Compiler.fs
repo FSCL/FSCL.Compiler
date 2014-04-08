@@ -12,7 +12,6 @@ open FSCL.Compiler.FunctionPreprocessing
 open FSCL.Compiler.FunctionCodegen
 open FSCL.Compiler.FunctionTransformation
 open FSCL.Compiler.Types
-open System.Collections.ObjectModel
 open System.Collections.Generic
 ///
 ///<summary>
@@ -20,9 +19,12 @@ open System.Collections.Generic
 ///</summary>
 ///
 [<AllowNullLiteral>]
-type Compiler =  
-    static member private defConfRoot = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "FSCL.Compiler")
-    static member private defConfCompRoot = "Components"
+type Compiler = 
+    inherit Pipeline
+
+    static member DefaultConfigurationRoot = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "FSCL.Compiler")
+    static member DefaultConfigurationComponentsFolder = "Components"
+    static member DefaultConfigurationComponentsRoot = Path.Combine(Compiler.DefaultConfigurationRoot, Compiler.DefaultConfigurationComponentsFolder)
 
     static member private defComponentsAssemply = 
         [| typeof<FunctionPreprocessingStep>; 
@@ -32,11 +34,7 @@ type Compiler =
            typeof<ModulePreprocessingStep>; 
            typeof<ModuleCodegenStep>; 
            typeof<DefaultTypeHandler> |]
-
-    val mutable private steps : ICompilerStep array
-    val mutable private configuration: PipelineConfiguration
-    val mutable private configurationManager: PipelineConfigurationManager
-
+           
     ///
     ///<summary>
     ///The default constructor of the compiler
@@ -50,12 +48,8 @@ type Compiler =
     ///In addition of the 0 or more components found, the native components are always loaded (if no configuration file is found in the first step)
     ///</remarks>
     ///
-    new() as this = { steps = [||]; 
-                      configurationManager = new PipelineConfigurationManager(Compiler.defComponentsAssemply, Compiler.defConfRoot, Compiler.defConfCompRoot); 
-                      configuration = null }   
-                    then
-                        this.configuration <- this.configurationManager.DefaultConfiguration()
-                        this.steps <- this.configurationManager.Build(this.configuration)
+    new() = 
+        { inherit Pipeline(Compiler.DefaultConfigurationRoot, Compiler.DefaultConfigurationComponentsFolder, Compiler.defComponentsAssemply) }
     
     ///
     ///<summary>
@@ -66,12 +60,8 @@ type Compiler =
     ///An instance of the compiler configured with the input file
     ///</returns>
     ///
-    new(file: string) as this = { steps = [||]; 
-                                  configurationManager = new PipelineConfigurationManager(Compiler.defComponentsAssemply, Compiler.defConfRoot, Compiler.defConfCompRoot); 
-                                  configuration = null }   
-                                then
-                                    this.configuration <- this.configurationManager.LoadConfiguration(file)
-                                    this.steps <- this.configurationManager.Build(this.configuration)
+    new(file: string) = 
+        { inherit Pipeline(Compiler.DefaultConfigurationRoot, Compiler.DefaultConfigurationComponentsFolder, Compiler.defComponentsAssemply, file) }
     ///
     ///<summary>
     ///The constructor to instantiate a compiler with an object-based configuration
@@ -81,111 +71,12 @@ type Compiler =
     ///An instance of the compiler configured with the input configuration object
     ///</returns>
     ///
-    new(conf: PipelineConfiguration) as this = { steps = [||]; 
-                                                 configurationManager = new PipelineConfigurationManager(Compiler.defComponentsAssemply, Compiler.defConfRoot, Compiler.defConfCompRoot); 
-                                                 configuration = conf }   
-                                               then
-                                                   this.steps <- this.configurationManager.Build(this.configuration)
-    ///
-    ///<summary>
-    ///The compiler configuration
-    ///</summary>
-    ///                                                
-    member this.Configuration 
-        with get() =
-            this.configuration
+    new(conf: PipelineConfiguration) =
+        { inherit Pipeline(Compiler.DefaultConfigurationRoot, Compiler.DefaultConfigurationComponentsFolder, Compiler.defComponentsAssemply, conf) }
 
-    ///
-    ///<summary>
-    ///The method to be invoke to compile a managed kernel
-    ///</summary>
-    ///  
     member this.Compile(input, opts) =
-        let mutable state = input
-        let mutable stopCompilation = false
-        let mutable i = 0
-        while not(stopCompilation) && i < this.steps.Length do
-            match this.steps.[i].Execute(state, opts) with
-            | StopCompilation(r) ->
-                state <- r
-                stopCompilation <- true
-            | ValidResult(o) ->
-                state <- o
-                i <- i + 1
-        state
+        this.Run(input, opts)
         
     member this.Compile(input) =
-        this.Compile(input, new ReadOnlyDictionary<string, obj>(new Dictionary<string, obj>()))
-        
-    member this.CollectMetadataComparisonFunctions =
-        let comp = new List<DynamicKernelMetadataCollection * DynamicKernelMetadataCollection -> bool>()
-        for s in this.steps do
-            match s.BehaveDifferentlyWithKernelMetadata with
-            | Some(f) ->
-                comp.Add(f)
-            | _ ->
-                ()
-            for p in s.Processors do
-                match p.BehaveDifferentlyWithKernelMetadata with
-                | Some(f) ->
-                    comp.Add(f)
-                | _ ->
-                    ()                
-        comp
-          
-    static member DefaultConfigurationRoot() =
-        Compiler.defConfCompRoot
-
-    static member DefaultConfigurationComponentsRoot() =
-        Path.Combine(Compiler.defConfCompRoot, Compiler.defConfCompRoot)
-
-    static member DefaultComponents() =
-        Compiler.defComponentsAssemply
-    (*
-        let typeManager = new TypeManager([ new DefaultTypeHandler();
-                                            new RefVariableTypeHandler()])
-                               
-        let parser = new ModuleParsingStep(typeManager, [ new KernelReferenceParser();
-                                                          new KernelMethodInfoParser() ])
-
-        let moduleBuilder = new ModulePreprocessingStep(typeManager, [ new GenericInstantiator();
-                                                                       new FunctionReferenceDiscover() ])
-
-        let preprocessor = new FunctionPreprocessingStep(typeManager, [ new SignaturePreprocessor();
-                                                                        new RefVariablePreprocessor() ])
-        
-        let transformation = new FunctionTransformationStep(typeManager, [ new ReturnTypeTransformation();
-                                                                           new GlobalVarRefTransformation();
-                                                                           new ConditionalAssignmentTransformation();
-                                                                           new ArrayAccessTransformation();
-                                                                           new RefVariableTransformationProcessor();
-                                                                           new ReturnLifting() ])
-
-        let printer = new FunctionPrettyPrintingStep(typeManager, [ new SignaturePrinter();
-                                                                  
-        // ArrayAccess -> ArithmeticOperation -> Call order is important (to be fixed)
-                                                                    new ArrayAccessPrinter();
-                                                                    new ArithmeticOperationPrinter();
-                                                                    new ForInPrinter();
-                                                                    new CallPrinter();
-                                                                    new ValuePrinter();
-                                                                    new VarPrinter();
-                                                                    new IfThenElsePrinter();
-                                                                    new WhileLoopPrinter();
-                                                                    new VarSetPrinter();
-                                                                    new UnionCasePrinter();
-                                                                    new DeclarationPrinter();
-                                                                    new SequentialPrinter();
-                                                                    new IntegerRangeLoopPrinter() ])
-                                                                    
-        let finalizer = new ModulePrettyPrintingStep(typeManager, [ new ModulePrettyPrinter() ])
-
-        // Run pipeline
-        let pipeline = new CompilerPipeline(typeManager, [ parser;
-                                                           moduleBuilder;
-                                                           preprocessor;
-                                                           transformation;
-                                                           printer;
-                                                           finalizer ]);
-        pipeline
-        *)
+        this.Compile(input, new Dictionary<string, obj>())
+    

@@ -63,11 +63,6 @@
       <Name>FSCL.Compiler.Core.Language</Name>
       <Project>{02CC39BD-A326-49F6-B5E6-2987EADA1BA2}</Project>
     </ProjectReference>
-    <ProjectReference Include="..\OpenCLBinding\Cloo\Cloo.VS2010.csproj">
-      <Name>Cloo.VS2010</Name>
-      <Project>{656e96ce-2587-4ccc-a4db-06d36267133a}</Project>
-      <Private>True</Private>
-    </ProjectReference>
     <ProjectReference Include="..\StepProcessorConfigurationManager\PipelineConfigurationManager.fsproj">
       <Project>{F1124EAE-D35E-4C29-96FE-D88E7ADECC84}</Project>
       <Name>PipelineConfigurationManager</Name>

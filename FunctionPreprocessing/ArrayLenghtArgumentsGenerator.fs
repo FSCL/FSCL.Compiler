@@ -27,46 +27,39 @@ type ArrayLenghtArgumentsGenerator() =
         let step = s :?> FunctionPreprocessingStep
 
         // Store size parameters separately to enqueue them at the end
-        let sizeParameters = new List<KernelParameterInfo>()
+        let sizeParameters = new List<FunctionParameter>()
 
         // Get node input for each flow graph node instance of this kernel
         //let nodes = FlowGraphManager.GetKernelNodes(fInfo.ID,  step.FlowGraph)
 
         // Process each parameter
         for p in fInfo.Parameters do
-            if p.Type.IsArray then                
+            if p.DataType.IsArray then                
                 // Get dimensions (rank)
-                let dimensions = GetArrayDimensions(p.Type) 
+                let dimensions = GetArrayDimensions(p.DataType) 
                 // Get "GetLength" method info
-                let getLengthMethod = p.Type.GetMethod("GetLength")
+                //let getLengthMethod = p.Type.GetMethod("GetLength")
                 // Flatten dimensions (1D array type)
-                let pType = p.Type.GetElementType().MakeArrayType()
-                p.Type <- pType
+                let pType = p.DataType.GetElementType().MakeArrayType()
+                p.DataType <- pType
+                // Generate new appropriate placeholder
+                p.Placeholder <- Quotations.Var(p.Name, pType, false)
                 // Create auto-generated size parameters
                 for d = 0 to dimensions - 1 do
-                    let sizeP = new KernelParameterInfo(GenerateSizeAdditionalArg(p.Name, d), typeof<int>, null, None, null)
+                    let sizeP = new FunctionParameter(GenerateSizeAdditionalArg(p.Name, d), 
+                                                        typeof<int>,
+                                                        FunctionParameterType.SizeParameter,
+                                                        None)
                     // A non-array parameter access is always read only
                     sizeP.Access <- AccessMode.ReadAccess
-                    // Set var to be used in kernel body
-                    sizeP.Placeholder <- Some(Quotations.Var(GenerateSizeAdditionalArg(p.Name, d), typeof<int>, false))
-                    // Set this to be a size parameter
-                    sizeP.IsSizeParameter <- true
                     p.SizeParameters.Add(sizeP)
-                    sizeParameters.Add(sizeP)              
-                    // Update flow graph nodes input
-                    (*
-                    for n in nodes do
-                        let inputBinding = FlowGraphManager.GetNodeInput(n)
-                        FlowGraphManager.SetNodeInput(n, 
-                                                      sizeP.Name,
-                                                      FlowGraphNodeInputInfo(
-                                                        ImplicitValue,
-                                                        None,
-                                                        null)) *)
-                // Set var to be used in kernel body
-                p.Placeholder <- Some(Quotations.Var(p.Name, pType, false))
+                    sizeParameters.Add(sizeP)     
+                    
+                // Flatten XD array to 1D array
+                if dimensions > 1 then
+                    p.DataType <- p.DataType.GetElementType().MakeArrayType()
 
         // Add size parameters to the list of kernel params
-        fInfo.Parameters.AddRange(sizeParameters)
+        fInfo.GeneratedParameters.AddRange(sizeParameters)
 
             

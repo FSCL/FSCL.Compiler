@@ -5,7 +5,6 @@ open Microsoft.FSharp.Quotations
 open System
 open System.Collections.Generic
 open System.Collections.ObjectModel
-open Cloo
 
 ///
 ///<summary>
@@ -18,89 +17,175 @@ type AccessMode =
 | ReadAccess = 1
 | WriteAccess = 2
 
+type FunctionParameterType =
+| NormalParameter
+| SizeParameter
+| DynamicParameter of Expr array
+| ImplicitParameter
+
 ///
 ///<summary>
 /// The set of information about a kernel parameter collected and maintained by the compiler
 ///</summary>
 ///
-type KernelParameterInfo(name:string, 
-                         t: Type, 
-                         methodInfoParameter: ParameterInfo, 
-                         arg: Expr option,
-                         dynamicMetadata: DynamicParameterMetadataCollection) =
-    let metadata = 
-        let dictionary = 
-            if dynamicMetadata <> null then
-                new DynamicParameterMetadataCollection(dynamicMetadata)
-            else
-                new DynamicParameterMetadataCollection()
-        if methodInfoParameter <> null then
-            for item in methodInfoParameter.GetCustomAttributes() do
-                if typeof<DynamicParameterMetadataAttribute>.IsAssignableFrom(item.GetType()) then
-                    if not (dictionary.ContainsKey(item.GetType())) then
-                        dictionary.Add(item.GetType(), item :?> DynamicParameterMetadataAttribute)
-        dictionary
-    ///
-    ///<summary>
-    /// .NET-related information about the kernel (method) parameter
-    ///</summary>
-    ///
-    member val Name = name with get 
-    member val Type = t with get, set
-    member val IsSizeParameter = false with get, set
-    member val IsReturnParameter = false with get, set
-    member val IsDynamicArrayParameter = false with get, set
+type IFunctionParameter =
+    abstract Name: string with get
+    abstract DataType: Type with get
+    abstract ParameterType: FunctionParameterType with get
+    abstract Placeholder: Quotations.Var with get
+    abstract Access: AccessMode with get
+    abstract ReturnExpr: Expr option with get
+    abstract IsReturned: bool with get
+    abstract SizeParameters: ReadOnlyCollection<IFunctionParameter> with get
+    abstract Meta: IParamMetaCollection with get
+            
+    abstract IsSizeParameter: bool with get
+    abstract IsNormalParameter: bool with get
+    abstract IsDynamicParameter: bool with get
+    abstract IsImplicitParameter: bool with get
+    abstract DynamicAllocationArguments: Expr array option with get
 
-    member val DynamicAllocationArguments:Expr list = [] with get, set
-    ///
-    ///<summary>
-    /// The set of additional parameters generated to access this parameter
-    ///</summary>
-    ///<remarks>
-    /// Additional size parameters are generated only for vector (array) parameters, one for each vector parameter dimension
-    ///</remarks>
-    ///
-    member val SizeParameters = new List<KernelParameterInfo>() with get
-    ///
-    ///<summary>
-    /// The access mode of this parameter
-    ///</summary>
-    ///
-    member val Access = 
-        if (t.IsArray) then
-            AccessMode.ReadAccess
-        else
-            AccessMode.NoAccess
+type FunctionParameter(name:string, 
+                       dt: Type, 
+                       parameterType: FunctionParameterType,
+                       meta: IParamMetaCollection option) =
+    let sp = new List<IFunctionParameter>()
+    interface IFunctionParameter with
+
+        // Override starts
+        member this.Name
+            with get() = 
+                this.Name
+        
+        member this.DataType 
+            with get() =
+                this.DataType
+            
+        member this.ParameterType 
+            with get() =
+                this.ParameterType           
+            
+        member this.Placeholder 
+            with get() =
+                this.Placeholder
+
+        member this.Access
+            with get() =
+                this.Access
+
+        member this.ReturnExpr 
+            with get() =
+                this.ReturnExpr
+
+        member this.IsReturned 
+            with get() =
+                this.IsReturned
+
+        member this.SizeParameters 
+            with get() =
+                sp.AsReadOnly()
+            
+        member this.Meta 
+            with get() =
+                this.Meta
+
+        member this.IsSizeParameter
+            with get() = 
+                this.IsSizeParameter 
+                       
+        member this.IsNormalParameter 
+            with get() = 
+                this.IsNormalParameter     
+
+        member this.IsDynamicParameter 
+            with get() = 
+                this.IsDynamicParameter
+                 
+        member this.IsImplicitParameter 
+            with get() = 
+                this.IsImplicitParameter
+
+        member this.DynamicAllocationArguments
+            with get() =
+                this.DynamicAllocationArguments
+    // Override ends
+
+    // Get-set properties
+    member val Name = name
+        with get
+
+    member val DataType = dt 
         with get, set
-    ///
-    ///<summary>
-    /// The return expression for this parameter (only if return parameter is true)
-    ///</summary>
-    ///
-    member val ReturnExpr = None with get, set
-    ///
-    ///<summary>
-    /// The actual arguments ofthe call if this kernel is resulting from parsing a call
-    ///</summary>
-    ///
-    member val CallExpr = arg with get
-    ///
-    ///<summary>
-    /// Variable holding the parameter inside the kernel body in the abstract syntax tree
-    ///</summary>
-    ///
-    member val Placeholder:Var option = None with get, set
-    ///
-    ///<summary>
-    /// The static attributes of the method parameter (if some)
-    ///</summary>
-    ///
-    member val Metadata = metadata with get
+       
+    member val ParameterType = parameterType
+        with get
 
-    member this.GetMetadata<'T when 'T :> DynamicParameterMetadataAttribute and 'T : null>() =
-        if this.Metadata.ContainsKey(typeof<'T>) then
-            this.Metadata.[typeof<'T>] :?> 'T
+    member val Placeholder = Quotations.Var(name, dt) 
+        with get, set
+            
+    member this.SizeParameters
+        with get() =
+            sp
+
+    member val Access = AccessMode.NoAccess
+        with get, set
+            
+    member val ReturnExpr = None
+        with get, set
+
+    member val IsReturned = false 
+        with get, set
+            
+    member val Meta =
+        if meta.IsNone then
+            new ParamMetaCollection() :> IParamMetaCollection
         else
-            null
+            meta.Value
+        with get
+        
+    member val IsSizeParameter =
+        match parameterType with
+        | SizeParameter ->
+            true
+        | _ ->
+            false           
+        with get 
 
-    
+    member val IsNormalParameter =
+        match parameterType with
+        | NormalParameter ->
+            true
+        | _ ->
+            false     
+        with get
+           
+    member val IsDynamicParameter =
+        match parameterType with
+        | DynamicParameter(_) ->
+            true
+        | _ ->
+            false     
+        with get
+         
+    member val IsImplicitParameter =
+        match parameterType with
+        | ImplicitParameter ->
+            true
+        | _ ->
+            false  
+        with get
+              
+    member val DynamicAllocationArguments =
+        match parameterType with
+        | DynamicParameter(allocArgs) ->
+            Some(allocArgs)
+        | _ ->
+            None
+        with get
+                    
+        
+type OriginalFunctionParameter(p: ParameterInfo, meta: IParamMetaCollection option) =
+    inherit FunctionParameter(p.Name, p.ParameterType, NormalParameter, meta)
+
+
+     

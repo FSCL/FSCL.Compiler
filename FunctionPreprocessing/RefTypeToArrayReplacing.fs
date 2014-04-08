@@ -24,11 +24,10 @@ type RefTypeToArrayReplacingProcessor() =
 
         // Transform each ref variable in an array of 1 element
         for p in fi.Parameters do
-            let t = p.Type
+            let t = p.DataType
             if IsRef(t) then
                 let newType = (FSharpType.GetRecordFields(t)).[0].PropertyType.MakeArrayType()
                 // Generate new placeholder
-                p.Placeholder <- Some(Quotations.Var(p.Name, newType, false))                
-                p.Type <- (FSharpType.GetRecordFields(t)).[0].PropertyType.MakeArrayType()
+                (p :?> FunctionParameter).DataType <- (FSharpType.GetRecordFields(t)).[0].PropertyType.MakeArrayType()
 
             

@@ -66,7 +66,7 @@ module AcceleratedCollectionUtil =
             match lambda with
             | Some(l) ->
                 match QuotationAnalysis.LambdaToMethod(l) with                
-                | Some(m, b, attrs) ->
+                | Some(m, b, _, _, _) ->
                     Some(m, b)
                 | _ ->
                     failwith ("Cannot parse the body of the computation function " + root.ToString())
@@ -113,6 +113,11 @@ module AcceleratedCollectionUtil =
         let get = GetGenericMethodInfoFromExpr(<@@ LanguagePrimitives.IntrinsicFunctions.GetArray<int> null 0 @@>, ty)
         let set = GetGenericMethodInfoFromExpr(<@@ LanguagePrimitives.IntrinsicFunctions.SetArray<int> null 0 0 @@>, ty)
         (get, set)
+        
+    let GetArrayLengthMethodInfo(ty) =
+        let arr = [| 0 |]
+        let get = GetGenericMethodInfoFromExpr(<@@ arr.GetLength(0) @@>, ty)
+        get
         
     let GetKernelFromLambda(expr:Expr) = 
         let rec LiftTupledArgs(body: Expr, l:Var list) =

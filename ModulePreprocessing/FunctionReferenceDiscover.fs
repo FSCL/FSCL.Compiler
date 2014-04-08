@@ -22,7 +22,7 @@ type FunctionReferenceDiscover() =
                 try
                     match mi with
                     | DerivedPatterns.MethodWithReflectedDefinition(b) ->
-                        if not (foundFunctions.ContainsKey(mi)) then
+                        if not (foundFunctions.ContainsKey(mi)) then                        
                             foundFunctions.Add(mi, new FunctionInfo(mi, b, false))
                     | _ ->
                         ()
@@ -40,8 +40,8 @@ type FunctionReferenceDiscover() =
 
     override this.Run(m, en, opts) =
         let engine = en :?> ModulePreprocessingStep
-        let found = DiscoverFunctionRef(m.Kernel.Info)
+        let found = DiscoverFunctionRef(m.Kernel)
         for item in found do
-            m.AddFunction(item.Value)
-            m.Kernel.RequiredFunctions.Add(item.Value.ID) |> ignore
+            if not (m.Functions.ContainsKey(item.Value.ID)) then
+                m.Functions.Add(item.Value.ID, item.Value)
             

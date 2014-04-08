@@ -16,59 +16,145 @@ open FSCL.Compiler
 open System.Collections.ObjectModel
 
 module QuotationAnalysis =
-    let private ParseDynamicMetadata<'T>(expr, attrs: Dictionary<Type, 'T>) =
-        let rec ParseDynamicMetadataInternal(expr) =
+    let private ParseKernelMetadataFunctions(expr, 
+                                             kernelAttrs: KernelMetaCollection,
+                                             returnAttrs: ParamMetaCollection) =
+        let rec ParseMetadataInternal(expr) =
             match expr with
             | Patterns.Call(o, mi, args) ->
-                let dynamicAttributeFunction = mi.GetCustomAttribute<DynamicMetadataFunctionAttribute>()
-                if dynamicAttributeFunction <> null then
+                
+                let kernelAttrFunction = mi.GetCustomAttribute<KernelMetadataFunctionAttribute>()
+                let returnAttrFunction = mi.GetCustomAttribute<ReturnMetadataFunctionAttribute>()
+                let paramAttrFunction = mi.GetCustomAttribute<ParameterMetadataFunctionAttribute>()
+
+                if kernelAttrFunction <> null || returnAttrFunction <> null then
                     // Get attribute type
-                    let attrType = dynamicAttributeFunction.Metadata
-                    if typeof<'T>.IsAssignableFrom(attrType) then
-                        // First n - 1 args are the parameters to instantiate attribute, last is one is target (forwarded)
-                        let attrArgs = args |> 
+                    let attrType = 
+                        if kernelAttrFunction <> null  then
+                            kernelAttrFunction.Metadata
+                        else
+                            returnAttrFunction.Metadata
+                    // First n - 1 args are the parameters to instantiate attribute, last is one is target (forwarded)
+                    let attrArgs = args |> 
+                                    Seq.take(args.Length - 1) |> 
+                                    Seq.map(fun (e:Expr) -> LeafExpressionConverter.EvaluateQuotation(e)) |> 
+                                    Seq.toArray
+                    let attrArgsType = args |> 
                                         Seq.take(args.Length - 1) |> 
-                                        Seq.map(fun (e:Expr) -> LeafExpressionConverter.EvaluateQuotation(e)) |> 
+                                        Seq.map(fun (e:Expr) -> e.Type) |> 
                                         Seq.toArray
-                        let attrArgsType = args |> 
-                                            Seq.take(args.Length - 1) |> 
-                                            Seq.map(fun (e:Expr) -> e.Type) |> 
-                                            Seq.toArray
-                        // Instantiate attribute
-                        let constr = attrType.GetConstructor(attrArgsType)
-                        if constr = null then
-                            raise (new CompilerException("Cannot instantiate attribute " + (attrType.ToString()) + " cause a proper constructor cannot be found"))
-                        else
-                            let attr = constr.Invoke(attrArgs) :?> 'T
-                            if not (attrs.ContainsKey(attrType)) then
-                                attrs.Add(attrType, attr)
-                            else
-                                attrs.[attrType] <- attr
-                            // Continue processing body
-                            ParseDynamicMetadataInternal(args.[args.Length - 1])
+                    // Instantiate attribute
+                    let constr = attrType.GetConstructor(attrArgsType)
+                    if constr = null then
+                        raise (new CompilerException("Cannot instantiate attribute " + (attrType.ToString()) + " cause a proper constructor cannot be found"))
                     else
-                        let attrArgs = args |> 
-                                       List.map(fun (e:Expr) -> ParseDynamicMetadataInternal(e))
-                        if o.IsSome then
-                            Expr.Call(o.Value, mi, attrArgs)
+                        if (kernelAttrFunction <> null) then
+                            let attr = constr.Invoke(attrArgs) :?> KernelMetadataAttribute
+                            kernelAttrs.AddOrSet(attr)
                         else
-                            Expr.Call(mi, attrArgs)
+                            // Return attr function
+                            let attr = constr.Invoke(attrArgs) :?> ParameterMetadataAttribute
+                            returnAttrs.AddOrSet(attr)
+                        // Continue processing body
+                        ParseMetadataInternal(args.[args.Length - 1])
+                else if paramAttrFunction <> null then
+                    let attrArgs = args |> 
+                                    List.map(fun (e:Expr) -> ParseMetadataInternal(e))
+                    if o.IsSome then
+                        Expr.Call(o.Value, mi, attrArgs)
+                    else
+                        Expr.Call(mi, attrArgs)
                 else
                     expr
             | _ ->
                 expr
-        ParseDynamicMetadataInternal(expr)
+        ParseMetadataInternal(expr)
+                
+    let private ParseParameterMetadataFunctions(expr, 
+                                                attrs: ParamMetaCollection) =
+        let rec ParseMetadataInternal(expr) =
+            match expr with
+            | Patterns.Call(o, mi, args) ->
+                let paramAttrFunction = mi.GetCustomAttribute<ParameterMetadataFunctionAttribute>()
+                let kernelAttrFunction = mi.GetCustomAttribute<KernelMetadataFunctionAttribute>()
+                let returnAttrFunction = mi.GetCustomAttribute<ReturnMetadataFunctionAttribute>()
 
-    let ParseDynamicKernelMetadataFunctions(expr) =
-        // Process dynamic attributes
-        let attrs = new DynamicKernelMetadataCollection()
-        (ParseDynamicMetadata<DynamicKernelMetadataAttribute>(expr, attrs), attrs)
+                if paramAttrFunction <> null then
+                    // Get attribute type
+                    let attrType = paramAttrFunction.Metadata
+                    // First n - 1 args are the parameters to instantiate attribute, last is one is target (forwarded)
+                    let attrArgs = args |> 
+                                    Seq.take(args.Length - 1) |> 
+                                    Seq.map(fun (e:Expr) -> LeafExpressionConverter.EvaluateQuotation(e)) |> 
+                                    Seq.toArray
+                    let attrArgsType = args |> 
+                                        Seq.take(args.Length - 1) |> 
+                                        Seq.map(fun (e:Expr) -> e.Type) |> 
+                                        Seq.toArray
+                    // Instantiate attribute
+                    let constr = attrType.GetConstructor(attrArgsType)
+                    if constr = null then
+                        raise (new CompilerException("Cannot instantiate attribute " + (attrType.ToString()) + " cause a proper constructor cannot be found"))
+                    else
+                        // Return attr function
+                        let attr = constr.Invoke(attrArgs) :?> ParameterMetadataAttribute
+                        attrs.AddOrSet(attr)
+
+                        // Continue processing body
+                        ParseMetadataInternal(args.[args.Length - 1])
+                else if kernelAttrFunction <> null || returnAttrFunction <> null then
+                    let attrArgs = args |> 
+                                    List.map(fun (e:Expr) -> ParseMetadataInternal(e))
+                    if o.IsSome then
+                        Expr.Call(o.Value, mi, attrArgs)
+                    else
+                        Expr.Call(mi, attrArgs)
+                else
+                    expr
+            | _ ->
+                expr
+        ParseMetadataInternal(expr)
+
+    let ParseKernelMetadata(expr) =
+        // Process attributes functions
+        let attrs = new KernelMetaCollection()
+        let returnAttrs = new ParamMetaCollection()
+        let cleanExpr = ParseKernelMetadataFunctions(expr, attrs, returnAttrs)
         
-    let ParseDynamicParameterMetadataFunctions(expr) =
+        // Return
+        (cleanExpr, attrs, returnAttrs)
+        
+    let MergeWithStaticKernelMeta(attrs: KernelMetaCollection, 
+                                  returnAttrs: ParamMetaCollection, 
+                                  m: MethodInfo) =
+                                  
+        let staticAttrs = m.GetCustomAttributes()
+        for attr in staticAttrs do
+            if typeof<ParameterMetadataAttribute>.IsAssignableFrom(attr.GetType()) then
+                if not (returnAttrs.Contains(attr.GetType())) then
+                    returnAttrs.Add(attr :?> ParameterMetadataAttribute)
+            else if typeof<KernelMetadataAttribute>.IsAssignableFrom(attr.GetType()) then
+                if not (attrs.Contains(attr.GetType())) then
+                    attrs.Add(attr :?> KernelMetadataAttribute)
+        
+    let ParseParameterMetadata(expr) =
         // Process dynamic attributes
-        let attrs = new DynamicParameterMetadataCollection()
-        (ParseDynamicMetadata<DynamicParameterMetadataAttribute>(expr, attrs), attrs)
-                                                   
+        let attrs = new ParamMetaCollection()
+        let cleanExpr = ParseParameterMetadataFunctions(expr, attrs)
+
+        // Return
+        (cleanExpr, attrs)
+        
+    let MergeWithStaticParameterMeta(attrs: ParamMetaCollection, 
+                                     p: ParameterInfo) =
+
+        // Merge with static attributes
+        let staticAttrs = p.GetCustomAttributes()
+        for attr in staticAttrs do
+            if typeof<ParameterMetadataAttribute>.IsAssignableFrom(attr.GetType()) then
+                if not (attrs.Contains(attr.GetType())) then
+                    attrs.Add(attr :?> ParameterMetadataAttribute)
+                                                  
     let LiftTupledCallArgs(expr) =
         let rec GetCallArgs(expr, parameters: Var list) =
             match expr with
@@ -116,7 +202,7 @@ module QuotationAnalysis =
             None 
             
     let rec GetKernelFromName(e) =                    
-        let expr, attrs = ParseDynamicKernelMetadataFunctions(e)
+        let expr, kernelAttrs, returnAttrs = ParseKernelMetadata(e)
         match expr with
         | Patterns.Lambda(v, e) -> 
             GetKernelFromName (e)
@@ -125,20 +211,36 @@ module QuotationAnalysis =
         | Patterns.Call (e, mi, a) ->
             match mi with
             | DerivedPatterns.MethodWithReflectedDefinition(b) ->
-                Some(mi, b, attrs)
+                MergeWithStaticKernelMeta(kernelAttrs, returnAttrs, mi)
+                let parameters = mi.GetParameters() |> Array.toList
+                let attrs = new List<ParamMetaCollection>()
+                for p in parameters do
+                    let paramAttrs = new ParamMetaCollection()
+                    MergeWithStaticParameterMeta(paramAttrs, p)
+                    attrs.Add(paramAttrs)
+                Some(mi, b, kernelAttrs, returnAttrs, attrs)
             | _ ->
                 None
         | _ ->
             None
                 
     let rec GetKernelFromCall(e) =                    
-        let expr, attrs = ParseDynamicKernelMetadataFunctions(e)
+        let expr, kernelAttrs, returnAttrs = ParseKernelMetadata(e)
         match expr with
         | Patterns.Call (e, mi, a) ->
             match mi with
             | DerivedPatterns.MethodWithReflectedDefinition(b) ->
-                let cleanArgs, paramAttrs = a |> List.toArray |> Array.map (fun (pe:Expr) -> ParseDynamicParameterMetadataFunctions(pe)) |> Array.unzip
-                Some(mi, cleanArgs, b, attrs, paramAttrs)
+                MergeWithStaticKernelMeta(kernelAttrs, returnAttrs, mi)
+                let parameters = mi.GetParameters() |> Array.toList
+                let attrs = new List<ParamMetaCollection>()
+                let args = new List<Expr>()
+                for i = 0 to parameters.Length - 1 do
+                    let paramAttrs = new ParamMetaCollection()
+                    let cleanArgs, paramAttrs = ParseParameterMetadata(a.[i])
+                    MergeWithStaticParameterMeta(paramAttrs, parameters.[i])
+                    attrs.Add(paramAttrs)
+                    args.Add(cleanArgs)
+                Some(mi, List.ofSeq args, b, kernelAttrs, returnAttrs, attrs)
             | _ ->
                 None
         | _ ->
@@ -147,7 +249,17 @@ module QuotationAnalysis =
     let rec GetKernelFromMethodInfo(mi: MethodInfo) =                    
         match mi with
         | DerivedPatterns.MethodWithReflectedDefinition(b) ->
-            Some(mi, b)
+            let kernelMeta = new KernelMetaCollection()
+            let returnMeta = new ParamMetaCollection()
+            MergeWithStaticKernelMeta(kernelMeta, returnMeta, mi)
+
+            let parameters = mi.GetParameters() |> Array.toList
+            let attrs = new List<ParamMetaCollection>()
+            for p in parameters do
+                let paramAttrs = new ParamMetaCollection()
+                MergeWithStaticParameterMeta(paramAttrs, p)
+                attrs.Add(paramAttrs)
+            Some(mi, b, kernelMeta, returnMeta, attrs)
         | _ ->
             None
 
@@ -172,7 +284,7 @@ module QuotationAnalysis =
             false  
         
     let LambdaToMethod(e) = 
-        let expr, attrs = ParseDynamicKernelMetadataFunctions(e)
+        let expr, kernelAttrs, returnAttrs = ParseKernelMetadata(e)
 
         let mutable body = expr
         let mutable parameters = []
@@ -212,7 +324,7 @@ module QuotationAnalysis =
             methodBuilder.GetILGenerator().Emit(OpCodes.Ret)
             moduleBuilder.CreateGlobalFunctions()
             let signature = moduleBuilder.GetMethod(methodBuilder.Name) 
-            Some(signature, body, attrs)
+            Some(signature, body, kernelAttrs, returnAttrs, ReadOnlyMetaCollection.EmptyParamMetaCollection(parameters.Length))
         else
             None
     

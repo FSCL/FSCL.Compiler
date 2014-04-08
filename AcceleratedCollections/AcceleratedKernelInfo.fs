@@ -11,8 +11,14 @@ open Microsoft.FSharp.Core.LanguagePrimitives
 open System
 open FSCL.Compiler.Util
 
-type AcceleratedKernelInfo(signature: MethodInfo, body, dynamicAttributes, collectionFunction: string, appliedFunction: Expr) =
-    inherit KernelInfo(signature, body, dynamicAttributes, false)
+type AcceleratedKernelInfo(signature: MethodInfo, 
+                           body: Expr,
+                           meta, 
+                           collectionFunction: String, 
+                           appliedFunction: Expr) =
+    inherit KernelInfo(signature, body, meta, false)
+            
+    member val CollectionFunctionName = collectionFunction with get
 
     override this.ID
         with get() =     

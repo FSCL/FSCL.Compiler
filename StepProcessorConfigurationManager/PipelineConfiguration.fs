@@ -27,7 +27,7 @@ type ComponentSource =
 ///A step configuration contains all the information about a step that must be provided when the step is specified in a configuration file or object
 ///</remarks>
 ///
-type StepConfiguration(i: string, t: Type, ?dependencies: string array, ?before: string array) = //, ?metadataAffectingResult: Type array) =
+type StepConfiguration(i: string, t: Type, ?dependencies: string array, ?before: string array, ?metadata: (Type * MetadataComparer) array) =
     ///
     ///<summary>
     ///The ID of the step
@@ -54,7 +54,7 @@ type StepConfiguration(i: string, t: Type, ?dependencies: string array, ?before:
     ///The set of metadata that affect the result of this step
     ///</summary>
     /// 
-    //ember val MetadataAffectingResult = if metadataAffectingResult.IsSome then metadataAffectingResult.Value else [||] with get
+    member val UsedMetadata = if metadata.IsSome then metadata.Value else [||] with get
     ///
     ///<summary>
     ///The runtime .NET type of the step
@@ -74,40 +74,42 @@ type StepConfiguration(i: string, t: Type, ?dependencies: string array, ?before:
                         Array.ofSeq(seq {
                             for item in this.Before do
                                 yield XElement(XName.Get("Item"), XAttribute(XName.Get("ID"), item))
-                        })))
-                        (*
-                    new XElement(XName.Get("MetadataAffectingResult"),
+                        })),                        
+                    new XElement(XName.Get("UsedMetadata"),
                         Array.ofSeq(seq {
-                            for item in this.MetadataAffectingResult do
-                                yield XElement(XName.Get("Item"), XAttribute(XName.Get("Type"), item.ToString()))
-                        }))) *)
+                            for item in this.UsedMetadata do
+                                yield XElement(XName.Get("Item"),
+                                    XAttribute(XName.Get("Type"), fst(item).ToString()),
+                                    XAttribute(XName.Get("Comparer"), snd(item).GetType().ToString()))
+                        }))) 
         el
     static member internal FromXml(el:XElement, a:Assembly) =
         let deps = List<string>()
         let bef = List<string>()
-        //let meta = List<Type>()
+        let meta = List<Type * MetadataComparer>()
         for d in el.Elements(XName.Get("Dependencies")) do
             for item in d.Elements(XName.Get("Item")) do
                 deps.Add(item.Attribute(XName.Get("ID")).Value)
         for d in el.Elements(XName.Get("Before")) do
             for item in d.Elements(XName.Get("Item")) do
                 bef.Add(item.Attribute(XName.Get("ID")).Value)
-        (*for d in el.Elements(XName.Get("MetadataAffectingResult")) do
+        for d in el.Elements(XName.Get("UsedMetadata")) do
             for item in d.Elements(XName.Get("Item")) do
+                let metaType, comparerType = item.Attribute(XName.Get("Type")).Value, item.Attribute(XName.Get("Comparer")).Value
                 let asm = Assembly.GetExecutingAssembly();
-                let tName = item.Attribute(XName.Get("ID")).Value
-                let t = asm.GetType(tName);
-                meta.Add(t) *)
+                let metaT = asm.GetType(metaType);
+                let comparerT = asm.GetType(comparerType)
+                meta.Add(metaT, Activator.CreateInstance(comparerT) :?> MetadataComparer) 
         StepConfiguration(el.Attribute(XName.Get("ID")).Value, 
                           a.GetType(el.Attribute(XName.Get("Type")).Value), 
-                          deps.ToArray(), bef.ToArray())//, meta.ToArray())
+                          deps.ToArray(), bef.ToArray(), meta.ToArray())
 
     override this.Equals(o) =
         if o.GetType() <> this.GetType() then
             false
         else
             let oth = o :?> StepConfiguration
-            let equal = ref(this.ID = oth.ID && this.Type = oth.Type && this.Dependencies.Length = oth.Dependencies.Length && this.Before.Length = oth.Before.Length)// && this.MetadataAffectingResult.Length = oth.MetadataAffectingResult.Length)
+            let equal = ref(this.ID = oth.ID && this.Type = oth.Type && this.Dependencies.Length = oth.Dependencies.Length && this.Before.Length = oth.Before.Length && this.UsedMetadata.Length = oth.UsedMetadata.Length)
             if !equal then
                 Array.iter (fun (item1:string) ->
                     equal := !equal && (Array.tryFind(fun (item2:string) ->
@@ -116,10 +118,6 @@ type StepConfiguration(i: string, t: Type, ?dependencies: string array, ?before:
                 Array.iter (fun (item1:string) ->
                     equal := !equal && (Array.tryFind(fun (item2:string) ->
                                         item1 = item2) oth.Before).IsSome) this.Before
-            (*if !equal then
-                Array.iter (fun (item1:Type) ->
-                    equal := !equal && (Array.tryFind(fun (item2:Type) ->
-                                        item1 = item2) oth.MetadataAffectingResult).IsSome) this.MetadataAffectingResult*)
             !equal
             
 ///
@@ -127,7 +125,7 @@ type StepConfiguration(i: string, t: Type, ?dependencies: string array, ?before:
 ///Configuration of a compiler step processor
 ///</summary>
 ///
-type StepProcessorConfiguration(i: string, s: string, t: Type, ?dependencies, ?before) = //, ?metadataAffectingResult: Type array) =
+type StepProcessorConfiguration(i: string, s: string, t: Type, ?dependencies, ?before, ?metadata: (Type * MetadataComparer) array) =
     ///
     ///<summary>
     ///The ID of the step processors
@@ -157,7 +155,7 @@ type StepProcessorConfiguration(i: string, s: string, t: Type, ?dependencies, ?b
     ///The set of metadata that affect the result of this step
     ///</summary>
     /// 
-    //member val MetadataAffectingResult = if metadataAffectingResult.IsSome then metadataAffectingResult.Value else [||] with get
+    member val UsedMetadata = if metadata.IsSome then metadata.Value else [||] with get
     ///
     ///<summary>
     ///The runtime .NET type of the step
@@ -179,41 +177,44 @@ type StepProcessorConfiguration(i: string, s: string, t: Type, ?dependencies, ?b
                         Array.ofSeq(seq {
                             for item in this.Before do
                                 yield XElement(XName.Get("Item"), XAttribute(XName.Get("ID"), item))
-                        })))
-                    (*new XElement(XName.Get("MetadataAffectingResult"),
+                        })),                        
+                    new XElement(XName.Get("UsedMetadata"),
                         Array.ofSeq(seq {
-                            for item in this.MetadataAffectingResult do
-                                yield XElement(XName.Get("Item"), XAttribute(XName.Get("Type"), item.ToString()))
-                        }))) *)
+                            for item in this.UsedMetadata do
+                                yield XElement(XName.Get("Item"),
+                                    XAttribute(XName.Get("Type"), fst(item).ToString()),
+                                    XAttribute(XName.Get("Comparer"), snd(item).GetType().ToString()))
+                        })))
         el
 
     static member internal FromXml(el:XElement, a:Assembly) =
         let deps = List<string>()
         let bef = List<string>()
-       // let meta = List<Type>()
+        let meta = List<Type * MetadataComparer>()
         for d in el.Elements(XName.Get("Dependencies")) do
             for item in d.Elements(XName.Get("Item")) do
                 deps.Add(item.Attribute(XName.Get("ID")).Value)
         for d in el.Elements(XName.Get("Before")) do
             for item in d.Elements(XName.Get("Item")) do
                 bef.Add(item.Attribute(XName.Get("ID")).Value)
-        (*for d in el.Elements(XName.Get("MetadataAffectingResult")) do
+        for d in el.Elements(XName.Get("UsedMetadata")) do
             for item in d.Elements(XName.Get("Item")) do
+                let metaType, comparerType = item.Attribute(XName.Get("Type")).Value, item.Attribute(XName.Get("Comparer")).Value
                 let asm = Assembly.GetExecutingAssembly();
-                let tName = item.Attribute(XName.Get("ID")).Value
-                let t = asm.GetType(tName);
-                meta.Add(t)*)
+                let metaT = asm.GetType(metaType);
+                let comparerT = asm.GetType(comparerType)
+                meta.Add(metaT, Activator.CreateInstance(comparerT) :?> MetadataComparer) 
         StepProcessorConfiguration(el.Attribute(XName.Get("ID")).Value, 
                                    el.Attribute(XName.Get("Step")).Value, 
                                    a.GetType(el.Attribute(XName.Get("Type")).Value), 
-                                   deps.ToArray(), bef.ToArray())//, meta.ToArray())
+                                   deps.ToArray(), bef.ToArray(), meta.ToArray())
 
     override this.Equals(o) =
         if o.GetType() <> this.GetType() then
             false
         else
             let oth = o :?> StepProcessorConfiguration
-            let equal = ref(this.ID = oth.ID && this.Type = oth.Type && this.Step = oth.Step && this.Dependencies.Length = oth.Dependencies.Length && this.Before.Length = oth.Before.Length)// && this.MetadataAffectingResult.Length = oth.MetadataAffectingResult.Length)
+            let equal = ref(this.ID = oth.ID && this.Type = oth.Type && this.Step = oth.Step && this.Dependencies.Length = oth.Dependencies.Length && this.Before.Length = oth.Before.Length && this.UsedMetadata.Length = oth.UsedMetadata.Length)
             if !equal then
                 Array.iter (fun (item1:string) ->
                     equal := !equal && (Array.tryFind(fun (item2:string) ->
@@ -437,7 +438,7 @@ type SourceConfiguration(src: ComponentSource,
             for t in assembly.GetTypes() do
                 let dep = List<string>()
                 let bef = List<string>()
-                //let meta = List<Type>()
+                let meta = List<Type * MetadataComparer>()
 
                 let thAttribute = t.GetCustomAttribute<TypeHandlerAttribute>()
                 if thAttribute <> null then
@@ -448,6 +449,7 @@ type SourceConfiguration(src: ComponentSource,
                     th.Add(TypeHandlerConfiguration(thAttribute.ID, t, dep.ToArray(), bef.ToArray()))
                 dep.Clear()
                 bef.Clear()
+                
 
                 let sAttribute = t.GetCustomAttribute<StepAttribute>()
                 if sAttribute <> null then
@@ -455,11 +457,13 @@ type SourceConfiguration(src: ComponentSource,
                         bef.Add(item)
                     for item in sAttribute.Dependencies do
                         dep.Add(item)
-                    //for item in sAttribute.MetadataAffectingResult do
-                     //   meta.Add(item)
-                    s.Add(StepConfiguration(sAttribute.ID, t, dep.ToArray(), bef.ToArray()))//, meta.ToArray()))
+                    for item in t.GetCustomAttributes<UseMetadataAttribute>() do
+                        meta.Add(item.MetadataType, 
+                                    Activator.CreateInstance(item.Comparer) :?> MetadataComparer)
+                    s.Add(StepConfiguration(sAttribute.ID, t, dep.ToArray(), bef.ToArray(), meta.ToArray()))
                 dep.Clear()
                 bef.Clear()
+                meta.Clear()
                         
                 let spAttribute = t.GetCustomAttribute<StepProcessorAttribute>()
                 if spAttribute <> null then
@@ -467,9 +471,10 @@ type SourceConfiguration(src: ComponentSource,
                         bef.Add(item)
                     for item in spAttribute.Dependencies do
                         dep.Add(item)
-                    //for item in sAttribute.MetadataAffectingResult do
-                      //  meta.Add(item)
-                    sp.Add(StepProcessorConfiguration(spAttribute.ID, spAttribute.Step, t, dep.ToArray(), bef.ToArray()))//, meta.ToArray()))
+                    for item in t.GetCustomAttributes<UseMetadataAttribute>() do
+                        meta.Add(item.MetadataType, 
+                                    Activator.CreateInstance(item.Comparer) :?> MetadataComparer)
+                    sp.Add(StepProcessorConfiguration(spAttribute.ID, spAttribute.Step, t, dep.ToArray(), bef.ToArray(), meta.ToArray()))
 
             // Return
             SourceConfiguration(this.Source, th.ToArray(), s.ToArray(), sp.ToArray())
@@ -482,7 +487,7 @@ type SourceConfiguration(src: ComponentSource,
 ///</summary>
 ///
 [<AllowNullLiteral>]
-type PipelineConfiguration(defSteps, sources: SourceConfiguration list) =
+type PipelineConfiguration(defSteps, sources: SourceConfiguration array) =
     ///
     ///<summary>
     ///The set of components sources
@@ -495,14 +500,14 @@ type PipelineConfiguration(defSteps, sources: SourceConfiguration list) =
     ///</summary>
     ///
     new() =
-        PipelineConfiguration(true, [])    
+        PipelineConfiguration(true, [||])    
     ///
     ///<summary>
     //Instantiates a default configuration with or without native compiler components
     ///</summary>
     ///
     new(defSteps) =
-        PipelineConfiguration(defSteps, [])        
+        PipelineConfiguration(defSteps, [||])        
             
     ///
     ///<summary>
@@ -551,7 +556,7 @@ type PipelineConfiguration(defSteps, sources: SourceConfiguration list) =
             typeHandlerID <- typeHandlerID + 1
 
         // Create assembly based configuration
-        new PipelineConfiguration(defSteps, List.ofSeq(seq {
+        new PipelineConfiguration(defSteps, Array.ofSeq(seq {
                                                                     for item in sourceDic do
                                                                         let thc, sc, spc = item.Value                                                                        
                                                                         yield new SourceConfiguration(AssemblySource(item.Key), thc.ToArray(), sc.ToArray(), spc.ToArray())     
@@ -566,10 +571,12 @@ type PipelineConfiguration(defSteps, sources: SourceConfiguration list) =
     ///
     member this.IsDefault 
         with get() =
-            if this.Sources.IsEmpty then
-                false
-            else
-                this.Sources |> List.map(fun (el:SourceConfiguration) -> el.IsDefault) |> List.reduce(fun (el1:bool) (el2:bool) -> el1 && el2)
+            let isDef = 
+                if this.Sources.Length = 0 then
+                    false
+                else
+                    this.Sources |> Array.map(fun (el:SourceConfiguration) -> el.IsDefault) |> Array.reduce(fun (el1:bool) (el2:bool) -> el1 && el2)
+            isDef
     ///
     ///<summary>
     ///Whether or not the native components must be merged with this configuration
@@ -600,7 +607,7 @@ type PipelineConfiguration(defSteps, sources: SourceConfiguration list) =
             for source in s.Elements() do
                 sources.Add(SourceConfiguration.FromXml(source, srcRoot))
         
-        PipelineConfiguration(loadDefault, List.ofSeq sources)
+        PipelineConfiguration(loadDefault, Array.ofSeq sources)
         
     member internal this.MakeExplicit() =
         let sources = new List<SourceConfiguration>()
@@ -609,7 +616,7 @@ type PipelineConfiguration(defSteps, sources: SourceConfiguration list) =
             let exp = item.MakeExplicit()
             if exp.IsExplicit then
                 sources.Add(exp)        
-        PipelineConfiguration(this.LoadDefaultSteps, List.ofSeq sources)
+        PipelineConfiguration(this.LoadDefaultSteps, Array.ofSeq sources)
         
     member internal this.MergeDefault(def: PipelineConfiguration) =
         if this.LoadDefaultSteps then
@@ -619,7 +626,7 @@ type PipelineConfiguration(defSteps, sources: SourceConfiguration list) =
             // Merge with default sources
             for s in def.MakeExplicit().Sources do
                 sources.Add(s)
-            PipelineConfiguration(false, List.ofSeq sources)
+            PipelineConfiguration(false, Array.ofSeq sources)
         else
             this.MakeExplicit()
 

@@ -1,14 +1,8 @@
 ﻿namespace FSCL.Compiler
 
 open System 
-open Cloo
 
-///
-///<summary>
-///The module exposing functions and constructs that programmers can use inside kernels
-///</summary>
-///
-module Language =
+module Language = 
     ///
     ///<summary>
     /// Enumeration describing the address spaces exposed by OpenCL
@@ -31,7 +25,7 @@ module Language =
     | TransferAlways = 0
     | TransferIfNeeded = 1
     | NoTransfer = 2
-    | NoTransferBack = 3
+    | NoTransferBack = 4
 
     ///
     ///<summary>
@@ -52,15 +46,52 @@ module Language =
     type BufferWriteMode =
     | MapBuffer = 0
     | EnqueueWriteBuffer = 1
+    
+    ///
+    ///<summary>
+    /// OpenCL memory flags
+    ///</summary>
+    ///
+    [<Flags>]
+    type MemoryFlags =
+    | None = 0
+    | ReadWrite = 1
+    | WriteOnly = 2
+    | ReadOnly = 4
+    | UseHostPointer = 8
+    | AllocHostPointer = 16
+    | CopyHostPointer = 32
+    | UseSpecialMemAMD = 64
+    
+    [<Flags>]
+    type DeviceType =
+    | Default = 1
+    | Cpu = 2
+    | Gpu = 4
+    | Accelerator = 8
+    | All = 0xFFFFFFFF
+    
+    ///
+    ///<summary>
+    ///Memory fance modes
+    ///</summary>
+    ///
+    type MemFenceMode =
+    | CLK_LOCAL_MEM_FENCE
+    | CLK_GLOBAL_MEM_FENCE  
 
     [<AllowNullLiteral>]
-    type AlternativeFunctionAttribute(s:string) =
+    type KernelMetadataFunctionAttribute(t: Type) =
         inherit Attribute()
-        member this.AlternativeFunctionName 
-            with get() = s
-            
+        member val Metadata = t with get
+
     [<AllowNullLiteral>]
-    type DynamicMetadataFunctionAttribute(t: Type) =
+    type ParameterMetadataFunctionAttribute(t: Type) =
+        inherit Attribute()
+        member val Metadata = t with get
+        
+    [<AllowNullLiteral>]
+    type ReturnMetadataFunctionAttribute(t: Type) =
         inherit Attribute()
         member val Metadata = t with get
         
@@ -71,10 +102,12 @@ module Language =
     ///
     [<AllowNullLiteral>]
     type AddressSpaceAttribute(space: AddressSpace) =
-        inherit DynamicParameterMetadataAttribute()
+        inherit ParameterMetadataAttribute()
         member val AddressSpace = space
         new() =
             AddressSpaceAttribute(AddressSpace.Auto)
+        override this.ToString() =
+            this.AddressSpace.ToString()
         
     ///
     ///<summary>
@@ -83,10 +116,12 @@ module Language =
     ///
     [<AllowNullLiteral>]
     type TransferModeAttribute(mode: TransferMode) =
-        inherit DynamicParameterMetadataAttribute()
+        inherit ParameterMetadataAttribute()
         member val Mode = mode with get
         new() =
             TransferModeAttribute(TransferMode.TransferIfNeeded)
+        override this.ToString() =
+            this.Mode.ToString()
          
     ///
     ///<summary>
@@ -94,11 +129,13 @@ module Language =
     ///</summary>
     ///
     [<AllowNullLiteral>]
-    type MemoryFlagsAttribute(flags: ComputeMemoryFlags) =
-        inherit DynamicParameterMetadataAttribute()
+    type MemoryFlagsAttribute(flags: MemoryFlags) =
+        inherit ParameterMetadataAttribute()
         member val Flags = flags with get
         new() =
-            MemoryFlagsAttribute(ComputeMemoryFlags.None)
+            MemoryFlagsAttribute(MemoryFlags.None)
+        override this.ToString() =
+            this.Flags.ToString()
         
     ///
     ///<summary>
@@ -107,10 +144,12 @@ module Language =
     ///
     [<AllowNullLiteral>]
     type BufferReadModeAttribute(mode: BufferReadMode) =
-        inherit DynamicParameterMetadataAttribute()
-        member val More = mode with get
+        inherit ParameterMetadataAttribute()
+        member val Mode = mode with get
         new() =
             BufferReadModeAttribute(BufferReadMode.EnqueueReadBuffer)
+        override this.ToString() =
+            this.Mode.ToString()
         
     ///
     ///<summary>
@@ -119,52 +158,68 @@ module Language =
     ///
     [<AllowNullLiteral>]
     type BufferWriteModeAttribute(mode: BufferWriteMode) =
-        inherit DynamicParameterMetadataAttribute()
-        member val More = mode with get
+        inherit ParameterMetadataAttribute()
+        member val Mode = mode with get
         new() =
             BufferWriteModeAttribute(BufferWriteMode.EnqueueWriteBuffer)    
+        override this.ToString() =
+            this.Mode.ToString()
         
     ///
     ///<summary>
-    ///The attribute to specify a device in the environment as a pair (platform index, device index)
+    ///The attribute to specify a devic type
     ///</summary>
     ///
     [<AllowNullLiteral>]
-    type DeviceAttribute(platform: int, device: int) =
-        inherit DynamicKernelMetadataAttribute()
-        member val Platform = platform with get
-        member val Device = device with get
+    type DeviceTypeAttribute(t: DeviceType) =
+        inherit KernelMetadataAttribute()
+        member val Type = t with get
         new() =
-            DeviceAttribute(0, 0)    
+            DeviceTypeAttribute(DeviceType.Gpu)   
+        override this.ToString() =
+            this.Type.ToString()
 
     // Functions matching attributes for dynamic marking of parameters
-    [<DynamicMetadataFunction(typeof<AddressSpaceAttribute>)>]
+    [<ParameterMetadataFunction(typeof<AddressSpaceAttribute>)>]
     let ADDRESS_SPACE(m: AddressSpace, a) = 
         a
-    [<DynamicMetadataFunction(typeof<TransferModeAttribute>)>]
+    [<ParameterMetadataFunction(typeof<TransferModeAttribute>)>]
     let TRANSFER_MODE(m: TransferMode, a) = 
         a
-    [<DynamicMetadataFunction(typeof<MemoryFlagsAttribute>)>]
-    let MEMORY_FLAGS(m: ComputeMemoryFlags, a) = 
+    [<ParameterMetadataFunction(typeof<MemoryFlagsAttribute>)>]
+    let MEMORY_FLAGS(m: MemoryFlags, a) = 
         a     
-    [<DynamicMetadataFunction(typeof<BufferReadModeAttribute>)>]
+    [<ParameterMetadataFunction(typeof<BufferReadModeAttribute>)>]
     let BUFFER_READ_MODE(m: BufferReadMode, a) = 
         a     
-    [<DynamicMetadataFunction(typeof<BufferWriteModeAttribute>)>]
+    [<ParameterMetadataFunction(typeof<BufferWriteModeAttribute>)>]
     let BUFFER_WRITE_MODE(m: BufferWriteMode, a) = 
         a     
-    [<DynamicMetadataFunction(typeof<DeviceAttribute>)>]
-    let DEVICE(pi: int, di: int, a) =
+        
+    // Functions matching attributes for dynamic marking of kernels
+    [<KernelMetadataFunction(typeof<DeviceTypeAttribute>)>]
+    let DEVICE_TYPE(t: DeviceType, a) =
         a
+        
+    // Functions matching attributes for dynamic marking of return buffers
+    [<ReturnMetadataFunction(typeof<AddressSpaceAttribute>)>]
+    let RETURN_ADDRESS_SPACE(m: AddressSpace, a) = 
+        a
+    [<ReturnMetadataFunction(typeof<TransferModeAttribute>)>]
+    let RETURN_TRANSFER_MODE(m: TransferMode, a) = 
+        a
+    [<ReturnMetadataFunction(typeof<MemoryFlagsAttribute>)>]
+    let RETURN_MEMORY_FLAGS(m: MemoryFlags, a) = 
+        a     
+    [<ReturnMetadataFunction(typeof<BufferWriteModeAttribute>)>]
+    let RETURN_BUFFER_WRITE_MODE(m: BufferWriteMode, a) = 
+        a     
 
-    ///
-    ///<summary>
-    ///Memory fance modes
-    ///</summary>
-    ///
-    type MemFenceMode =
-    | CLK_LOCAL_MEM_FENCE
-    | CLK_GLOBAL_MEM_FENCE    
+    [<AllowNullLiteral>]
+    type AlternativeFunctionAttribute(s:string) =
+        inherit Attribute()
+        member this.AlternativeFunctionName 
+            with get() = s  
         
     ///
     ///<summary>
@@ -556,5 +611,8 @@ component of x equals mantissa returned * 2exp *)
     //    c |> uint64
 
     
+
+
+
 
 

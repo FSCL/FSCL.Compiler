@@ -29,9 +29,9 @@ type FunctionPreprocessingStep(tm: TypeManager,
             p.Execute(k, this, opts) |> ignore
                
     override this.Run(km: KernelModule, opts) =
-        for f in km.GetFunctions() do
-            this.Process(f.Info, opts)
-        this.Process(km.Kernel.Info, opts)
-        ValidResult(km)
+        for f in km.Functions do
+            this.Process(f.Value :?> FunctionInfo, opts)
+        this.Process(km.Kernel, opts)
+        ContinueCompilation(km)
 
 

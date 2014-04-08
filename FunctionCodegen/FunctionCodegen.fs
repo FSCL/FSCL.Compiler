@@ -59,12 +59,12 @@ type FunctionCodegenStep(tm: TypeManager,
             raise (CompilerException("Unrecognized construct in kernel body " + expression.ToString()))
         output.Value
         
-    member private this.Process(name: string, parameters: List<KernelParameterInfo>) =
+    member private this.Process(name: string, parameters: FunctionParameter list) =
         // At first, check generic processors (for complex constructs)
         let mutable index = 0
         let mutable output = None        
         while (output.IsNone) && (index < signatureProcessors.Length) do
-            output <- signatureProcessors.[index].Run((name, List.ofSeq(parameters)), this, opts)
+            output <- signatureProcessors.[index].Run((name, parameters), this, opts)
             index <- index + 1
         // If no suitable generic processor, use specific ones
         if (output.IsNone) then
@@ -80,7 +80,7 @@ type FunctionCodegenStep(tm: TypeManager,
         
     member private this.Process(f:FunctionInfo) =
         this.FunctionInfo <- f
-        this.FunctionInfo.Code <- this.Process(this.FunctionInfo.Name, this.FunctionInfo.Parameters) + "{\n" + this.Process(this.FunctionInfo.Body) + "\n}"
+        this.FunctionInfo.Code <- this.Process(this.FunctionInfo.Signature.Name, this.FunctionInfo.Parameters) + "{\n" + this.Process(this.FunctionInfo.Body) + "\n}"
     ///
     ///<summary>
     ///The method called to execute the step
@@ -92,10 +92,10 @@ type FunctionCodegenStep(tm: TypeManager,
     ///       
     override this.Run(km: KernelModule, opt) =    
         opts <- opt
-        for f in km.GetFunctions() do
-            this.Process(f.Info)
-        this.Process(km.Kernel.Info)
-        ValidResult(km)
+        for f in km.Functions do
+            this.Process(f.Value :?> FunctionInfo)
+        this.Process(km.Kernel)
+        ContinueCompilation(km)
     (*
         let mutable output = ""
         let directives = String.concat "\n" (seq { for i in km.Directives do yield i })

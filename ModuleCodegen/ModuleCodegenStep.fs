@@ -17,10 +17,11 @@ do()
                          "FSCL_MODULE_PARSING_STEP" |])>]
 type ModuleCodegenStep(tm: TypeManager, 
                        processors: ICompilerStepProcessor list) = 
-    inherit CompilerStep<KernelModule, KernelModule * String>(tm, processors)
+    inherit CompilerStep<KernelModule, KernelModule>(tm, processors)
         
     override this.Run(k, opts) =
         let state = ref ""
         for p in processors do
             state := p.Execute((k, !state), this, opts) :?> string
-        ValidResult((k, !state))
+        k.Code <- Some(!state)
+        ContinueCompilation(k)

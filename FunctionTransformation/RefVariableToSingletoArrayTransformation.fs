@@ -41,7 +41,7 @@ type RefVariableTransformationProcessor() =
                 
         for pInfo in data.Parameters do
             if pInfo.Name = var then
-                placeholder <- pInfo.Placeholder
+                placeholder <- Some(pInfo.Placeholder)
                 
         if placeholder.IsNone then
             raise (CompilerException("Cannot determine the parameter referred by the kernel body " + var))

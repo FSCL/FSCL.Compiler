@@ -39,8 +39,8 @@ type DefaultKernelCompilationFilterProcessor() =
     override this.Run(km, en, opts) =
         let engine = en :?> ModulePreprocessingStep
         let structsDict = new Dictionary<Type, unit>()
-        CollectStructs(km.Kernel.Info.Body, structsDict)
+        CollectStructs(km.Kernel.Body, structsDict)
         for t in structsDict.Keys do
-           km.Kernel.RequiredGlobalTypes.Add(t) |> ignore
+           km.GlobalTypes.Add(t) |> ignore
              
             

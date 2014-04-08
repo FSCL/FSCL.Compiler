@@ -4,10 +4,9 @@ open System
 open System.Reflection
 open System.Collections.Generic
 open Microsoft.FSharp.Quotations
-open System.Collections.ObjectModel
 
 type CompilerStepResult =
-| ValidResult of obj
+| ContinueCompilation of obj
 | StopCompilation of obj
 
 ///
@@ -30,11 +29,7 @@ type [<AbstractClass>] ICompilerStepProcessor() =
     ///<param name="owner">The owner step</param>
     ///<returns>The output produced by this processor</returns>
     /// 
-    abstract member Execute: obj * ICompilerStep * ReadOnlyDictionary<string, obj> -> obj
-    abstract member BehaveDifferentlyWithKernelMetadata: (DynamicKernelMetadataCollection * DynamicKernelMetadataCollection -> bool) option with get
-    default this.BehaveDifferentlyWithKernelMetadata 
-        with get() =
-            None
+    abstract member Execute: obj * ICompilerStep * IReadOnlyDictionary<string, obj> -> obj
 
 ///
 ///<summary>
@@ -67,11 +62,7 @@ and [<AbstractClass>] ICompilerStep(tm: TypeManager, processors:ICompilerStepPro
     ///<param name="obj">The input of the step</param>
     ///<returns>The output produced by this step</returns>
     /// 
-    abstract member Execute: obj * ReadOnlyDictionary<string, obj> -> CompilerStepResult
-    abstract member BehaveDifferentlyWithKernelMetadata: (DynamicKernelMetadataCollection * DynamicKernelMetadataCollection -> bool) option with get
-    default this.BehaveDifferentlyWithKernelMetadata 
-        with get() =
-            None
+    abstract member Execute: obj * IReadOnlyDictionary<string, obj> -> CompilerStepResult
         
         
 ///
@@ -91,7 +82,7 @@ type CompilerStep<'T,'U>(tm, processors) =
     ///<param name="param0">An instance of type 'T</param>
     ///<returns>An instance of type 'U</returns>
     /// 
-    abstract member Run: 'T * ReadOnlyDictionary<string, obj> -> CompilerStepResult
+    abstract member Run: 'T * IReadOnlyDictionary<string, obj> -> CompilerStepResult
     
     override this.Execute(obj, opts) =
         this.Run(obj :?> 'T, opts)
@@ -114,7 +105,7 @@ type [<AbstractClass>] CompilerStepProcessor<'T,'U>() =
     ///<param name="param1">The owner step</param>
     ///<returns>An instance of type 'U</returns>
     /// 
-    abstract member Run: 'T * ICompilerStep * ReadOnlyDictionary<string, obj> -> 'U
+    abstract member Run: 'T * ICompilerStep * IReadOnlyDictionary<string, obj> -> 'U
     
 ///
 ///<summary>
@@ -133,7 +124,7 @@ type [<AbstractClass>] CompilerStepProcessor<'T>() =
     ///<param name="param0">An instance of type 'T</param>
     ///<param name="param1">The owner step</param>
     /// 
-    abstract member Run: 'T * ICompilerStep * ReadOnlyDictionary<string, obj> -> unit
+    abstract member Run: 'T * ICompilerStep * IReadOnlyDictionary<string, obj> -> unit
        
     
 ///
@@ -148,6 +139,12 @@ type NoResult = unit
 ///</summary>
 /// 
 type ModuleParsingProcessor = CompilerStepProcessor<obj, KernelModule option>
+///
+///<summary>
+///The type of the metadata processors of the module parsing step. 
+///</summary>
+/// 
+type MetadataFinalizerProcessor = CompilerStepProcessor<KernelMetaCollection * ParamMetaCollection * List<ParamMetaCollection> * Dictionary<String, obj>, KernelMetaCollection * ParamMetaCollection * List<ParamMetaCollection>>
 ///
 ///<summary>
 ///The type of the processors of the module preprocessing step. Alias of CompilerStepProcessor&lt;KernelModule&gt;
@@ -171,7 +168,7 @@ type FunctionTransformationProcessor = CompilerStepProcessor<Expr, Expr>
 ///The type of the (signature) processors of the function codegen step. Alias of CompilerStepProcessor&lt;MethodInfo, String option&gt;
 ///</summary>
 /// 
-type FunctionSignatureCodegenProcessor = CompilerStepProcessor<String * KernelParameterInfo list, String option>
+type FunctionSignatureCodegenProcessor = CompilerStepProcessor<String * FunctionParameter list, String option>
 ///
 ///<summary>
 ///The type of the (body) processors of the function codegen step. Alias of CompilerStepProcessor&lt;Expr, String option&gt;

@@ -28,7 +28,7 @@ type PipelineConfigurationManager(defAssemblyComp:Type array, confRoot, compRoot
             let assembly = item.Assembly
             // Make configuration explicit
             sources.Add(SourceConfiguration(AssemblySource(assembly)))
-        PipelineConfiguration(false, List.ofSeq sources)
+        PipelineConfiguration(false, Array.ofSeq sources)
 
     // Load from configuration file    
     member this.LoadConfiguration(cf:string) =
@@ -46,7 +46,7 @@ type PipelineConfigurationManager(defAssemblyComp:Type array, confRoot, compRoot
                 let dlls = Directory.GetFiles(pluginFolder, "*.dll")
                 for f in dlls do
                     sources.Add(SourceConfiguration(FileSource(f)))
-            PipelineConfiguration(true, List.ofSeq sources)
+            PipelineConfiguration(true, Array.ofSeq sources)
         else
             PipelineConfiguration(true)
             

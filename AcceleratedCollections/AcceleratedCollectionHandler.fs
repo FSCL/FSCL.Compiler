@@ -9,5 +9,5 @@ open Microsoft.FSharp.Core.LanguagePrimitives
 open System
 
 type internal IAcceleratedCollectionHandler =
-    abstract member Process: MethodInfo * Expr list * Expr * DynamicKernelMetadataCollection * DynamicParameterMetadataCollection list * ModuleParsingStep -> KernelModule option
+    abstract member Process: MethodInfo * Expr list * Expr * ReadOnlyMetaCollection * ModuleParsingStep -> KernelModule option
 

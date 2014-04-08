@@ -15,7 +15,7 @@ open Microsoft.FSharp.Linq.RuntimeHelpers
 
 type AcceleratedArrayMapHandler() =
     interface IAcceleratedCollectionHandler with
-        member this.Process(methodInfo, cleanArgs, root, kernelAttrs, paramAttrs, step) =
+        member this.Process(methodInfo, cleanArgs, root, meta, step) =
                 
             (*
                 Array map looks like: Array.map fun collection
@@ -30,7 +30,7 @@ type AcceleratedArrayMapHandler() =
             // Extract the map function 
             match computationFunction with
             | Some(functionInfo, functionBody) ->
-                // Now create the kernel
+
                 // We need to get the type of a array whose elements type is the same of the functionInfo parameter
                 let inputArrayType = Array.CreateInstance(functionInfo.GetParameters().[0].ParameterType, 0).GetType()
                 let outputArrayType = Array.CreateInstance(functionInfo.ReturnType, 0).GetType()
@@ -40,13 +40,15 @@ type AcceleratedArrayMapHandler() =
                 let outputEmptyArray = FilterCall(<@ Array.empty @>, fun(e, mi, a) -> mi.GetGenericMethodDefinition().MakeGenericMethod([| outputArrayElementType |])).Value
                 *)
                 // Now that we have the types of the input and output arrays, create placeholders (var) for the kernel input and output                    
-                let inputArrayPlaceholder = Expr.Var(Quotations.Var("input_array", inputArrayType))
-                let outputArrayPlaceholder = Expr.Var(Quotations.Var("output_array", outputArrayType))
                     
                 // Now we can create the signature and define parameter name
                 let signature = DynamicMethod("ArrayMap_" + functionInfo.Name, typeof<unit>, [| inputArrayType; outputArrayType |])
                 signature.DefineParameter(1, ParameterAttributes.In, "input_array") |> ignore
                 signature.DefineParameter(2, ParameterAttributes.In, "output_array") |> ignore
+                                
+                // Create parameters placeholders
+                let inputHolder = Quotations.Var("input_array", inputArrayType)
+                let outputHolder = Quotations.Var("output_array", outputArrayType) 
                     
                 // Finally, create the body of the kernel
                 let globalIdVar = Quotations.Var("global_id", typeof<int>)
@@ -56,46 +58,31 @@ type AcceleratedArrayMapHandler() =
                     Expr.Let(globalIdVar,
                                 Expr.Call(AcceleratedCollectionUtil.FilterCall(<@ get_global_id @>, fun(e, mi, a) -> mi).Value, [ Expr.Value(0) ]),
                                 Expr.Call(setElementMethodInfo,
-                                        [ outputArrayPlaceholder;
+                                        [ Expr.Var(outputHolder);
                                             Expr.Var(globalIdVar);
                                             Expr.Call(functionInfo,
                                                     [ Expr.Call(getElementMethodInfo,
-                                                                [ inputArrayPlaceholder;
+                                                                [ Expr.Var(inputHolder);
                                                                     Expr.Var(globalIdVar) 
                                                                 ])
                                                     ])
                                         ]))
 
-                // Add current kernel
-                let kInfo = new AcceleratedKernelInfo(signature, kernelBody, kernelAttrs, "Array.map", functionBody)
-                kInfo.CustomInfo.Add("IS_ACCELERATED_COLLECTION_KERNEL", true)
-                let kernelModule = new KernelModule(kInfo)
+                let kInfo = new AcceleratedKernelInfo(signature, 
+                                                      kernelBody, 
+                                                      meta, 
+                                                      "Array.map", functionBody)
+                let kernelModule = new KernelModule(kInfo, cleanArgs)
                                 
-                // Create input parameter info
-                let inputParameterEntry = new KernelParameterInfo("input_array", inputArrayType, null, Some(cleanArgs.[1]), paramAttrs.[1])
-                // Set var to be used in kernel body
-                inputParameterEntry.Placeholder <- Some(Quotations.Var("input_array", inputArrayType, false))         
-                // Add the parameter to the list of kernel params
-                kernelModule.Kernel.Info.Parameters.Add(inputParameterEntry)
-                // Create output parameter info
-                let outputParameterEntry = new KernelParameterInfo("output_array", outputArrayType, null, None, null)
-                // Set var to be used in kernel body
-                outputParameterEntry.Placeholder <- Some(Quotations.Var("output_array", outputArrayType, false))         
-                // Add the parameter to the list of kernel params
-                kernelModule.Kernel.Info.Parameters.Add(outputParameterEntry)
-
-                // Update call graph
-                //kernelModule.FlowGraph <- FlowGraphNode(kInfo.ID, None, kernelAttrs)
+                // Store placeholders
+                kernelModule.Kernel.OriginalParameters.[0].Placeholder <- inputHolder
+                kernelModule.Kernel.OriginalParameters.[1].Placeholder <- outputHolder
 
                 // Add the computation function and connect it to the kernel
                 let mapFunctionInfo = new FunctionInfo(functionInfo, functionBody, lambda.IsSome)
-                kernelModule.AddFunction(mapFunctionInfo)
-                kernelModule.Kernel.RequiredFunctions.Add(mapFunctionInfo.ID) |> ignore
+                kernelModule.Functions.Add(mapFunctionInfo.ID, mapFunctionInfo)
                                 
-                // Set that the return value is encoded in the parameter output_array
-                kernelModule.Kernel.Info.CustomInfo.Add("RETURN_PARAMETER_NAME", "output_array")
                 // Connect with subkernel
-                let argExpressions = new Dictionary<string, Expr>()
                 (*if subkernel <> null then   
                     FlowGraphManager.SetNodeInput(kernelModule.FlowGraph,
                                                   "input_array",
@@ -116,7 +103,7 @@ type AcceleratedArrayMapHandler() =
                                                 BufferAllocationSize(fun(args, localSize, globalSize) ->
                                                                             BufferReferenceAllocationExpression("input_array")),
                                                 None,
-                                                new DynamicParameterMetadataCollection()))*)
+                                                new ParameterMetadataCollection()))*)
                 // Return module                             
                 Some(kernelModule)
             | _ ->

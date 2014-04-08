@@ -24,27 +24,20 @@ type KernelCallExpressionParser() =
         | _ ->
             (expr)
                 
-    override this.Run(e, en, opts) =
-        let engine = en :?> ModuleParsingStep
+    override this.Run(e, s, opts) =
+        let step = s :?> ModuleParsingStep
         if (e :? Expr) then
             match QuotationAnalysis.GetKernelFromCall(e :?> Expr) with
             // Case k2(k1(args), ...) where k1 doesn't return a tuple value
-            | Some(mi, cleanArgs, body, kernelAttrs, paramAttrs) ->
+            | Some(mi, cleanArgs, body, kMeta, rMeta, pMeta) ->
                 
-                // Add the current kernel
-                let kernel = new KernelInfo(mi, body, kernelAttrs, false)
-                let kernelModule = new KernelModule(kernel)
+                // Filter and finalize metadata
+                let finalMeta = step.ProcessMeta(kMeta, rMeta, pMeta, new Dictionary<string, obj>())
+
+                // Create module
+                let kernel = new KernelInfo(mi, body, finalMeta, false)
+                let kernelModule = new KernelModule(kernel, cleanArgs)
                 
-                // Process each parameter
-                let parameters = mi.GetParameters()
-                for i = 0 to parameters.Length - 1 do
-                    let p = parameters.[i]
-                    // Create parameter info
-                    let parameterEntry = new KernelParameterInfo(p.Name, p.ParameterType, p, Some(cleanArgs.[i]), paramAttrs.[i])
-                    // Set var to be used in kernel body
-                    parameterEntry.Placeholder <- Some(Quotations.Var(p.Name, p.ParameterType, false))         
-                    // Add the parameter to the list of kernel params
-                    kernelModule.Kernel.Info.Parameters.Add(parameterEntry)
                 (*
                 // Extract and add eventual subkernels
                 let subkernels = List.map(fun (e: Expr) -> 

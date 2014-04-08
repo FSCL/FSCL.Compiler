@@ -11,23 +11,17 @@ open FSCL.Compiler.Language
 type KernelMethodInfoParser() =      
     inherit ModuleParsingProcessor() 
         
-    override this.Run(mi, en, opts) =
-        let engine = en :?> ModuleParsingStep
+    override this.Run(mi, s, opts) =
+        let step = s :?> ModuleParsingStep
         if (mi :? MethodInfo) then
             match QuotationAnalysis.GetKernelFromMethodInfo(mi :?> MethodInfo) with
-            | Some(mi, b) -> 
-                // Create singleton kernel call graph
-                let kernelModule = new KernelModule(new KernelInfo(mi, b, null, false))
-                
-                // Process each parameter
-                for p in mi.GetParameters() do
-                    // Create parameter info
-                    let parameterEntry = new KernelParameterInfo(p.Name, p.ParameterType, p, None, null)
-                    // Set var to be used in kernel body
-                    parameterEntry.Placeholder <- Some(Quotations.Var(p.Name, p.ParameterType, false))         
-                    // Add the parameter to the list of kernel params
-                    kernelModule.Kernel.Info.Parameters.Add(parameterEntry)
+            | Some(mi, b, kMeta, rMeta, pMeta) -> 
+                // Filter and finalize metadata
+                let finalMeta = step.ProcessMeta(kMeta, rMeta, pMeta, null)
 
+                // Create singleton kernel call graph
+                let kernelModule = new KernelModule(new KernelInfo(mi, b, finalMeta, false))
+                
                 // Create module
                 Some(kernelModule)
             | _ ->

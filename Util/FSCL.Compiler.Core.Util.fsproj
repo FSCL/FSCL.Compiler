@@ -44,7 +44,6 @@
     <Compile Include="QuotationAnalysis.fs" />
     <Compile Include="GraphUtil.fs" />
     <Compile Include="IdGenerator.fs" />
-    <Compile Include="DynamicAttributes.fs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Core\FSCL.Compiler.Core.fsproj">
@@ -55,11 +54,6 @@
     <ProjectReference Include="..\Language\FSCL.Compiler.Core.Language.fsproj">
       <Name>FSCL.Compiler.Core.Language</Name>
       <Project>{02cc39bd-a326-49f6-b5e6-2987eada1ba2}</Project>
-      <Private>True</Private>
-    </ProjectReference>
-    <ProjectReference Include="..\OpenCLBinding\Cloo\Cloo.VS2010.csproj">
-      <Name>Cloo.VS2010</Name>
-      <Project>{656e96ce-2587-4ccc-a4db-06d36267133a}</Project>
       <Private>True</Private>
     </ProjectReference>
   </ItemGroup>

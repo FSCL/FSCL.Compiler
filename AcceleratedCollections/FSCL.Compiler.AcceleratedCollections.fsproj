@@ -47,6 +47,7 @@
     <Compile Include="AcceleratedArrayMap2Handler.fs" />
     <Compile Include="AcceleratedArrayReduceHandler.fs" />
     <Compile Include="AcceleratedArrayParser.fs" />
+    <Compile Include="AcceleratedArrayMetaFiltering.fs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Core\FSCL.Compiler.Core.fsproj">
@@ -60,11 +61,6 @@
     <ProjectReference Include="..\ModuleParsing\FSCL.Compiler.Core.ModuleParsing.fsproj">
       <Name>FSCL.Compiler.Core.ModuleParsing</Name>
       <Project>A42DA267-4D0E-4F14-A7E0-F2F9AB587005</Project>
-    </ProjectReference>
-    <ProjectReference Include="..\OpenCLBinding\Cloo\Cloo.VS2010.csproj">
-      <Name>Cloo.VS2010</Name>
-      <Project>{656e96ce-2587-4ccc-a4db-06d36267133a}</Project>
-      <Private>True</Private>
     </ProjectReference>
     <ProjectReference Include="..\Util\FSCL.Compiler.Core.Util.fsproj">
       <Name>FSCL.Compiler.Core.Util</Name>

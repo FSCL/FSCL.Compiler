@@ -47,6 +47,7 @@
     <Compile Include="PipelineConfiguration.fs" />
     <Compile Include="PipelineBuilder.fs" />
     <Compile Include="PipelineConfigurationManager.fs" />
+    <Compile Include="Pipeline.fs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Core\FSCL.Compiler.Core.fsproj">

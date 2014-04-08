@@ -28,12 +28,6 @@ type StepAttribute(i: string) =
     ///</summary>
     /// 
     member val Before: string array = [||] with get, set
-    ///
-    ///<summary>
-    ///The set of metadata that affect the result of this step
-    ///</summary>
-    /// 
-    member val MetadataAffectingResult: Type array = [||] with get, set
         
 ///
 ///<summary>
@@ -67,12 +61,6 @@ type StepProcessorAttribute(i: string, s: string) =
     ///</summary>
     /// 
     member val Before: string array = [||] with get, set
-    ///
-    ///<summary>
-    ///The set of metadata that affect the result of this step
-    ///</summary>
-    /// 
-    member val MetadataAffectingResult: Type array = [||] with get, set
   
 [<AllowNullLiteral>]          
 type TypeHandlerAttribute(i: string) =

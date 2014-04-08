@@ -35,12 +35,15 @@ type internal PipelineBuilder() =
         let tm = new TypeManager(List.ofSeq th)
                     
         // Collect metadata affecting compilation
-        //let metadataAffectingResult = new HashSet<Type>()
+        let usedMetadata = new Dictionary<Type, MetadataComparer list>()
 
         // Check that each step has required steps
         for s in steps do
-        //    for item in s.Value.MetadataAffectingResult do
-          //      metadataAffectingResult.Add(item) |> ignore
+            for ty, comp in s.Value.UsedMetadata do
+                if not (usedMetadata.ContainsKey(ty)) then
+                    usedMetadata.Add(ty, [ comp ])
+                else
+                    usedMetadata.[ty] <- usedMetadata.[ty] @ [ comp ]
 
             for rs in s.Value.Dependencies do
                 if not (steps.ContainsKey(rs)) then
@@ -48,8 +51,11 @@ type internal PipelineBuilder() =
         
         // Check that each processors has and owner step and a before/after processor
         for p in processors do
-          //  for item in p.Value.MetadataAffectingResult do
-            //    metadataAffectingResult.Add(item) |> ignore
+            for ty, comp in p.Value.UsedMetadata do
+                if not (usedMetadata.ContainsKey(ty)) then
+                    usedMetadata.Add(ty, [ comp ])
+                else
+                    usedMetadata.[ty] <- usedMetadata.[ty] @ [ comp ]
 
             if not (steps.ContainsKey(p.Value.Step)) then
                 raise (PipelineBuildException("The step processor " + p.Key + " belongs to the step " + p.Value.Step + " but this step has not been found"))
@@ -102,7 +108,7 @@ type internal PipelineBuilder() =
                 yield data.Type.GetConstructors().[0].Invoke([| tm; List.ofSeq(processors) |]) :?> ICompilerStep
         }
         let flatSteps = Array.ofSeq(steps)
-        flatSteps//, metadataAffectingResult
+        flatSteps, usedMetadata
       
             
         
