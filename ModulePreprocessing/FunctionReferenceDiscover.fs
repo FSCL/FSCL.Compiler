@@ -1,6 +1,7 @@
 ﻿namespace FSCL.Compiler.ModulePreprocessing
 
 open FSCL.Compiler
+open FSCL.Compiler.Util
 open System.Collections.Generic
 open System.Reflection
 open Microsoft.FSharp.Quotations
@@ -22,8 +23,12 @@ type FunctionReferenceDiscover() =
                 try
                     match mi with
                     | DerivedPatterns.MethodWithReflectedDefinition(b) ->
-                        if not (foundFunctions.ContainsKey(mi)) then                        
-                            foundFunctions.Add(mi, new FunctionInfo(mi, b, false))
+                        if not (foundFunctions.ContainsKey(mi)) then     
+                            match QuotationAnalysis.LiftArgs(b) with
+                            | Some(liftBody, paramVars) ->       
+                                foundFunctions.Add(mi, new FunctionInfo(mi, paramVars, liftBody, false))
+                            | _ ->
+                                ()
                     | _ ->
                         ()
                 with

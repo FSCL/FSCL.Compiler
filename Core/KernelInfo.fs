@@ -36,18 +36,20 @@ type IFunctionInfo =
 [<AllowNullLiteral>]
 type IKernelInfo =
     inherit IFunctionInfo
+    abstract LocalVars: IReadOnlyDictionary<Quotations.Var, Type * (Expr list option)>
     abstract Meta: ReadOnlyMetaCollection with get
     abstract CloneTo: IKernelInfo -> unit
     
 [<AllowNullLiteral>]
 type FunctionInfo(signature: MethodInfo, 
+                  parameters: Quotations.Var list,
                   body: Expr, 
                   isLambda: bool) =   
 
     let parameters =
         (signature.GetParameters()) |> 
-        Array.map(fun (p:ParameterInfo) ->
-                    OriginalFunctionParameter(p, None) :> FunctionParameter)  |>
+        Array.mapi(fun i (p:ParameterInfo) ->
+                    OriginalFunctionParameter(p, parameters.[i], None) :> FunctionParameter)  |>
         List.ofArray
 
     interface IFunctionInfo with
@@ -200,16 +202,19 @@ type FunctionInfo(signature: MethodInfo,
 ///     
 [<AllowNullLiteral>]
 type KernelInfo(signature: MethodInfo, 
+                parameters: Quotations.Var list,
                 body: Expr, 
                 meta: ReadOnlyMetaCollection, 
                 isLambda: bool) =
-    inherit FunctionInfo(signature, body, isLambda)
+    inherit FunctionInfo(signature, parameters, body, isLambda)
     
     let parameters =
         (signature.GetParameters()) |>
         Array.mapi(fun i (p:ParameterInfo) ->
-                        OriginalFunctionParameter(p, Some(meta.ParamMeta.[i])) :> FunctionParameter) |> 
+                        OriginalFunctionParameter(p, parameters.[i], Some(meta.ParamMeta.[i])) :> FunctionParameter) |> 
         List.ofArray
+
+    let localVars = new Dictionary<Quotations.Var, Type * (Expr list option)>()
 
     // Get static kernel and return meta
     (*
@@ -261,11 +266,22 @@ type KernelInfo(signature: MethodInfo,
     member val Meta = meta 
         with get
 
+    member this.LocalVars
+        with get() =
+            localVars
+
+    member this.IsLocalVar(v: Quotations.Var) =
+        localVars.ContainsKey(v)
+
     interface IKernelInfo with
         member this.Meta 
             with get() =
                 this.Meta
                 
+        member this.LocalVars 
+            with get() =
+                this.LocalVars :> IReadOnlyDictionary<Quotations.Var, Type * (Expr list option)> 
+            
         member this.CloneTo(ikInfo: IKernelInfo) =
             let kInfo = ikInfo :?> KernelInfo
             // Copy kernel info fields
@@ -280,7 +296,6 @@ type KernelInfo(signature: MethodInfo,
                 let oldParameter = this.OriginalParameters.[i]
                 let newParameter = kInfo.OriginalParameters.[i]
                 newParameter.Access <- oldParameter.Access
-                newParameter.DataType <- oldParameter.DataType
                 newParameter.IsReturned <- oldParameter.IsReturned
                 newParameter.ReturnExpr <- oldParameter.ReturnExpr
                 newParameter.Placeholder <- oldParameter.Placeholder

@@ -8,8 +8,7 @@ open Microsoft.FSharp.Quotations
 open System
 
 [<StepProcessor("FSCL_RETURN_LIFTING_TRANSFORMATION_PROCESSOR", "FSCL_FUNCTION_TRANSFORMATION_STEP",
-                Dependencies = [| "FSCL_ARG_LIFTING_TRANSFORMATION_PROCESSOR";
-                                  "FSCL_FUNCTION_RETURN_DISCOVERY_PROCESSOR";
+                Dependencies = [| "FSCL_FUNCTION_RETURN_DISCOVERY_PROCESSOR";
                                   "FSCL_DYNAMIC_ALLOCATION_LIFTING_TRANSFORMATION_PROCESSOR";
                                   "FSCL_GLOBAL_VAR_REF_TRANSFORMATION_PROCESSOR";
                                   "FSCL_CONDITIONAL_ASSIGN_TRANSFORMATION_PROCESSOR";

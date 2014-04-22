@@ -14,12 +14,12 @@ type KernelLambdaParser() =
         let step = s :?> ModuleParsingStep
         if (mi :? Expr) then
             match QuotationAnalysis.LambdaToMethod(mi :?> Expr) with
-            | Some(mi, b, kMeta, rMeta, pMeta) -> 
+            | Some(mi, paramVars, b, kMeta, rMeta, pMeta) -> 
                 // Filter and finalize metadata
                 let finalMeta = step.ProcessMeta(kMeta, rMeta, pMeta, null)
 
                 // Create signleton kernel call graph
-                let kernelModule = new KernelModule(new KernelInfo(mi, b, finalMeta, true))
+                let kernelModule = new KernelModule(new KernelInfo(mi, paramVars, b, finalMeta, true))
                 
                 Some(kernelModule)
             | _ ->

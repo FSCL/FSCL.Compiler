@@ -45,6 +45,14 @@ type ArrayAccessCodegen() =
                     Some(returnPrefix  + arrayName + "[" + engine.Continue(args.[1]) + "]" + returnPostfix)
                 elif methodInfo.Name = "SetArray" then
                     Some(arrayName + "[" + engine.Continue(args.[1]) + "] = " + engine.Continue(args.[2]) + ";\n")
+                elif methodInfo.Name = "GetArray2D" then
+                    Some(returnPrefix  + arrayName + "[" + engine.Continue(args.[1]) + "]" + "[" + engine.Continue(args.[2]) + "]" + returnPostfix)
+                elif methodInfo.Name = "SetArray2D" then
+                    Some(arrayName + "[" + engine.Continue(args.[1]) + "]" + "[" + engine.Continue(args.[2]) + "] = " + engine.Continue(args.[3]) + ";\n")
+                elif methodInfo.Name = "GetArray3D" then
+                    Some(returnPrefix  + arrayName + "[" + engine.Continue(args.[1]) + "]" + "[" + engine.Continue(args.[2]) + "]" + "[" + engine.Continue(args.[3]) + "]" + returnPostfix)
+                elif methodInfo.Name = "SetArray3D" then
+                    Some(arrayName + "[" + engine.Continue(args.[1]) + "]" + "[" + engine.Continue(args.[2]) + "]" + "[" + engine.Continue(args.[3]) + "] = " + engine.Continue(args.[4]) + ";\n")
                 else
                     None
             else

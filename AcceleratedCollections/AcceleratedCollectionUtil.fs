@@ -66,8 +66,8 @@ module AcceleratedCollectionUtil =
             match lambda with
             | Some(l) ->
                 match QuotationAnalysis.LambdaToMethod(l) with                
-                | Some(m, b, _, _, _) ->
-                    Some(m, b)
+                | Some(m, paramVars, b, _, _, _) ->
+                    Some(m, paramVars, b)
                 | _ ->
                     failwith ("Cannot parse the body of the computation function " + root.ToString())
             | None ->
@@ -75,7 +75,11 @@ module AcceleratedCollectionUtil =
                     fun (e, mi, a) ->                         
                         match mi with
                         | DerivedPatterns.MethodWithReflectedDefinition(body) ->
-                            (mi, body)
+                            match QuotationAnalysis.LiftArgs(body) with
+                            | Some(liftBody, paramVars) ->
+                                (mi, paramVars, liftBody)
+                            | _ ->
+                                failwith ("Cannot parse the body of the computation function " + mi.Name)
                         | _ ->
                             failwith ("Cannot parse the body of the computation function " + mi.Name))
         lambda, computationFunction

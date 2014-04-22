@@ -154,8 +154,9 @@ module QuotationAnalysis =
             if typeof<ParameterMetadataAttribute>.IsAssignableFrom(attr.GetType()) then
                 if not (attrs.Contains(attr.GetType())) then
                     attrs.Add(attr :?> ParameterMetadataAttribute)
-                                                  
-    let LiftTupledCallArgs(expr) =
+                   
+    // Extract and lift function parameters in tupled form                               
+    let LiftTupledArgs(expr) =
         let rec GetCallArgs(expr, parameters: Var list) =
             match expr with
             | Patterns.Let(v, value, body) ->
@@ -176,7 +177,8 @@ module QuotationAnalysis =
         | _ ->
             None
             
-    let LiftCurriedCallArgs(expr) =
+    // Extract and lift function parameters in curried form
+    let LiftCurriedArgs(expr) =
         let rec GetCallArgs(expr, parameters: Var list) =
             match expr with
             | Patterns.Lambda(v, body) ->
@@ -189,7 +191,19 @@ module QuotationAnalysis =
             Some(GetCallArgs(e, [v]))
         | _ ->
             None
-            
+
+    // Exptract and lift tupled or curried paramters
+    let LiftArgs(expr) =
+        match LiftTupledArgs(expr) with
+        | Some(b, p) ->
+            Some(b, p)
+        | None ->
+            match LiftCurriedArgs(expr) with
+            | Some(b, p) ->
+                Some(b, p)
+            | _ ->
+                None
+        
     let rec ParseCall(expr) =                 
         match expr with
         | Patterns.Lambda(v, e) -> 
@@ -201,7 +215,7 @@ module QuotationAnalysis =
         | _ ->
             None 
             
-    let rec GetKernelFromName(e) =                    
+    let rec GetKernelFromName(e) =     
         let expr, kernelAttrs, returnAttrs = ParseKernelMetadata(e)
         match expr with
         | Patterns.Lambda(v, e) -> 
@@ -210,37 +224,48 @@ module QuotationAnalysis =
             GetKernelFromName (e2)
         | Patterns.Call (e, mi, a) ->
             match mi with
-            | DerivedPatterns.MethodWithReflectedDefinition(b) ->
-                MergeWithStaticKernelMeta(kernelAttrs, returnAttrs, mi)
-                let parameters = mi.GetParameters() |> Array.toList
-                let attrs = new List<ParamMetaCollection>()
-                for p in parameters do
-                    let paramAttrs = new ParamMetaCollection()
-                    MergeWithStaticParameterMeta(paramAttrs, p)
-                    attrs.Add(paramAttrs)
-                Some(mi, b, kernelAttrs, returnAttrs, attrs)
+            | DerivedPatterns.MethodWithReflectedDefinition(b) ->          
+                // Extract parameters vars
+                match LiftArgs(b) with
+                | Some(liftBody, paramVars) ->       
+                    MergeWithStaticKernelMeta(kernelAttrs, returnAttrs, mi)
+                    let parameters = mi.GetParameters() |> Array.toList
+                    let attrs = new List<ParamMetaCollection>()
+                    for p in parameters do
+                        let paramAttrs = new ParamMetaCollection()
+                        MergeWithStaticParameterMeta(paramAttrs, p)
+                        attrs.Add(paramAttrs)
+                    Some(mi, paramVars, liftBody, kernelAttrs, returnAttrs, attrs)
+                | _ ->
+                    None
             | _ ->
                 None
         | _ ->
             None
                 
-    let rec GetKernelFromCall(e) =                    
+    let rec GetKernelFromCall(e) =                
         let expr, kernelAttrs, returnAttrs = ParseKernelMetadata(e)
+
         match expr with
         | Patterns.Call (e, mi, a) ->
             match mi with
-            | DerivedPatterns.MethodWithReflectedDefinition(b) ->
-                MergeWithStaticKernelMeta(kernelAttrs, returnAttrs, mi)
-                let parameters = mi.GetParameters() |> Array.toList
-                let attrs = new List<ParamMetaCollection>()
-                let args = new List<Expr>()
-                for i = 0 to parameters.Length - 1 do
-                    let paramAttrs = new ParamMetaCollection()
-                    let cleanArgs, paramAttrs = ParseParameterMetadata(a.[i])
-                    MergeWithStaticParameterMeta(paramAttrs, parameters.[i])
-                    attrs.Add(paramAttrs)
-                    args.Add(cleanArgs)
-                Some(mi, List.ofSeq args, b, kernelAttrs, returnAttrs, attrs)
+            | DerivedPatterns.MethodWithReflectedDefinition(b) ->                
+                // Extract parameters vars
+                match LiftArgs(b) with
+                | Some(liftBody, paramVars) ->                    
+                    MergeWithStaticKernelMeta(kernelAttrs, returnAttrs, mi)
+                    let parameters = mi.GetParameters() |> Array.toList
+                    let attrs = new List<ParamMetaCollection>()
+                    let args = new List<Expr>()
+                    for i = 0 to parameters.Length - 1 do
+                        let paramAttrs = new ParamMetaCollection()
+                        let cleanArgs, paramAttrs = ParseParameterMetadata(a.[i])
+                        MergeWithStaticParameterMeta(paramAttrs, parameters.[i])
+                        attrs.Add(paramAttrs)
+                        args.Add(cleanArgs)
+                    Some(mi, paramVars, liftBody, List.ofSeq args, kernelAttrs, returnAttrs, attrs)
+                | _ ->
+                    None
             | _ ->
                 None
         | _ ->
@@ -248,18 +273,23 @@ module QuotationAnalysis =
             
     let rec GetKernelFromMethodInfo(mi: MethodInfo) =                    
         match mi with
-        | DerivedPatterns.MethodWithReflectedDefinition(b) ->
-            let kernelMeta = new KernelMetaCollection()
-            let returnMeta = new ParamMetaCollection()
-            MergeWithStaticKernelMeta(kernelMeta, returnMeta, mi)
+        | DerivedPatterns.MethodWithReflectedDefinition(b) ->     
+            // Extract parameters vars
+            match LiftArgs(b) with
+            | Some(liftBody, paramVars) ->                    
+                let kernelMeta = new KernelMetaCollection()
+                let returnMeta = new ParamMetaCollection()
+                MergeWithStaticKernelMeta(kernelMeta, returnMeta, mi)
 
-            let parameters = mi.GetParameters() |> Array.toList
-            let attrs = new List<ParamMetaCollection>()
-            for p in parameters do
-                let paramAttrs = new ParamMetaCollection()
-                MergeWithStaticParameterMeta(paramAttrs, p)
-                attrs.Add(paramAttrs)
-            Some(mi, b, kernelMeta, returnMeta, attrs)
+                let parameters = mi.GetParameters() |> Array.toList
+                let attrs = new List<ParamMetaCollection>()
+                for p in parameters do
+                    let paramAttrs = new ParamMetaCollection()
+                    MergeWithStaticParameterMeta(paramAttrs, p)
+                    attrs.Add(paramAttrs)
+                Some(mi, paramVars, liftBody, kernelMeta, returnMeta, attrs)
+            | _ ->
+                None
         | _ ->
             None
 
@@ -290,12 +320,12 @@ module QuotationAnalysis =
         let mutable parameters = []
         
         // Extract args from lambda
-        match LiftTupledCallArgs(expr) with
+        match LiftTupledArgs(expr) with
         | Some(b, p) ->
             body <- b
             parameters <- p
         | None ->
-            match LiftCurriedCallArgs(expr) with
+            match LiftCurriedArgs(expr) with
             | Some(b, p) ->
                 body <- b
                 parameters <- p
@@ -324,9 +354,10 @@ module QuotationAnalysis =
             methodBuilder.GetILGenerator().Emit(OpCodes.Ret)
             moduleBuilder.CreateGlobalFunctions()
             let signature = moduleBuilder.GetMethod(methodBuilder.Name) 
-            Some(signature, body, kernelAttrs, returnAttrs, ReadOnlyMetaCollection.EmptyParamMetaCollection(parameters.Length))
+            Some(signature, parameters, body, kernelAttrs, returnAttrs, ReadOnlyMetaCollection.EmptyParamMetaCollection(parameters.Length))
         else
             None
+
     
         
 

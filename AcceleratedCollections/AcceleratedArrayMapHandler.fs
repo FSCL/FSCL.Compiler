@@ -29,7 +29,7 @@ type AcceleratedArrayMapHandler() =
                                 
             // Extract the map function 
             match computationFunction with
-            | Some(functionInfo, functionBody) ->
+            | Some(functionInfo, functionParamVars, functionBody) ->
 
                 // We need to get the type of a array whose elements type is the same of the functionInfo parameter
                 let inputArrayType = Array.CreateInstance(functionInfo.GetParameters().[0].ParameterType, 0).GetType()
@@ -69,17 +69,14 @@ type AcceleratedArrayMapHandler() =
                                         ]))
 
                 let kInfo = new AcceleratedKernelInfo(signature, 
+                                                      [ inputHolder; outputHolder ],
                                                       kernelBody, 
                                                       meta, 
                                                       "Array.map", functionBody)
                 let kernelModule = new KernelModule(kInfo, cleanArgs)
                                 
-                // Store placeholders
-                kernelModule.Kernel.OriginalParameters.[0].Placeholder <- inputHolder
-                kernelModule.Kernel.OriginalParameters.[1].Placeholder <- outputHolder
-
                 // Add the computation function and connect it to the kernel
-                let mapFunctionInfo = new FunctionInfo(functionInfo, functionBody, lambda.IsSome)
+                let mapFunctionInfo = new FunctionInfo(functionInfo, functionParamVars, functionBody, lambda.IsSome)
                 kernelModule.Functions.Add(mapFunctionInfo.ID, mapFunctionInfo)
                                 
                 // Connect with subkernel

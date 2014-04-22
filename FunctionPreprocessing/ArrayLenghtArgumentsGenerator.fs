@@ -41,24 +41,19 @@ type ArrayLenghtArgumentsGenerator() =
                 //let getLengthMethod = p.Type.GetMethod("GetLength")
                 // Flatten dimensions (1D array type)
                 let pType = p.DataType.GetElementType().MakeArrayType()
-                p.DataType <- pType
-                // Generate new appropriate placeholder
-                p.Placeholder <- Quotations.Var(p.Name, pType, false)
+                p.Placeholder <- Quotations.Var(p.Placeholder.Name, pType, false)
                 // Create auto-generated size parameters
                 for d = 0 to dimensions - 1 do
-                    let sizeP = new FunctionParameter(GenerateSizeAdditionalArg(p.Name, d), 
-                                                        typeof<int>,
-                                                        FunctionParameterType.SizeParameter,
-                                                        None)
+                    let sizeName = GenerateSizeAdditionalArg(p.Name, d)
+                    let sizeP = new FunctionParameter(sizeName, 
+                                                      Quotations.Var(sizeName, typeof<int>, false),
+                                                      FunctionParameterType.SizeParameter,
+                                                      None)
                     // A non-array parameter access is always read only
                     sizeP.Access <- AccessMode.ReadAccess
                     p.SizeParameters.Add(sizeP)
                     sizeParameters.Add(sizeP)     
                     
-                // Flatten XD array to 1D array
-                if dimensions > 1 then
-                    p.DataType <- p.DataType.GetElementType().MakeArrayType()
-
         // Add size parameters to the list of kernel params
         fInfo.GeneratedParameters.AddRange(sizeParameters)
 

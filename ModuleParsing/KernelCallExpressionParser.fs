@@ -29,13 +29,13 @@ type KernelCallExpressionParser() =
         if (e :? Expr) then
             match QuotationAnalysis.GetKernelFromCall(e :?> Expr) with
             // Case k2(k1(args), ...) where k1 doesn't return a tuple value
-            | Some(mi, cleanArgs, body, kMeta, rMeta, pMeta) ->
+            | Some(mi, paramVars, body, cleanArgs, kMeta, rMeta, pMeta) ->
                 
                 // Filter and finalize metadata
                 let finalMeta = step.ProcessMeta(kMeta, rMeta, pMeta, new Dictionary<string, obj>())
 
                 // Create module
-                let kernel = new KernelInfo(mi, body, finalMeta, false)
+                let kernel = new KernelInfo(mi, paramVars, body, finalMeta, false)
                 let kernelModule = new KernelModule(kernel, cleanArgs)
                 
                 (*

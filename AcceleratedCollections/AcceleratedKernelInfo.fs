@@ -12,11 +12,12 @@ open System
 open FSCL.Compiler.Util
 
 type AcceleratedKernelInfo(signature: MethodInfo, 
+                           parameters: Quotations.Var list,
                            body: Expr,
                            meta, 
                            collectionFunction: String, 
                            appliedFunction: Expr) =
-    inherit KernelInfo(signature, body, meta, false)
+    inherit KernelInfo(signature, parameters, body, meta, false)
             
     member val CollectionFunctionName = collectionFunction with get
 

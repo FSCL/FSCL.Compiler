@@ -6,8 +6,7 @@ open System.Collections.Generic
 open System.Reflection
 
 [<StepProcessor("FSCL_FUNCTION_RETURN_DISCOVERY_PROCESSOR", "FSCL_FUNCTION_TRANSFORMATION_STEP",
-                Dependencies = [| "FSCL_ARG_LIFTING_TRANSFORMATION_PROCESSOR";
-                                  "FSCL_DYNAMIC_ALLOCATION_LIFTING_TRANSFORMATION_PROCESSOR";
+                Dependencies = [| "FSCL_DYNAMIC_ALLOCATION_LIFTING_TRANSFORMATION_PROCESSOR";
                                   "FSCL_GLOBAL_VAR_REF_TRANSFORMATION_PROCESSOR";
                                   "FSCL_CONDITIONAL_ASSIGN_TRANSFORMATION_PROCESSOR";
                                   "FSCL_ARRAY_ACCESS_TRANSFORMATION_PROCESSOR";

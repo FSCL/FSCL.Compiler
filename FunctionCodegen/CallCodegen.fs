@@ -2,11 +2,13 @@
 
 open System
 open FSCL.Compiler
+open FSCL.Compiler.Language
 open System.Collections.Generic
 open Microsoft.FSharp.Quotations
 
 [<StepProcessor("FSCL_CALL_CODEGEN_PROCESSOR", "FSCL_FUNCTION_CODEGEN_STEP",
                 Dependencies = [| "FSCL_ARRAY_ACCESS_CODEGEN_PROCESSOR";
+                                  "FSCL_DECLARATION_CODEGEN_PROCESSOR";
                                   "FSCL_ARITH_OP_CODEGEN_PROCESSOR" |])>]
                                   
 ///
@@ -30,10 +32,12 @@ type CallCodegen() =
     override this.Run(expr, en, opts) =
         let engine = en :?> FunctionCodegenStep
         match expr with
+        // Ignore call to __local
+        | DerivedPatterns.SpecificCall <@ local @> (o, mi, a) ->
+            None
         | Patterns.Call (o, mi, a) ->
             // Check if the call is the last thing done in the function body
             // If so, prepend "return"
-
             let returnPrefix = 
                 if(engine.FunctionInfo.CustomInfo.ContainsKey("RETURN_EXPRESSIONS")) then
                     let returnTags = 

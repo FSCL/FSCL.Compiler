@@ -28,6 +28,5 @@ type RefTypeToArrayReplacingProcessor() =
             if IsRef(t) then
                 let newType = (FSharpType.GetRecordFields(t)).[0].PropertyType.MakeArrayType()
                 // Generate new placeholder
-                (p :?> FunctionParameter).DataType <- (FSharpType.GetRecordFields(t)).[0].PropertyType.MakeArrayType()
-
+                p.Placeholder <- Quotations.Var(p.Placeholder.Name, newType, false)
             

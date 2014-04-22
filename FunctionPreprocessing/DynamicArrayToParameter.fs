@@ -12,8 +12,8 @@ open System.Runtime.InteropServices
 
 //RETURN_TYPE_TO_OUTPUT_ARG_REPLACING
 [<StepProcessor("FSCL_DYNAMIC_ARRAY_TO_PARAMETER_PREPROCESSING_PROCESSOR", 
-                "FSCL_FUNCTION_PREPROCESSING_STEP")>]
-                //Dependencies = [|"FSCL_ARGS_BUILDING_PREPROCESSING_PROCESSOR"|])>]
+                "FSCL_FUNCTION_PREPROCESSING_STEP",
+                Dependencies = [|"FSCL_LOCAL_VARS_DISCOVERY_PREPROCESSING_PROCESSOR"|])>]
 type DynamicArrayToParameterProcessor() =
     inherit FunctionPreprocessingProcessor()
     
@@ -26,7 +26,7 @@ type DynamicArrayToParameterProcessor() =
 
         // Add parameter
         let pInfo = new FunctionParameter(var.Name, 
-                                          var.Type, 
+                                          var, 
                                           DynamicParameter(allocationArgs),
                                           None)
         kernelInfo.GeneratedParameters.Add(pInfo)
@@ -35,6 +35,9 @@ type DynamicArrayToParameterProcessor() =
         match expr with
         | Patterns.Let(var, value, body) ->                        
             match value with
+            // Do not consider __local data
+            | DerivedPatterns.SpecificCall <@ local @> (args) ->
+                ()
             | Patterns.Call(o, methodInfo, args) ->               
                 if (methodInfo.DeclaringType.Name = "ArrayModule" && methodInfo.Name = "ZeroCreate") ||
                     (methodInfo.DeclaringType.Name = "Array2DModule" && methodInfo.Name = "ZeroCreate") ||

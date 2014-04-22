@@ -223,7 +223,7 @@ void reduce(__global float* buffer,
                                 
             // Extract the reduce function 
             match computationFunction with
-            | Some(functionInfo, body) ->
+            | Some(functionInfo, functionParamVars, body) ->
                 // Create on-the-fly module to host the kernel                
                 // The dynamic module that hosts the generated kernels
                 let assemblyName = IDGenerator.GenerateUniqueID("FSCL.Compiler.Plugins.AcceleratedCollections.AcceleratedArray");
@@ -279,16 +279,12 @@ void reduce(__global float* buffer,
                         let newBody = SubstitutePlaceholders(templateBody, parameterMatching, accumulatorPlaceholder, functionInfo)  
                     
                         let kInfo = new AcceleratedKernelInfo(signature, 
+                                                              [ inputHolder; localHolder; outputHolder ],
                                                               newBody, 
                                                               meta, 
                                                               "Array.reduce", body)
                         let kernelModule = new KernelModule(kInfo, cleanArgs)
                         
-                        // Store placeholders
-                        (kernelModule.Kernel.OriginalParameters.[0] :?> FunctionParameter).Placeholder <- inputHolder
-                        (kernelModule.Kernel.OriginalParameters.[1] :?> FunctionParameter).Placeholder <- localHolder
-                        (kernelModule.Kernel.OriginalParameters.[2] :?> FunctionParameter).Placeholder <- outputHolder
-
                         kernelModule                
                     |_ ->
                         // CPU CODE                    
@@ -329,26 +325,22 @@ void reduce(__global float* buffer,
                     
                         // Setup kernel module and return
                         let kInfo = new AcceleratedKernelInfo(signature, 
+                                                              [ inputHolder; outputHolder; blockHolder ],
                                                               newBody, 
                                                               meta, 
                                                               "Array.reduce", body)
                         let kernelModule = new KernelModule(kInfo, cleanArgs)
                         
-                        // Store placeholders
-                        (kernelModule.Kernel.OriginalParameters.[0] :?> FunctionParameter).Placeholder <- inputHolder
-                        (kernelModule.Kernel.OriginalParameters.[1] :?> FunctionParameter).Placeholder <- outputHolder
-                        (kernelModule.Kernel.OriginalParameters.[2] :?> FunctionParameter).Placeholder <- blockHolder
-
                         kernelModule 
 
                 // Add applied function                                 
-                let reduceFunctionInfo = new FunctionInfo(functionInfo, body, lambda.IsSome)
+                let reduceFunctionInfo = new FunctionInfo(functionInfo, functionParamVars, body, lambda.IsSome)
                 
                 // Store the called function (runtime execution will use it to perform latest iterations of reduction)
                 if lambda.IsSome then
                     kModule.Kernel.CustomInfo.Add("ReduceFunction", lambda.Value)
                 else
-                    kModule.Kernel.CustomInfo.Add("ReduceFunction", fst computationFunction.Value)
+                    kModule.Kernel.CustomInfo.Add("ReduceFunction", match computationFunction.Value with a, _, _ -> a)
                                     
                 // Store the called function (runtime execution will use it to perform latest iterations of reduction)
                 kModule.Functions.Add(reduceFunctionInfo.ID, reduceFunctionInfo)

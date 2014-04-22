@@ -21,11 +21,11 @@ type KernelReferenceParser() =
         let step = s :?> ModuleParsingStep
         if (expr :? Expr) then
             match QuotationAnalysis.GetKernelFromName(expr :?> Expr) with
-            | Some(mi, b, kMeta, rMeta, pMeta) ->              
+            | Some(mi, paramVars, b, kMeta, rMeta, pMeta) ->              
                 // Filter and finalize metadata
                 let finalMeta = step.ProcessMeta(kMeta, rMeta, pMeta, null)
 
-                let kernelModule = new KernelModule(new KernelInfo(mi, b, finalMeta, false))
+                let kernelModule = new KernelModule(new KernelInfo(mi, paramVars, b, finalMeta, false))
                 
                 // Create module
                 Some(kernelModule)

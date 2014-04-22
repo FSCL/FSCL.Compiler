@@ -223,6 +223,13 @@ module Language =
         
     ///
     ///<summary>
+    /// OpenCL modifier for local memory declaration
+    ///</summary>
+    ///
+    let local(a) =
+        a       
+    ///
+    ///<summary>
     ///OpenCL barrier function
     ///</summary>
     ///<param name="fenceMode">The memory fence mode</param>

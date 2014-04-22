@@ -32,6 +32,7 @@ type IFunctionParameter =
     abstract Name: string with get
     abstract DataType: Type with get
     abstract ParameterType: FunctionParameterType with get
+    abstract OriginalPlaceholder: Quotations.Var with get
     abstract Placeholder: Quotations.Var with get
     abstract Access: AccessMode with get
     abstract ReturnExpr: Expr option with get
@@ -46,10 +47,11 @@ type IFunctionParameter =
     abstract DynamicAllocationArguments: Expr array option with get
 
 type FunctionParameter(name:string, 
-                       dt: Type, 
+                       originalPlaceholder: Quotations.Var, 
                        parameterType: FunctionParameterType,
                        meta: IParamMetaCollection option) =
     let sp = new List<IFunctionParameter>()
+
     interface IFunctionParameter with
 
         // Override starts
@@ -59,7 +61,7 @@ type FunctionParameter(name:string,
         
         member this.DataType 
             with get() =
-                this.DataType
+                this.Placeholder.Type
             
         member this.ParameterType 
             with get() =
@@ -68,6 +70,10 @@ type FunctionParameter(name:string,
         member this.Placeholder 
             with get() =
                 this.Placeholder
+                
+        member this.OriginalPlaceholder 
+            with get() =
+                this.OriginalPlaceholder
 
         member this.Access
             with get() =
@@ -113,15 +119,19 @@ type FunctionParameter(name:string,
     // Get-set properties
     member val Name = name
         with get
-
-    member val DataType = dt 
-        with get, set
        
     member val ParameterType = parameterType
         with get
 
-    member val Placeholder = Quotations.Var(name, dt) 
+    member val Placeholder = originalPlaceholder 
         with get, set
+            
+    member val OriginalPlaceholder = originalPlaceholder
+        with get
+            
+    member this.DataType
+        with get() =
+            this.Placeholder.Type
             
     member this.SizeParameters
         with get() =
@@ -184,8 +194,8 @@ type FunctionParameter(name:string,
         with get
                     
         
-type OriginalFunctionParameter(p: ParameterInfo, meta: IParamMetaCollection option) =
-    inherit FunctionParameter(p.Name, p.ParameterType, NormalParameter, meta)
+type OriginalFunctionParameter(p: ParameterInfo, placeholder: Quotations.Var, meta: IParamMetaCollection option) =
+    inherit FunctionParameter(p.Name, placeholder, NormalParameter, meta)
 
 
      
