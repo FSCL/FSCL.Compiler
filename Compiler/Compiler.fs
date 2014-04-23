@@ -77,6 +77,15 @@ type Compiler =
     member this.Compile(input, opts) =
         this.Run(input, opts)
         
+    member this.Compile(input, [<ParamArray>] args: (string * obj)[]) =
+        let opts = new Dictionary<string, obj>()
+        for key, value in args do
+            if not (opts.ContainsKey(key)) then
+                opts.Add(key, value)
+            else
+                opts.[key] <- value
+        this.Run(input, opts)
+        
     member this.Compile(input) =
         this.Compile(input, new Dictionary<string, obj>())
     

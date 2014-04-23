@@ -1,9 +1,14 @@
 ﻿namespace FSCL.Compiler
 open System.Runtime.InteropServices
+open System.IO
+open System.Runtime.Serialization
+open System.Runtime.Serialization.Formatters
+open System
 
 // Float vector types
 [<Struct>]
 [<StructLayout(LayoutKind.Sequential)>]
+[<VectorType>]
 type float2 =
     struct
         val mutable x: float32
@@ -16,6 +21,9 @@ type float2 =
         new(X: float32, Y: float32) =
             { x = X; y = Y }
                         
+        new(v: float32) =
+            { x = v; y = v }
+
         member this.xy 
             with get() =
                 float2(this.x, this.y)
@@ -82,10 +90,20 @@ type float2 =
             int2(Array.map2 (fun e1 e2 -> if e1 = e2 then -1 else 0) (f1.Components) (f2.Components))
         static member (<=>) (f1: float2, f2: float2) =
             int2(Array.map2 (fun e1 e2 -> if e1 <> e2 then -1 else 0) (f1.Components) (f2.Components))
+                        
+        static member vload(offset: int64, p: Array) =
+            let stream = new MemoryStream()
+            let f = new Binary.BinaryFormatter()
+            f.Serialize(stream, p)
+            stream.Seek(offset * 2L, SeekOrigin.Begin) |> ignore
+            let data = f.Deserialize(stream) :?> float2
+            stream.Close()
+            data
     end               
                 
 [<Struct>]
 [<StructLayout(LayoutKind.Sequential)>]
+[<VectorType>]
 type float3 =
     struct
         val mutable x: float32
@@ -99,6 +117,9 @@ type float3 =
         new(X: float32, Y: float32, Z: float32) =
             { x = X; y = Y; z = Z }
    
+        new(v: float32) =
+            { x = v; y = v; z = v }
+
         member this.xy 
             with get() =
                 float2(this.x, this.y)
@@ -332,10 +353,20 @@ type float3 =
             int3(Array.map2 (fun e1 e2 -> if e1 = e2 then -1 else 0) (f1.Components) (f2.Components))
         static member (<=>) (f1: float3, f2: float3) =
             int3(Array.map2 (fun e1 e2 -> if e1 <> e2 then -1 else 0) (f1.Components) (f2.Components))
+            
+        static member vload(offset: int64, p: Array) =
+            let stream = new MemoryStream()
+            let f = new Binary.BinaryFormatter()
+            f.Serialize(stream, p)
+            stream.Seek(offset * 3L, SeekOrigin.Begin) |> ignore
+            let data = f.Deserialize(stream) :?> float3
+            stream.Close()
+            data
     end
     
 [<Struct>]
 [<StructLayout(LayoutKind.Sequential)>]
+[<VectorType>]
 type float4 =
     struct
         val mutable x: float32
@@ -350,6 +381,9 @@ type float4 =
         new(X: float32, Y: float32, Z: float32, W: float32) =
             { x = X; y = Y; z = Z; w = W }
                         
+        new(v: float32) =
+            { x = v; y = v; z = v; w = v }
+
         member this.xy 
             with get() =
                 float2(this.x, this.y)
@@ -1963,6 +1997,15 @@ type float4 =
             int4(Array.map2 (fun e1 e2 -> if e1 = e2 then -1 else 0) (f1.Components) (f2.Components))
         static member (<=>) (f1: float4, f2: float4) =
             int4(Array.map2 (fun e1 e2 -> if e1 <> e2 then -1 else 0) (f1.Components) (f2.Components))
+            
+        static member vload(offset: int64, p: Array) =
+            let stream = new MemoryStream()
+            let f = new Binary.BinaryFormatter()
+            f.Serialize(stream, p)
+            stream.Seek(offset * 4L, SeekOrigin.Begin) |> ignore
+            let data = f.Deserialize(stream) :?> float4
+            stream.Close()
+            data
     end
 (*
 type FloatVector(components: float32 array) =

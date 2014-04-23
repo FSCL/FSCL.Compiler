@@ -1,4 +1,4 @@
-﻿namespace FSCL.Compiler.StructHandling
+﻿namespace FSCL.Compiler.ModulePreprocessing
 
 open FSCL.Compiler
 open FSCL.Compiler.ModulePreprocessing
@@ -40,9 +40,17 @@ type StructDiscover() =
 
     override this.Run(km, en, opts) =
         let engine = en :?> ModulePreprocessingStep
+        // Collect structs in kernel
         let structsDict = new Dictionary<Type, unit>()
         CollectStructs(km.Kernel.Body, structsDict)
         for t in structsDict.Keys do
             km.GlobalTypes.Add(t) |> ignore
+        // Collect structs in functions
+        for f in km.Functions do
+            let structsDict = new Dictionary<Type, unit>()
+            CollectStructs(f.Value.Body, structsDict)
+            for t in structsDict.Keys do
+                km.GlobalTypes.Add(t) |> ignore
+            
              
             

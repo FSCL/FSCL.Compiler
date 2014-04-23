@@ -220,14 +220,25 @@ module Language =
         inherit Attribute()
         member this.AlternativeFunctionName 
             with get() = s  
-        
+            
+    // Dynamic (passed when compiling OpenCL kernel code) define
+    type DynamicConstantDefineAttribute() =
+        inherit Attribute()
+            
+    /// Operator overloading for pointer arithmetic inside kernels    
+    type 'T ``[]`` with
+        member this.pasum(y: int) =
+            this
+        member this.pasub(y: int) =     
+            this
     ///
     ///<summary>
     /// OpenCL modifier for local memory declaration
     ///</summary>
     ///
     let local(a) =
-        a       
+        a     
+        
     ///
     ///<summary>
     ///OpenCL barrier function
@@ -479,6 +490,32 @@ component of x equals mantissa returned * 2exp *)
             max
         else
             a
+
+    ///////////////////////////////////////////////////
+    // Load and Store functions
+    ///////////////////////////////////////////////////
+    (*
+    let vload2<'T> (offset: int, p: T'[]) =
+        int2(p.[offset], p.[offset + 1]) 
+    let vload3 (offset: int, p: int[]) =
+        int3(p.[offset], p.[offset + 1], p.[offset + 2]) 
+    let vload4 (offset: int, p: int[]) =
+        int4(p.[offset], p.[offset + 1], p.[offset + 2], p.[offset + 3]) 
+    let vstore2 (data: int2, offset: int, p: int[]) =
+        p.[offset] <- data.x
+        p.[offset + 1] <- data.y
+    let vstore3 (data: int3, offset: int, p: int[]) =
+        p.[offset] <- data.x
+        p.[offset + 1] <- data.y
+        p.[offset + 2] <- data.z
+    let vstore4 (data: int4, offset: int, p: int[]) =
+        p.[offset] <- data.x
+        p.[offset + 1] <- data.y
+        p.[offset + 2] <- data.z
+        p.[offset + 3] <- data.w
+      *)  
+
+
     ///
     ///<summary>
     ///The container of workspace related functions

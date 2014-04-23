@@ -92,9 +92,19 @@ type FunctionCodegenStep(tm: TypeManager,
     ///       
     override this.Run(km: KernelModule, opt) =    
         opts <- opt
+        // Process functions
         for f in km.Functions do
             this.Process(f.Value :?> FunctionInfo)
+        // Process kernel
         this.Process(km.Kernel)
+        // Process defines
+        for d in km.ConstantDefines do
+            match d.Value with
+            | e, true ->
+                // Static define
+                km.StaticConstantDefinesCode.Add(d.Key, this.Process(e))
+            | e, false ->
+                ()
         ContinueCompilation(km)
     (*
         let mutable output = ""

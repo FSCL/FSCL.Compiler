@@ -9,7 +9,6 @@ open Microsoft.FSharp.Core.LanguagePrimitives
 
 [<StepProcessor("FSCL_REF_VAR_TRANSFORMATION_PROCESSOR", "FSCL_FUNCTION_TRANSFORMATION_STEP",
                 Dependencies = [| "FSCL_DYNAMIC_ALLOCATION_LIFTING_TRANSFORMATION_PROCESSOR";
-                                  "FSCL_GLOBAL_VAR_REF_TRANSFORMATION_PROCESSOR";
                                   "FSCL_CONDITIONAL_ASSIGN_TRANSFORMATION_PROCESSOR";
                                   "FSCL_ARRAY_ACCESS_TRANSFORMATION_PROCESSOR" |])>]
 type RefVariableTransformationProcessor() =     

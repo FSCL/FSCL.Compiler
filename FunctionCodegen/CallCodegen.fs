@@ -50,12 +50,30 @@ type CallCodegen() =
                     ""
 
             let returnPostfix = if returnPrefix.Length > 0 then ";\n" else ""
-
+            
             let args = String.concat ", " (List.map (fun (e:Expr) -> engine.Continue(e)) a)
-            if mi.DeclaringType <> null && mi.DeclaringType.Name = "Language" &&  mi.Name = "barrier" then
-                // the function is defined in FSCL
-                Some(returnPrefix + mi.Name + "(" + args + ");" + returnPostfix)
+            if (mi.Name = "vload") then
+                // vload function
+                let vType = mi.ReturnType
+                let vCount = 
+                    if vType.GetField("w") <> null then
+                        4
+                    else if vType.GetField("z") <> null then
+                        3
+                    else 
+                        2
+                Some(returnPrefix + "vload" + vCount.ToString() + "(" + args + ");" + returnPostfix)
+            else if (mi.Name = "[]`1.pasum") then
+                // Pointer arithmetic sum
+                Some(returnPrefix + "(" + engine.Continue(a.[0]) + ") + (" + engine.Continue(a.[1]) + ")" + returnPostfix)
+            else if (mi.Name = "[]`1.pasub") then
+                // Pointer arithmetic subtraction
+                Some(returnPrefix + "(" + engine.Continue(a.[0]) + ") - (" + engine.Continue(a.[1]) + ")" + returnPostfix)
             else
-                Some(returnPrefix + mi.Name + "(" + args + ")" + returnPostfix)
+                if mi.DeclaringType <> null && mi.DeclaringType.Name = "Language" &&  mi.Name = "barrier" then
+                    // the function is defined in FSCL
+                    Some(returnPrefix + mi.Name + "(" + args + ");" + returnPostfix)
+                else
+                    Some(returnPrefix + mi.Name + "(" + args + ")" + returnPostfix)
         | _ ->
             None

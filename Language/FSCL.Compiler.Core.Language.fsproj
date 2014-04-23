@@ -50,12 +50,13 @@
     <Reference Include="System.Numerics" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Language.fs" />
     <Compile Include="IntVectors.fs" />
+    <Compile Include="UIntVector.fs" />
     <Compile Include="FloatVectors.fs" />
     <Compile Include="DoubleVectors.fs" />
     <Compile Include="SByteVectors.fs" />
     <Compile Include="ByteVectors.fs" />
+    <Compile Include="Language.fs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Core\FSCL.Compiler.Core.fsproj">

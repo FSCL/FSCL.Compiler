@@ -41,14 +41,19 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ModulePreprocessing.fs" />
-    <Compile Include="DefaultKernelCompilationFilter.fs" />
     <Compile Include="FunctionReferenceDiscover.fs" />
     <Compile Include="StructDiscover.fs" />
+    <Compile Include="ConstantDefineDiscovery.fs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Core\FSCL.Compiler.Core.fsproj">
       <Name>FSCL.Compiler.Core</Name>
       <Project>7635ADE1-AC00-4587-8117-3FAA15BE9318</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\Language\FSCL.Compiler.Core.Language.fsproj">
+      <Name>FSCL.Compiler.Core.Language</Name>
+      <Project>{02cc39bd-a326-49f6-b5e6-2987eada1ba2}</Project>
+      <Private>True</Private>
     </ProjectReference>
     <ProjectReference Include="..\Util\FSCL.Compiler.Core.Util.fsproj">
       <Name>FSCL.Compiler.Core.Util</Name>

@@ -42,7 +42,6 @@
   <ItemGroup>
     <Compile Include="FunctionTransformation.fs" />
     <Compile Include="DynamicAllocationLifting.fs" />
-    <Compile Include="GlobalVarRefInlining.fs" />
     <Compile Include="ConditionalAssignmentNormalization.fs" />
     <Compile Include="ArrayAccessFlattening.fs" />
     <Compile Include="RefVariableToSingletoArrayTransformation.fs" />

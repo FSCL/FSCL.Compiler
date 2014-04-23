@@ -13,6 +13,10 @@ type CastCodegen() =
         let step = s :?> FunctionCodegenStep
         match expr with    
         | Patterns.Coerce(e, t) ->
-            Some("(" + step.TypeManager.Print(t) + ")" + step.Continue(e))
+            // Skip System.Array coercion (this is performed when calling pasum and pasum for pointer arithmetic)
+            if t = typeof<System.Array> then
+                Some(step.Continue(e))
+            else
+                Some("(" + step.TypeManager.Print(t) + ")" + step.Continue(e))
         | _ ->
             None

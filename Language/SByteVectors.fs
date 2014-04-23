@@ -1,9 +1,14 @@
 namespace FSCL.Compiler
 open System.Runtime.InteropServices
+open System.IO
+open System.Runtime.Serialization
+open System.Runtime.Serialization.Formatters
+open System
 
 // sbyteeger vector types
 [<Struct>]
 [<StructLayout(LayoutKind.Sequential)>]
+[<VectorType>]
 type sbyte2 =
     struct 
         val mutable x: sbyte
@@ -61,6 +66,9 @@ type sbyte2 =
 
         new(X: sbyte, Y: sbyte) =
             { x = X; y = Y }
+            
+        new(v: sbyte) =
+            { x = v; y = v }
 
         internal new(c: sbyte[]) =
             sbyte2(c.[0], c.[1])
@@ -82,10 +90,20 @@ type sbyte2 =
             sbyte2(Array.map2 (fun e1 e2 -> if e1 = e2 then -1y else 0y) (f1.Components) (f2.Components))
         static member (<=>) (f1: sbyte2, f2: sbyte2) =
             sbyte2(Array.map2 (fun e1 e2 -> if e1 <> e2 then -1y else 0y) (f1.Components) (f2.Components))
+            
+        static member vload(offset: int64, p: Array) =
+            let stream = new MemoryStream()
+            let f = new Binary.BinaryFormatter()
+            f.Serialize(stream, p)
+            stream.Seek(offset * 2L, SeekOrigin.Begin) |> ignore
+            let data = f.Deserialize(stream) :?> sbyte2
+            stream.Close()
+            data
     end
     
 [<Struct>]
-[<StructLayout(LayoutKind.Sequential)>]               
+[<StructLayout(LayoutKind.Sequential)>]  
+[<VectorType>]             
 type sbyte3 =
     struct
         val mutable x: sbyte
@@ -98,6 +116,9 @@ type sbyte3 =
                 
         new(X: sbyte, Y: sbyte, Z: sbyte) =
             { x = X; y = Y; z = Z }
+            
+        new(v: sbyte) =
+            { x = v; y = v; z = v }
 
         member this.xy 
             with get() =
@@ -332,10 +353,20 @@ type sbyte3 =
             sbyte3(Array.map2 (fun e1 e2 -> if e1 = e2 then -1y else 0y) (f1.Components) (f2.Components))
         static member (<=>) (f1: sbyte3, f2: sbyte3) =
             sbyte3(Array.map2 (fun e1 e2 -> if e1 <> e2 then -1y else 0y) (f1.Components) (f2.Components))
+            
+        static member vload(offset: int64, p: Array) =
+            let stream = new MemoryStream()
+            let f = new Binary.BinaryFormatter()
+            f.Serialize(stream, p)
+            stream.Seek(offset * 3L, SeekOrigin.Begin) |> ignore
+            let data = f.Deserialize(stream) :?> sbyte3
+            stream.Close()
+            data
     end
 
 [<Struct>]
-[<StructLayout(LayoutKind.Sequential)>]            
+[<StructLayout(LayoutKind.Sequential)>]     
+[<VectorType>]       
 type sbyte4 =
     struct
         val mutable x: sbyte
@@ -349,6 +380,9 @@ type sbyte4 =
                 
         new(X: sbyte, Y: sbyte, Z: sbyte, W: sbyte) =
             { x = X; y = Y; z = Z; w = W }
+            
+        new(v: sbyte) =
+            { x = v; y = v; z = v; w = v }
 
         member this.xy 
             with get() =
@@ -1963,6 +1997,15 @@ type sbyte4 =
             sbyte4(Array.map2 (fun e1 e2 -> if e1 = e2 then -1y else 0y) (f1.Components) (f2.Components))
         static member (<=>) (f1: sbyte4, f2: sbyte4) =
             sbyte4(Array.map2 (fun e1 e2 -> if e1 <> e2 then -1y else 0y) (f1.Components) (f2.Components))
+            
+        static member vload(offset: int64, p: Array) =
+            let stream = new MemoryStream()
+            let f = new Binary.BinaryFormatter()
+            f.Serialize(stream, p)
+            stream.Seek(offset * 4L, SeekOrigin.Begin) |> ignore
+            let data = f.Deserialize(stream) :?> sbyte4
+            stream.Close()
+            data
     end    
   
 type char2 = sbyte2

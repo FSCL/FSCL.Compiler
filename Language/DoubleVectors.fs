@@ -1,9 +1,14 @@
 ﻿namespace FSCL.Compiler
 open System.Runtime.InteropServices
+open System.IO
+open System.Runtime.Serialization
+open System.Runtime.Serialization.Formatters
+open System
 
 // Double vector types
 [<Struct>]
 [<StructLayout(LayoutKind.Sequential)>]
+[<VectorType>]
 type double2 =
     struct
         val mutable x: double
@@ -16,6 +21,9 @@ type double2 =
         new(X: double, Y: double) =
             { x = X; y = Y }
             
+        new(v: double) =
+            { x = v; y = v }
+
         member this.xy 
             with get() =
                 double2(this.x, this.y)
@@ -82,10 +90,20 @@ type double2 =
             int2(Array.map2 (fun e1 e2 -> if e1 = e2 then -1 else 0) (f1.Components) (f2.Components))
         static member (<=>) (f1: double2, f2: double2) =
             int2(Array.map2 (fun e1 e2 -> if e1 <> e2 then -1 else 0) (f1.Components) (f2.Components))
+            
+        static member vload(offset: int64, p: Array) =
+            let stream = new MemoryStream()
+            let f = new Binary.BinaryFormatter()
+            f.Serialize(stream, p)
+            stream.Seek(offset * 2L, SeekOrigin.Begin) |> ignore
+            let data = f.Deserialize(stream) :?> double2
+            stream.Close()
+            data
     end
     
 [<Struct>]
-[<StructLayout(LayoutKind.Sequential)>]                    
+[<StructLayout(LayoutKind.Sequential)>]   
+[<VectorType>]                 
 type double3 =
     struct
         val mutable x: double
@@ -99,6 +117,9 @@ type double3 =
         new(X: double, Y: double, Z: double) =
             { x = X; y = Y; z = Z }
     
+        new(v: double) =
+            { x = v; y = v; z = v }
+
         member this.xy 
             with get() =
                 double2(this.x, this.y)
@@ -332,10 +353,20 @@ type double3 =
             int3(Array.map2 (fun e1 e2 -> if e1 = e2 then -1 else 0) (f1.Components) (f2.Components))
         static member (<=>) (f1: double3, f2: double3) =
             int3(Array.map2 (fun e1 e2 -> if e1 <> e2 then -1 else 0) (f1.Components) (f2.Components))
+                        
+        static member vload(offset: int64, p: Array) =
+            let stream = new MemoryStream()
+            let f = new Binary.BinaryFormatter()
+            f.Serialize(stream, p)
+            stream.Seek(offset * 3L, SeekOrigin.Begin) |> ignore
+            let data = f.Deserialize(stream) :?> double3
+            stream.Close()
+            data
     end
  
 [<Struct>]
-[<StructLayout(LayoutKind.Sequential)>]        
+[<StructLayout(LayoutKind.Sequential)>]      
+[<VectorType>]  
 type double4 =
     struct
         val mutable x: double
@@ -350,6 +381,9 @@ type double4 =
         new(X: double, Y: double, Z: double, W: double) =
             { x = X; y = Y; z = Z; w = W }
             
+        new(v: double) =
+            { x = v; y = v; z = v; w = v }
+
         member this.xy 
             with get() =
                 double2(this.x, this.y)
@@ -1963,6 +1997,15 @@ type double4 =
             int4(Array.map2 (fun e1 e2 -> if e1 = e2 then -1 else 0) (f1.Components) (f2.Components))
         static member (<=>) (f1: double4, f2: double4) =
             int4(Array.map2 (fun e1 e2 -> if e1 <> e2 then -1 else 0) (f1.Components) (f2.Components))
+                        
+        static member vload(offset: int64, p: Array) =
+            let stream = new MemoryStream()
+            let f = new Binary.BinaryFormatter()
+            f.Serialize(stream, p)
+            stream.Seek(offset * 4L, SeekOrigin.Begin) |> ignore
+            let data = f.Deserialize(stream) :?> double4
+            stream.Close()
+            data
     end
 (*
 type DoubleVector(components: double array) =
