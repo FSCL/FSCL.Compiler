@@ -5,6 +5,7 @@ open System.Reflection
 open System.Collections.Generic
 open Microsoft.FSharp.Quotations
 open FSCL.Compiler
+open FSCL.Compiler.Util.VerboseCompilationUtil
 
 [<Step("FSCL_MODULE_PARSING_STEP")>] 
 type ModuleParsingStep(tm: TypeManager,
@@ -38,14 +39,17 @@ type ModuleParsingStep(tm: TypeManager,
         ReadOnlyMetaCollection(kmeta, rmeta, pmeta)
 
     override this.Run(expr, opt) =
+        let verb = StartVerboseStep(this, opt)
+
         opts <- opt
-        let result = this.Process(expr)
-        if opts.ContainsKey(CompilerOptions.ParseOnly) then
-            StopCompilation(result)
-        else
-            ContinueCompilation(result)
-        //kmodule.MergeWith(cg)
-        //kmodule.FlowGraph <- cg.FlowGraph
+        let r =
+            if opts.ContainsKey(CompilerOptions.ParseOnly) then
+                StopCompilation(this.Process(expr))
+            else
+                ContinueCompilation(this.Process(expr))
+                        
+        StopVerboseStep(verb)
+        r
 
         
 

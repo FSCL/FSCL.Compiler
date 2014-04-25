@@ -17,23 +17,7 @@ open Microsoft.FSharp.Linq.RuntimeHelpers
 type AcceleratedArrayReduceHandler() =
     let placeholderComp (a:int) (b:int) =
         a + b
-        (*__kernel
-void reduce(__global float* buffer,
-            __const int block,
-            __const int length,
-            __global float* result) {
 
-  int global_index = get_global_id(0) * block;
-  float accumulator = INFINITY;
-  int upper_bound = (get_global_id(0) + 1) * block;
-  if (upper_bound > length) upper_bound = length;
-  while (global_index < upper_bound) {
-    float element = buffer[global_index];
-    accumulator = (accumulator < element) ? accumulator : element;
-    global_index++;
-  }
-  result[get_group_id(0)] = accumulator;
-}*)
     let cpu_template = 
         <@
             fun(g_idata:int[], g_odata:int[], block: int) ->
@@ -198,9 +182,6 @@ void reduce(__global float* buffer,
         | _ ->
             e
 
-    let kernelName (prefix: string, parameterTypes: Type list, utilityFunction: string) =
-        String.concat "_" ([prefix] @ (List.map (fun (t:Type) -> t.Name.Replace(".", "")) parameterTypes) @ [utilityFunction])
-
     member this.EvaluateAndApply(e:Expr) (a:obj) (b:obj) =
         let f = LeafExpressionConverter.EvaluateQuotation(e)
         let fm = f.GetType().GetMethod("Invoke")
@@ -243,23 +224,11 @@ void reduce(__global float* buffer,
                     // GPU CODE
                     match targetType.Type with
                     | DeviceType.Gpu ->                    
-                        // Now we can create the signature and define parameter name in the dynamic module
-                        // DynamicMethod would be simpler and would not require a dynamic module but unfortunately it doesn't support
-                        // Custom attributes for ites parameters. We instead have to mark the second parameter of the kernel with [Local]
-                        let methodBuilder = moduleBuilder.DefineGlobalMethod(
-                                                kernelName("ArrayReduce", 
-                                                            [functionInfo.GetParameters().[0].ParameterType; 
-                                                            functionInfo.GetParameters().[1].ParameterType],
-                                                            functionInfo.Name), 
-                                                MethodAttributes.Public ||| MethodAttributes.Static, typeof<unit>, 
-                                                [| inputArrayType; outputArrayType; outputArrayType |])
-                        let paramBuilder = methodBuilder.DefineParameter(1, ParameterAttributes.In, "input_array")
-                        let paramBuilder = methodBuilder.DefineParameter(2, ParameterAttributes.In, "local_array")
-                        let paramBuilder = methodBuilder.DefineParameter(3, ParameterAttributes.In, "output_array")
-                        // Body (simple return) of the method must be set to build the module and get the MethodInfo that we need as signature
-                        methodBuilder.GetILGenerator().Emit(OpCodes.Ret)
-                        moduleBuilder.CreateGlobalFunctions()
-                        let signature = moduleBuilder.GetMethod(methodBuilder.Name) 
+                        // Now we can create the signature and define parameter name in the dynamic module                                                
+                        let signature = DynamicMethod("ArrayReduce_" + functionInfo.Name, outputArrayType, [| inputArrayType; outputArrayType; outputArrayType |])
+                        signature.DefineParameter(1, ParameterAttributes.In, "input_array") |> ignore
+                        signature.DefineParameter(2, ParameterAttributes.In, "local_array") |> ignore
+                        signature.DefineParameter(3, ParameterAttributes.In, "output_array") |> ignore
                         
                         // Create parameters placeholders
                         let inputHolder = Quotations.Var("input_array", inputArrayType)
@@ -288,23 +257,11 @@ void reduce(__global float* buffer,
                         kernelModule                
                     |_ ->
                         // CPU CODE                    
-                        // Now we can create the signature and define parameter name in the dynamic module
-                        // DynamicMethod would be simpler and would not require a dynamic module but unfortunately it doesn't support
-                        // Custom attributes for ites parameters. We instead have to mark the second parameter of the kernel with [Local]
-                        let methodBuilder = moduleBuilder.DefineGlobalMethod(
-                                                kernelName("ArrayReduce", 
-                                                            [functionInfo.GetParameters().[0].ParameterType; 
-                                                            functionInfo.GetParameters().[1].ParameterType],
-                                                            functionInfo.Name), 
-                                                MethodAttributes.Public ||| MethodAttributes.Static, typeof<unit>, 
-                                                [| inputArrayType; typeof<int>; outputArrayType |])
-                        let paramBuilder = methodBuilder.DefineParameter(1, ParameterAttributes.In, "input_array")
-                        let paramBuilder = methodBuilder.DefineParameter(2, ParameterAttributes.In, "output_array")
-                        let paramBuilder = methodBuilder.DefineParameter(3, ParameterAttributes.In, "block")
-                        // Body (simple return) of the method must be set to build the module and get the MethodInfo that we need as signature
-                        methodBuilder.GetILGenerator().Emit(OpCodes.Ret)
-                        moduleBuilder.CreateGlobalFunctions()
-                        let signature = moduleBuilder.GetMethod(methodBuilder.Name) 
+                        // Now we can create the signature and define parameter name in the dynamic module                                        
+                        let signature = DynamicMethod("ArrayReduce_" + functionInfo.Name, outputArrayType, [| inputArrayType; outputArrayType; typeof<int> |])
+                        signature.DefineParameter(1, ParameterAttributes.In, "input_array") |> ignore
+                        signature.DefineParameter(2, ParameterAttributes.In, "output_array") |> ignore
+                        signature.DefineParameter(3, ParameterAttributes.In, "block") |> ignore
                     
                         // Create parameters placeholders
                         let inputHolder = Quotations.Var("input_array", inputArrayType)

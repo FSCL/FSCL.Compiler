@@ -34,13 +34,7 @@ type AcceleratedArrayMapHandler() =
                 // We need to get the type of a array whose elements type is the same of the functionInfo parameter
                 let inputArrayType = Array.CreateInstance(functionInfo.GetParameters().[0].ParameterType, 0).GetType()
                 let outputArrayType = Array.CreateInstance(functionInfo.ReturnType, 0).GetType()
-                (* let inputEmptyArray = FilterCall(<@ Array.empty @>, fun(e, mi, a) -> mi.GetGenericMethodDefinition().MakeGenericMethod([| inputArrayElementType |])).Value
-                // We need to get the type of a array whose elements type is the same of the functionInfo return value
-                let outputArrayElementType = functionInfo.ReturnType
-                let outputEmptyArray = FilterCall(<@ Array.empty @>, fun(e, mi, a) -> mi.GetGenericMethodDefinition().MakeGenericMethod([| outputArrayElementType |])).Value
-                *)
-                // Now that we have the types of the input and output arrays, create placeholders (var) for the kernel input and output                    
-                    
+
                 // Now we can create the signature and define parameter name
                 let signature = DynamicMethod("ArrayMap_" + functionInfo.Name, typeof<unit>, [| inputArrayType; outputArrayType |])
                 signature.DefineParameter(1, ParameterAttributes.In, "input_array") |> ignore
@@ -79,28 +73,6 @@ type AcceleratedArrayMapHandler() =
                 let mapFunctionInfo = new FunctionInfo(functionInfo, functionParamVars, functionBody, lambda.IsSome)
                 kernelModule.Functions.Add(mapFunctionInfo.ID, mapFunctionInfo)
                                 
-                // Connect with subkernel
-                (*if subkernel <> null then   
-                    FlowGraphManager.SetNodeInput(kernelModule.FlowGraph,
-                                                  "input_array",
-                                                  new FlowGraphNodeInputInfo(
-                                                    KernelOutput(subkernel.FlowGraph, 0),
-                                                    None,
-                                                    paramAttrs.[1]))
-                else
-                    FlowGraphManager.SetNodeInput(kernelModule.FlowGraph,
-                                                  "input_array",                                                  
-                                                  new FlowGraphNodeInputInfo(
-                                                    ActualArgument(cleanArgs.[1]),
-                                                    None,
-                                                    paramAttrs.[1]))
-                FlowGraphManager.SetNodeInput(kernelModule.FlowGraph,
-                                              "output_array",                                  
-                                              new FlowGraphNodeInputInfo(
-                                                BufferAllocationSize(fun(args, localSize, globalSize) ->
-                                                                            BufferReferenceAllocationExpression("input_array")),
-                                                None,
-                                                new ParameterMetadataCollection()))*)
                 // Return module                             
                 Some(kernelModule)
             | _ ->

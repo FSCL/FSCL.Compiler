@@ -42,8 +42,8 @@
   <ItemGroup>
     <Compile Include="FunctionPreprocessing.fs" />
     <Compile Include="LocalVarsDiscovery.fs" />
-    <Compile Include="DynamicArrayToParameter.fs" />
     <Compile Include="KernelReturnVarDiscoveryProcessor.fs" />
+    <Compile Include="DynamicArrayToParameter.fs" />
     <Compile Include="RefTypeToArrayReplacing.fs" />
     <Compile Include="ArrayLenghtArgumentsGenerator.fs" />
     <Compile Include="DynamicArrayArgumentsParamRefLifting.fs" />

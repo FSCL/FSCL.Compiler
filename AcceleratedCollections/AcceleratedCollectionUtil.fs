@@ -12,6 +12,9 @@ open System
 open FSCL.Compiler.Util
 
 module AcceleratedCollectionUtil =
+    let GenKernelName (prefix: string, parameterTypes: Type list, utilityFunction: string) =
+        String.concat "_" ([prefix] @ (List.map (fun (t:Type) -> t.Name.Replace(".", "")) parameterTypes) @ [utilityFunction])
+
     // Check if the expr is a function reference (name)
     let rec FilterCall(expr, f) =                 
         match expr with

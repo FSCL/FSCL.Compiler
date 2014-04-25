@@ -48,6 +48,11 @@
       <Name>FSCL.Compiler.Core</Name>
       <Project>7635ADE1-AC00-4587-8117-3FAA15BE9318</Project>
     </ProjectReference>
+    <ProjectReference Include="..\Util\FSCL.Compiler.Core.Util.fsproj">
+      <Name>FSCL.Compiler.Core.Util</Name>
+      <Project>{2089ba93-e786-42e3-b717-58105c53bb7a}</Project>
+      <Private>True</Private>
+    </ProjectReference>
   </ItemGroup>
   <PropertyGroup>
     <MinimumVisualStudioVersion Condition="'$(MinimumVisualStudioVersion)' == ''">11</MinimumVisualStudioVersion>

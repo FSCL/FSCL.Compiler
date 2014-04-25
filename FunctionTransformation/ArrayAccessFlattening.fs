@@ -61,7 +61,17 @@ type ArrayAccessTransformation() =
         let engine = en :?> FunctionTransformationStep
         match expr with
         | Patterns.Call(o, methodInfo, args) ->
-            if methodInfo.DeclaringType <> null && methodInfo.DeclaringType.Name = "IntrinsicFunctions" then
+            // If pointer arithmetic then the array must be read-write cause we "cannot" track modification
+            if (methodInfo.Name = "[]`1.pasum") || (methodInfo.Name = "[]`1.pasub") then
+                match args.[0] with
+                | Patterns.Var(v) ->
+                    UpdateArrayAccessMode(v.Name, AccessMode.ReadAccess, engine)
+                    UpdateArrayAccessMode(v.Name, AccessMode.WriteAccess, engine)
+                    engine.Default(expr)        
+                | _ ->
+                    engine.Default(expr)          
+            // If regular access 
+            else if methodInfo.DeclaringType <> null && methodInfo.DeclaringType.Name = "IntrinsicFunctions" then
                 match args.[0] with
                 | Patterns.Var(v) ->
                     //If this is a local array then do not flatten

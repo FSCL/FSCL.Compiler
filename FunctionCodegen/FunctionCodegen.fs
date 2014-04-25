@@ -5,6 +5,7 @@ open System.Reflection
 open System.Collections.Generic
 open Microsoft.FSharp.Quotations
 open FSCL.Compiler
+open FSCL.Compiler.Util.VerboseCompilationUtil
 
 [<assembly:DefaultComponentAssembly>]
 do()
@@ -91,7 +92,9 @@ type FunctionCodegenStep(tm: TypeManager,
     ///</returns>
     ///       
     override this.Run(km: KernelModule, opt) =    
-        opts <- opt
+        let verb = StartVerboseStep(this, opt)
+
+        opts <- opt            
         // Process functions
         for f in km.Functions do
             this.Process(f.Value :?> FunctionInfo)
@@ -105,7 +108,10 @@ type FunctionCodegenStep(tm: TypeManager,
                 km.StaticConstantDefinesCode.Add(d.Key, this.Process(e))
             | e, false ->
                 ()
-        ContinueCompilation(km)
+        let r = ContinueCompilation(km)
+
+        StopVerboseStep(verb)
+        r
     (*
         let mutable output = ""
         let directives = String.concat "\n" (seq { for i in km.Directives do yield i })

@@ -291,7 +291,19 @@ type KernelInfo(signature: MethodInfo,
                 if not (kInfo.CustomInfo.ContainsKey(item.Key)) then
                     kInfo.CustomInfo.Add(item.Key, item.Value)
             for item in this.GeneratedParameters do
-                kInfo.GeneratedParameters.Add(item)
+                if item.IsReturned && item.IsDynamicParameter then
+                    // Must associate new Return Meta
+                    let oldParameter = item
+                    let newParameter = new FunctionParameter(item.Name, item.OriginalPlaceholder, item.ParameterType, Some(ikInfo.Meta.ReturnMeta :> IParamMetaCollection)) 
+                    newParameter.Access <- oldParameter.Access
+                    newParameter.IsReturned <- oldParameter.IsReturned
+                    newParameter.ReturnExpr <- oldParameter.ReturnExpr
+                    newParameter.Placeholder <- oldParameter.Placeholder
+                    for i = 0 to oldParameter.SizeParameters.Count - 1 do
+                        newParameter.SizeParameters.Add(oldParameter.SizeParameters.[i])
+                    kInfo.GeneratedParameters.Add(newParameter)
+                else                    
+                    kInfo.GeneratedParameters.Add(item)
             for i = 0 to this.OriginalParameters.Length - 1 do
                 let oldParameter = this.OriginalParameters.[i]
                 let newParameter = kInfo.OriginalParameters.[i]

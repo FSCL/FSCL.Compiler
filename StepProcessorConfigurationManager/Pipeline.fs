@@ -18,6 +18,7 @@ type Pipeline =
     val mutable internal configuration: PipelineConfiguration
     val mutable internal configurationManager: PipelineConfigurationManager
 
+
     ///
     ///<summary>
     ///The default constructor of the compiler
@@ -99,6 +100,16 @@ type Pipeline =
     member this.UsedMetadata 
         with get() =
             this.usedMetadata
+            
+
+    ///
+    ///<summary>
+    /// The steps count
+    ///</summary>
+    ///                                                
+    member this.StepsCount 
+        with get() =
+            this.steps.Length
             
     ///
     ///<summary>

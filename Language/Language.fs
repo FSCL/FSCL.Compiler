@@ -54,14 +54,17 @@ module Language =
     ///
     [<Flags>]
     type MemoryFlags =
-    | None = 0
-    | ReadWrite = 1
-    | WriteOnly = 2
-    | ReadOnly = 4
-    | UseHostPointer = 8
-    | AllocHostPointer = 16
-    | CopyHostPointer = 32
-    | UseSpecialMemAMD = 64
+    | None = 0L
+    | ReadWrite = 1L
+    | WriteOnly = 2L
+    | ReadOnly = 4L
+    | UseHostPointer = 8L
+    | AllocHostPointer = 16L
+    | CopyHostPointer = 32L
+    | UsePersistentMemAMD = 64L
+    | HostWriteOnly = 128L
+    | HostReadOnly = 256L
+    | HostNoAccess = 512L
     
     [<Flags>]
     type DeviceType =

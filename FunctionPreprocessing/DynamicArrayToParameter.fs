@@ -13,7 +13,7 @@ open System.Runtime.InteropServices
 //RETURN_TYPE_TO_OUTPUT_ARG_REPLACING
 [<StepProcessor("FSCL_DYNAMIC_ARRAY_TO_PARAMETER_PREPROCESSING_PROCESSOR", 
                 "FSCL_FUNCTION_PREPROCESSING_STEP",
-                Dependencies = [|"FSCL_LOCAL_VARS_DISCOVERY_PREPROCESSING_PROCESSOR"|])>]
+                Dependencies = [|"FSCL_KERNEL_RETURN_DISCOVERY_PROCESSOR"|])>]
 type DynamicArrayToParameterProcessor() =
     inherit FunctionPreprocessingProcessor()
     
@@ -21,14 +21,36 @@ type DynamicArrayToParameterProcessor() =
         if (var.IsMutable) then
             raise (new CompilerException("A kernel dynamic array must be immutable"))
                    
-        // Fix signature and kernel parameters
         let kernelInfo = kernel :?> KernelInfo
-
+        
+        // Fix signature and kernel parameters
+        let pInfo =         
+            // Check if RETURN_VARIABLE is set in kernel custom infos. This means, during return var discovery no original parameter has
+            // been found that match that var. It may match this one        
+            if kernel.CustomInfo.ContainsKey("RETURN_VARIABLE") then
+                let rv = kernel.CustomInfo.["RETURN_VARIABLE"] :?> Var     
+                if rv = var then
+                    // Match: we must set the additionar parameter meta accordingly  
+                    kernel.CustomInfo.Remove("RETURN_VARIABLE") |> ignore                  
+                    let p = FunctionParameter(var.Name, 
+                                                var, 
+                                                DynamicParameter(allocationArgs),
+                                                Some(kernelInfo.Meta.ReturnMeta :> IParamMetaCollection))
+                    p.IsReturned <- true
+                    p
+                else
+                    // No match, no meta
+                    new FunctionParameter(var.Name, 
+                                            var, 
+                                            DynamicParameter(allocationArgs),
+                                            None)
+            else
+                // No return variable or return variable already set
+                new FunctionParameter(var.Name, 
+                                        var, 
+                                        DynamicParameter(allocationArgs),
+                                        None)
         // Add parameter
-        let pInfo = new FunctionParameter(var.Name, 
-                                          var, 
-                                          DynamicParameter(allocationArgs),
-                                          None)
         kernelInfo.GeneratedParameters.Add(pInfo)
        
     member private this.FindArrayAllocationExpression(expr:Expr, step:FunctionPreprocessingStep, kernel:FunctionInfo) =

@@ -84,7 +84,7 @@ type CompilerStep<'T,'U>(tm, processors) =
     /// 
     abstract member Run: 'T * IReadOnlyDictionary<string, obj> -> CompilerStepResult
     
-    override this.Execute(obj, opts) =
+    override this.Execute(obj, opts) =        
         this.Run(obj :?> 'T, opts)
     
 ///

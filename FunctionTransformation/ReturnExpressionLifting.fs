@@ -152,9 +152,14 @@ type ReturnLifting() =
             
     override this.Run(expr, en, opts) =
         let engine = en :?> FunctionTransformationStep
-        if not (engine.FunctionInfo.CustomInfo.ContainsKey("RETURN_VARIABLE")) then
-            engine.Default(expr)
+        if (engine.FunctionInfo :? KernelInfo)  then
+            // Check if there is a parameter returned
+            let p = Seq.tryFind(fun (e:FunctionParameter) -> e.IsReturned) (engine.FunctionInfo.Parameters)
+            if p.IsSome then
+                let rv = p.Value.OriginalPlaceholder
+                LiftReturn(expr, rv, engine)
+            else
+                expr
         else
-            let rv = engine.FunctionInfo.CustomInfo.["RETURN_VARIABLE"] :?> Var            
-            LiftReturn(expr, rv, engine)
+            expr
 

@@ -86,46 +86,6 @@ type AcceleratedArrayMap2Handler() =
                 let mapFunctionInfo = new FunctionInfo(functionInfo, functionParamVars, functionBody, lambda.IsSome)
                 kernelModule.Functions.Add(mapFunctionInfo.ID, mapFunctionInfo)
                 
-
-                // Connect with subkernels
-                (*
-                if firstSubkernel <> null then           
-                    FlowGraphManager.SetNodeInput(kernelModule.FlowGraph,
-                                                  "input_array_1",
-                                                  new FlowGraphNodeInputInfo(
-                                                    KernelOutput(firstSubkernel.FlowGraph, 0),
-                                                    None,
-                                                    paramAttrs.[1]))
-                else
-                    // Store the expression (actual argument) associated to this parameter
-                    FlowGraphManager.SetNodeInput(kernelModule.FlowGraph,
-                                                  "input_array_1",
-                                                  new FlowGraphNodeInputInfo(
-                                                    ActualArgument(cleanArgs.[1]),
-                                                    None,
-                                                    paramAttrs.[1]))
-                if secondSubkernel <> null then           
-                    FlowGraphManager.SetNodeInput(kernelModule.FlowGraph,
-                                                  "input_array_2",
-                                                  new FlowGraphNodeInputInfo(
-                                                    KernelOutput(secondSubkernel.FlowGraph, 0),
-                                                    None,
-                                                    paramAttrs.[2]))
-                else
-                    // Store the expression (actual argument) associated to this parameter
-                    FlowGraphManager.SetNodeInput(kernelModule.FlowGraph,
-                                                  "input_array_2",
-                                                  new FlowGraphNodeInputInfo(
-                                                    ActualArgument(cleanArgs.[2]),
-                                                    None,
-                                                    paramAttrs.[2]))
-                FlowGraphManager.SetNodeInput(kernelModule.FlowGraph,
-                                              "output_array",
-                                              new FlowGraphNodeInputInfo(
-                                                BufferAllocationSize(fun(args, localSize, globalSize) ->
-                                                                            BufferReferenceAllocationExpression("input_array_1")),
-                                                None,
-                                                new ParameterMetadataCollection())) *)
                 // Return module                             
                 Some(kernelModule)
             | _ ->
