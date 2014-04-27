@@ -22,30 +22,45 @@ module Language =
     ///
     [<Flags>]
     type TransferMode =
-    | TransferAlways = 0
-    | TransferIfNeeded = 1
-    | NoTransfer = 2
-    | NoTransferBack = 4
+    | TransferIfNeeded = 0
+    | NoTransfer = 1
+    | NoTransferBack = 2
 
     ///
     ///<summary>
     /// Enumeration describing the strategy to read from a buffer associated to an array parameter
     ///</summary>
     ///
-    [<Flags>]
     type BufferReadMode =
-    | MapBuffer = 0
-    | EnqueueReadBuffer = 1
+    | Auto
+    | MapBuffer
+    | EnqueueReadBuffer
+        override this.ToString() =
+            match this with
+            | Auto ->
+                "Auto"
+            | MapBuffer ->
+                "MapBuffer"
+            | _ ->
+                "EnqueueReadBuffer"
    
     ///
     ///<summary>
     /// Enumeration describing the strategy to write to a buffer associated to an array parameter
     ///</summary>
     ///
-    [<Flags>]
     type BufferWriteMode =
-    | MapBuffer = 0
-    | EnqueueWriteBuffer = 1
+    | Auto
+    | MapBuffer
+    | EnqueueWriteBuffer
+        override this.ToString() =
+            match this with
+            | Auto ->
+                "Auto"
+            | MapBuffer ->
+                "MapBuffer"
+            | _ ->
+                "EnqueueWriteBuffer"
     
     ///
     ///<summary>
@@ -54,7 +69,9 @@ module Language =
     ///
     [<Flags>]
     type MemoryFlags =
-    | None = 0L
+    // None has a different value compared to OpenCL one, cause
+    // in OpenCL it's 0 but this way we couldn't say if the user specifies it or not
+    | None = 8192L
     | ReadWrite = 1L
     | WriteOnly = 2L
     | ReadOnly = 4L
@@ -518,6 +535,39 @@ component of x equals mantissa returned * 2exp *)
         p.[offset + 3] <- data.w
       *)  
 
+    type MemoryFlagsUtil() =
+        static member OnlyAccessFlags(f: MemoryFlags) =
+            f &&& (~~~ (MemoryFlags.None ||| MemoryFlags.CopyHostPointer ||| MemoryFlags.UseHostPointer ||| MemoryFlags.AllocHostPointer ||| MemoryFlags.UsePersistentMemAMD))
+        static member OnlyKernelAccessFlags(f: MemoryFlags) =
+            MemoryFlagsUtil.WithNoHostAccessFlags(MemoryFlagsUtil.OnlyAccessFlags(f))
+        static member OnlyHostAccessFlags(f: MemoryFlags) =
+            MemoryFlagsUtil.WithNoKernelAccessFlags(MemoryFlagsUtil.OnlyAccessFlags(f))
+        static member WithNoKernelAccessFlags(f: MemoryFlags) =
+            f &&& (~~~ (MemoryFlags.ReadOnly ||| MemoryFlags.WriteOnly ||| MemoryFlags.ReadWrite))
+        static member WithNoHostAccessFlags(f: MemoryFlags) =
+            f &&& (~~~ (MemoryFlags.HostReadOnly ||| MemoryFlags.HostWriteOnly ||| MemoryFlags.HostNoAccess))        
+        static member WithNoAccessFlags(f: MemoryFlags) =
+            MemoryFlagsUtil.WithNoHostAccessFlags(MemoryFlagsUtil.WithNoKernelAccessFlags(f))
+        static member HasKernelAccessFlags(f: MemoryFlags) =
+            f &&& (MemoryFlags.ReadOnly ||| MemoryFlags.WriteOnly ||| MemoryFlags.ReadWrite) |> int > 0
+        static member HasHostAccessFlags(f: MemoryFlags) =
+            f &&& (MemoryFlags.HostReadOnly ||| MemoryFlags.HostWriteOnly ||| MemoryFlags.HostNoAccess) |> int > 0
+        static member HasAccessFlags(f: MemoryFlags) =
+            MemoryFlagsUtil.HasHostAccessFlags(f) || MemoryFlagsUtil.HasHostAccessFlags(f)
+        static member CanKernelWrite(f:MemoryFlags) =
+            f &&& MemoryFlags.ReadOnly |> int = 0
+        static member CanKernelReadAndWrite(f:MemoryFlags) =
+            f &&& (MemoryFlags.ReadOnly ||| MemoryFlags.WriteOnly) |> int = 0
+        static member CanKernelRead(f:MemoryFlags) =
+            f &&& MemoryFlags.WriteOnly |> int > 0
+        static member CanHostWrite(f:MemoryFlags) =
+            f &&& (MemoryFlags.HostReadOnly ||| MemoryFlags.HostNoAccess) |> int = 0
+        static member CanHostRead(f:MemoryFlags) =
+            f &&& (MemoryFlags.HostWriteOnly ||| MemoryFlags.HostNoAccess) |> int = 0
+        static member CanHostReadAndWrite(f:MemoryFlags) =
+            f &&& MemoryFlags.HostNoAccess |> int = 0
+            
+            
 
     ///
     ///<summary>
