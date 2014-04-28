@@ -295,7 +295,7 @@ type KernelInfo(signature: MethodInfo,
                     // Must associate new Return Meta
                     let oldParameter = item
                     let newParameter = new FunctionParameter(item.Name, item.OriginalPlaceholder, item.ParameterType, Some(ikInfo.Meta.ReturnMeta :> IParamMetaCollection)) 
-                    newParameter.Access <- oldParameter.Access
+                    newParameter.AccessAnalysis <- oldParameter.AccessAnalysis
                     newParameter.IsReturned <- oldParameter.IsReturned
                     newParameter.ReturnExpr <- oldParameter.ReturnExpr
                     newParameter.Placeholder <- oldParameter.Placeholder
@@ -307,7 +307,7 @@ type KernelInfo(signature: MethodInfo,
             for i = 0 to this.OriginalParameters.Length - 1 do
                 let oldParameter = this.OriginalParameters.[i]
                 let newParameter = kInfo.OriginalParameters.[i]
-                newParameter.Access <- oldParameter.Access
+                newParameter.AccessAnalysis <- oldParameter.AccessAnalysis
                 newParameter.IsReturned <- oldParameter.IsReturned
                 newParameter.ReturnExpr <- oldParameter.ReturnExpr
                 newParameter.Placeholder <- oldParameter.Placeholder

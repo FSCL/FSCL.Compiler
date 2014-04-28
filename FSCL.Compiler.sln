@@ -9,8 +9,6 @@ Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "FSCL.Compiler.Core.Language
 EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "FSCL.Compiler.Core.Types", "Types\FSCL.Compiler.Core.Types.fsproj", "{EC288651-4F88-44D7-9206-7A0260552ECC}"
 EndProject
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "FSCL.Compiler.Core.VectorTypes", "VectorTypes\FSCL.Compiler.Core.VectorTypes.fsproj", "{4E60E123-E793-4FED-A316-B0D6039764E8}"
-EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "FSCL.Compiler.Core.FunctionCodegen", "FunctionCodegen\FSCL.Compiler.Core.FunctionCodegen.fsproj", "{A0EB369A-A29E-4BB9-8B16-CF406E42F534}"
 EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "FSCL.Compiler.Core.FunctionPreprocessing", "FunctionPreprocessing\FSCL.Compiler.Core.FunctionPreprocessing.fsproj", "{ED8C50CD-4155-4D3A-A682-76757FB2B8D7}"
@@ -43,6 +41,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Samples", "Samples", "{9A88
 EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "FSCL.Compiler.Sample.DynamicMetadataSample", "DynamicMetadataSample\FSCL.Compiler.Sample.DynamicMetadataSample.fsproj", "{6BD551F8-4D02-4CDD-9898-B9933FE51B9D}"
 EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "FSCL.Compiler.Core.FunctionPostprocessing", "..\FSCL.Compiler.FunctionPostprocessing\FSCL.Compiler.Core.FunctionPostprocessing.fsproj", "{405A228E-094D-46E0-9C82-63C98EC45873}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -65,10 +65,6 @@ Global
 		{EC288651-4F88-44D7-9206-7A0260552ECC}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{EC288651-4F88-44D7-9206-7A0260552ECC}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{EC288651-4F88-44D7-9206-7A0260552ECC}.Release|Any CPU.Build.0 = Release|Any CPU
-		{4E60E123-E793-4FED-A316-B0D6039764E8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{4E60E123-E793-4FED-A316-B0D6039764E8}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{4E60E123-E793-4FED-A316-B0D6039764E8}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{4E60E123-E793-4FED-A316-B0D6039764E8}.Release|Any CPU.Build.0 = Release|Any CPU
 		{A0EB369A-A29E-4BB9-8B16-CF406E42F534}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{A0EB369A-A29E-4BB9-8B16-CF406E42F534}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A0EB369A-A29E-4BB9-8B16-CF406E42F534}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -129,6 +125,10 @@ Global
 		{6BD551F8-4D02-4CDD-9898-B9933FE51B9D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6BD551F8-4D02-4CDD-9898-B9933FE51B9D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{6BD551F8-4D02-4CDD-9898-B9933FE51B9D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{405A228E-094D-46E0-9C82-63C98EC45873}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{405A228E-094D-46E0-9C82-63C98EC45873}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{405A228E-094D-46E0-9C82-63C98EC45873}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{405A228E-094D-46E0-9C82-63C98EC45873}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

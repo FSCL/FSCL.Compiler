@@ -104,10 +104,6 @@
       <Name>FSCL.Compiler.Core.Util</Name>
       <Project>{2089BA93-E786-42E3-B717-58105C53BB7A}</Project>
     </ProjectReference>
-    <ProjectReference Include="..\VectorTypes\FSCL.Compiler.Core.VectorTypes.fsproj">
-      <Name>FSCL.Compiler.Core.VectorTypes</Name>
-      <Project>4E60E123-E793-4FED-A316-B0D6039764E8</Project>
-    </ProjectReference>
     <ProjectReference Include="..\StepProcessorConfigurationManager\PipelineConfigurationManager.fsproj">
       <Project>{F1124EAE-D35E-4C29-96FE-D88E7ADECC84}</Project>
       <Name>PipelineConfigurationManager</Name>

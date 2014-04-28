@@ -159,6 +159,12 @@ type ModulePreprocessingProcessor = CompilerStepProcessor<KernelModule>
 type FunctionPreprocessingProcessor = CompilerStepProcessor<FunctionInfo>
 ///
 ///<summary>
+///The type of the processors of the function postprocessing step. Alias of CompilerStepProcessor&lt;FunctionInfo * ConnectionsWrapper, ConnectionWrapper&gt;
+///</summary>
+/// 
+type FunctionPostprocessingProcessor = CompilerStepProcessor<FunctionInfo>
+///
+///<summary>
 ///The type of the processors of the function transformation step. Alias of CompilerStepProcessor&lt;Expr, Expr&gt;
 ///</summary>
 /// 

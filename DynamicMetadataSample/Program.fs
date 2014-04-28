@@ -59,15 +59,15 @@ let VectorAddWithMeta([<BufferWriteMode(BufferWriteMode.MapBuffer);
 
 let printMeta(km: KernelModule) =
     Console.WriteLine("  --- KERNEL META --- ")
-    for item in km.Kernel.Info.Metadata.KernelMeta do
+    for item in (km.Kernel.Meta.KernelMeta :?> KernelMetaCollection).Collection do
         Console.WriteLine(item.Key.ToString() + " = " + item.Value.ToString())
     Console.WriteLine("  --- RETURN META --- ")
-    for item in km.Kernel.Info.Metadata.ReturnMeta do
+    for item in (km.Kernel.Meta.ReturnMeta).Collection do
         Console.WriteLine(item.Key.ToString() + " = " + item.Value.ToString())
     Console.WriteLine("  --- PARAMS META --- ")
-    for i = 0 to km.Kernel.Info.OriginalParameters.Length - 1 do
-        Console.WriteLine("  --- PARAM " + km.Kernel.Info.OriginalParameters.[i].Name)    
-        for item in km.Kernel.Info.Metadata.ParamMeta.[i] do
+    for i = 0 to km.Kernel.OriginalParameters.Length - 1 do
+        Console.WriteLine("  --- PARAM " + km.Kernel.OriginalParameters.[i].Name)    
+        for item in km.Kernel.Meta.ParamMeta.[i].Collection do
             Console.WriteLine(item.Key.ToString() + " = " + item.Value.ToString())
     
 [<EntryPoint>]
@@ -84,7 +84,7 @@ let main argv =
     let nometakmodule = compiler.Compile(<@@ VectorAdd @@>) :?> KernelModule
     printMeta(nometakmodule)
     Console.WriteLine("  This means that every possible meta has its default value resulting from invoking its parameterless constructor")
-    Console.WriteLine("  e.g: DeviceType meta for VectorAdd = " + (nometakmodule.Kernel.Info.GetKernelMeta<DeviceTypeAttribute>()).Type.ToString())
+    Console.WriteLine("  e.g: DeviceType meta for VectorAdd = " + (nometakmodule.Kernel.Meta.KernelMeta.Get<DeviceTypeAttribute>()).Type.ToString())
     Console.WriteLine()
     index <- index + 1
 
@@ -93,7 +93,7 @@ let main argv =
     Console.WriteLine("  Compiling VectorAddWithMetaInvariant")
     let kmodule = compiler.Compile(<@@ VectorAddWithMetaInvariant @@>) :?> KernelModule
     printMeta(kmodule)
-    Console.WriteLine("  Checking if the set of metadata values doesn't affect the default (no meta) compilation result: " + (compiler.IsInvariantToMetaCollection(nometakmodule.Kernel.Info.Metadata, kmodule.Kernel.Info.Metadata).ToString()))
+    Console.WriteLine("  Checking if the set of metadata values doesn't affect the default (no meta) compilation result: " + (compiler.IsInvariantToMetaCollection(nometakmodule.Kernel.Meta, kmodule.Kernel.Meta).ToString()))
     Console.WriteLine()
     index <- index + 1
 
@@ -102,7 +102,7 @@ let main argv =
     Console.WriteLine("  Compiling VectorAddWithMetaNotInvariant")
     let kmodule = compiler.Compile(<@@ VectorAddWithMetaNotInvariant @@>) :?> KernelModule
     printMeta(kmodule)
-    Console.WriteLine("  Checking if the set of metadata values doesn't affect the default (no meta) compilation result: " + (compiler.IsInvariantToMetaCollection(nometakmodule.Kernel.Info.Metadata, kmodule.Kernel.Info.Metadata).ToString()))
+    Console.WriteLine("  Checking if the set of metadata values doesn't affect the default (no meta) compilation result: " + (compiler.IsInvariantToMetaCollection(nometakmodule.Kernel.Meta, kmodule.Kernel.Meta).ToString()))
     Console.WriteLine()
     index <- index + 1
     
@@ -112,7 +112,7 @@ let main argv =
     Console.WriteLine("  Compiling VectorAddWithMetaNotInvariantButEqual")
     let kmodule = compiler.Compile(<@@ VectorAddWithMetaNotInvariantButEqual @@>) :?> KernelModule
     printMeta(kmodule)
-    Console.WriteLine("  Checking if the set of metadata values doesn't affect the default (no meta) compilation result: " + (compiler.IsInvariantToMetaCollection(nometakmodule.Kernel.Info.Metadata, kmodule.Kernel.Info.Metadata).ToString()))
+    Console.WriteLine("  Checking if the set of metadata values doesn't affect the default (no meta) compilation result: " + (compiler.IsInvariantToMetaCollection(nometakmodule.Kernel.Meta, kmodule.Kernel.Meta).ToString()))
     Console.WriteLine()
     index <- index + 1
 
@@ -121,7 +121,7 @@ let main argv =
     Console.WriteLine("  Compiling VectorAddWithMeta")
     let kmodule = compiler.Compile(<@@ VectorAddWithMeta @@>) :?> KernelModule
     printMeta(kmodule)
-    Console.WriteLine("  Checking if the set of metadata values doesn't affect the default (no meta) compilation result: " + (compiler.IsInvariantToMetaCollection(nometakmodule.Kernel.Info.Metadata, kmodule.Kernel.Info.Metadata).ToString()))
+    Console.WriteLine("  Checking if the set of metadata values doesn't affect the default (no meta) compilation result: " + (compiler.IsInvariantToMetaCollection(nometakmodule.Kernel.Meta, kmodule.Kernel.Meta).ToString()))
     Console.WriteLine()
     index <- index + 1
     
@@ -138,7 +138,7 @@ let main argv =
                                                     b)), 
                                                     c)) @@>) :?> KernelModule
     printMeta(kmodule)
-    Console.WriteLine("  Checking if the set of metadata values doesn't affect the default (no meta) compilation result: " + (compiler.IsInvariantToMetaCollection(nometakmodule.Kernel.Info.Metadata, kmodule.Kernel.Info.Metadata).ToString()))
+    Console.WriteLine("  Checking if the set of metadata values doesn't affect the default (no meta) compilation result: " + (compiler.IsInvariantToMetaCollection(nometakmodule.Kernel.Meta, kmodule.Kernel.Meta).ToString()))
     Console.WriteLine()
     index <- index + 1
 

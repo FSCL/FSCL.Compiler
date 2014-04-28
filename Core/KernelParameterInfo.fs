@@ -12,7 +12,7 @@ open System.Collections.ObjectModel
 ///</summary>
 ///
 [<Flags>]
-type AccessMode =
+type AccessAnalysisResult =
 | NoAccess = 0
 | ReadAccess = 1
 | WriteAccess = 2
@@ -34,7 +34,7 @@ type IFunctionParameter =
     abstract ParameterType: FunctionParameterType with get
     abstract OriginalPlaceholder: Quotations.Var with get
     abstract Placeholder: Quotations.Var with get
-    abstract Access: AccessMode with get
+    abstract AccessAnalysis: AccessAnalysisResult with get
     abstract ReturnExpr: Expr option with get
     abstract IsReturned: bool with get
     abstract SizeParameters: ReadOnlyCollection<IFunctionParameter> with get
@@ -75,9 +75,9 @@ type FunctionParameter(name:string,
             with get() =
                 this.OriginalPlaceholder
 
-        member this.Access
+        member this.AccessAnalysis
             with get() =
-                this.Access
+                this.AccessAnalysis
 
         member this.ReturnExpr 
             with get() =
@@ -137,7 +137,7 @@ type FunctionParameter(name:string,
         with get() =
             sp
 
-    member val Access = AccessMode.NoAccess
+    member val AccessAnalysis = AccessAnalysisResult.NoAccess
         with get, set
             
     member val ReturnExpr = None

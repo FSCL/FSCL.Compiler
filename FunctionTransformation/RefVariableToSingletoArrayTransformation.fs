@@ -25,15 +25,15 @@ type RefVariableTransformationProcessor() =
         let get = GetGenericMethodInfoFromExpr(<@@ LanguagePrimitives.IntrinsicFunctions.GetArray<int> null 0 @@>, ty)
         let set = GetGenericMethodInfoFromExpr(<@@ LanguagePrimitives.IntrinsicFunctions.SetArray<int> null 0 0 @@>, ty)
         (get, set)
-
-    let UpdateArrayAccessMode(var:string, mode:AccessMode, engine:FunctionTransformationStep) =  
+        (*
+    let UpdateArrayAccessMode(var:string, mode:AccessAnalysisResult, engine:FunctionTransformationStep) =  
         let data = engine.FunctionInfo :?> KernelInfo
         for pInfo in data.Parameters do
             if pInfo.Name = var then
                 let newMode = 
-                    mode ||| pInfo.Access
+                    mode ||| pInfo.AccessAnalysis
                 pInfo.Access <- newMode
-                    
+                    *)
     let GetPlaceholderVar(var, engine:FunctionTransformationStep) = 
         let data = engine.FunctionInfo :?> KernelInfo
         let mutable placeholder = None
@@ -54,8 +54,6 @@ type RefVariableTransformationProcessor() =
             | Patterns.Var(v) ->
                 // Find the placeholder holding the variable of the "arrayzed" ref 
                 let placeholder = GetPlaceholderVar(v.Name, engine)
-                // Update the access mode of this ref
-                UpdateArrayAccessMode(v.Name, AccessMode.ReadAccess, engine)
                 // Create new array access expression
                 let (readArr, _) = GetArrayAccessMethodInfo (placeholder.Type.GetElementType())
                 Expr.Call(readArr, [Expr.Var(placeholder); Expr.Value(0)])
@@ -66,8 +64,6 @@ type RefVariableTransformationProcessor() =
             | Patterns.Var(v) ->
                 // Find the placeholder holding the variable of the "arrayzed" ref 
                 let placeholder = GetPlaceholderVar(v.Name, engine)
-                // Update the access mode of this ref
-                UpdateArrayAccessMode(v.Name, AccessMode.WriteAccess, engine)
                 // Create new array access expression
                 let (_, writeArr) = GetArrayAccessMethodInfo (placeholder.Type.GetElementType())
                 Expr.Call(writeArr, [Expr.Var(placeholder); Expr.Value(0); engine.Continue(args.[1])])

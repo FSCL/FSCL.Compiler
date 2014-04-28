@@ -11,6 +11,8 @@ open FSCL.Compiler.ModuleCodegen
 open FSCL.Compiler.FunctionPreprocessing
 open FSCL.Compiler.FunctionCodegen
 open FSCL.Compiler.FunctionTransformation
+open FSCL.Compiler.FunctionPostprocessing
+open FSCL.Compiler.Plugins.AcceleratedCollections
 open FSCL.Compiler.Types
 open System.Collections.Generic
 open FSCL.Compiler.Util.VerboseCompilationUtil
@@ -33,7 +35,9 @@ type Compiler =
            typeof<FunctionCodegenStep>; 
            typeof<ModuleParsingStep>; 
            typeof<ModulePreprocessingStep>; 
-           typeof<ModuleCodegenStep>; 
+           typeof<ModuleCodegenStep>;
+           typeof<FunctionPostprocessingStep>;
+           typeof<AcceleratedArrayParser>;
            typeof<DefaultTypeHandler> |]
            
     ///

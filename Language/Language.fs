@@ -8,12 +8,13 @@ module Language =
     /// Enumeration describing the address spaces exposed by OpenCL
     ///</summary>
     ///
+    [<Flags>]
     type AddressSpace =
-    | Global = 0
-    | Constant = 1
-    | Local = 2
-    | Private = 3
-    | Auto = 4
+    | Global = 1
+    | Constant = 2
+    | Local = 4
+    | Private = 8
+    | Auto = 0
 
     ///
     ///<summary>
@@ -31,36 +32,22 @@ module Language =
     /// Enumeration describing the strategy to read from a buffer associated to an array parameter
     ///</summary>
     ///
+    [<Flags>]
     type BufferReadMode =
-    | Auto
-    | MapBuffer
-    | EnqueueReadBuffer
-        override this.ToString() =
-            match this with
-            | Auto ->
-                "Auto"
-            | MapBuffer ->
-                "MapBuffer"
-            | _ ->
-                "EnqueueReadBuffer"
+    | Auto = 0
+    | MapBuffer = 1
+    | EnqueueReadBuffer = 2
    
     ///
     ///<summary>
     /// Enumeration describing the strategy to write to a buffer associated to an array parameter
     ///</summary>
     ///
+    [<Flags>]
     type BufferWriteMode =
-    | Auto
-    | MapBuffer
-    | EnqueueWriteBuffer
-        override this.ToString() =
-            match this with
-            | Auto ->
-                "Auto"
-            | MapBuffer ->
-                "MapBuffer"
-            | _ ->
-                "EnqueueWriteBuffer"
+    | Auto = 0
+    | MapBuffer = 1
+    | EnqueueWriteBuffer = 2
     
     ///
     ///<summary>
@@ -71,6 +58,7 @@ module Language =
     type MemoryFlags =
     // None has a different value compared to OpenCL one, cause
     // in OpenCL it's 0 but this way we couldn't say if the user specifies it or not
+    | Auto = 0L
     | None = 8192L
     | ReadWrite = 1L
     | WriteOnly = 2L
@@ -89,6 +77,7 @@ module Language =
     | Cpu = 2
     | Gpu = 4
     | Accelerator = 8
+    | Custom = 16
     | All = 0xFFFFFFFF
     
     ///
@@ -153,7 +142,7 @@ module Language =
         inherit ParameterMetadataAttribute()
         member val Flags = flags with get
         new() =
-            MemoryFlagsAttribute(MemoryFlags.None)
+            MemoryFlagsAttribute(MemoryFlags.Auto)
         override this.ToString() =
             this.Flags.ToString()
         
@@ -167,7 +156,7 @@ module Language =
         inherit ParameterMetadataAttribute()
         member val Mode = mode with get
         new() =
-            BufferReadModeAttribute(BufferReadMode.EnqueueReadBuffer)
+            BufferReadModeAttribute(BufferReadMode.Auto)
         override this.ToString() =
             this.Mode.ToString()
         
@@ -181,7 +170,7 @@ module Language =
         inherit ParameterMetadataAttribute()
         member val Mode = mode with get
         new() =
-            BufferWriteModeAttribute(BufferWriteMode.EnqueueWriteBuffer)    
+            BufferWriteModeAttribute(BufferWriteMode.Auto)    
         override this.ToString() =
             this.Mode.ToString()
         

@@ -13,6 +13,7 @@ do()
 [<Step("FSCL_FUNCTION_CODEGEN_STEP",
       Dependencies = [| "FSCL_FUNCTION_TRANSFORMATION_STEP";
                         "FSCL_FUNCTION_PREPROCESSING_STEP";
+                        "FSCL_FUNCTION_POSTPROCESSING_STEP";
                         "FSCL_MODULE_PREPROCESSING_STEP";
                         "FSCL_MODULE_PARSING_STEP" |])>]
 ///

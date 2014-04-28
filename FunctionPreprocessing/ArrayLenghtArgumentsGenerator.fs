@@ -50,7 +50,6 @@ type ArrayLenghtArgumentsGenerator() =
                                                       FunctionParameterType.SizeParameter,
                                                       None)
                     // A non-array parameter access is always read only
-                    sizeP.Access <- AccessMode.ReadAccess
                     p.SizeParameters.Add(sizeP)
                     sizeParameters.Add(sizeP)     
                     
