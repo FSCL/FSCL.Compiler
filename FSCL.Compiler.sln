@@ -41,8 +41,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Samples", "Samples", "{9A88
 EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "FSCL.Compiler.Sample.DynamicMetadataSample", "DynamicMetadataSample\FSCL.Compiler.Sample.DynamicMetadataSample.fsproj", "{6BD551F8-4D02-4CDD-9898-B9933FE51B9D}"
 EndProject
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "FSCL.Compiler.Core.FunctionPostprocessing", "..\FSCL.Compiler.FunctionPostprocessing\FSCL.Compiler.Core.FunctionPostprocessing.fsproj", "{405A228E-094D-46E0-9C82-63C98EC45873}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
