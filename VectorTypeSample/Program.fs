@@ -28,8 +28,7 @@ let Vector4DManipulation(a: float4[], b: float4[], c: float2[]) =
 [<EntryPoint>]
 let main argv =
     let compiler = Compiler()
-    let mutable result = compiler.Compile(<@ Vector4DAdd @>)
-    result <- compiler.Compile(<@ Vector4DInvert @>)
-    result <- compiler.Compile(<@ Vector4DManipulation @>)
-    
+    let result = compiler.Compile(<@ Vector4DAdd @>)
+    let result = compiler.Compile(<@ Vector4DManipulation @>) :?> KernelModule
+    Console.WriteLine(result.Code.Value.ToString())
     0

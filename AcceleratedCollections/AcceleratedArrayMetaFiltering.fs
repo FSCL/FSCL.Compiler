@@ -19,7 +19,7 @@ type AcceleratedArrayMetaFiltering() =
     
     override this.Run((kmeta, rmeta, pmeta, info), s, opts) =
         let step = s :?> ModuleParsingStep
-        if info.ContainsKey("AcceleratedCollection") then
+        if info <> null && info.ContainsKey("AcceleratedCollection") then
             // Remove the meta for the first param cause it is a lambda/function reference
             pmeta.RemoveAt(0)
             
