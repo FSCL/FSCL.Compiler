@@ -4,8 +4,7 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>6bd551f8-4d02-4cdd-9898-b9933fe51b9d</ProjectGuid>
+    <ProjectGuid>6BD551F8-4D02-4CDD-9898-B9933FE51B9D</ProjectGuid>
     <OutputType>Exe</OutputType>
     <RootNamespace>DynamicMetadataSample</RootNamespace>
     <AssemblyName>DynamicMetadataSample</AssemblyName>
@@ -51,23 +50,19 @@
   <ItemGroup>
     <ProjectReference Include="..\Compiler\FSCL.Compiler.fsproj">
       <Name>FSCL.Compiler</Name>
-      <Project>{5d7c3db1-3300-455e-bf2a-3fb52bdc0595}</Project>
-      <Private>True</Private>
+      <Project>5D7C3DB1-3300-455E-BF2A-3FB52BDC0595</Project>
     </ProjectReference>
     <ProjectReference Include="..\Core\FSCL.Compiler.Core.fsproj">
       <Name>FSCL.Compiler.Core</Name>
-      <Project>{7635ade1-ac00-4587-8117-3faa15be9318}</Project>
-      <Private>True</Private>
+      <Project>7635ADE1-AC00-4587-8117-3FAA15BE9318</Project>
     </ProjectReference>
     <ProjectReference Include="..\Language\FSCL.Compiler.Core.Language.fsproj">
       <Name>FSCL.Compiler.Core.Language</Name>
-      <Project>{02cc39bd-a326-49f6-b5e6-2987eada1ba2}</Project>
-      <Private>True</Private>
+      <Project>{02CC39BD-A326-49F6-B5E6-2987EADA1BA2}</Project>
     </ProjectReference>
     <ProjectReference Include="..\StepProcessorConfigurationManager\PipelineConfigurationManager.fsproj">
       <Name>PipelineConfigurationManager</Name>
-      <Project>{f1124eae-d35e-4c29-96fe-d88e7adecc84}</Project>
-      <Private>True</Private>
+      <Project>{F1124EAE-D35E-4C29-96FE-D88E7ADECC84}</Project>
     </ProjectReference>
   </ItemGroup>
   <PropertyGroup>

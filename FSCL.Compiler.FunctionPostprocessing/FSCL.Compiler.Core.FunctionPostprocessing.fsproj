@@ -4,12 +4,12 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>81C780F7-9C08-4D0C-9849-93B2C65397F9</ProjectGuid>
-    <OutputType>Exe</OutputType>
-    <RootNamespace>AcceleratedArraySample</RootNamespace>
-    <AssemblyName>AcceleratedArraySample</AssemblyName>
+    <ProjectGuid>405A228E-094D-46E0-9C82-63C98EC45873</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <RootNamespace>FSCL.Compiler.FunctionPostprocessing</RootNamespace>
+    <AssemblyName>FSCL.Compiler.Core.FunctionPostprocessing</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
-    <Name>FSCL.Compiler.Sample.AcceleratedArraySample</Name>
+    <Name>FSCL.Compiler.Core.FunctionPostprocessing</Name>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -19,9 +19,7 @@
     <OutputPath>bin\Debug\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <WarningLevel>3</WarningLevel>
-    <PlatformTarget>AnyCPU</PlatformTarget>
-    <DocumentationFile>bin\Debug\AcceleratedArraySample.XML</DocumentationFile>
-    <Prefer32Bit>true</Prefer32Bit>
+    <DocumentationFile>bin\Debug\FSCL.Compiler.FunctionPostprocessing.XML</DocumentationFile>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -30,43 +28,37 @@
     <OutputPath>bin\Release\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
     <WarningLevel>3</WarningLevel>
-    <PlatformTarget>AnyCPU</PlatformTarget>
-    <DocumentationFile>bin\Release\AcceleratedArraySample.XML</DocumentationFile>
-    <Prefer32Bit>true</Prefer32Bit>
+    <DocumentationFile>bin\Release\FSCL.Compiler.FunctionPostprocessing.XML</DocumentationFile>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="mscorlib" />
-    <Reference Include="FSharp.Core, Version=4.3.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
+    <Reference Include="FSharp.Core, Version=4.3.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+      <Private>True</Private>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Numerics" />
-    <Reference Include="System.Xml" />
-    <Reference Include="System.Xml.Linq" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Program.fs" />
-    <None Include="App.config" />
+    <Compile Include="FunctionPostprocessingStep.fs" />
+    <Compile Include="ParametersAccessAnalysis.fs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\AcceleratedCollections\FSCL.Compiler.AcceleratedCollections.fsproj">
-      <Name>FSCL.Compiler.AcceleratedCollections</Name>
-      <Project>5DA99AFC-09CC-4D46-9145-DDAD276BB68E</Project>
-    </ProjectReference>
-    <ProjectReference Include="..\Compiler\FSCL.Compiler.fsproj">
-      <Name>FSCL.Compiler</Name>
-      <Project>5D7C3DB1-3300-455E-BF2A-3FB52BDC0595</Project>
-    </ProjectReference>
     <ProjectReference Include="..\Core\FSCL.Compiler.Core.fsproj">
-      <Name>FSCL.Compiler.Core</Name>
       <Project>7635ADE1-AC00-4587-8117-3FAA15BE9318</Project>
+      <Name>FSCL.Compiler.Core</Name>
     </ProjectReference>
     <ProjectReference Include="..\Language\FSCL.Compiler.Core.Language.fsproj">
-      <Name>FSCL.Compiler.Core.Language</Name>
       <Project>{02CC39BD-A326-49F6-B5E6-2987EADA1BA2}</Project>
+      <Name>FSCL.Compiler.Core.Language</Name>
     </ProjectReference>
     <ProjectReference Include="..\StepProcessorConfigurationManager\PipelineConfigurationManager.fsproj">
       <Project>{F1124EAE-D35E-4C29-96FE-D88E7ADECC84}</Project>
       <Name>PipelineConfigurationManager</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Util\FSCL.Compiler.Core.Util.fsproj">
+      <Project>{2089BA93-E786-42E3-B717-58105C53BB7A}</Project>
+      <Name>FSCL.Compiler.Core.Util</Name>
     </ProjectReference>
   </ItemGroup>
   <PropertyGroup>

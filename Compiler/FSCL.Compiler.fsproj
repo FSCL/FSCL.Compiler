@@ -43,10 +43,6 @@
     <Compile Include="Compiler.fs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\FSCL.Compiler.FunctionPostprocessing\FSCL.Compiler.Core.FunctionPostprocessing.fsproj">
-      <Name>FSCL.Compiler.Core.FunctionPostprocessing</Name>
-      <Project>405A228E-094D-46E0-9C82-63C98EC45873</Project>
-    </ProjectReference>
     <ProjectReference Include="..\AcceleratedCollections\FSCL.Compiler.AcceleratedCollections.fsproj">
       <Name>FSCL.Compiler.AcceleratedCollections</Name>
       <Project>5DA99AFC-09CC-4D46-9145-DDAD276BB68E</Project>
@@ -94,6 +90,10 @@
     <ProjectReference Include="..\Util\FSCL.Compiler.Core.Util.fsproj">
       <Name>FSCL.Compiler.Core.Util</Name>
       <Project>{2089BA93-E786-42E3-B717-58105C53BB7A}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\FSCL.Compiler.FunctionPostprocessing\FSCL.Compiler.Core.FunctionPostprocessing.fsproj">
+      <Project>405A228E-094D-46E0-9C82-63C98EC45873</Project>
+      <Name>FSCL.Compiler.Core.FunctionPostprocessing</Name>
     </ProjectReference>
   </ItemGroup>
   <PropertyGroup>
