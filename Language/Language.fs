@@ -187,6 +187,21 @@ module Language =
             DeviceTypeAttribute(DeviceType.Gpu)   
         override this.ToString() =
             this.Type.ToString()
+            
+        
+    ///
+    ///<summary>
+    ///The attribute to specify a minimum reduction array size before going to cpu
+    ///</summary>
+    ///
+    [<AllowNullLiteral>]
+    type MinReduceArrayLengthAttribute(t: int64) =
+        inherit KernelMetadataAttribute()
+        member val Length = t with get
+        new() =
+            MinReduceArrayLengthAttribute(1L)   
+        override this.ToString() =
+            this.Length.ToString()
 
     // Functions matching attributes for dynamic marking of parameters
     [<ParameterMetadataFunction(typeof<AddressSpaceAttribute>)>]
@@ -209,6 +224,9 @@ module Language =
     [<KernelMetadataFunction(typeof<DeviceTypeAttribute>)>]
     let DEVICE_TYPE(t: DeviceType, a) =
         a
+    [<KernelMetadataFunction(typeof<MinReduceArrayLengthAttribute>)>]
+    let MIN_REDUCE_ARRAY_LENGTH(l:int64, a) = 
+        a     
         
     // Functions matching attributes for dynamic marking of return buffers
     [<ReturnMetadataFunction(typeof<AddressSpaceAttribute>)>]

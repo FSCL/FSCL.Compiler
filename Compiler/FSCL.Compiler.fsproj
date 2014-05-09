@@ -4,14 +4,12 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>5D7C3DB1-3300-455E-BF2A-3FB52BDC0595</ProjectGuid>
     <OutputType>Library</OutputType>
     <RootNamespace>FSCL.Compiler</RootNamespace>
     <AssemblyName>FSCL.Compiler</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <Name>FSCL.Compiler</Name>
-    <ProductVersion>12.0.0</ProductVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -47,13 +45,11 @@
   <ItemGroup>
     <ProjectReference Include="..\..\FSCL.Compiler.FunctionPostprocessing\FSCL.Compiler.Core.FunctionPostprocessing.fsproj">
       <Name>FSCL.Compiler.Core.FunctionPostprocessing</Name>
-      <Project>{405a228e-094d-46e0-9c82-63c98ec45873}</Project>
-      <Private>True</Private>
+      <Project>405A228E-094D-46E0-9C82-63C98EC45873</Project>
     </ProjectReference>
     <ProjectReference Include="..\AcceleratedCollections\FSCL.Compiler.AcceleratedCollections.fsproj">
       <Name>FSCL.Compiler.AcceleratedCollections</Name>
-      <Project>{5da99afc-09cc-4d46-9145-ddad276bb68e}</Project>
-      <Private>True</Private>
+      <Project>5DA99AFC-09CC-4D46-9145-DDAD276BB68E</Project>
     </ProjectReference>
     <ProjectReference Include="..\FunctionCodegen\FSCL.Compiler.Core.FunctionCodegen.fsproj">
       <Name>FSCL.Compiler.Core.FunctionCodegen</Name>
@@ -97,8 +93,7 @@
     </ProjectReference>
     <ProjectReference Include="..\Util\FSCL.Compiler.Core.Util.fsproj">
       <Name>FSCL.Compiler.Core.Util</Name>
-      <Project>{2089ba93-e786-42e3-b717-58105c53bb7a}</Project>
-      <Private>True</Private>
+      <Project>{2089BA93-E786-42E3-B717-58105C53BB7A}</Project>
     </ProjectReference>
   </ItemGroup>
   <PropertyGroup>
