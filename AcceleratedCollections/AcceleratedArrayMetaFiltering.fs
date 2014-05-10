@@ -42,8 +42,8 @@ type AcceleratedArrayMetaFiltering() =
                 else
                     pmeta.Add(new ParamMetaCollection())
                     pmeta.Add(rmeta)
-                // Force output to be read-write (cause it will be switched)     
-                pmeta.[pmeta.Count - 1].Add(new MemoryFlagsAttribute(MemoryFlags.ReadWrite))                
+                // Force output to be read-write (cause it will be switched) 
+                pmeta.[pmeta.Count - 1].AddOrSet(new MemoryFlagsAttribute(MemoryFlags.ReadWrite))
             | _ ->
                 ()
         (kmeta, rmeta, pmeta)

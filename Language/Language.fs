@@ -237,7 +237,10 @@ module Language =
         a
     [<ReturnMetadataFunction(typeof<MemoryFlagsAttribute>)>]
     let RETURN_MEMORY_FLAGS(m: MemoryFlags, a) = 
-        a     
+        a 
+    [<ReturnMetadataFunction(typeof<BufferReadModeAttribute>)>]
+    let RETURN_BUFFER_READ_MODE(m: BufferReadMode, a) = 
+        a         
     [<ReturnMetadataFunction(typeof<BufferWriteModeAttribute>)>]
     let RETURN_BUFFER_WRITE_MODE(m: BufferWriteMode, a) = 
         a     
