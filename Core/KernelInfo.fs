@@ -20,11 +20,12 @@ type IFunctionInfo =
     abstract ID: FunctionInfoID with get
     abstract Signature: MethodInfo with get
 
-    abstract OriginalParameters: ReadOnlyCollection<IFunctionParameter> with get
+    abstract OriginalParameters: ReadOnlyCollection<IOriginalFunctionParameter> with get
     abstract GeneratedParameters: ReadOnlyCollection<IFunctionParameter> with get
     abstract Parameters: ReadOnlyCollection<IFunctionParameter> with get
     abstract ReturnType: Type with get
     abstract Body: Expr with get
+    abstract OriginalBody: Expr with get
 
     abstract member Code: string with get
     
@@ -61,9 +62,9 @@ type FunctionInfo(signature: MethodInfo,
                 this.Signature
         member this.OriginalParameters
             with get() =
-                let roList = new List<IFunctionParameter>()
+                let roList = new List<IOriginalFunctionParameter>()
                 for item in this.OriginalParameters do
-                    roList.Add(item)
+                    roList.Add(item :?> OriginalFunctionParameter)
                 roList.AsReadOnly()
         member this.GeneratedParameters 
             with get() =
@@ -85,6 +86,9 @@ type FunctionInfo(signature: MethodInfo,
         member this.Body
             with get() =
                 this.Body
+        member this.OriginalBody
+            with get() =
+                this.OriginalBody
         member this.Code
             with get() =
                 this.Code

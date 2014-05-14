@@ -193,9 +193,17 @@ type FunctionParameter(name:string,
             None
         with get
                     
-        
+
+type IOriginalFunctionParameter =
+    inherit IFunctionParameter
+    abstract OriginalParamterInfo: ParameterInfo with get
+
 type OriginalFunctionParameter(p: ParameterInfo, placeholder: Quotations.Var, meta: IParamMetaCollection option) =
     inherit FunctionParameter(p.Name, placeholder, NormalParameter, meta)
+    interface IOriginalFunctionParameter with
+        member this.OriginalParamterInfo 
+            with get() =
+                p
 
 
      
