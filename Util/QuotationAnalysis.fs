@@ -191,9 +191,9 @@ module QuotationAnalysis =
             Some(GetCallArgs(e, [v]))
         | _ ->
             None
-
-    // Exptract and lift tupled or curried paramters
-    let LiftArgs(expr) =
+             
+    // Extract and lift tupled or curried paramters
+    let LiftCurriedOrTupledArgs(expr) =
         match LiftTupledArgs(expr) with
         | Some(b, p) ->
             Some(b, p)
@@ -204,6 +204,54 @@ module QuotationAnalysis =
             | _ ->
                 None
         
+    // Extract and lift function parameters in tupled form                               
+    let GetTupledArgs(expr) =
+        let rec GetCallArgs(expr, parameters: Var list) =
+            match expr with
+            | Patterns.Let(v, value, body) ->
+                match value with
+                | Patterns.TupleGet(te, i) ->
+                    GetCallArgs(body, parameters @ [ v ])
+                | _ ->
+                    (parameters)
+            | _ ->
+                (parameters)
+                
+        match expr with
+        | Patterns.Lambda(v, e) ->
+            if v.Name = "tupledArg" then
+                Some(GetCallArgs(e, []))
+            else
+                None
+        | _ ->
+            None
+            
+    // Extract and lift function parameters in curried form
+    let GetCurriedArgs(expr) =
+        let rec GetCallArgs(expr, parameters: Var list) =
+            match expr with
+            | Patterns.Lambda(v, body) ->
+                GetCallArgs(body, parameters @ [ v ])
+            | _ ->
+                (parameters)
+                
+        match expr with
+        | Patterns.Lambda(v, e) ->
+            Some(GetCallArgs(e, [v]))
+        | _ ->
+            None
+
+    let GetCurriedOrTupledArgs(expr) =
+        match GetTupledArgs(expr) with
+        | Some(p) ->
+            Some(p)
+        | None ->
+            match GetCurriedArgs(expr) with
+            | Some(p) ->
+                Some(p)
+            | _ ->
+                None
+
     let rec ParseCall(expr) =                 
         match expr with
         | Patterns.Lambda(v, e) -> 
@@ -214,7 +262,8 @@ module QuotationAnalysis =
             Some(e, mi, a)
         | _ ->
             None 
-            
+      
+    // Parsing utilities      
     let rec GetKernelFromName(e) =     
         let expr, kernelAttrs, returnAttrs = ParseKernelMetadata(e)
         match expr with
@@ -226,8 +275,8 @@ module QuotationAnalysis =
             match mi with
             | DerivedPatterns.MethodWithReflectedDefinition(b) ->          
                 // Extract parameters vars
-                match LiftArgs(b) with
-                | Some(liftBody, paramVars) ->       
+                match GetCurriedOrTupledArgs(b) with
+                | Some(paramVars) ->       
                     MergeWithStaticKernelMeta(kernelAttrs, returnAttrs, mi)
                     let parameters = mi.GetParameters() |> Array.toList
                     let attrs = new List<ParamMetaCollection>()
@@ -235,7 +284,7 @@ module QuotationAnalysis =
                         let paramAttrs = new ParamMetaCollection()
                         MergeWithStaticParameterMeta(paramAttrs, p)
                         attrs.Add(paramAttrs)
-                    Some(mi, paramVars, liftBody, kernelAttrs, returnAttrs, attrs)
+                    Some(mi, paramVars, b, kernelAttrs, returnAttrs, attrs)
                 | _ ->
                     None
             | _ ->
@@ -251,8 +300,8 @@ module QuotationAnalysis =
             match mi with
             | DerivedPatterns.MethodWithReflectedDefinition(b) ->                
                 // Extract parameters vars
-                match LiftArgs(b) with
-                | Some(liftBody, paramVars) ->                    
+                match GetCurriedOrTupledArgs(b) with
+                | Some(paramVars) ->                    
                     MergeWithStaticKernelMeta(kernelAttrs, returnAttrs, mi)
                     let parameters = mi.GetParameters() |> Array.toList
                     let attrs = new List<ParamMetaCollection>()
@@ -263,7 +312,7 @@ module QuotationAnalysis =
                         MergeWithStaticParameterMeta(paramAttrs, parameters.[i])
                         attrs.Add(paramAttrs)
                         args.Add(cleanArgs)
-                    Some(mi, paramVars, liftBody, List.ofSeq args, kernelAttrs, returnAttrs, attrs)
+                    Some(mi, paramVars, b, List.ofSeq args, kernelAttrs, returnAttrs, attrs)
                 | _ ->
                     None
             | _ ->
@@ -275,8 +324,8 @@ module QuotationAnalysis =
         match mi with
         | DerivedPatterns.MethodWithReflectedDefinition(b) ->     
             // Extract parameters vars
-            match LiftArgs(b) with
-            | Some(liftBody, paramVars) ->                    
+            match GetCurriedOrTupledArgs(b) with
+            | Some(paramVars) ->                    
                 let kernelMeta = new KernelMetaCollection()
                 let returnMeta = new ParamMetaCollection()
                 MergeWithStaticKernelMeta(kernelMeta, returnMeta, mi)
@@ -287,7 +336,7 @@ module QuotationAnalysis =
                     let paramAttrs = new ParamMetaCollection()
                     MergeWithStaticParameterMeta(paramAttrs, p)
                     attrs.Add(paramAttrs)
-                Some(mi, paramVars, liftBody, kernelMeta, returnMeta, attrs)
+                Some(mi, paramVars, b, kernelMeta, returnMeta, attrs)
             | _ ->
                 None
         | _ ->

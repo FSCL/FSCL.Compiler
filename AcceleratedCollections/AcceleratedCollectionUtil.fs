@@ -78,9 +78,9 @@ module AcceleratedCollectionUtil =
                     fun (e, mi, a) ->                         
                         match mi with
                         | DerivedPatterns.MethodWithReflectedDefinition(body) ->
-                            match QuotationAnalysis.LiftArgs(body) with
-                            | Some(liftBody, paramVars) ->
-                                (mi, paramVars, liftBody)
+                            match QuotationAnalysis.GetCurriedOrTupledArgs(body) with
+                            | Some(paramVars) ->
+                                (mi, paramVars, body)
                             | _ ->
                                 failwith ("Cannot parse the body of the computation function " + mi.Name)
                         | _ ->

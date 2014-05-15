@@ -94,34 +94,24 @@ type FunctionCodegenStep(tm: TypeManager,
     ///       
     override this.Run(km: KernelModule, opt) =    
         let verb = StartVerboseStep(this, opt)
-
-        opts <- opt            
-        // Process functions
-        for f in km.Functions do
-            this.Process(f.Value :?> FunctionInfo)
-        // Process kernel
-        this.Process(km.Kernel)
-        // Process defines
-        for d in km.ConstantDefines do
-            match d.Value with
-            | e, true ->
-                // Static define
-                km.StaticConstantDefinesCode.Add(d.Key, this.Process(e))
-            | e, false ->
-                ()
+        if not (opt.ContainsKey(CompilerOptions.NoCodegen)) then
+            opts <- opt            
+            // Process functions
+            for f in km.Functions do
+                this.Process(f.Value :?> FunctionInfo)
+            // Process kernel
+            this.Process(km.Kernel)
+            // Process defines
+            for d in km.ConstantDefines do
+                match d.Value with
+                | e, true ->
+                    // Static define
+                    km.StaticConstantDefinesCode.Add(d.Key, this.Process(e))
+                | e, false ->
+                    ()
+         
         let r = ContinueCompilation(km)
-
         StopVerboseStep(verb)
         r
-    (*
-        let mutable output = ""
-        let directives = String.concat "\n" (seq { for i in km.Directives do yield i })
-        let kernels = String.concat "\n\n" (seq { for i in km.Kernels do 
-                                                    if (this.GlobalData.ContainsKey("KERNEL_INFO")) then
-                                                        this.GlobalData.["KERNEL_INFO"] <- i
-                                                    else
-                                                        this.GlobalData.Add("KERNEL_INFO", i)
-                                                    yield (this.Process(i.Signature) + "{\n" + this.Process(i.Body) + "\n}") })
-        (km, directives + "\n" + kernels) *)
 
 

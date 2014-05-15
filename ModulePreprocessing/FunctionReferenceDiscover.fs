@@ -23,9 +23,9 @@ type FunctionReferenceDiscover() =
                     match mi with
                     | DerivedPatterns.MethodWithReflectedDefinition(b) ->
                         if not (foundFunctions.ContainsKey(mi)) then     
-                            match QuotationAnalysis.LiftArgs(b) with
-                            | Some(liftBody, paramVars) ->       
-                                foundFunctions.Add(mi, new FunctionInfo(mi, paramVars, liftBody, false))
+                            match QuotationAnalysis.GetCurriedOrTupledArgs(b) with
+                            | Some(paramVars) ->       
+                                foundFunctions.Add(mi, new FunctionInfo(mi, paramVars, b, false))
                             | _ ->
                                 ()
                     | _ ->

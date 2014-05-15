@@ -11,7 +11,8 @@ open Microsoft.FSharp.Reflection
 open System.Runtime.InteropServices
 
 [<StepProcessor("FSCL_LOCAL_VARS_DISCOVERY_PREPROCESSING_PROCESSOR", 
-                "FSCL_FUNCTION_PREPROCESSING_STEP")>]
+                "FSCL_FUNCTION_PREPROCESSING_STEP",
+                Dependencies=[| "FSCL_ARGS_PREP_LIFTING_PREPROCESSING_PROCESSOR" |])>]
 type LocalVarsDictionaryProcessor() =
     inherit FunctionPreprocessingProcessor()
     

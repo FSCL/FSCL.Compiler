@@ -39,6 +39,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="FunctionPreprocessing.fs" />
+    <Compile Include="ArgsPreparationLifting.fs" />
     <Compile Include="LocalVarsDiscovery.fs" />
     <Compile Include="KernelReturnVarDiscoveryProcessor.fs" />
     <Compile Include="DynamicArrayToParameter.fs" />

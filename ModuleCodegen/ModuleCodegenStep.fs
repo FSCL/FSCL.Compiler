@@ -23,12 +23,12 @@ type ModuleCodegenStep(tm: TypeManager,
         
     override this.Run(k, opts) =
         let verb = StartVerboseStep(this, opts)
+        if not (opts.ContainsKey(CompilerOptions.NoCodegen)) then
+            let state = ref ""
+            for p in processors do
+                state := p.Execute((k, !state), this, opts) :?> string
+            k.Code <- Some(!state)
 
-        let state = ref ""
-        for p in processors do
-            state := p.Execute((k, !state), this, opts) :?> string
-        k.Code <- Some(!state)
-        let r = ContinueCompilation(k)
-        
+        let r = ContinueCompilation(k)        
         StopVerboseStep(verb)
         r
