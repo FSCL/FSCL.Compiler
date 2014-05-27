@@ -44,12 +44,11 @@ type AcceleratedArrayReduceHandler() =
     let gpu_template = 
         <@
             fun(g_idata:int[], [<Local>]sdata:int[], g_odata:int[]) ->
-                let mutable global_index = get_global_id(0)
-
+                let global_index = get_global_id(0)
+                let global_size = get_global_size(0)
                 let mutable accumulator = 0
-                while (global_index < g_idata.Length) do
-                    accumulator <- placeholderComp accumulator g_idata.[global_index]
-                    global_index <- global_index + get_global_size(0)
+                for gi in global_index .. global_size .. g_idata.Length do
+                    accumulator <- placeholderComp accumulator g_idata.[gi]
 
                 let local_index = get_local_id(0)
                 sdata.[local_index] <- accumulator
@@ -64,29 +63,6 @@ type AcceleratedArrayReduceHandler() =
                 
                 if local_index = 0 then
                     g_odata.[get_group_id(0)] <- sdata.[0]
-                (*
-                let tid = get_local_id(0)
-                let i = get_group_id(0) * (get_local_size(0) * 2) + get_local_id(0)
-
-                if(i < g_idata.Length) then 
-                    sdata.[tid] <- g_idata.[i] 
-                else 
-                    sdata.[tid] <- 0
-                if (i + get_local_size(0) < g_idata.Length) then 
-                    sdata.[tid] <- placeholderComp (sdata.[tid]) (g_idata.[i + get_local_size(0)])
-
-                barrier(CLK_LOCAL_MEM_FENCE)
-                // do reduction in shared mem
-                let mutable s = get_local_size(0) >>> 1
-                while (s > 0) do 
-                    if (tid < s) then
-                        sdata.[tid] <- placeholderComp (sdata.[tid]) (sdata.[tid + s])
-                    barrier(CLK_LOCAL_MEM_FENCE)
-                    s <- s >>> 1
-
-                if (tid = 0) then 
-                    g_odata.[get_group_id(0)] <- sdata.[0]
-                *)
         @>
              
     let rec SubstitutePlaceholders(e:Expr, parameters:Dictionary<Var, Var>, accumulatorPlaceholder:Var, actualFunction: MethodInfo) =  
