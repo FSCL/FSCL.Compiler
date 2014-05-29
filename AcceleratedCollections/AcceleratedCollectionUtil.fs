@@ -10,10 +10,40 @@ open Microsoft.FSharp.Quotations
 open Microsoft.FSharp.Core.LanguagePrimitives
 open System
 open FSCL.Compiler.Util
+open Microsoft.FSharp.Reflection
 
 module AcceleratedCollectionUtil =
     let GenKernelName (prefix: string, parameterTypes: Type list, utilityFunction: string) =
         String.concat "_" ([prefix] @ (List.map (fun (t:Type) -> t.Name.Replace(".", "")) parameterTypes) @ [utilityFunction])
+    
+    let ToTupledFunction(f: Expr) = 
+        let rec convertToTupledInternal(tupledVar: Var, tupledIndex: int, e: Expr) =
+            match e with
+            | Patterns.Lambda(v, body) ->
+                Expr.Let(v, 
+                         Expr.TupleGet(Expr.Var(tupledVar), tupledIndex), 
+                         convertToTupledInternal(tupledVar, tupledIndex + 1, body)) 
+            | _ ->
+                e
+        let rec extractParamTypesInternal(currentList: Type list, e: Expr) =
+            match e with
+            | Patterns.Lambda(v, body) ->
+                extractParamTypesInternal(currentList @ [ v.Type ], body)
+            | _ ->
+                currentList
+                   
+        match f with
+        | Patterns.Lambda(v, e) ->
+            if v.Name = "tupledArg" then
+                // Already tupled
+                f
+            else
+                let types = extractParamTypesInternal([], f)
+                let tupledVarType = FSharpType.MakeTupleType(types |> List.toArray)
+                let tupledVar = Quotations.Var("tupledArg", tupledVarType)
+                Expr.Lambda(tupledVar, convertToTupledInternal(tupledVar, 0, e))
+        | _ ->
+            failwith "Cannot convert to tupled an expression that doesn't contain a function"
 
     // Check if the expr is a function reference (name)
     let rec FilterCall(expr, f) =                 

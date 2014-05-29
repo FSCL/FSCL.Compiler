@@ -365,21 +365,17 @@ module QuotationAnalysis =
     let LambdaToMethod(e) = 
         let expr, kernelAttrs, returnAttrs = ParseKernelMetadata(e)
 
-        let mutable body = expr
+        let body = expr
         let mutable parameters = []
+        let mutable returnType = typeof<int>
         
         // Extract args from lambda
-        match LiftTupledArgs(expr) with
+        match LiftCurriedOrTupledArgs(expr) with
         | Some(b, p) ->
-            body <- b
             parameters <- p
+            returnType <- b.Type
         | None ->
-            match LiftCurriedArgs(expr) with
-            | Some(b, p) ->
-                body <- b
-                parameters <- p
-            | _ ->
-                ()
+            ()
 
         // If no lifting occurred this is not a lambda
         if IsComputationalLambda(expr) then
@@ -395,7 +391,7 @@ module QuotationAnalysis =
             let moduleBuilder = assemblyBuilder.DefineDynamicModule(sb.ToString() + "_module");
             let methodBuilder = moduleBuilder.DefineGlobalMethod(
                                     sb.ToString(),
-                                    MethodAttributes.Public ||| MethodAttributes.Static, body.Type, 
+                                    MethodAttributes.Public ||| MethodAttributes.Static, returnType, 
                                     Array.ofList(List.map(fun (v: Var) -> v.Type) parameters))
             for p = 1 to parameters.Length do
                 methodBuilder.DefineParameter(p, ParameterAttributes.None, parameters.[p-1].Name) |> ignore

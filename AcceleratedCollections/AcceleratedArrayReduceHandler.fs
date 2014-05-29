@@ -46,10 +46,10 @@ type AcceleratedArrayReduceHandler() =
             fun(g_idata:int[], [<Local>]sdata:int[], g_odata:int[]) ->
                 let global_index = get_global_id(0)
                 let global_size = get_global_size(0)
-                let mutable accumulator = 0
-                for gi in global_index .. global_size .. g_idata.Length do
+                let mutable accumulator = g_idata.[global_index]
+                for gi in global_index + global_size .. global_size .. g_idata.Length - 1 do
                     accumulator <- placeholderComp accumulator g_idata.[gi]
-
+                                        
                 let local_index = get_local_id(0)
                 sdata.[local_index] <- accumulator
                 barrier(CLK_LOCAL_MEM_FENCE)
@@ -124,7 +124,7 @@ type AcceleratedArrayReduceHandler() =
                 RebuildCall(o, m, List.map(fun (e:Expr) -> SubstitutePlaceholders(e, parameters, accumulatorPlaceholder, actualFunction)) args)
         | Patterns.Let(v, value, body) ->
             if v.Name = "accumulator" then
-                Expr.Let(accumulatorPlaceholder, Expr.Coerce(value, accumulatorPlaceholder.Type), SubstitutePlaceholders(body, parameters, accumulatorPlaceholder, actualFunction))
+                Expr.Let(accumulatorPlaceholder, Expr.Coerce(SubstitutePlaceholders(value, parameters, accumulatorPlaceholder, actualFunction), accumulatorPlaceholder.Type), SubstitutePlaceholders(body, parameters, accumulatorPlaceholder, actualFunction))
             // a and b are "special" vars that hold the params of the reduce function
             else if v.Name = "a" then
                 let a = Quotations.Var("a", actualFunction.GetParameters().[0].ParameterType, false)
@@ -211,6 +211,7 @@ type AcceleratedArrayReduceHandler() =
                         let localHolder = Quotations.Var("local_array", outputArrayType)
                         let outputHolder = Quotations.Var("output_array", outputArrayType)
                         let accumulatorPlaceholder = Quotations.Var("accumulator", outputArrayType.GetElementType())
+                        let tupleHolder = Quotations.Var("tupledArg", FSharpType.MakeTupleType([| inputHolder.Type; localHolder.Type; outputHolder.Type |]))
 
                         // Finally, create the body of the kernel
                         let templateBody, templateParameters = AcceleratedCollectionUtil.GetKernelFromLambda(gpu_template)   
@@ -222,10 +223,16 @@ type AcceleratedArrayReduceHandler() =
                         // Replace functions and references to parameters
                         let functionMatching = new Dictionary<string, MethodInfo>()
                         let newBody = SubstitutePlaceholders(templateBody, parameterMatching, accumulatorPlaceholder, functionInfo)  
-                    
+                        let finalKernel = 
+                            Expr.Lambda(tupleHolder,
+                                Expr.Let(inputHolder, Expr.TupleGet(Expr.Var(tupleHolder), 0),
+                                    Expr.Let(localHolder, Expr.TupleGet(Expr.Var(tupleHolder), 1),
+                                        Expr.Let(outputHolder, Expr.TupleGet(Expr.Var(tupleHolder), 2),
+                                            newBody))))
+
                         let kInfo = new AcceleratedKernelInfo(signature, 
                                                               [ inputHolder; localHolder; outputHolder ],
-                                                              newBody, 
+                                                              finalKernel, 
                                                               meta, 
                                                               "Array.reduce", body)
                         let kernelModule = new KernelModule(kInfo, cleanArgs)
@@ -244,6 +251,7 @@ type AcceleratedArrayReduceHandler() =
                         let blockHolder = Quotations.Var("block", typeof<int>)
                         let outputHolder = Quotations.Var("output_array", outputArrayType)
                         let accumulatorPlaceholder = Quotations.Var("accumulator", outputArrayType.GetElementType())
+                        let tupleHolder = Quotations.Var("tupledArg", FSharpType.MakeTupleType([| inputHolder.Type; outputHolder.Type; blockHolder.Type |]))
 
                         // Finally, create the body of the kernel
                         let templateBody, templateParameters = AcceleratedCollectionUtil.GetKernelFromLambda(cpu_template)   
@@ -255,11 +263,17 @@ type AcceleratedArrayReduceHandler() =
                         // Replace functions and references to parameters
                         let functionMatching = new Dictionary<string, MethodInfo>()
                         let newBody = SubstitutePlaceholders(templateBody, parameterMatching, accumulatorPlaceholder, functionInfo)  
+                        let finalKernel = 
+                            Expr.Lambda(tupleHolder,
+                                Expr.Let(inputHolder, Expr.TupleGet(Expr.Var(tupleHolder), 0),
+                                    Expr.Let(outputHolder, Expr.TupleGet(Expr.Var(tupleHolder), 1),
+                                        Expr.Let(blockHolder, Expr.TupleGet(Expr.Var(tupleHolder), 2),
+                                            newBody))))
                     
                         // Setup kernel module and return
                         let kInfo = new AcceleratedKernelInfo(signature, 
                                                               [ inputHolder; outputHolder; blockHolder ],
-                                                              newBody, 
+                                                              finalKernel, 
                                                               meta, 
                                                               "Array.reduce", body)
                         let kernelModule = new KernelModule(kInfo, cleanArgs)
