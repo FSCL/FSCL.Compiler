@@ -32,7 +32,6 @@ type AcceleratedArrayMap2Handler() =
             // Extract the map2 function 
             match computationFunction with
             | Some(functionInfo, functionParamVars, functionBody) ->
-
                 // We need to get the type of a array whose elements type is the same of the functionInfo parameter
                 let firstInputArrayType = Array.CreateInstance(functionInfo.GetParameters().[0].ParameterType, 0).GetType()
                 let secondInputArrayType = Array.CreateInstance(functionInfo.GetParameters().[1].ParameterType, 0).GetType()
@@ -48,6 +47,7 @@ type AcceleratedArrayMap2Handler() =
                 let input1Holder = Quotations.Var("input_array_1", firstInputArrayType)
                 let input2Holder = Quotations.Var("input_array_2", secondInputArrayType)
                 let outputHolder = Quotations.Var("output_array", outputArrayType)
+                let tupleHolder = Quotations.Var("tupledArg", FSharpType.MakeTupleType([| firstInputArrayType; secondInputArrayType; outputArrayType |]))
 
                 // Finally, create the body of the kernel
                 let globalIdVar = Quotations.Var("global_id", typeof<int>)
@@ -55,24 +55,28 @@ type AcceleratedArrayMap2Handler() =
                 let secondGetElementMethodInfo, _ = AcceleratedCollectionUtil.GetArrayAccessMethodInfo(secondInputArrayType.GetElementType())
                 let _, setElementMethodInfo = AcceleratedCollectionUtil.GetArrayAccessMethodInfo(outputArrayType.GetElementType())
                 let kernelBody = 
-                    Expr.Let(globalIdVar,
-                                Expr.Call(AcceleratedCollectionUtil.FilterCall(<@ get_global_id @>, fun(e, mi, a) -> mi).Value, [ Expr.Value(0) ]),
-                                Expr.Sequential(
-                                    Expr.Call(setElementMethodInfo,
-                                        [ Expr.Var(outputHolder);
-                                            Expr.Var(globalIdVar);
-                                            Expr.Call(functionInfo,
-                                                    [ Expr.Call(firstGetElementMethodInfo,
-                                                                [ Expr.Var(input1Holder);
-                                                                    Expr.Var(globalIdVar) 
-                                                                ]);
-                                                      Expr.Call(secondGetElementMethodInfo,
-                                                                [ Expr.Var(input2Holder);
-                                                                    Expr.Var(globalIdVar) 
-                                                                ])
-                                                    ])
-                                        ]),
-                                     Expr.Var(outputHolder)))
+                    Expr.Lambda(tupleHolder,
+                        Expr.Let(input1Holder, Expr.TupleGet(Expr.Var(tupleHolder), 0),
+                            Expr.Let(input2Holder, Expr.TupleGet(Expr.Var(tupleHolder), 1),
+                                Expr.Let(outputHolder, Expr.TupleGet(Expr.Var(tupleHolder), 2),
+                                    Expr.Let(globalIdVar,
+                                                Expr.Call(AcceleratedCollectionUtil.FilterCall(<@ get_global_id @>, fun(e, mi, a) -> mi).Value, [ Expr.Value(0) ]),
+                                                Expr.Sequential(
+                                                    Expr.Call(setElementMethodInfo,
+                                                        [ Expr.Var(outputHolder);
+                                                            Expr.Var(globalIdVar);
+                                                            Expr.Call(functionInfo,
+                                                                    [ Expr.Call(firstGetElementMethodInfo,
+                                                                                [ Expr.Var(input1Holder);
+                                                                                    Expr.Var(globalIdVar) 
+                                                                                ]);
+                                                                      Expr.Call(secondGetElementMethodInfo,
+                                                                                [ Expr.Var(input2Holder);
+                                                                                    Expr.Var(globalIdVar) 
+                                                                                ])
+                                                                    ])
+                                                        ]),
+                                                     Expr.Var(outputHolder)))))))
                                   
                 // Add current kernelbody
                 let kInfo = new AcceleratedKernelInfo(signature, 

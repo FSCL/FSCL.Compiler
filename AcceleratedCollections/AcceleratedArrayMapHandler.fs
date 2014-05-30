@@ -42,25 +42,29 @@ type AcceleratedArrayMapHandler() =
                                 
                 // Create parameters placeholders
                 let inputHolder = Quotations.Var("input_array", inputArrayType)
-                let outputHolder = Quotations.Var("output_array", outputArrayType) 
+                let outputHolder = Quotations.Var("output_array", outputArrayType)
+                let tupleHolder = Quotations.Var("tupledArg", FSharpType.MakeTupleType([| inputArrayType; outputArrayType |])) 
                     
                 // Finally, create the body of the kernel
                 let globalIdVar = Quotations.Var("global_id", typeof<int>)
                 let getElementMethodInfo, _ = AcceleratedCollectionUtil.GetArrayAccessMethodInfo(inputArrayType.GetElementType())
                 let _, setElementMethodInfo = AcceleratedCollectionUtil.GetArrayAccessMethodInfo(outputArrayType.GetElementType())
                 let kernelBody = 
-                    Expr.Let(globalIdVar,
-                                Expr.Call(AcceleratedCollectionUtil.FilterCall(<@ get_global_id @>, fun(e, mi, a) -> mi).Value, [ Expr.Value(0) ]),
-                                Expr.Call(setElementMethodInfo,
-                                        [ Expr.Var(outputHolder);
-                                            Expr.Var(globalIdVar);
-                                            Expr.Call(functionInfo,
-                                                    [ Expr.Call(getElementMethodInfo,
-                                                                [ Expr.Var(inputHolder);
-                                                                    Expr.Var(globalIdVar) 
-                                                                ])
-                                                    ])
-                                        ]))
+                    Expr.Lambda(tupleHolder,
+                            Expr.Let(inputHolder, Expr.TupleGet(Expr.Var(tupleHolder), 0),
+                                Expr.Let(outputHolder, Expr.TupleGet(Expr.Var(tupleHolder), 1),
+                                    Expr.Let(globalIdVar,
+                                                Expr.Call(AcceleratedCollectionUtil.FilterCall(<@ get_global_id @>, fun(e, mi, a) -> mi).Value, [ Expr.Value(0) ]),
+                                                Expr.Call(setElementMethodInfo,
+                                                        [ Expr.Var(outputHolder);
+                                                            Expr.Var(globalIdVar);
+                                                            Expr.Call(functionInfo,
+                                                                    [ Expr.Call(getElementMethodInfo,
+                                                                                [ Expr.Var(inputHolder);
+                                                                                    Expr.Var(globalIdVar) 
+                                                                                ])
+                                                                    ])
+                                                        ])))))
 
                 let kInfo = new AcceleratedKernelInfo(signature, 
                                                       [ inputHolder; outputHolder ],
