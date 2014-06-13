@@ -1,6 +1,6 @@
 ﻿open System
 open FSCL.Compiler
-open FSCL.Compiler.Language
+open FSCL.Language
 open Microsoft.FSharp.Quotations
 open System.Diagnostics
 open System.Reflection

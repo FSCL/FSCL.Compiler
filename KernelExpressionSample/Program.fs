@@ -2,7 +2,7 @@
 // Compiler user interface
 open FSCL.Compiler
 // Kernel language library
-open FSCL.Compiler.Language
+open FSCL.Language
 open Microsoft.FSharp.Quotations
 open System.Diagnostics
     

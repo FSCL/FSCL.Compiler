@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{F6948C67-9BE0-4747-93F3-F5D29311B692}</ProjectGuid>
+    <OutputType>Exe</OutputType>
+    <RootNamespace>ConfigurationSample</RootNamespace>
+    <AssemblyName>ConfigurationSample</AssemblyName>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug</OutputPath>
+    <DefineConstants>DEBUG</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <Externalconsole>true</Externalconsole>
+    <Tailcalls>false</Tailcalls>
+    <PlatformTarget>
+    </PlatformTarget>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release</OutputPath>
+    <ErrorReport>prompt</ErrorReport>
+    <PlatformTarget>
+    </PlatformTarget>
+    <Externalconsole>true</Externalconsole>
+    <Tailcalls>true</Tailcalls>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="mscorlib" />
+    <Reference Include="FSharp.Core" />
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Numerics" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="AssemblyInfo.fs" />
+    <Compile Include="Program.fs" />
+  </ItemGroup>
+  <Import Project="$(MSBuildExtensionsPath32)\..\Microsoft SDKs\F#\3.1\Framework\v4.0\Microsoft.FSharp.Targets" />
+  <ItemGroup>
+    <ProjectReference Include="..\FSCL.Compiler.Core\FSCL.Compiler.Core.fsproj">
+      <Project>{54853A79-FFD2-469D-B1E4-52F24A4C95D1}</Project>
+      <Name>FSCL.Compiler.Core</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\FSCL.Compiler\FSCL.Compiler.fsproj">
+      <Project>{AA752A37-7BE8-4805-8B12-7A9D1DCF66D6}</Project>
+      <Name>FSCL.Compiler</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\FSCL.Language\FSCL.Language.fsproj">
+      <Project>{7CFBAE88-1C33-4103-B5A7-BB0A55CBBEA6}</Project>
+      <Name>FSCL.Language</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\FSCL.Compiler.Util\FSCL.Compiler.Util.fsproj">
+      <Project>{0E5212B9-8C3A-4E71-864E-114CD8256FA7}</Project>
+      <Name>FSCL.Compiler.Util</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\FSCL.Compiler.NativeComponents\FSCL.Compiler.NativeComponents.fsproj">
+      <Project>{40EBD40B-6C79-4678-8BD0-FB756820FB68}</Project>
+      <Name>FSCL.Compiler.NativeComponents</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="ExplicitConfiguration.xml" />
+    <None Include="ImplicitConfiguration.xml" />
+  </ItemGroup>
+</Project>

@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{0E5212B9-8C3A-4E71-864E-114CD8256FA7}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <RootNamespace>FSCL.Compiler.Util</RootNamespace>
+    <AssemblyName>FSCL.Compiler.Util</AssemblyName>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug</OutputPath>
+    <DefineConstants>DEBUG</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <ConsolePause>false</ConsolePause>
+    <Tailcalls>false</Tailcalls>
+    <PlatformTarget>
+    </PlatformTarget>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release</OutputPath>
+    <ErrorReport>prompt</ErrorReport>
+    <PlatformTarget>
+    </PlatformTarget>
+    <ConsolePause>false</ConsolePause>
+    <Tailcalls>true</Tailcalls>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="mscorlib" />
+    <Reference Include="FSharp.Core" />
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Numerics" />
+  </ItemGroup>
+  <Import Project="$(MSBuildExtensionsPath32)\..\Microsoft SDKs\F#\3.1\Framework\v4.0\Microsoft.FSharp.Targets" />
+  <ItemGroup>
+    <Compile Include="CombinationGenerator.fs" />
+    <Compile Include="GraphUtil.fs" />
+    <Compile Include="IdGenerator.fs" />
+    <Compile Include="QuotationAnalysis.fs" />
+    <Compile Include="VerboseCompilationUtil.fs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\FSCL.Compiler.Core\FSCL.Compiler.Core.fsproj">
+      <Project>{54853A79-FFD2-469D-B1E4-52F24A4C95D1}</Project>
+      <Name>FSCL.Compiler.Core</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\FSCL.Language\FSCL.Language.fsproj">
+      <Project>{7CFBAE88-1C33-4103-B5A7-BB0A55CBBEA6}</Project>
+      <Name>FSCL.Language</Name>
+    </ProjectReference>
+  </ItemGroup>
+</Project>

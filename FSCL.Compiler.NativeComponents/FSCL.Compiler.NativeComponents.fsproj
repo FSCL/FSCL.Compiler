@@ -1,0 +1,134 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{40EBD40B-6C79-4678-8BD0-FB756820FB68}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <RootNamespace>FSCL.Compiler.NativeComponents</RootNamespace>
+    <AssemblyName>FSCL.Compiler.NativeComponents</AssemblyName>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug</OutputPath>
+    <DefineConstants>DEBUG</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <ConsolePause>false</ConsolePause>
+    <Tailcalls>false</Tailcalls>
+    <PlatformTarget>
+    </PlatformTarget>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release</OutputPath>
+    <ErrorReport>prompt</ErrorReport>
+    <PlatformTarget>
+    </PlatformTarget>
+    <ConsolePause>false</ConsolePause>
+    <Tailcalls>true</Tailcalls>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="mscorlib" />
+    <Reference Include="FSharp.Core" />
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Numerics" />
+  </ItemGroup>
+  <Import Project="$(MSBuildExtensionsPath32)\..\Microsoft SDKs\F#\3.1\Framework\v4.0\Microsoft.FSharp.Targets" />
+  <ItemGroup>
+    <Compile Include="TypeHandlers\VectorTypeHandler.fs" />
+    <Compile Include="TypeHandlers\StructTypeHandler.fs" />
+    <Compile Include="TypeHandlers\RefVariableTypeHandler.fs" />
+    <Compile Include="TypeHandlers\DefaultTypeHandler.fs" />
+    <Compile Include="ModulePreprocessing\ModulePreprocessing.fs" />
+    <Compile Include="ModulePreprocessing\ConstantDefineDiscovery.fs" />
+    <Compile Include="ModulePreprocessing\FunctionReferenceDiscover.fs" />
+    <Compile Include="ModulePreprocessing\StructDiscover.fs" />
+    <Compile Include="ModuleParsing\ModuleParsing.fs" />
+    <Compile Include="ModuleParsing\KernelCallExpressionParser.fs" />
+    <Compile Include="ModuleParsing\KernelLambdaParser.fs" />
+    <Compile Include="ModuleParsing\KernelMethodInfoParser.fs" />
+    <Compile Include="ModuleParsing\KernelReferenceParser.fs" />
+    <Compile Include="FunctionPreprocessing\FunctionPreprocessing.fs" />
+    <Compile Include="FunctionPreprocessing\ArgsPreparationLifting.fs" />
+    <Compile Include="FunctionPreprocessing\ArrayLenghtArgumentsGenerator.fs" />
+    <Compile Include="FunctionPreprocessing\DynamicArrayArgumentsParamRefLifting.fs" />
+    <Compile Include="FunctionPreprocessing\DynamicArrayToParameter.fs" />
+    <Compile Include="FunctionPreprocessing\KernelReturnVarDiscoveryProcessor.fs" />
+    <Compile Include="FunctionPreprocessing\LocalVarsDiscovery.fs" />
+    <Compile Include="FunctionPreprocessing\RefTypeToArrayReplacing.fs" />
+    <Compile Include="FunctionTransformation\FunctionTransformation.fs" />
+    <Compile Include="FunctionTransformation\ArgLifting.fs" />
+    <Compile Include="FunctionTransformation\ArrayAccessFlattening.fs" />
+    <Compile Include="FunctionTransformation\ConditionalAssignmentNormalization.fs" />
+    <Compile Include="FunctionTransformation\DynamicAllocationLifting.fs" />
+    <Compile Include="FunctionTransformation\FunctionReturnExpressionDiscoveryProcessor.fs" />
+    <Compile Include="FunctionTransformation\RefVariableToSingletoArrayTransformation.fs" />
+    <Compile Include="FunctionTransformation\ReturnExpressionLifting.fs" />
+    <Compile Include="FunctionTransformation\RightHandlLetInliner.fs" />
+    <Compile Include="FunctionPostprocessing\FunctionPostprocessingStep.fs" />
+    <Compile Include="FunctionPostprocessing\ParametersAccessAnalysis.fs" />
+    <Compile Include="FunctionCodegen\FunctionCodegen.fs" />
+    <Compile Include="FunctionCodegen\ArithmeticOperationCodegen.fs" />
+    <Compile Include="FunctionCodegen\ArrayAccessCodegen.fs" />
+    <Compile Include="FunctionCodegen\CallCodegen.fs" />
+    <Compile Include="FunctionCodegen\CastCodegen.fs" />
+    <Compile Include="FunctionCodegen\DeclarationCodegen.fs" />
+    <Compile Include="FunctionCodegen\ForInCodegen.fs" />
+    <Compile Include="FunctionCodegen\IfThenElseCodegen.fs" />
+    <Compile Include="FunctionCodegen\IntegerRangeLoopCodegen.fs" />
+    <Compile Include="FunctionCodegen\LocalDeclarationCodegen.fs" />
+    <Compile Include="FunctionCodegen\NewVectorCodegen.fs" />
+    <Compile Include="FunctionCodegen\PropertyAccessCodegen.fs" />
+    <Compile Include="FunctionCodegen\SequentialCodegen.fs" />
+    <Compile Include="FunctionCodegen\SignatureCodegen.fs" />
+    <Compile Include="FunctionCodegen\StructAccessCodegen.fs" />
+    <Compile Include="FunctionCodegen\UnionCaseCodegen.fs" />
+    <Compile Include="FunctionCodegen\ValueCodegen.fs" />
+    <Compile Include="FunctionCodegen\VarCodegen.fs" />
+    <Compile Include="FunctionCodegen\VarSetCodegen.fs" />
+    <Compile Include="FunctionCodegen\VectorElementAccessCodegen.fs" />
+    <Compile Include="FunctionCodegen\WhileLoopCodegen.fs" />
+    <Compile Include="ModuleCodegen\ModuleCodegenStep.fs" />
+    <Compile Include="ModuleCodegen\ModuleCodegen.fs" />
+    <Compile Include="AcceleratedCollections\AcceleratedKernelInfo.fs" />
+    <Compile Include="AcceleratedCollections\AcceleratedCollectionUtil.fs">
+    </Compile>
+    <Compile Include="AcceleratedCollections\AcceleratedCollectionHandler.fs" />
+    <Compile Include="AcceleratedCollections\AcceleratedArrayMap2Handler.fs" />
+    <Compile Include="AcceleratedCollections\AcceleratedArrayMapHandler.fs" />
+    <Compile Include="AcceleratedCollections\AcceleratedArrayMetaFiltering.fs" />
+    <Compile Include="AcceleratedCollections\AcceleratedArrayReduceHandler.fs" />
+    <Compile Include="AcceleratedCollections\AcceleratedArrayParser.fs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="TypeHandlers\" />
+    <Folder Include="ModulePreprocessing\" />
+    <Folder Include="ModuleParsing\" />
+    <Folder Include="FunctionPreprocessing\" />
+    <Folder Include="FunctionTransformation\" />
+    <Folder Include="FunctionPostprocessing\" />
+    <Folder Include="FunctionCodegen\" />
+    <Folder Include="ModuleCodegen\" />
+    <Folder Include="AcceleratedCollections\" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\FSCL.Compiler.Core\FSCL.Compiler.Core.fsproj">
+      <Project>{54853A79-FFD2-469D-B1E4-52F24A4C95D1}</Project>
+      <Name>FSCL.Compiler.Core</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\FSCL.Language\FSCL.Language.fsproj">
+      <Project>{7CFBAE88-1C33-4103-B5A7-BB0A55CBBEA6}</Project>
+      <Name>FSCL.Language</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\FSCL.Compiler.Util\FSCL.Compiler.Util.fsproj">
+      <Project>{0E5212B9-8C3A-4E71-864E-114CD8256FA7}</Project>
+      <Name>FSCL.Compiler.Util</Name>
+    </ProjectReference>
+  </ItemGroup>
+</Project>

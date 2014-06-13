@@ -1,0 +1,67 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{7CFBAE88-1C33-4103-B5A7-BB0A55CBBEA6}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <RootNamespace>FSCL.Language</RootNamespace>
+    <AssemblyName>FSCL.Language</AssemblyName>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug</OutputPath>
+    <DefineConstants>DEBUG</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <ConsolePause>false</ConsolePause>
+    <Tailcalls>false</Tailcalls>
+    <PlatformTarget>
+    </PlatformTarget>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release</OutputPath>
+    <ErrorReport>prompt</ErrorReport>
+    <PlatformTarget>
+    </PlatformTarget>
+    <ConsolePause>false</ConsolePause>
+    <Tailcalls>true</Tailcalls>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="mscorlib" />
+    <Reference Include="FSharp.Core" />
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Numerics" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Metadata.fs">
+    </Compile>
+    <Compile Include="IntVectors.fs">
+    </Compile>
+    <Compile Include="SByteVectors.fs">
+    </Compile>
+    <Compile Include="ByteVectors.fs">
+    </Compile>
+    <Compile Include="DoubleVectors.fs">
+    </Compile>
+    <Compile Include="FloatVectors.fs">
+    </Compile>
+    <Compile Include="UIntVector.fs">
+    </Compile>
+    <Compile Include="Language.fs">
+    </Compile>
+  </ItemGroup>
+  <Import Project="$(MSBuildExtensionsPath32)\..\Microsoft SDKs\F#\3.1\Framework\v4.0\Microsoft.FSharp.Targets" />
+  <ItemGroup>
+    <ProjectReference Include="..\FSCL.Compiler.Core\FSCL.Compiler.Core.fsproj">
+      <Project>{54853A79-FFD2-469D-B1E4-52F24A4C95D1}</Project>
+      <Name>FSCL.Compiler.Core</Name>
+    </ProjectReference>
+  </ItemGroup>
+</Project>

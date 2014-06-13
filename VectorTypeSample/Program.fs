@@ -1,6 +1,7 @@
 ﻿// See the 'F# Tutorial' project for more help.
 open FSCL.Compiler
-open FSCL.Compiler.Language
+open FSCL.Language
+open FSCL
 open Microsoft.FSharp.Collections
 open Microsoft.FSharp.Quotations
 open System.Collections.Generic
