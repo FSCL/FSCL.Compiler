@@ -1,6 +1,7 @@
 ﻿namespace FSCL.Compiler.ModulePreprocessing
 
 open FSCL.Compiler
+open FSCL
 open FSCL.Compiler.ModulePreprocessing
 open System.Reflection.Emit
 open System.Collections.Generic
@@ -20,7 +21,7 @@ type StructDiscover() =
         if (FSharpType.IsRecord(t) || (t.IsValueType && (not t.IsPrimitive) && (not t.IsEnum))) then   
             if not (structs.ContainsKey(t)) then
                 // Vector types are implicitely defined in OpenCL: do not collect them
-                if not (t.Assembly.GetName().Name = "FSCL.Compiler.Core.Language") then
+                if (t.GetCustomAttribute<VectorTypeAttribute>() = null) then
                     structs.Add(t, ())
 
         // Recursive analysis

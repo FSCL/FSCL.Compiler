@@ -53,13 +53,13 @@
       <Project>{54853A79-FFD2-469D-B1E4-52F24A4C95D1}</Project>
       <Name>FSCL.Compiler.Core</Name>
     </ProjectReference>
-    <ProjectReference Include="..\FSCL.Language\FSCL.Language.fsproj">
-      <Project>{7CFBAE88-1C33-4103-B5A7-BB0A55CBBEA6}</Project>
-      <Name>FSCL.Language</Name>
-    </ProjectReference>
     <ProjectReference Include="..\FSCL.Compiler.NativeComponents\FSCL.Compiler.NativeComponents.fsproj">
       <Project>{40EBD40B-6C79-4678-8BD0-FB756820FB68}</Project>
       <Name>FSCL.Compiler.NativeComponents</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\FSCL.Language\FSCL.Compiler.Language.fsproj">
+      <Project>{7CFBAE88-1C33-4103-B5A7-BB0A55CBBEA6}</Project>
+      <Name>FSCL.Compiler.Language</Name>
     </ProjectReference>
   </ItemGroup>
 </Project>

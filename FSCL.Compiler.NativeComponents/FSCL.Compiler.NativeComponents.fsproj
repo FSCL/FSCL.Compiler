@@ -63,7 +63,6 @@
     <Compile Include="FunctionPreprocessing\LocalVarsDiscovery.fs" />
     <Compile Include="FunctionPreprocessing\RefTypeToArrayReplacing.fs" />
     <Compile Include="FunctionTransformation\FunctionTransformation.fs" />
-    <Compile Include="FunctionTransformation\ArgLifting.fs" />
     <Compile Include="FunctionTransformation\ArrayAccessFlattening.fs" />
     <Compile Include="FunctionTransformation\ConditionalAssignmentNormalization.fs" />
     <Compile Include="FunctionTransformation\DynamicAllocationLifting.fs" />
@@ -82,7 +81,6 @@
     <Compile Include="FunctionCodegen\ForInCodegen.fs" />
     <Compile Include="FunctionCodegen\IfThenElseCodegen.fs" />
     <Compile Include="FunctionCodegen\IntegerRangeLoopCodegen.fs" />
-    <Compile Include="FunctionCodegen\LocalDeclarationCodegen.fs" />
     <Compile Include="FunctionCodegen\NewVectorCodegen.fs" />
     <Compile Include="FunctionCodegen\PropertyAccessCodegen.fs" />
     <Compile Include="FunctionCodegen\SequentialCodegen.fs" />
@@ -122,13 +120,13 @@
       <Project>{54853A79-FFD2-469D-B1E4-52F24A4C95D1}</Project>
       <Name>FSCL.Compiler.Core</Name>
     </ProjectReference>
-    <ProjectReference Include="..\FSCL.Language\FSCL.Language.fsproj">
-      <Project>{7CFBAE88-1C33-4103-B5A7-BB0A55CBBEA6}</Project>
-      <Name>FSCL.Language</Name>
-    </ProjectReference>
     <ProjectReference Include="..\FSCL.Compiler.Util\FSCL.Compiler.Util.fsproj">
       <Project>{0E5212B9-8C3A-4E71-864E-114CD8256FA7}</Project>
       <Name>FSCL.Compiler.Util</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\FSCL.Language\FSCL.Compiler.Language.fsproj">
+      <Project>{7CFBAE88-1C33-4103-B5A7-BB0A55CBBEA6}</Project>
+      <Name>FSCL.Compiler.Language</Name>
     </ProjectReference>
   </ItemGroup>
 </Project>

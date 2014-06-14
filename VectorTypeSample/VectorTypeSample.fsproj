@@ -53,9 +53,9 @@
       <Project>{54853A79-FFD2-469D-B1E4-52F24A4C95D1}</Project>
       <Name>FSCL.Compiler.Core</Name>
     </ProjectReference>
-    <ProjectReference Include="..\FSCL.Language\FSCL.Language.fsproj">
+    <ProjectReference Include="..\FSCL.Language\FSCL.Compiler.Language.fsproj">
       <Project>{7CFBAE88-1C33-4103-B5A7-BB0A55CBBEA6}</Project>
-      <Name>FSCL.Language</Name>
+      <Name>FSCL.Compiler.Language</Name>
     </ProjectReference>
   </ItemGroup>
 </Project>

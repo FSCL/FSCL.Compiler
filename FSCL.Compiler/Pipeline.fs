@@ -84,6 +84,7 @@ type Pipeline =
                                                                                    let s, m = this.configurationManager.Build(this.configuration)
                                                                                    this.steps <- s
                                                                                    this.usedMetadata <- new Dictionary<Type, MetadataComparer list>(m)
+    
     ///
     ///<summary>
     /// The compiler configuration

@@ -18,7 +18,7 @@ type ModuleCodegen() =
         else
             for f in t.GetFields (BindingFlags.Public ||| BindingFlags.Instance) do
                 print <- print + engine.TypeManager.Print(f.FieldType) + " " + f.Name + ";\n"
-        print <- print + "}\n";
+        print <- print + "};\n";
         print
         
     let PrintDefine(name: string, value: string, engine:ModuleCodegenStep) =

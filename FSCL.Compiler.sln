@@ -1,29 +1,29 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2012
-Project("{4925A630-B079-445d-BCD4-3A9C94FE9307}") = "FSCL.Compiler", "FSCL.Compiler\FSCL.Compiler.fsproj", "{AA752A37-7BE8-4805-8B12-7A9D1DCF66D6}"
-EndProject
 Project("{4925A630-B079-445d-BCD4-3A9C94FE9307}") = "FSCL.Compiler.Core", "FSCL.Compiler.Core\FSCL.Compiler.Core.fsproj", "{54853A79-FFD2-469D-B1E4-52F24A4C95D1}"
 EndProject
-Project("{4925A630-B079-445d-BCD4-3A9C94FE9307}") = "FSCL.Compiler.NativeComponents", "FSCL.Compiler.NativeComponents\FSCL.Compiler.NativeComponents.fsproj", "{40EBD40B-6C79-4678-8BD0-FB756820FB68}"
-EndProject
-Project("{4925A630-B079-445d-BCD4-3A9C94FE9307}") = "FSCL.Language", "FSCL.Language\FSCL.Language.fsproj", "{7CFBAE88-1C33-4103-B5A7-BB0A55CBBEA6}"
+Project("{4925A630-B079-445d-BCD4-3A9C94FE9307}") = "FSCL.Compiler.Language", "FSCL.Language\FSCL.Compiler.Language.fsproj", "{7CFBAE88-1C33-4103-B5A7-BB0A55CBBEA6}"
 EndProject
 Project("{4925A630-B079-445d-BCD4-3A9C94FE9307}") = "FSCL.Compiler.Util", "FSCL.Compiler.Util\FSCL.Compiler.Util.fsproj", "{0E5212B9-8C3A-4E71-864E-114CD8256FA7}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Samples", "Samples", "{F31A993C-2078-43F5-A7EC-84FC1450A7A8}"
+Project("{4925A630-B079-445d-BCD4-3A9C94FE9307}") = "FSCL.Compiler.NativeComponents", "FSCL.Compiler.NativeComponents\FSCL.Compiler.NativeComponents.fsproj", "{40EBD40B-6C79-4678-8BD0-FB756820FB68}"
+EndProject
+Project("{4925A630-B079-445d-BCD4-3A9C94FE9307}") = "FSCL.Compiler", "FSCL.Compiler\FSCL.Compiler.fsproj", "{AA752A37-7BE8-4805-8B12-7A9D1DCF66D6}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Samples", "Samples", "{EFAEC198-2D4B-4719-9C61-89C76F4CE5D3}"
+EndProject
+Project("{4925A630-B079-445d-BCD4-3A9C94FE9307}") = "AcceleratedCollectionSample", "AcceleratedCollectionSample\AcceleratedCollectionSample.fsproj", "{045DAD66-423E-4DB5-A04D-EC6D08007BAA}"
 EndProject
 Project("{4925A630-B079-445d-BCD4-3A9C94FE9307}") = "ComputationSample", "ComputationSample\ComputationSample.fsproj", "{A1719C11-B22E-487A-B664-DAD14CC1898A}"
 EndProject
 Project("{4925A630-B079-445d-BCD4-3A9C94FE9307}") = "ConfigurationSample", "ConfigurationSample\ConfigurationSample.fsproj", "{F6948C67-9BE0-4747-93F3-F5D29311B692}"
 EndProject
+Project("{4925A630-B079-445d-BCD4-3A9C94FE9307}") = "DynamicMetadataSample", "DynamicMetadataSample\DynamicMetadataSample.fsproj", "{B848652D-1070-4E69-BA15-5507B5709D83}"
+EndProject
 Project("{4925A630-B079-445d-BCD4-3A9C94FE9307}") = "KernelExpressionSample", "KernelExpressionSample\KernelExpressionSample.fsproj", "{EE35B15A-AAF0-474E-882F-B4DAF2638616}"
 EndProject
 Project("{4925A630-B079-445d-BCD4-3A9C94FE9307}") = "VectorTypeSample", "VectorTypeSample\VectorTypeSample.fsproj", "{316677E9-E673-46AB-AF85-4EFD3AFE453E}"
-EndProject
-Project("{4925A630-B079-445d-BCD4-3A9C94FE9307}") = "DynamicMetadataSample", "DynamicMetadataSample\DynamicMetadataSample.fsproj", "{B848652D-1070-4E69-BA15-5507B5709D83}"
-EndProject
-Project("{4925A630-B079-445d-BCD4-3A9C94FE9307}") = "AcceleratedCollectionSample", "AcceleratedCollectionSample\AcceleratedCollectionSample.fsproj", "{045DAD66-423E-4DB5-A04D-EC6D08007BAA}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -39,10 +39,6 @@ Global
 		{0E5212B9-8C3A-4E71-864E-114CD8256FA7}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0E5212B9-8C3A-4E71-864E-114CD8256FA7}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0E5212B9-8C3A-4E71-864E-114CD8256FA7}.Release|Any CPU.Build.0 = Release|Any CPU
-		{1484F6F7-284F-4EF2-94EC-AB46196E18A1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{1484F6F7-284F-4EF2-94EC-AB46196E18A1}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{1484F6F7-284F-4EF2-94EC-AB46196E18A1}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{1484F6F7-284F-4EF2-94EC-AB46196E18A1}.Release|Any CPU.Build.0 = Release|Any CPU
 		{316677E9-E673-46AB-AF85-4EFD3AFE453E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{316677E9-E673-46AB-AF85-4EFD3AFE453E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{316677E9-E673-46AB-AF85-4EFD3AFE453E}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -81,14 +77,14 @@ Global
 		{F6948C67-9BE0-4747-93F3-F5D29311B692}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
-		{A1719C11-B22E-487A-B664-DAD14CC1898A} = {F31A993C-2078-43F5-A7EC-84FC1450A7A8}
-		{F6948C67-9BE0-4747-93F3-F5D29311B692} = {F31A993C-2078-43F5-A7EC-84FC1450A7A8}
-		{EE35B15A-AAF0-474E-882F-B4DAF2638616} = {F31A993C-2078-43F5-A7EC-84FC1450A7A8}
-		{316677E9-E673-46AB-AF85-4EFD3AFE453E} = {F31A993C-2078-43F5-A7EC-84FC1450A7A8}
-		{B848652D-1070-4E69-BA15-5507B5709D83} = {F31A993C-2078-43F5-A7EC-84FC1450A7A8}
-		{045DAD66-423E-4DB5-A04D-EC6D08007BAA} = {F31A993C-2078-43F5-A7EC-84FC1450A7A8}
+		{045DAD66-423E-4DB5-A04D-EC6D08007BAA} = {EFAEC198-2D4B-4719-9C61-89C76F4CE5D3}
+		{A1719C11-B22E-487A-B664-DAD14CC1898A} = {EFAEC198-2D4B-4719-9C61-89C76F4CE5D3}
+		{F6948C67-9BE0-4747-93F3-F5D29311B692} = {EFAEC198-2D4B-4719-9C61-89C76F4CE5D3}
+		{B848652D-1070-4E69-BA15-5507B5709D83} = {EFAEC198-2D4B-4719-9C61-89C76F4CE5D3}
+		{EE35B15A-AAF0-474E-882F-B4DAF2638616} = {EFAEC198-2D4B-4719-9C61-89C76F4CE5D3}
+		{316677E9-E673-46AB-AF85-4EFD3AFE453E} = {EFAEC198-2D4B-4719-9C61-89C76F4CE5D3}
 	EndGlobalSection
 	GlobalSection(MonoDevelopProperties) = preSolution
-		StartupItem = FSCL.Compiler\FSCL.Compiler.fsproj
+		StartupItem = FSCL.Compiler.Core\FSCL.Compiler.Core.fsproj
 	EndGlobalSection
 EndGlobal

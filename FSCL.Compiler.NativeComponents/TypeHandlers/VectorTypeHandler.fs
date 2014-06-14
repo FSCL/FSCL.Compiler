@@ -1,6 +1,7 @@
 ﻿namespace FSCL.Compiler.Types
 
 open System
+open FSCL
 open FSCL.Compiler
 open Microsoft.FSharp.Quotations
 open System.Collections.Generic
@@ -13,7 +14,7 @@ type VectorTypeHandler() =
     override this.Print(t:Type) =
         let arrayStar = if t.IsArray then "*" else ""
         let plainType = if t.IsArray then t.GetElementType() else t
-        if plainType.Assembly.GetName().Name = "FSCL.Compiler.Core.Language" then
+        if plainType.GetCustomAttribute<VectorTypeAttribute>() <> null then
             plainType.Name + arrayStar
         else
             ""
@@ -25,6 +26,6 @@ type VectorTypeHandler() =
             
     override this.CanHandle(t) = 
         if t.IsArray then
-            t.GetElementType().Assembly.GetName().Name = "FSCL.Compiler.Core.Language"
+            t.GetElementType().GetCustomAttribute<VectorTypeAttribute>() <> null
         else
-            t.Assembly.GetName().Name = "FSCL.Compiler.Core.Language"  
+            t.GetCustomAttribute<VectorTypeAttribute>() <> null

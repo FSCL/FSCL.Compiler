@@ -5,7 +5,7 @@
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{7CFBAE88-1C33-4103-B5A7-BB0A55CBBEA6}</ProjectGuid>
     <OutputType>Library</OutputType>
-    <RootNamespace>FSCL.Language</RootNamespace>
+    <RootNamespace>FSCL.Compiler.Language</RootNamespace>
     <AssemblyName>FSCL.Language</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
   </PropertyGroup>
