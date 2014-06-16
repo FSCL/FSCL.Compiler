@@ -44,15 +44,16 @@
     </Compile>
     <Compile Include="IntVectors.fs">
     </Compile>
+    <Compile Include="UIntVectors.fs" />
     <Compile Include="SByteVectors.fs">
     </Compile>
     <Compile Include="ByteVectors.fs">
     </Compile>
+    <Compile Include="CharVectors.fs" />
+    <Compile Include="UCharVectors.fs" />
     <Compile Include="DoubleVectors.fs">
     </Compile>
     <Compile Include="FloatVectors.fs">
-    </Compile>
-    <Compile Include="UIntVector.fs">
     </Compile>
     <Compile Include="Language.fs">
     </Compile>

@@ -75,12 +75,28 @@ type byte2 =
 
         static member (+) (f1: byte2, f2: byte2) =
             byte2(Array.map2 (+) (f1.Components) (f2.Components))
+        static member (+) (f1: byte, f2: byte2) =
+            byte2(Array.map2 (+) ([| f1;f1 |]) (f2.Components))
+        static member (+) (f1: byte2, f2: byte) =
+            byte2(Array.map2 (+) (f1.Components) ([| f2;f2 |]))
         static member (-) (f1: byte2, f2: byte2) =
             byte2(Array.map2 (-) (f1.Components) (f2.Components))
+        static member (-) (f1: byte, f2: byte2) =
+            byte2(Array.map2 (-) ([| f1;f1 |]) (f2.Components))
+        static member (-) (f1: byte2, f2: byte) =
+            byte2(Array.map2 (-) (f1.Components) ([| f2;f2 |]))
         static member (*) (f1: byte2, f2: byte2) =
             byte2(Array.map2 (*) (f1.Components) (f2.Components))
+        static member (*) (f1: byte, f2: byte2) =
+            byte2(Array.map2 (*) ([| f1;f1;|]) (f2.Components))
+        static member (*) (f1: byte2, f2: byte) =
+            byte2(Array.map2 (*) ([| f2;f2 |]) (f1.Components))
         static member (/) (f1: byte2, f2: byte2) =
             byte2(Array.map2 (/) (f1.Components) (f2.Components))
+        static member (/) (f1: byte, f2: byte2) =
+            byte2(Array.map2 (/) ([| f1;f1 |]) (f2.Components))
+        static member (/) (f1: byte2, f2: byte) =
+            byte2(Array.map2 (/) (f1.Components) ([| f2;f2 |]))
         
         static member (>>=) (f1: byte2, f2: byte2) =
             sbyte2(Array.map2 (fun e1 e2 -> if e1 >= e2 then -1y else 0y) (f1.Components) (f2.Components))
@@ -90,7 +106,7 @@ type byte2 =
             sbyte2(Array.map2 (fun e1 e2 -> if e1 = e2 then -1y else 0y) (f1.Components) (f2.Components))
         static member (<=>) (f1: byte2, f2: byte2) =
             sbyte2(Array.map2 (fun e1 e2 -> if e1 <> e2 then -1y else 0y) (f1.Components) (f2.Components))
-            
+
         static member vload(offset: int64, p: Array) =
             let stream = new MemoryStream()
             let f = new Binary.BinaryFormatter()
@@ -99,6 +115,7 @@ type byte2 =
             let data = f.Deserialize(stream) :?> byte2
             stream.Close()
             data
+
     end
     
 [<Struct>]
@@ -338,12 +355,28 @@ type byte3 =
 
         static member (+) (f1: byte3, f2: byte3) =
             byte3(Array.map2 (+) (f1.Components) (f2.Components))
+        static member (+) (f1: byte, f2: byte3) =
+            byte3(Array.map2 (+) ([| f1;f1;f1 |]) (f2.Components))
+        static member (+) (f1: byte3, f2: byte) =
+            byte3(Array.map2 (+) (f1.Components) ([| f2;f2;f2 |]))
         static member (-) (f1: byte3, f2: byte3) =
             byte3(Array.map2 (-) (f1.Components) (f2.Components))
+        static member (-) (f1: byte, f2: byte3) =
+            byte3(Array.map2 (-) ([| f1;f1;f1 |]) (f2.Components))
+        static member (-) (f1: byte3, f2: byte) =
+            byte3(Array.map2 (-) (f1.Components) ([| f2;f2;f2 |]))
         static member (*) (f1: byte3, f2: byte3) =
             byte3(Array.map2 (*) (f1.Components) (f2.Components))
+        static member (*) (f1: byte, f2: byte3) =
+            byte3(Array.map2 (*) ([| f1;f1;f1 |]) (f2.Components))
+        static member (*) (f1: byte3, f2: byte) =
+            byte3(Array.map2 (*) ([| f2;f2;f2 |]) (f1.Components))
         static member (/) (f1: byte3, f2: byte3) =
             byte3(Array.map2 (/) (f1.Components) (f2.Components))
+        static member (/) (f1: byte, f2: byte3) =
+            byte3(Array.map2 (/) ([| f1;f1;f1 |]) (f2.Components))
+        static member (/) (f1: byte3, f2: byte) =
+            byte3(Array.map2 (/) (f1.Components) ([| f2;f2;f2 |]))
         
         static member (>>=) (f1: byte3, f2: byte3) =
             sbyte3(Array.map2 (fun e1 e2 -> if e1 >= e2 then -1y else 0y) (f1.Components) (f2.Components))
@@ -1982,12 +2015,28 @@ type byte4 =
 
         static member (+) (f1: byte4, f2: byte4) =
             byte4(Array.map2 (+) (f1.Components) (f2.Components))
+        static member (+) (f1: byte, f2: byte4) =
+            byte4(Array.map2 (+) ([| f1;f1;f1;f1 |]) (f2.Components))
+        static member (+) (f1: byte4, f2: byte) =
+            byte4(Array.map2 (+) (f1.Components) ([| f2;f2;f2;f2 |]))
         static member (-) (f1: byte4, f2: byte4) =
             byte4(Array.map2 (-) (f1.Components) (f2.Components))
+        static member (-) (f1: byte, f2: byte4) =
+            byte4(Array.map2 (-) ([| f1;f1;f1;f1 |]) (f2.Components))
+        static member (-) (f1: byte4, f2: byte) =
+            byte4(Array.map2 (-) (f1.Components) ([| f2;f2;f2;f2 |]))
         static member (*) (f1: byte4, f2: byte4) =
             byte4(Array.map2 (*) (f1.Components) (f2.Components))
+        static member (*) (f1: byte, f2: byte4) =
+            byte4(Array.map2 (*) ([| f1;f1;f1;f1 |]) (f2.Components))
+        static member (*) (f1: byte4, f2: byte) =
+            byte4(Array.map2 (*) ([| f2;f2;f2;f2 |]) (f1.Components))
         static member (/) (f1: byte4, f2: byte4) =
             byte4(Array.map2 (/) (f1.Components) (f2.Components))
+        static member (/) (f1: byte, f2: byte4) =
+            byte4(Array.map2 (/) ([| f1;f1;f1;f1 |]) (f2.Components))
+        static member (/) (f1: byte4, f2: byte) =
+            byte4(Array.map2 (/) (f1.Components) ([| f2;f2;f2;f2 |]))
         
         static member (>>=) (f1: byte4, f2: byte4) =
             sbyte4(Array.map2 (fun e1 e2 -> if e1 >= e2 then -1y else 0y) (f1.Components) (f2.Components))
@@ -2005,10 +2054,7 @@ type byte4 =
             stream.Seek(offset * 4L, SeekOrigin.Begin) |> ignore
             let data = f.Deserialize(stream) :?> byte4
             stream.Close()
-            data
+            data          
     end    
-    
-type uchar2 = byte2
-type uchar3 = byte3
-type uchar4 = byte4  
+
 // **************************************************************************************************************

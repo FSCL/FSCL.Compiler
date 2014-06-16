@@ -492,23 +492,1057 @@ module Language =
     let fmod(x: float, y: float) =
         x - y * (Math.Truncate(x / y))
 
-    // Convertions
-    let convert_float2(a:obj) =
-        a :?> float2
-    let convert_float3(a:obj) =
-        a :?> float3
-    let convert_float4(a:obj) =
-        a :?> float4
-    let convert_int2(a:obj) =
-        a :?> int2
-    let convert_int3(a:obj) =
-        a :?> int3
-    let convert_int4(a:obj) =
-        a :?> int4
-    let convert_uchar4(a:obj) =
-        a :?> uchar4
+    type VectorTypeConversionRoundingMode =
+    | rte = 0
+    | rtz = 1
+    | rtp = 2
+    | rtn = 3
 
+    // Conversions
+    type int2 with
+        [<VectorTypeConversion>]
+        member this.ToFloat2(?rounding: VectorTypeConversionRoundingMode) =
+            float2(this.x |> float32, this.y |> float32)
+        [<VectorTypeConversion>]
+        member this.ToDouble2(?rounding: VectorTypeConversionRoundingMode) =
+            double2(this.x |> float, this.y |> float)
+        [<VectorTypeConversion>]
+        member this.ToUInt2(?rounding: VectorTypeConversionRoundingMode) =
+            uint2(this.x |> uint32, this.y |> uint32)
+        [<VectorTypeConversion>]
+        member this.ToSByte2(?rounding: VectorTypeConversionRoundingMode) =
+            sbyte2(this.x |> sbyte, this.y |> sbyte)
+        [<VectorTypeConversion>]
+        member this.ToByte2(?rounding: VectorTypeConversionRoundingMode) =
+            byte2(this.x |> byte, this.y |> byte)
+        [<VectorTypeConversion>]
+        member this.ToChar2(?rounding: VectorTypeConversionRoundingMode) =
+            char2(this.x |> char, this.y |> char)
+        [<VectorTypeConversion>]
+        member this.ToUChar2(?rounding: VectorTypeConversionRoundingMode) =
+            uchar2(this.x |> byte, this.y |> byte)
+        [<VectorTypeConversion>]
+        member this.ToFloat2Sat(?rounding: VectorTypeConversionRoundingMode) =
+            float2(this.x |> float32, this.y |> float32)
+        [<VectorTypeConversion>]
+        member this.ToDouble2Sat(?rounding: VectorTypeConversionRoundingMode) =
+            double2(this.x |> float, this.y |> float)
+        [<VectorTypeConversion>]
+        member this.ToUInt2Sat(?rounding: VectorTypeConversionRoundingMode) =
+            uint2(this.x |> uint32, this.y |> uint32)
+        [<VectorTypeConversion>]
+        member this.ToSByte2Sat(?rounding: VectorTypeConversionRoundingMode) =
+            sbyte2(this.x |> sbyte, this.y |> sbyte)
+        [<VectorTypeConversion>]
+        member this.ToByte2Sat(?rounding: VectorTypeConversionRoundingMode) =
+            byte2(this.x |> byte, this.y |> byte)
+        [<VectorTypeConversion>]
+        member this.ToChar2Sat(?rounding: VectorTypeConversionRoundingMode) =
+            char2(this.x |> char, this.y |> char)
+        [<VectorTypeConversion>]
+        member this.ToUChar2Sat(?rounding: VectorTypeConversionRoundingMode) =
+            uchar2(this.x |> byte, this.y |> byte)
+    type int3 with
+        [<VectorTypeConversion>]
+        member this.ToFloat3(?rounding: VectorTypeConversionRoundingMode) =
+            float3(this.x |> float32, this.y |> float32, this.z |> float32)
+        [<VectorTypeConversion>]
+        member this.ToDouble3(?rounding: VectorTypeConversionRoundingMode) =
+            double3(this.x |> float, this.y |> float, this.z |> float)
+        [<VectorTypeConversion>]
+        member this.ToUInt3(?rounding: VectorTypeConversionRoundingMode) =
+            uint3(this.x |> uint32, this.y |> uint32, this.z |> uint32)
+        [<VectorTypeConversion>]
+        member this.ToSByte3(?rounding: VectorTypeConversionRoundingMode) =
+            sbyte3(this.x |> sbyte, this.y |> sbyte, this.z |> sbyte)
+        [<VectorTypeConversion>]
+        member this.ToByte3(?rounding: VectorTypeConversionRoundingMode) =
+            byte3(this.x |> byte, this.y |> byte, this.z |> byte)
+        [<VectorTypeConversion>]
+        member this.ToChar3(?rounding: VectorTypeConversionRoundingMode) =
+            char3(this.x |> char, this.y |> char, this.z |> char)
+        [<VectorTypeConversion>]
+        member this.ToUChar3(?rounding: VectorTypeConversionRoundingMode) =
+            uchar3(this.x |> byte, this.y |> byte, this.z |> byte)
+        [<VectorTypeConversion>]
+        member this.ToFloat3Sat(?rounding: VectorTypeConversionRoundingMode) =
+            float3(this.x |> float32, this.y |> float32, this.z |> float32)
+        [<VectorTypeConversion>]
+        member this.ToDouble3Sat(?rounding: VectorTypeConversionRoundingMode) =
+            double3(this.x |> float, this.y |> float, this.z |> float)
+        [<VectorTypeConversion>]
+        member this.ToUInt3Sat(?rounding: VectorTypeConversionRoundingMode) =
+            uint3(this.x |> uint32, this.y |> uint32, this.z |> uint32)
+        [<VectorTypeConversion>]
+        member this.ToSByte3Sat(?rounding: VectorTypeConversionRoundingMode) =
+            sbyte3(this.x |> sbyte, this.y |> sbyte, this.z |> sbyte)
+        [<VectorTypeConversion>]
+        member this.ToByte3Sat(?rounding: VectorTypeConversionRoundingMode) =
+            byte3(this.x |> byte, this.y |> byte, this.z |> byte)
+        [<VectorTypeConversion>]
+        member this.ToChar3Sat(?rounding: VectorTypeConversionRoundingMode) =
+            char3(this.x |> char, this.y |> char, this.z |> char)
+        [<VectorTypeConversion>]
+        member this.ToUChar3Sat(?rounding: VectorTypeConversionRoundingMode) =
+            uchar3(this.x |> byte, this.y |> byte, this.z |> byte)
+    type int4 with
+        [<VectorTypeConversion>]
+        member this.ToFloat4(?rounding: VectorTypeConversionRoundingMode) =
+            float4(this.x |> float32, this.y |> float32, this.z |> float32, this.w |> float32)
+        [<VectorTypeConversion>]
+        member this.ToDouble4(?rounding: VectorTypeConversionRoundingMode) =
+            double4(this.x |> float, this.y |> float, this.z |> float, this.w |> float)
+        [<VectorTypeConversion>]
+        member this.ToUInt4(?rounding: VectorTypeConversionRoundingMode) =
+            uint4(this.x |> uint32, this.y |> uint32, this.z |> uint32, this.w |> uint32)
+        [<VectorTypeConversion>]
+        member this.ToSByte4(?rounding: VectorTypeConversionRoundingMode) =
+            sbyte4(this.x |> sbyte, this.y |> sbyte, this.z |> sbyte, this.w |> sbyte)
+        [<VectorTypeConversion>]
+        member this.ToByte4(?rounding: VectorTypeConversionRoundingMode) =
+            byte4(this.x |> byte, this.y |> byte, this.z |> byte, this.w |> byte)
+        [<VectorTypeConversion>]
+        member this.ToChar4(?rounding: VectorTypeConversionRoundingMode) =
+            char4(this.x |> char, this.y |> char, this.z |> char, this.w |> char)
+        [<VectorTypeConversion>]
+        member this.ToUChar4(?rounding: VectorTypeConversionRoundingMode) =
+            uchar4(this.x |> byte, this.y |> byte, this.z |> byte, this.w |> byte)
+        [<VectorTypeConversion>]
+        member this.ToFloat4Sat(?rounding: VectorTypeConversionRoundingMode) =
+            float4(this.x |> float32, this.y |> float32, this.z |> float32, this.w |> float32)
+        [<VectorTypeConversion>]
+        member this.ToDouble4Sat(?rounding: VectorTypeConversionRoundingMode) =
+            double4(this.x |> float, this.y |> float, this.z |> float, this.w |> float)
+        [<VectorTypeConversion>]
+        member this.ToUInt4Sat(?rounding: VectorTypeConversionRoundingMode) =
+            uint4(this.x |> uint32, this.y |> uint32, this.z |> uint32, this.w |> uint32)
+        [<VectorTypeConversion>]
+        member this.ToSByte4Sat(?rounding: VectorTypeConversionRoundingMode) =
+            sbyte4(this.x |> sbyte, this.y |> sbyte, this.z |> sbyte, this.w |> sbyte)
+        [<VectorTypeConversion>]
+        member this.ToByte4Sat(?rounding: VectorTypeConversionRoundingMode) =
+            byte4(this.x |> byte, this.y |> byte, this.z |> byte, this.w |> byte)
+        [<VectorTypeConversion>]
+        member this.ToChar4Sat(?rounding: VectorTypeConversionRoundingMode) =
+            char4(this.x |> char, this.y |> char, this.z |> char, this.w |> char)
+        [<VectorTypeConversion>]
+        member this.ToUChar4Sat(?rounding: VectorTypeConversionRoundingMode) =
+            uchar4(this.x |> byte, this.y |> byte, this.z |> byte, this.w |> byte)
 
+    type uint2 with
+        [<VectorTypeConversion>]
+        member this.ToFloat2(?rounding: VectorTypeConversionRoundingMode) =
+            float2(this.x |> float32, this.y |> float32)
+        [<VectorTypeConversion>]
+        member this.ToDouble2(?rounding: VectorTypeConversionRoundingMode) =
+            double2(this.x |> float, this.y |> float)
+        [<VectorTypeConversion>]
+        member this.ToInt2(?rounding: VectorTypeConversionRoundingMode) =
+            int2(this.x |> int32, this.y |> int32)
+        [<VectorTypeConversion>]
+        member this.ToSByte2(?rounding: VectorTypeConversionRoundingMode) =
+            sbyte2(this.x |> sbyte, this.y |> sbyte)
+        [<VectorTypeConversion>]
+        member this.ToByte2(?rounding: VectorTypeConversionRoundingMode) =
+            byte2(this.x |> byte, this.y |> byte)
+        [<VectorTypeConversion>]
+        member this.ToChar2(?rounding: VectorTypeConversionRoundingMode) =
+            char2(this.x |> char, this.y |> char)
+        [<VectorTypeConversion>]
+        member this.ToUChar2(?rounding: VectorTypeConversionRoundingMode) =
+            uchar2(this.x |> byte, this.y |> byte)
+        [<VectorTypeConversion>]
+        member this.ToFloat2Sat(?rounding: VectorTypeConversionRoundingMode) =
+            float2(this.x |> float32, this.y |> float32)
+        [<VectorTypeConversion>]
+        member this.ToDouble2Sat(?rounding: VectorTypeConversionRoundingMode) =
+            double2(this.x |> float, this.y |> float)
+        [<VectorTypeConversion>]
+        member this.ToInt2Sat(?rounding: VectorTypeConversionRoundingMode) =
+            int2(this.x |> int32, this.y |> int32)
+        [<VectorTypeConversion>]
+        member this.ToSByte2Sat(?rounding: VectorTypeConversionRoundingMode) =
+            sbyte2(this.x |> sbyte, this.y |> sbyte)
+        [<VectorTypeConversion>]
+        member this.ToByte2Sat(?rounding: VectorTypeConversionRoundingMode) =
+            byte2(this.x |> byte, this.y |> byte)
+        [<VectorTypeConversion>]
+        member this.ToChar2Sat(?rounding: VectorTypeConversionRoundingMode) =
+            char2(this.x |> char, this.y |> char)
+        [<VectorTypeConversion>]
+        member this.ToUChar2Sat(?rounding: VectorTypeConversionRoundingMode) =
+            uchar2(this.x |> byte, this.y |> byte)
+    type uint3 with
+        [<VectorTypeConversion>]
+        member this.ToFloat3(?rounding: VectorTypeConversionRoundingMode) =
+            float3(this.x |> float32, this.y |> float32, this.z |> float32)
+        [<VectorTypeConversion>]
+        member this.ToDouble3(?rounding: VectorTypeConversionRoundingMode) =
+            double3(this.x |> float, this.y |> float, this.z |> float)
+        [<VectorTypeConversion>]
+        member this.ToInt3(?rounding: VectorTypeConversionRoundingMode) =
+            int3(this.x |> int32, this.y |> int32, this.z |> int32)
+        [<VectorTypeConversion>]
+        member this.ToSByte3(?rounding: VectorTypeConversionRoundingMode) =
+            sbyte3(this.x |> sbyte, this.y |> sbyte, this.z |> sbyte)
+        [<VectorTypeConversion>]
+        member this.ToByte3(?rounding: VectorTypeConversionRoundingMode) =
+            byte3(this.x |> byte, this.y |> byte, this.z |> byte)
+        [<VectorTypeConversion>]
+        member this.ToChar3(?rounding: VectorTypeConversionRoundingMode) =
+            char3(this.x |> char, this.y |> char, this.z |> char)
+        [<VectorTypeConversion>]
+        member this.ToUChar3(?rounding: VectorTypeConversionRoundingMode) =
+            uchar3(this.x |> byte, this.y |> byte, this.z |> byte)
+
+        [<VectorTypeConversion>]
+        member this.ToFloat3Sat(?rounding: VectorTypeConversionRoundingMode) =
+            float3(this.x |> float32, this.y |> float32, this.z |> float32)
+        [<VectorTypeConversion>]
+        member this.ToDouble3Sat(?rounding: VectorTypeConversionRoundingMode) =
+            double3(this.x |> float, this.y |> float, this.z |> float)
+        [<VectorTypeConversion>]
+        member this.ToInt3Sat(?rounding: VectorTypeConversionRoundingMode) =
+            int3(this.x |> int32, this.y |> int32, this.z |> int32)
+        [<VectorTypeConversion>]
+        member this.ToSByte3Sat(?rounding: VectorTypeConversionRoundingMode) =
+            sbyte3(this.x |> sbyte, this.y |> sbyte, this.z |> sbyte)
+        [<VectorTypeConversion>]
+        member this.ToByte3Sat(?rounding: VectorTypeConversionRoundingMode) =
+            byte3(this.x |> byte, this.y |> byte, this.z |> byte)
+        [<VectorTypeConversion>]
+        member this.ToChar3Sat(?rounding: VectorTypeConversionRoundingMode) =
+            char3(this.x |> char, this.y |> char, this.z |> char)
+        [<VectorTypeConversion>]
+        member this.ToUChar3Sat(?rounding: VectorTypeConversionRoundingMode) =
+            uchar3(this.x |> byte, this.y |> byte, this.z |> byte)
+    type uint4 with
+        [<VectorTypeConversion>]
+        member this.ToFloat4(?rounding: VectorTypeConversionRoundingMode) =
+            float4(this.x |> float32, this.y |> float32, this.z |> float32, this.w |> float32)
+        [<VectorTypeConversion>]
+        member this.ToDouble4(?rounding: VectorTypeConversionRoundingMode) =
+            double4(this.x |> float, this.y |> float, this.z |> float, this.w |> float)
+        [<VectorTypeConversion>]
+        member this.ToInt4(?rounding: VectorTypeConversionRoundingMode) =
+            int4(this.x |> int32, this.y |> int32, this.z |> int32, this.w |> int32)
+        [<VectorTypeConversion>]
+        member this.ToSByte4(?rounding: VectorTypeConversionRoundingMode) =
+            sbyte4(this.x |> sbyte, this.y |> sbyte, this.z |> sbyte, this.w |> sbyte)
+        [<VectorTypeConversion>]
+        member this.ToByte4(?rounding: VectorTypeConversionRoundingMode) =
+            byte4(this.x |> byte, this.y |> byte, this.z |> byte, this.w |> byte)
+        [<VectorTypeConversion>]
+        member this.ToChar4(?rounding: VectorTypeConversionRoundingMode) =
+            char4(this.x |> char, this.y |> char, this.z |> char, this.w |> char)
+        [<VectorTypeConversion>]
+        member this.ToUChar4(?rounding: VectorTypeConversionRoundingMode) =
+            uchar4(this.x |> byte, this.y |> byte, this.z |> byte, this.w |> byte)
+        [<VectorTypeConversion>]
+        member this.ToFloat4Sat(?rounding: VectorTypeConversionRoundingMode) =
+            float4(this.x |> float32, this.y |> float32, this.z |> float32, this.w |> float32)
+        [<VectorTypeConversion>]
+        member this.ToDouble4Sat(?rounding: VectorTypeConversionRoundingMode) =
+            double4(this.x |> float, this.y |> float, this.z |> float, this.w |> float)
+        [<VectorTypeConversion>]
+        member this.ToInt4Sat(?rounding: VectorTypeConversionRoundingMode) =
+            int4(this.x |> int32, this.y |> int32, this.z |> int32, this.w |> int32)
+        [<VectorTypeConversion>]
+        member this.ToSByte4Sat(?rounding: VectorTypeConversionRoundingMode) =
+            sbyte4(this.x |> sbyte, this.y |> sbyte, this.z |> sbyte, this.w |> sbyte)
+        [<VectorTypeConversion>]
+        member this.ToByte4Sat(?rounding: VectorTypeConversionRoundingMode) =
+            byte4(this.x |> byte, this.y |> byte, this.z |> byte, this.w |> byte)
+        [<VectorTypeConversion>]
+        member this.ToChar4Sat(?rounding: VectorTypeConversionRoundingMode) =
+            char4(this.x |> char, this.y |> char, this.z |> char, this.w |> char)
+        [<VectorTypeConversion>]
+        member this.ToUChar4Sat(?rounding: VectorTypeConversionRoundingMode) =
+            uchar4(this.x |> byte, this.y |> byte, this.z |> byte, this.w |> byte)
+
+    type sbyte2 with
+        [<VectorTypeConversion>]
+        member this.ToFloat2(?rounding: VectorTypeConversionRoundingMode) =
+            float2(this.x |> float32, this.y |> float32)
+        [<VectorTypeConversion>]
+        member this.ToDouble2(?rounding: VectorTypeConversionRoundingMode) =
+            double2(this.x |> float, this.y |> float)
+        [<VectorTypeConversion>]
+        member this.ToUInt2(?rounding: VectorTypeConversionRoundingMode) =
+            uint2(this.x |> uint32, this.y |> uint32)
+        [<VectorTypeConversion>]
+        member this.ToInt2(?rounding: VectorTypeConversionRoundingMode) =
+            int2(this.x |> int, this.y |> int)
+        [<VectorTypeConversion>]
+        member this.ToByte2(?rounding: VectorTypeConversionRoundingMode) =
+            byte2(this.x |> byte, this.y |> byte)
+        [<VectorTypeConversion>]
+        member this.ToSByte2(?rounding: VectorTypeConversionRoundingMode) =
+            char2(this.Components)
+        [<VectorTypeConversion>]
+        member this.ToChar2(?rounding: VectorTypeConversionRoundingMode) =
+            char2(this.x |> char, this.y |> char)
+        [<VectorTypeConversion>]
+        member this.ToUChar2(?rounding: VectorTypeConversionRoundingMode) =
+            uchar2(this.x |> byte, this.y |> byte)
+        [<VectorTypeConversion>]
+        member this.ToFloat2Sat(?rounding: VectorTypeConversionRoundingMode) =
+            float2(this.x |> float32, this.y |> float32)
+        [<VectorTypeConversion>]
+        member this.ToDouble2Sat(?rounding: VectorTypeConversionRoundingMode) =
+            double2(this.x |> float, this.y |> float)
+        [<VectorTypeConversion>]
+        member this.ToUInt2Sat(?rounding: VectorTypeConversionRoundingMode) =
+            uint2(this.x |> uint32, this.y |> uint32)
+        [<VectorTypeConversion>]
+        member this.ToInt2Sat(?rounding: VectorTypeConversionRoundingMode) =
+            int2(this.x |> int, this.y |> int)
+        [<VectorTypeConversion>]
+        member this.ToByte2Sat(?rounding: VectorTypeConversionRoundingMode) =
+            byte2(this.x |> byte, this.y |> byte)
+        [<VectorTypeConversion>]
+        member this.ToSByte2Sat(?rounding: VectorTypeConversionRoundingMode) =
+            char2(this.Components)
+        [<VectorTypeConversion>]
+        member this.ToChar2Sat(?rounding: VectorTypeConversionRoundingMode) =
+            char2(this.x |> char, this.y |> char)
+        [<VectorTypeConversion>]
+        member this.ToUChar2Sat(?rounding: VectorTypeConversionRoundingMode) =
+            uchar2(this.x |> byte, this.y |> byte)
+    type sbyte3 with
+        [<VectorTypeConversion>]
+        member this.ToFloat3(?rounding: VectorTypeConversionRoundingMode) =
+            float3(this.x |> float32, this.y |> float32, this.z |> float32)
+        [<VectorTypeConversion>]
+        member this.ToDouble3(?rounding: VectorTypeConversionRoundingMode) =
+            double3(this.x |> float, this.y |> float, this.z |> float)
+        [<VectorTypeConversion>]
+        member this.ToUInt3(?rounding: VectorTypeConversionRoundingMode) =
+            uint3(this.x |> uint32, this.y |> uint32, this.z |> uint32)
+        [<VectorTypeConversion>]
+        member this.ToInt3(?rounding: VectorTypeConversionRoundingMode) =
+            int3(this.x |> int, this.y |> int, this.z |> int)
+        [<VectorTypeConversion>]
+        member this.ToByte3(?rounding: VectorTypeConversionRoundingMode) =
+            byte3(this.x |> byte, this.y |> byte, this.z |> byte)
+        [<VectorTypeConversion>]
+        member this.ToChar3(?rounding: VectorTypeConversionRoundingMode) =
+            char3(this.x |> char, this.y |> char, this.z |> char)
+        [<VectorTypeConversion>]
+        member this.ToUChar3(?rounding: VectorTypeConversionRoundingMode) =
+            uchar3(this.x |> byte, this.y |> byte, this.z |> byte)
+        [<VectorTypeConversion>]
+        member this.ToFloat3Sat(?rounding: VectorTypeConversionRoundingMode) =
+            float3(this.x |> float32, this.y |> float32, this.z |> float32)
+        [<VectorTypeConversion>]
+        member this.ToDouble3Sat(?rounding: VectorTypeConversionRoundingMode) =
+            double3(this.x |> float, this.y |> float, this.z |> float)
+        [<VectorTypeConversion>]
+        member this.ToUInt3Sat(?rounding: VectorTypeConversionRoundingMode) =
+            uint3(this.x |> uint32, this.y |> uint32, this.z |> uint32)
+        [<VectorTypeConversion>]
+        member this.ToInt3Sat(?rounding: VectorTypeConversionRoundingMode) =
+            int3(this.x |> int, this.y |> int, this.z |> int)
+        [<VectorTypeConversion>]
+        member this.ToByte3Sat(?rounding: VectorTypeConversionRoundingMode) =
+            byte3(this.x |> byte, this.y |> byte, this.z |> byte)
+        [<VectorTypeConversion>]
+        member this.ToChar3Sat(?rounding: VectorTypeConversionRoundingMode) =
+            char3(this.x |> char, this.y |> char, this.z |> char)
+        [<VectorTypeConversion>]
+        member this.ToUChar3Sat(?rounding: VectorTypeConversionRoundingMode) =
+            uchar3(this.x |> byte, this.y |> byte, this.z |> byte)
+    type sbyte4 with
+        [<VectorTypeConversion>]
+        member this.ToFloat4(?rounding: VectorTypeConversionRoundingMode) =
+            float4(this.x |> float32, this.y |> float32, this.z |> float32, this.w |> float32)
+        [<VectorTypeConversion>]
+        member this.ToDouble4(?rounding: VectorTypeConversionRoundingMode) =
+            double4(this.x |> float, this.y |> float, this.z |> float, this.w |> float)
+        [<VectorTypeConversion>]
+        member this.ToUInt4(?rounding: VectorTypeConversionRoundingMode) =
+            uint4(this.x |> uint32, this.y |> uint32, this.z |> uint32, this.w |> uint32)
+        [<VectorTypeConversion>]
+        member this.ToInt4(?rounding: VectorTypeConversionRoundingMode) =
+            int4(this.x |> int, this.y |> int, this.z |> int, this.w |> int)
+        [<VectorTypeConversion>]
+        member this.ToByte4(?rounding: VectorTypeConversionRoundingMode) =
+            byte4(this.x |> byte, this.y |> byte, this.z |> byte, this.w |> byte)
+        [<VectorTypeConversion>]
+        member this.ToChar4(?rounding: VectorTypeConversionRoundingMode) =
+            char4(this.x |> char, this.y |> char, this.z |> char, this.w |> char)
+        [<VectorTypeConversion>]
+        member this.ToUChar4(?rounding: VectorTypeConversionRoundingMode) =
+            uchar4(this.x |> byte, this.y |> byte, this.z |> byte, this.w |> byte)
+        [<VectorTypeConversion>]
+        member this.ToFloat4Sat(?rounding: VectorTypeConversionRoundingMode) =
+            float4(this.x |> float32, this.y |> float32, this.z |> float32, this.w |> float32)
+        [<VectorTypeConversion>]
+        member this.ToDouble4Sat(?rounding: VectorTypeConversionRoundingMode) =
+            double4(this.x |> float, this.y |> float, this.z |> float, this.w |> float)
+        [<VectorTypeConversion>]
+        member this.ToUInt4Sat(?rounding: VectorTypeConversionRoundingMode) =
+            uint4(this.x |> uint32, this.y |> uint32, this.z |> uint32, this.w |> uint32)
+        [<VectorTypeConversion>]
+        member this.ToInt4Sat(?rounding: VectorTypeConversionRoundingMode) =
+            int4(this.x |> int, this.y |> int, this.z |> int, this.w |> int)
+        [<VectorTypeConversion>]
+        member this.ToByte4Sat(?rounding: VectorTypeConversionRoundingMode) =
+            byte4(this.x |> byte, this.y |> byte, this.z |> byte, this.w |> byte)
+        [<VectorTypeConversion>]
+        member this.ToChar4Sat(?rounding: VectorTypeConversionRoundingMode) =
+            char4(this.x |> char, this.y |> char, this.z |> char, this.w |> char)
+        [<VectorTypeConversion>]
+        member this.ToUChar4Sat(?rounding: VectorTypeConversionRoundingMode) =
+            uchar4(this.x |> byte, this.y |> byte, this.z |> byte, this.w |> byte)
+
+    type byte2 with
+        [<VectorTypeConversion>]
+        member this.ToFloat2(?rounding: VectorTypeConversionRoundingMode) =
+            float2(this.x |> float32, this.y |> float32)
+        [<VectorTypeConversion>]
+        member this.ToDouble2(?rounding: VectorTypeConversionRoundingMode) =
+            double2(this.x |> float, this.y |> float)
+        [<VectorTypeConversion>]
+        member this.ToUInt2(?rounding: VectorTypeConversionRoundingMode) =
+            uint2(this.x |> uint32, this.y |> uint32)
+        [<VectorTypeConversion>]
+        member this.ToInt2(?rounding: VectorTypeConversionRoundingMode) =
+            int2(this.x |> int, this.y |> int)
+        [<VectorTypeConversion>]
+        member this.ToSByte2(?rounding: VectorTypeConversionRoundingMode) =
+            sbyte2(this.x |> sbyte, this.y |> sbyte)
+        [<VectorTypeConversion>]
+        member this.ToChar2(?rounding: VectorTypeConversionRoundingMode) =
+            char2(this.x |> char, this.y |> char)
+        [<VectorTypeConversion>]
+        member this.ToUChar2(?rounding: VectorTypeConversionRoundingMode) =
+            uchar2(this.x |> byte, this.y |> byte)
+
+        [<VectorTypeConversion>]
+        member this.ToFloat2Sat(?rounding: VectorTypeConversionRoundingMode) =
+            float2(this.x |> float32, this.y |> float32)
+        [<VectorTypeConversion>]
+        member this.ToDouble2Sat(?rounding: VectorTypeConversionRoundingMode) =
+            double2(this.x |> float, this.y |> float)
+        [<VectorTypeConversion>]
+        member this.ToUInt2Sat(?rounding: VectorTypeConversionRoundingMode) =
+            uint2(this.x |> uint32, this.y |> uint32)
+        [<VectorTypeConversion>]
+        member this.ToInt2Sat(?rounding: VectorTypeConversionRoundingMode) =
+            int2(this.x |> int, this.y |> int)
+        [<VectorTypeConversion>]
+        member this.ToSByte2Sat(?rounding: VectorTypeConversionRoundingMode) =
+            sbyte2(this.x |> sbyte, this.y |> sbyte)
+        [<VectorTypeConversion>]
+        member this.ToChar2Sat(?rounding: VectorTypeConversionRoundingMode) =
+            char2(this.x |> char, this.y |> char)
+        [<VectorTypeConversion>]
+        member this.ToUChar2Sat(?rounding: VectorTypeConversionRoundingMode) =
+            uchar2(this.x |> byte, this.y |> byte)
+    type byte3 with
+        [<VectorTypeConversion>]
+        member this.ToFloat3(?rounding: VectorTypeConversionRoundingMode) =
+            float3(this.x |> float32, this.y |> float32, this.z |> float32)
+        [<VectorTypeConversion>]
+        member this.ToDouble3(?rounding: VectorTypeConversionRoundingMode) =
+            double3(this.x |> float, this.y |> float, this.z |> float)
+        [<VectorTypeConversion>]
+        member this.ToUInt3(?rounding: VectorTypeConversionRoundingMode) =
+            uint3(this.x |> uint32, this.y |> uint32, this.z |> uint32)
+        [<VectorTypeConversion>]
+        member this.ToInt3(?rounding: VectorTypeConversionRoundingMode) =
+            int3(this.x |> int, this.y |> int, this.z |> int)
+        [<VectorTypeConversion>]
+        member this.ToSByte3(?rounding: VectorTypeConversionRoundingMode) =
+            sbyte3(this.x |> sbyte, this.y |> sbyte, this.z |> sbyte)
+        [<VectorTypeConversion>]
+        member this.ToChar3(?rounding: VectorTypeConversionRoundingMode) =
+            char3(this.x |> char, this.y |> char, this.z |> char)
+        [<VectorTypeConversion>]
+        member this.ToUChar3(?rounding: VectorTypeConversionRoundingMode) =
+            uchar3(this.x |> byte, this.y |> byte, this.z |> byte)
+        [<VectorTypeConversion>]
+        member this.ToFloat3Sat(?rounding: VectorTypeConversionRoundingMode) =
+            float3(this.x |> float32, this.y |> float32, this.z |> float32)
+        [<VectorTypeConversion>]
+        member this.ToDouble3Sat(?rounding: VectorTypeConversionRoundingMode) =
+            double3(this.x |> float, this.y |> float, this.z |> float)
+        [<VectorTypeConversion>]
+        member this.ToUInt3Sat(?rounding: VectorTypeConversionRoundingMode) =
+            uint3(this.x |> uint32, this.y |> uint32, this.z |> uint32)
+        [<VectorTypeConversion>]
+        member this.ToInt3Sat(?rounding: VectorTypeConversionRoundingMode) =
+            int3(this.x |> int, this.y |> int, this.z |> int)
+        [<VectorTypeConversion>]
+        member this.ToSByte3Sat(?rounding: VectorTypeConversionRoundingMode) =
+            sbyte3(this.x |> sbyte, this.y |> sbyte, this.z |> sbyte)
+        [<VectorTypeConversion>]
+        member this.ToChar3Sat(?rounding: VectorTypeConversionRoundingMode) =
+            char3(this.x |> char, this.y |> char, this.z |> char)
+        [<VectorTypeConversion>]
+        member this.ToUChar3Sat(?rounding: VectorTypeConversionRoundingMode) =
+            uchar3(this.x |> byte, this.y |> byte, this.z |> byte)
+    type byte4 with
+        [<VectorTypeConversion>]
+        member this.ToFloat4(?rounding: VectorTypeConversionRoundingMode) =
+            float4(this.x |> float32, this.y |> float32, this.z |> float32, this.w |> float32)
+        [<VectorTypeConversion>]
+        member this.ToDouble4(?rounding: VectorTypeConversionRoundingMode) =
+            double4(this.x |> float, this.y |> float, this.z |> float, this.w |> float)
+        [<VectorTypeConversion>]
+        member this.ToUInt4(?rounding: VectorTypeConversionRoundingMode) =
+            uint4(this.x |> uint32, this.y |> uint32, this.z |> uint32, this.w |> uint32)
+        [<VectorTypeConversion>]
+        member this.ToInt4(?rounding: VectorTypeConversionRoundingMode) =
+            int4(this.x |> int, this.y |> int, this.z |> int, this.w |> int)
+        [<VectorTypeConversion>]
+        member this.ToSByte4(?rounding: VectorTypeConversionRoundingMode) =
+            sbyte4(this.x |> sbyte, this.y |> sbyte, this.z |> sbyte, this.w |> sbyte)
+        [<VectorTypeConversion>]
+        member this.ToChar4(?rounding: VectorTypeConversionRoundingMode) =
+            char4(this.x |> char, this.y |> char, this.z |> char, this.w |> char)
+        [<VectorTypeConversion>]
+        member this.ToUChar4(?rounding: VectorTypeConversionRoundingMode) =
+            uchar4(this.x |> byte, this.y |> byte, this.z |> byte, this.w |> byte)
+        [<VectorTypeConversion>]
+        member this.ToFloat4Sat(?rounding: VectorTypeConversionRoundingMode) =
+            float4(this.x |> float32, this.y |> float32, this.z |> float32, this.w |> float32)
+        [<VectorTypeConversion>]
+        member this.ToDouble4Sat(?rounding: VectorTypeConversionRoundingMode) =
+            double4(this.x |> float, this.y |> float, this.z |> float, this.w |> float)
+        [<VectorTypeConversion>]
+        member this.ToUInt4Sat(?rounding: VectorTypeConversionRoundingMode) =
+            uint4(this.x |> uint32, this.y |> uint32, this.z |> uint32, this.w |> uint32)
+        [<VectorTypeConversion>]
+        member this.ToInt4Sat(?rounding: VectorTypeConversionRoundingMode) =
+            int4(this.x |> int, this.y |> int, this.z |> int, this.w |> int)
+        [<VectorTypeConversion>]
+        member this.ToSByte4Sat(?rounding: VectorTypeConversionRoundingMode) =
+            sbyte4(this.x |> sbyte, this.y |> sbyte, this.z |> sbyte, this.w |> sbyte)
+        [<VectorTypeConversion>]
+        member this.ToChar4Sat(?rounding: VectorTypeConversionRoundingMode) =
+            char4(this.x |> char, this.y |> char, this.z |> char, this.w |> char)
+        [<VectorTypeConversion>]
+        member this.ToUChar4Sat(?rounding: VectorTypeConversionRoundingMode) =
+            uchar4(this.x |> byte, this.y |> byte, this.z |> byte, this.w |> byte)
+
+    type float2 with
+        [<VectorTypeConversion>]
+        member this.ToUint2(?rounding: VectorTypeConversionRoundingMode) =
+            uint2(this.x |> uint32, this.y |> uint32)
+        [<VectorTypeConversion>]
+        member this.ToDouble2(?rounding: VectorTypeConversionRoundingMode) =
+            double2(this.x |> float, this.y |> float)
+        [<VectorTypeConversion>]
+        member this.ToInt2(?rounding: VectorTypeConversionRoundingMode) =
+            int2(this.x |> int32, this.y |> int32)
+        [<VectorTypeConversion>]
+        member this.ToSByte2(?rounding: VectorTypeConversionRoundingMode) =
+            sbyte2(this.x |> sbyte, this.y |> sbyte)
+        [<VectorTypeConversion>]
+        member this.ToByte2(?rounding: VectorTypeConversionRoundingMode) =
+            byte2(this.x |> byte, this.y |> byte)
+        [<VectorTypeConversion>]
+        member this.ToChar2(?rounding: VectorTypeConversionRoundingMode) =
+            char2(this.x |> char, this.y |> char)
+        [<VectorTypeConversion>]
+        member this.ToUChar2(?rounding: VectorTypeConversionRoundingMode) =
+            uchar2(this.x |> byte, this.y |> byte)
+        [<VectorTypeConversion>]
+        member this.ToUint2Sat(?rounding: VectorTypeConversionRoundingMode) =
+            uint2(this.x |> uint32, this.y |> uint32)
+        [<VectorTypeConversion>]
+        member this.ToDouble2Sat(?rounding: VectorTypeConversionRoundingMode) =
+            double2(this.x |> float, this.y |> float)
+        [<VectorTypeConversion>]
+        member this.ToInt2Sat(?rounding: VectorTypeConversionRoundingMode) =
+            int2(this.x |> int32, this.y |> int32)
+        [<VectorTypeConversion>]
+        member this.ToSByte2Sat(?rounding: VectorTypeConversionRoundingMode) =
+            sbyte2(this.x |> sbyte, this.y |> sbyte)
+        [<VectorTypeConversion>]
+        member this.ToByte2Sat(?rounding: VectorTypeConversionRoundingMode) =
+            byte2(this.x |> byte, this.y |> byte)
+        [<VectorTypeConversion>]
+        member this.ToChar2Sat(?rounding: VectorTypeConversionRoundingMode) =
+            char2(this.x |> char, this.y |> char)
+        [<VectorTypeConversion>]
+        member this.ToUChar2Sat(?rounding: VectorTypeConversionRoundingMode) =
+            uchar2(this.x |> byte, this.y |> byte)
+    type float3 with
+        [<VectorTypeConversion>]
+        member this.ToUint3(?rounding: VectorTypeConversionRoundingMode) =
+            uint3(this.x |> uint32, this.y |> uint32, this.z |> uint32)
+        [<VectorTypeConversion>]
+        member this.ToDouble3(?rounding: VectorTypeConversionRoundingMode) =
+            double3(this.x |> float, this.y |> float, this.z |> float)
+        [<VectorTypeConversion>]
+        member this.ToInt3(?rounding: VectorTypeConversionRoundingMode) =
+            int3(this.x |> int32, this.y |> int32, this.z |> int32)
+        [<VectorTypeConversion>]
+        member this.ToSByte3(?rounding: VectorTypeConversionRoundingMode) =
+            sbyte3(this.x |> sbyte, this.y |> sbyte, this.z |> sbyte)
+        [<VectorTypeConversion>]
+        member this.ToByte3(?rounding: VectorTypeConversionRoundingMode) =
+            byte3(this.x |> byte, this.y |> byte, this.z |> byte)
+        [<VectorTypeConversion>]
+        member this.ToChar3(?rounding: VectorTypeConversionRoundingMode) =
+            char3(this.x |> char, this.y |> char, this.z |> char)
+        [<VectorTypeConversion>]
+        member this.ToUChar3(?rounding: VectorTypeConversionRoundingMode) =
+            uchar3(this.x |> byte, this.y |> byte, this.z |> byte)
+        [<VectorTypeConversion>]
+        member this.ToUint3Sat(?rounding: VectorTypeConversionRoundingMode) =
+            uint3(this.x |> uint32, this.y |> uint32, this.z |> uint32)
+        [<VectorTypeConversion>]
+        member this.ToDouble3Sat(?rounding: VectorTypeConversionRoundingMode) =
+            double3(this.x |> float, this.y |> float, this.z |> float)
+        [<VectorTypeConversion>]
+        member this.ToInt3Sat(?rounding: VectorTypeConversionRoundingMode) =
+            int3(this.x |> int32, this.y |> int32, this.z |> int32)
+        [<VectorTypeConversion>]
+        member this.ToSByte3Sat(?rounding: VectorTypeConversionRoundingMode) =
+            sbyte3(this.x |> sbyte, this.y |> sbyte, this.z |> sbyte)
+        [<VectorTypeConversion>]
+        member this.ToByte3Sat(?rounding: VectorTypeConversionRoundingMode) =
+            byte3(this.x |> byte, this.y |> byte, this.z |> byte)
+        [<VectorTypeConversion>]
+        member this.ToChar3Sat(?rounding: VectorTypeConversionRoundingMode) =
+            char3(this.x |> char, this.y |> char, this.z |> char)
+        [<VectorTypeConversion>]
+        member this.ToUChar3Sat(?rounding: VectorTypeConversionRoundingMode) =
+            uchar3(this.x |> byte, this.y |> byte, this.z |> byte)
+    type float4 with
+        [<VectorTypeConversion>]
+        member this.ToUint4(?rounding: VectorTypeConversionRoundingMode) =
+            uint4(this.x |> uint32, this.y |> uint32, this.z |> uint32, this.w |> uint32)
+        [<VectorTypeConversion>]
+        member this.ToDouble4(?rounding: VectorTypeConversionRoundingMode) =
+            double4(this.x |> float, this.y |> float, this.z |> float, this.w |> float)
+        [<VectorTypeConversion>]
+        member this.ToInt4(?rounding: VectorTypeConversionRoundingMode) =
+            int4(this.x |> int32, this.y |> int32, this.z |> int32, this.w |> int32)
+        [<VectorTypeConversion>]
+        member this.ToSByte4(?rounding: VectorTypeConversionRoundingMode) =
+            sbyte4(this.x |> sbyte, this.y |> sbyte, this.z |> sbyte, this.w |> sbyte)
+        [<VectorTypeConversion>]
+        member this.ToByte4(?rounding: VectorTypeConversionRoundingMode) =
+            byte4(this.x |> byte, this.y |> byte, this.z |> byte, this.w |> byte)
+        [<VectorTypeConversion>]
+        member this.ToChar4(?rounding: VectorTypeConversionRoundingMode) =
+            char4(this.x |> char, this.y |> char, this.z |> char, this.w |> char)
+        [<VectorTypeConversion>]
+        member this.ToUChar4(?rounding: VectorTypeConversionRoundingMode) =
+            uchar4(this.x |> byte, this.y |> byte, this.z |> byte, this.w |> byte)
+        [<VectorTypeConversion>]
+        member this.ToUint4Sat(?rounding: VectorTypeConversionRoundingMode) =
+            uint4(this.x |> uint32, this.y |> uint32, this.z |> uint32, this.w |> uint32)
+        [<VectorTypeConversion>]
+        member this.ToDouble4Sat(?rounding: VectorTypeConversionRoundingMode) =
+            double4(this.x |> float, this.y |> float, this.z |> float, this.w |> float)
+        [<VectorTypeConversion>]
+        member this.ToInt4Sat(?rounding: VectorTypeConversionRoundingMode) =
+            int4(this.x |> int32, this.y |> int32, this.z |> int32, this.w |> int32)
+        [<VectorTypeConversion>]
+        member this.ToSByte4Sat(?rounding: VectorTypeConversionRoundingMode) =
+            sbyte4(this.x |> sbyte, this.y |> sbyte, this.z |> sbyte, this.w |> sbyte)
+        [<VectorTypeConversion>]
+        member this.ToByte4Sat(?rounding: VectorTypeConversionRoundingMode) =
+            byte4(this.x |> byte, this.y |> byte, this.z |> byte, this.w |> byte)
+        [<VectorTypeConversion>]
+        member this.ToChar4Sat(?rounding: VectorTypeConversionRoundingMode) =
+            char4(this.x |> char, this.y |> char, this.z |> char, this.w |> char)
+        [<VectorTypeConversion>]
+        member this.ToUChar4Sat(?rounding: VectorTypeConversionRoundingMode) =
+            uchar4(this.x |> byte, this.y |> byte, this.z |> byte, this.w |> byte)
+           
+    type double2 with
+        [<VectorTypeConversion>]
+        member this.ToUint2(?rounding: VectorTypeConversionRoundingMode) =
+            uint2(this.x |> uint32, this.y |> uint32)
+        [<VectorTypeConversion>]
+        member this.ToFloat2(?rounding: VectorTypeConversionRoundingMode) =
+            float2(this.x |> float32, this.y |> float32)
+        [<VectorTypeConversion>]
+        member this.ToInt2(?rounding: VectorTypeConversionRoundingMode) =
+            int2(this.x |> int32, this.y |> int32)
+        [<VectorTypeConversion>]
+        member this.ToSByte2(?rounding: VectorTypeConversionRoundingMode) =
+            sbyte2(this.x |> sbyte, this.y |> sbyte)
+        [<VectorTypeConversion>]
+        member this.ToByte2(?rounding: VectorTypeConversionRoundingMode) =
+            byte2(this.x |> byte, this.y |> byte)
+        [<VectorTypeConversion>]
+        member this.ToChar2(?rounding: VectorTypeConversionRoundingMode) =
+            char2(this.x |> char, this.y |> char)
+        [<VectorTypeConversion>]
+        member this.ToUChar2(?rounding: VectorTypeConversionRoundingMode) =
+            uchar2(this.x |> byte, this.y |> byte)
+        [<VectorTypeConversion>]
+        member this.ToUint2Sat(?rounding: VectorTypeConversionRoundingMode) =
+            uint2(this.x |> uint32, this.y |> uint32)
+        [<VectorTypeConversion>]
+        member this.ToFloat2Sat(?rounding: VectorTypeConversionRoundingMode) =
+            float2(this.x |> float32, this.y |> float32)
+        [<VectorTypeConversion>]
+        member this.ToInt2Sat(?rounding: VectorTypeConversionRoundingMode) =
+            int2(this.x |> int32, this.y |> int32)
+        [<VectorTypeConversion>]
+        member this.ToSByte2Sat(?rounding: VectorTypeConversionRoundingMode) =
+            sbyte2(this.x |> sbyte, this.y |> sbyte)
+        [<VectorTypeConversion>]
+        member this.ToByte2Sat(?rounding: VectorTypeConversionRoundingMode) =
+            byte2(this.x |> byte, this.y |> byte)
+        [<VectorTypeConversion>]
+        member this.ToChar2Sat(?rounding: VectorTypeConversionRoundingMode) =
+            char2(this.x |> char, this.y |> char)
+        [<VectorTypeConversion>]
+        member this.ToUChar2Sat(?rounding: VectorTypeConversionRoundingMode) =
+            uchar2(this.x |> byte, this.y |> byte)
+    type double3 with
+        [<VectorTypeConversion>]
+        member this.ToUint3(?rounding: VectorTypeConversionRoundingMode) =
+            uint3(this.x |> uint32, this.y |> uint32, this.z |> uint32)
+        [<VectorTypeConversion>]
+        member this.ToFloat3(?rounding: VectorTypeConversionRoundingMode) =
+            float3(this.x |> float32, this.y |> float32, this.z |> float32)
+        [<VectorTypeConversion>]
+        member this.ToInt3(?rounding: VectorTypeConversionRoundingMode) =
+            int3(this.x |> int32, this.y |> int32, this.z |> int32)
+        [<VectorTypeConversion>]
+        member this.ToSByte3(?rounding: VectorTypeConversionRoundingMode) =
+            sbyte3(this.x |> sbyte, this.y |> sbyte, this.z |> sbyte)
+        [<VectorTypeConversion>]
+        member this.ToByte3(?rounding: VectorTypeConversionRoundingMode) =
+            byte3(this.x |> byte, this.y |> byte, this.z |> byte)
+        [<VectorTypeConversion>]
+        member this.ToChar3(?rounding: VectorTypeConversionRoundingMode) =
+            char3(this.x |> char, this.y |> char, this.z |> char)
+        [<VectorTypeConversion>]
+        member this.ToUChar3(?rounding: VectorTypeConversionRoundingMode) =
+            uchar3(this.x |> byte, this.y |> byte, this.z |> byte)
+        [<VectorTypeConversion>]
+        member this.ToUint3Sat(?rounding: VectorTypeConversionRoundingMode) =
+            uint3(this.x |> uint32, this.y |> uint32, this.z |> uint32)
+        [<VectorTypeConversion>]
+        member this.ToFloat3Sat(?rounding: VectorTypeConversionRoundingMode) =
+            float3(this.x |> float32, this.y |> float32, this.z |> float32)
+        [<VectorTypeConversion>]
+        member this.ToInt3Sat(?rounding: VectorTypeConversionRoundingMode) =
+            int3(this.x |> int32, this.y |> int32, this.z |> int32)
+        [<VectorTypeConversion>]
+        member this.ToSByte3Sat(?rounding: VectorTypeConversionRoundingMode) =
+            sbyte3(this.x |> sbyte, this.y |> sbyte, this.z |> sbyte)
+        [<VectorTypeConversion>]
+        member this.ToByte3Sat(?rounding: VectorTypeConversionRoundingMode) =
+            byte3(this.x |> byte, this.y |> byte, this.z |> byte)
+        [<VectorTypeConversion>]
+        member this.ToChar3Sat(?rounding: VectorTypeConversionRoundingMode) =
+            char3(this.x |> char, this.y |> char, this.z |> char)
+        [<VectorTypeConversion>]
+        member this.ToUChar3Sat(?rounding: VectorTypeConversionRoundingMode) =
+            uchar3(this.x |> byte, this.y |> byte, this.z |> byte)
+    type double4 with
+        [<VectorTypeConversion>]
+        member this.ToUint4(?rounding: VectorTypeConversionRoundingMode) =
+            uint4(this.x |> uint32, this.y |> uint32, this.z |> uint32, this.w |> uint32)
+        [<VectorTypeConversion>]
+        member this.ToFloat4(?rounding: VectorTypeConversionRoundingMode) =
+            float4(this.x |> float32, this.y |> float32, this.z |> float32, this.w |> float32)
+        [<VectorTypeConversion>]
+        member this.ToInt4(?rounding: VectorTypeConversionRoundingMode) =
+            int4(this.x |> int32, this.y |> int32, this.z |> int32, this.w |> int32)
+        [<VectorTypeConversion>]
+        member this.ToSByte4(?rounding: VectorTypeConversionRoundingMode) =
+            sbyte4(this.x |> sbyte, this.y |> sbyte, this.z |> sbyte, this.w |> sbyte)
+        [<VectorTypeConversion>]
+        member this.ToByte4(?rounding: VectorTypeConversionRoundingMode) =
+            byte4(this.x |> byte, this.y |> byte, this.z |> byte, this.w |> byte)
+        [<VectorTypeConversion>]
+        member this.ToChar4(?rounding: VectorTypeConversionRoundingMode) =
+            char4(this.x |> char, this.y |> char, this.z |> char, this.w |> char)
+        [<VectorTypeConversion>]
+        member this.ToUChar4(?rounding: VectorTypeConversionRoundingMode) =
+            uchar4(this.x |> byte, this.y |> byte, this.z |> byte, this.w |> byte)
+        [<VectorTypeConversion>]
+        member this.ToUint4Sat(?rounding: VectorTypeConversionRoundingMode) =
+            uint4(this.x |> uint32, this.y |> uint32, this.z |> uint32, this.w |> uint32)
+        [<VectorTypeConversion>]
+        member this.ToFloat4Sat(?rounding: VectorTypeConversionRoundingMode) =
+            float4(this.x |> float32, this.y |> float32, this.z |> float32, this.w |> float32)
+        [<VectorTypeConversion>]
+        member this.ToInt4Sat(?rounding: VectorTypeConversionRoundingMode) =
+            int4(this.x |> int32, this.y |> int32, this.z |> int32, this.w |> int32)
+        [<VectorTypeConversion>]
+        member this.ToSByte4Sat(?rounding: VectorTypeConversionRoundingMode) =
+            sbyte4(this.x |> sbyte, this.y |> sbyte, this.z |> sbyte, this.w |> sbyte)
+        [<VectorTypeConversion>]
+        member this.ToByte4Sat(?rounding: VectorTypeConversionRoundingMode) =
+            byte4(this.x |> byte, this.y |> byte, this.z |> byte, this.w |> byte)
+        [<VectorTypeConversion>]
+        member this.ToChar4Sat(?rounding: VectorTypeConversionRoundingMode) =
+            char4(this.x |> char, this.y |> char, this.z |> char, this.w |> char)
+        [<VectorTypeConversion>]
+        member this.ToUChar4Sat(?rounding: VectorTypeConversionRoundingMode) =
+            uchar4(this.x |> byte, this.y |> byte, this.z |> byte, this.w |> byte)
+
+    type uchar2 with
+        [<VectorTypeConversion>]
+        member this.ToFloat2(?rounding: VectorTypeConversionRoundingMode) =
+            float2(this.x |> float32, this.y |> float32)
+        [<VectorTypeConversion>]
+        member this.ToDouble2(?rounding: VectorTypeConversionRoundingMode) =
+            double2(this.x |> float, this.y |> float)
+        [<VectorTypeConversion>]
+        member this.ToUInt2(?rounding: VectorTypeConversionRoundingMode) =
+            uint2(this.x |> uint32, this.y |> uint32)
+        [<VectorTypeConversion>]
+        member this.ToInt2(?rounding: VectorTypeConversionRoundingMode) =
+            int2(this.x |> int, this.y |> int)
+        [<VectorTypeConversion>]
+        member this.ToByte2(?rounding: VectorTypeConversionRoundingMode) =
+            byte2(this.x |> byte, this.y |> byte)
+        [<VectorTypeConversion>]
+        member this.ToSByte2(?rounding: VectorTypeConversionRoundingMode) =
+            sbyte2(this.x |> sbyte, this.y |> sbyte)
+        [<VectorTypeConversion>]
+        member this.ToChar2(?rounding: VectorTypeConversionRoundingMode) =
+            char2(this.x |> char, this.y |> char)
+        [<VectorTypeConversion>]
+        member this.ToFloat2Sat(?rounding: VectorTypeConversionRoundingMode) =
+            float2(this.x |> float32, this.y |> float32)
+        [<VectorTypeConversion>]
+        member this.ToDouble2Sat(?rounding: VectorTypeConversionRoundingMode) =
+            double2(this.x |> float, this.y |> float)
+        [<VectorTypeConversion>]
+        member this.ToUInt2Sat(?rounding: VectorTypeConversionRoundingMode) =
+            uint2(this.x |> uint32, this.y |> uint32)
+        [<VectorTypeConversion>]
+        member this.ToInt2Sat(?rounding: VectorTypeConversionRoundingMode) =
+            int2(this.x |> int, this.y |> int)
+        [<VectorTypeConversion>]
+        member this.ToByte2Sat(?rounding: VectorTypeConversionRoundingMode) =
+            byte2(this.x |> byte, this.y |> byte)
+        [<VectorTypeConversion>]
+        member this.ToSByte2Sat(?rounding: VectorTypeConversionRoundingMode) =
+            sbyte2(this.x |> sbyte, this.y |> sbyte)
+        [<VectorTypeConversion>]
+        member this.ToChar2Sat(?rounding: VectorTypeConversionRoundingMode) =
+            char2(this.x |> char, this.y |> char)
+    type uchar3 with
+        [<VectorTypeConversion>]
+        member this.ToFloat3(?rounding: VectorTypeConversionRoundingMode) =
+            float3(this.x |> float32, this.y |> float32, this.z |> float32)
+        [<VectorTypeConversion>]
+        member this.ToDouble3(?rounding: VectorTypeConversionRoundingMode) =
+            double3(this.x |> float, this.y |> float, this.z |> float)
+        [<VectorTypeConversion>]
+        member this.ToUInt3(?rounding: VectorTypeConversionRoundingMode) =
+            uint3(this.x |> uint32, this.y |> uint32, this.z |> uint32)
+        [<VectorTypeConversion>]
+        member this.ToInt3(?rounding: VectorTypeConversionRoundingMode) =
+            int3(this.x |> int, this.y |> int, this.z |> int)
+        [<VectorTypeConversion>]
+        member this.ToByte3(?rounding: VectorTypeConversionRoundingMode) =
+            byte3(this.x |> byte, this.y |> byte, this.z |> byte)
+        [<VectorTypeConversion>]
+        member this.ToSByte3(?rounding: VectorTypeConversionRoundingMode) =
+            sbyte3(this.x |> sbyte, this.y |> sbyte, this.z |> sbyte)
+        [<VectorTypeConversion>]
+        member this.ToChar3(?rounding: VectorTypeConversionRoundingMode) =
+            char3(this.x |> char, this.y |> char, this.z |> char)
+        [<VectorTypeConversion>]
+        member this.ToFloat3Sat(?rounding: VectorTypeConversionRoundingMode) =
+            float3(this.x |> float32, this.y |> float32, this.z |> float32)
+        [<VectorTypeConversion>]
+        member this.ToDouble3Sat(?rounding: VectorTypeConversionRoundingMode) =
+            double3(this.x |> float, this.y |> float, this.z |> float)
+        [<VectorTypeConversion>]
+        member this.ToUInt3Sat(?rounding: VectorTypeConversionRoundingMode) =
+            uint3(this.x |> uint32, this.y |> uint32, this.z |> uint32)
+        [<VectorTypeConversion>]
+        member this.ToInt3Sat(?rounding: VectorTypeConversionRoundingMode) =
+            int3(this.x |> int, this.y |> int, this.z |> int)
+        [<VectorTypeConversion>]
+        member this.ToByte3Sat(?rounding: VectorTypeConversionRoundingMode) =
+            byte3(this.x |> byte, this.y |> byte, this.z |> byte)
+        [<VectorTypeConversion>]
+        member this.ToSByte3Sat(?rounding: VectorTypeConversionRoundingMode) =
+            sbyte3(this.x |> sbyte, this.y |> sbyte, this.z |> sbyte)
+        [<VectorTypeConversion>]
+        member this.ToChar3Sat(?rounding: VectorTypeConversionRoundingMode) =
+            char3(this.x |> char, this.y |> char, this.z |> char)
+    type uchar4 with
+        [<VectorTypeConversion>]
+        member this.ToFloat4(?rounding: VectorTypeConversionRoundingMode) =
+            float4(this.x |> float32, this.y |> float32, this.z |> float32, this.w |> float32)
+        [<VectorTypeConversion>]
+        member this.ToDouble4(?rounding: VectorTypeConversionRoundingMode) =
+            double4(this.x |> float, this.y |> float, this.z |> float, this.w |> float)
+        [<VectorTypeConversion>]
+        member this.ToUInt4(?rounding: VectorTypeConversionRoundingMode) =
+            uint4(this.x |> uint32, this.y |> uint32, this.z |> uint32, this.w |> uint32)
+        [<VectorTypeConversion>]
+        member this.ToInt4(?rounding: VectorTypeConversionRoundingMode) =
+            int4(this.x |> int, this.y |> int, this.z |> int, this.w |> int)
+        [<VectorTypeConversion>]
+        member this.ToByte4(?rounding: VectorTypeConversionRoundingMode) =
+            byte4(this.x |> byte, this.y |> byte, this.z |> byte, this.w |> byte)
+        [<VectorTypeConversion>]
+        member this.ToSByte4(?rounding: VectorTypeConversionRoundingMode) =
+            sbyte4(this.x |> sbyte, this.y |> sbyte, this.z |> sbyte, this.w |> sbyte)
+        [<VectorTypeConversion>]
+        member this.ToChar4(?rounding: VectorTypeConversionRoundingMode) =
+            char4(this.x |> char, this.y |> char, this.z |> char, this.w |> char)
+        [<VectorTypeConversion>]
+        member this.ToFloat4Sat(?rounding: VectorTypeConversionRoundingMode) =
+            float4(this.x |> float32, this.y |> float32, this.z |> float32, this.w |> float32)
+        [<VectorTypeConversion>]
+        member this.ToDouble4Sat(?rounding: VectorTypeConversionRoundingMode) =
+            double4(this.x |> float, this.y |> float, this.z |> float, this.w |> float)
+        [<VectorTypeConversion>]
+        member this.ToUInt4Sat(?rounding: VectorTypeConversionRoundingMode) =
+            uint4(this.x |> uint32, this.y |> uint32, this.z |> uint32, this.w |> uint32)
+        [<VectorTypeConversion>]
+        member this.ToInt4Sat(?rounding: VectorTypeConversionRoundingMode) =
+            int4(this.x |> int, this.y |> int, this.z |> int, this.w |> int)
+        [<VectorTypeConversion>]
+        member this.ToByte4Sat(?rounding: VectorTypeConversionRoundingMode) =
+            byte4(this.x |> byte, this.y |> byte, this.z |> byte, this.w |> byte)
+        [<VectorTypeConversion>]
+        member this.ToSByte4Sat(?rounding: VectorTypeConversionRoundingMode) =
+            sbyte4(this.x |> sbyte, this.y |> sbyte, this.z |> sbyte, this.w |> sbyte)
+        [<VectorTypeConversion>]
+        member this.ToChar4Sat(?rounding: VectorTypeConversionRoundingMode) =
+            char4(this.x |> char, this.y |> char, this.z |> char, this.w |> char)
+
+    type char2 with
+        member this.ToFloat2(?rounding: VectorTypeConversionRoundingMode) =
+            float2(this.x |> float32, this.y |> float32)
+        [<VectorTypeConversion>]
+        member this.ToDouble2(?rounding: VectorTypeConversionRoundingMode) =
+            double2(this.x |> float, this.y |> float)
+        [<VectorTypeConversion>]
+        member this.ToUInt2(?rounding: VectorTypeConversionRoundingMode) =
+            uint2(this.x |> uint32, this.y |> uint32)
+        [<VectorTypeConversion>]
+        member this.ToInt2(?rounding: VectorTypeConversionRoundingMode) =
+            int2(this.x |> int, this.y |> int)
+        [<VectorTypeConversion>]
+        member this.ToByte2(?rounding: VectorTypeConversionRoundingMode) =
+            byte2(this.x |> byte, this.y |> byte)
+        [<VectorTypeConversion>]
+        member this.ToSByte2(?rounding: VectorTypeConversionRoundingMode) =
+            sbyte2(this.x |> sbyte, this.y |> sbyte)
+        [<VectorTypeConversion>]
+        member this.ToUChar2(?rounding: VectorTypeConversionRoundingMode) =
+            uchar2(this.x |> byte, this.y |> byte)
+        member this.ToFloat2Sat(?rounding: VectorTypeConversionRoundingMode) =
+            float2(this.x |> float32, this.y |> float32)
+        [<VectorTypeConversion>]
+        member this.ToDouble2Sat(?rounding: VectorTypeConversionRoundingMode) =
+            double2(this.x |> float, this.y |> float)
+        [<VectorTypeConversion>]
+        member this.ToUInt2Sat(?rounding: VectorTypeConversionRoundingMode) =
+            uint2(this.x |> uint32, this.y |> uint32)
+        [<VectorTypeConversion>]
+        member this.ToInt2Sat(?rounding: VectorTypeConversionRoundingMode) =
+            int2(this.x |> int, this.y |> int)
+        [<VectorTypeConversion>]
+        member this.ToByte2Sat(?rounding: VectorTypeConversionRoundingMode) =
+            byte2(this.x |> byte, this.y |> byte)
+        [<VectorTypeConversion>]
+        member this.ToSByte2Sat(?rounding: VectorTypeConversionRoundingMode) =
+            sbyte2(this.x |> sbyte, this.y |> sbyte)
+        [<VectorTypeConversion>]
+        member this.ToUChar2Sat(?rounding: VectorTypeConversionRoundingMode) =
+            uchar2(this.x |> byte, this.y |> byte)
+    type char3 with
+        [<VectorTypeConversion>]
+        member this.ToFloat3(?rounding: VectorTypeConversionRoundingMode) =
+            float3(this.x |> float32, this.y |> float32, this.z |> float32)
+        [<VectorTypeConversion>]
+        member this.ToDouble3(?rounding: VectorTypeConversionRoundingMode) =
+            double3(this.x |> float, this.y |> float, this.z |> float)
+        [<VectorTypeConversion>]
+        member this.ToUInt3(?rounding: VectorTypeConversionRoundingMode) =
+            uint3(this.x |> uint32, this.y |> uint32, this.z |> uint32)
+        [<VectorTypeConversion>]
+        member this.ToInt3(?rounding: VectorTypeConversionRoundingMode) =
+            int3(this.x |> int, this.y |> int, this.z |> int)
+        [<VectorTypeConversion>]
+        member this.ToByte3(?rounding: VectorTypeConversionRoundingMode) =
+            byte3(this.x |> byte, this.y |> byte, this.z |> byte)
+        [<VectorTypeConversion>]
+        member this.ToSByte3(?rounding: VectorTypeConversionRoundingMode) =
+            sbyte3(this.x |> sbyte, this.y |> sbyte, this.z |> sbyte)
+        [<VectorTypeConversion>]
+        member this.ToUChar3(?rounding: VectorTypeConversionRoundingMode) =
+            uchar3(this.x |> byte, this.y |> byte, this.z |> byte)
+        [<VectorTypeConversion>]
+        member this.ToFloat3Sat(?rounding: VectorTypeConversionRoundingMode) =
+            float3(this.x |> float32, this.y |> float32, this.z |> float32)
+        [<VectorTypeConversion>]
+        member this.ToDouble3Sat(?rounding: VectorTypeConversionRoundingMode) =
+            double3(this.x |> float, this.y |> float, this.z |> float)
+        [<VectorTypeConversion>]
+        member this.ToUInt3Sat(?rounding: VectorTypeConversionRoundingMode) =
+            uint3(this.x |> uint32, this.y |> uint32, this.z |> uint32)
+        [<VectorTypeConversion>]
+        member this.ToInt3Sat(?rounding: VectorTypeConversionRoundingMode) =
+            int3(this.x |> int, this.y |> int, this.z |> int)
+        [<VectorTypeConversion>]
+        member this.ToByte3Sat(?rounding: VectorTypeConversionRoundingMode) =
+            byte3(this.x |> byte, this.y |> byte, this.z |> byte)
+        [<VectorTypeConversion>]
+        member this.ToSByte3Sat(?rounding: VectorTypeConversionRoundingMode) =
+            sbyte3(this.x |> sbyte, this.y |> sbyte, this.z |> sbyte)
+        [<VectorTypeConversion>]
+        member this.ToUChar3Sat(?rounding: VectorTypeConversionRoundingMode) =
+            uchar3(this.x |> byte, this.y |> byte, this.z |> byte)
+    type char4 with
+        [<VectorTypeConversion>]
+        member this.ToFloat4(?rounding: VectorTypeConversionRoundingMode) =
+            float4(this.x |> float32, this.y |> float32, this.z |> float32, this.w |> float32)
+        [<VectorTypeConversion>]
+        member this.ToDouble4(?rounding: VectorTypeConversionRoundingMode) =
+            double4(this.x |> float, this.y |> float, this.z |> float, this.w |> float)
+        [<VectorTypeConversion>]
+        member this.ToUInt4(?rounding: VectorTypeConversionRoundingMode) =
+            uint4(this.x |> uint32, this.y |> uint32, this.z |> uint32, this.w |> uint32)
+        [<VectorTypeConversion>]
+        member this.ToInt4(?rounding: VectorTypeConversionRoundingMode) =
+            int4(this.x |> int, this.y |> int, this.z |> int, this.w |> int)
+        [<VectorTypeConversion>]
+        member this.ToByte4(?rounding: VectorTypeConversionRoundingMode) =
+            byte4(this.x |> byte, this.y |> byte, this.z |> byte, this.w |> byte)
+        [<VectorTypeConversion>]
+        member this.ToSByte4(?rounding: VectorTypeConversionRoundingMode) =
+            sbyte4(this.x |> sbyte, this.y |> sbyte, this.z |> sbyte, this.w |> sbyte)
+        [<VectorTypeConversion>]
+        member this.ToUChar4(?rounding: VectorTypeConversionRoundingMode) =
+            uchar4(this.x |> byte, this.y |> byte, this.z |> byte, this.w |> byte)
+        member this.ToFloat4Sat(?rounding: VectorTypeConversionRoundingMode) =
+            float4(this.x |> float32, this.y |> float32, this.z |> float32, this.w |> float32)
+        [<VectorTypeConversion>]
+        member this.ToDouble4Sat(?rounding: VectorTypeConversionRoundingMode) =
+            double4(this.x |> float, this.y |> float, this.z |> float, this.w |> float)
+        [<VectorTypeConversion>]
+        member this.ToUInt4Sat(?rounding: VectorTypeConversionRoundingMode) =
+            uint4(this.x |> uint32, this.y |> uint32, this.z |> uint32, this.w |> uint32)
+        [<VectorTypeConversion>]
+        member this.ToInt4Sat(?rounding: VectorTypeConversionRoundingMode) =
+            int4(this.x |> int, this.y |> int, this.z |> int, this.w |> int)
+        [<VectorTypeConversion>]
+        member this.ToByte4Sat(?rounding: VectorTypeConversionRoundingMode) =
+            byte4(this.x |> byte, this.y |> byte, this.z |> byte, this.w |> byte)
+        [<VectorTypeConversion>]
+        member this.ToSByte4Sat(?rounding: VectorTypeConversionRoundingMode) =
+            sbyte4(this.x |> sbyte, this.y |> sbyte, this.z |> sbyte, this.w |> sbyte)
+        [<VectorTypeConversion>]
+        member this.ToUChar4Sat(?rounding: VectorTypeConversionRoundingMode) =
+            uchar4(this.x |> byte, this.y |> byte, this.z |> byte, this.w |> byte)
     (*
     let fract(x, iptr) =
       
@@ -683,10 +1717,9 @@ component of x equals mantissa returned * 2exp *)
     // Datatype mapping    
     ///
     ///<summary>
-    ///Alias of <see cref="System.SByte"/>
+    ///Alias of <see cref="System.char"/>
     ///</summary>
-    ///
-    type char = sbyte  
+    ///  
     //let char c =
       //  c |> sbyte
     // Datatype mapping    

@@ -75,12 +75,28 @@ type float2 =
 
         static member (+) (f1: float2, f2: float2) =
             float2(Array.map2 (+) (f1.Components) (f2.Components))
+        static member (+) (f1: float32, f2: float2) =
+            float2(Array.map2 (+) (Array.create 2 f1) (f2.Components))
+        static member (+) (f1: float2, f2: float32) =
+            float2(Array.map2 (+) (f1.Components) (Array.create 2 f2))
         static member (-) (f1: float2, f2: float2) =
             float2(Array.map2 (-) (f1.Components) (f2.Components))
+        static member (-) (f1: float32, f2: float2) =
+            float2(Array.map2 (-) (Array.create 2 f1) (f2.Components))
+        static member (-) (f1: float2, f2: float32) =
+            float2(Array.map2 (-) (f1.Components) (Array.create 2 f2))
         static member (*) (f1: float2, f2: float2) =
             float2(Array.map2 (*) (f1.Components) (f2.Components))
+        static member (*) (f1: float32, f2: float2) =
+            float2(Array.map2 (*) (Array.create 2 f1) (f2.Components))
+        static member (*) (f1: float2, f2: float32) =
+            float2(Array.map2 (*) (f1.Components) (Array.create 2 f2))
         static member (/) (f1: float2, f2: float2) =
             float2(Array.map2 (/) (f1.Components) (f2.Components))
+        static member (/) (f1: float32, f2: float2) =
+            float2(Array.map2 (/) (Array.create 2 f1) (f2.Components))
+        static member (/) (f1: float2, f2: float32) =
+            float2(Array.map2 (/) (f1.Components) (Array.create 2 f2))
         
         static member (>>=) (f1: float2, f2: float2) =
             int2(Array.map2 (fun e1 e2 -> if e1 >= e2 then -1 else 0) (f1.Components) (f2.Components))
@@ -103,6 +119,14 @@ type float2 =
         static member hypot(a:float2, b:float2) = 
             new float2(Math.Sqrt((a.x * a.x) + (b.x * b.x) |> float) |> float32, 
                        Math.Sqrt((a.y * a.y) + (b.y * b.y) |> float) |> float32)
+
+        member this.pown(n: int) =
+            float2(this.x ** (n |> float32), 
+                   this.y ** (n |> float32))
+        
+        member this.sqrt() =
+            float2(Math.Sqrt(this.x |> double) |> float32, 
+                   Math.Sqrt(this.y |> double) |> float32)
     end               
                 
 [<Struct>]
@@ -342,12 +366,28 @@ type float3 =
 
         static member (+) (f1: float3, f2: float3) =
             float3(Array.map2 (+) (f1.Components) (f2.Components))
+        static member (+) (f1: float32, f2: float3) =
+            float3(Array.map2 (+) (Array.create 3 f1) (f2.Components))
+        static member (+) (f1: float3, f2: float32) =
+            float3(Array.map2 (+) (f1.Components) (Array.create 3 f2))
         static member (-) (f1: float3, f2: float3) =
             float3(Array.map2 (-) (f1.Components) (f2.Components))
+        static member (-) (f1: float32, f2: float3) =
+            float3(Array.map2 (+) (Array.create 3 f1) (f2.Components))
+        static member (-) (f1: float2, f2: float32) =
+            float3(Array.map2 (+) (f1.Components) (Array.create 3 f2))
         static member (*) (f1: float3, f2: float3) =
             float3(Array.map2 (*) (f1.Components) (f2.Components))
+        static member (*) (f1: float32, f2: float3) =
+            float3(Array.map2 (+) (Array.create 3 f1) (f2.Components))
+        static member (*) (f1: float3, f2: float32) =
+            float3(Array.map2 (+) (f1.Components) (Array.create 3 f2))
         static member (/) (f1: float3, f2: float3) =
             float3(Array.map2 (/) (f1.Components) (f2.Components))
+        static member (/) (f1: float32, f2: float3) =
+            float3(Array.map2 (/) (Array.create 3 f1) (f2.Components))
+        static member (/) (f1: float3, f2: float32) =
+            float3(Array.map2 (/) (f1.Components) (Array.create 3 f2))
         
         static member (>>=) (f1: float3, f2: float3) =
             int3(Array.map2 (fun e1 e2 -> if e1 >= e2 then -1 else 0) (f1.Components) (f2.Components))
@@ -371,6 +411,16 @@ type float3 =
             new float3(Math.Sqrt((a.x * a.x) + (b.x * b.x) |> float) |> float32, 
                        Math.Sqrt((a.y * a.y) + (b.y * b.y) |> float) |> float32,
                        Math.Sqrt((a.z * a.z) + (b.z * b.z) |> float) |> float32)
+
+        member this.pown(n: int) =
+            float3(this.x ** (n |> float32), 
+                   this.y ** (n |> float32), 
+                   this.z ** (n |> float32))
+        
+        member this.sqrt() =
+            float3(Math.Sqrt(this.x |> double) |> float32, 
+                   Math.Sqrt(this.y |> double) |> float32, 
+                   Math.Sqrt(this.z |> double) |> float32)
     end
     
 [<Struct>]
@@ -1991,12 +2041,28 @@ type float4 =
 
         static member (+) (f1: float4, f2: float4) =
             float4(Array.map2 (+) (f1.Components) (f2.Components))
+        static member (+) (f1: float32, f2: float4) =
+            float4(Array.map2 (+) (Array.create 4 f1) (f2.Components))
+        static member (+) (f1: float4, f2: float32) =
+            float4(Array.map2 (+) (f1.Components) (Array.create 4 f2))
         static member (-) (f1: float4, f2: float4) =
             float4(Array.map2 (-) (f1.Components) (f2.Components))
+        static member (-) (f1: float32, f2: float4) =
+            float4(Array.map2 (-) (Array.create 4 f1) (f2.Components))
+        static member (-) (f1: float4, f2: float32) =
+            float4(Array.map2 (-) (f1.Components) (Array.create 4 f2))
         static member (*) (f1: float4, f2: float4) =
             float4(Array.map2 (*) (f1.Components) (f2.Components))
+        static member (*) (f1: float32, f2: float4) =
+            float4(Array.map2 (*) (Array.create 4 f1) (f2.Components))
+        static member (*) (f1: float4, f2: float32) =
+            float4(Array.map2 (*) (f1.Components) (Array.create 4 f2))
         static member (/) (f1: float4, f2: float4) =
             float4(Array.map2 (/) (f1.Components) (f2.Components))
+        static member (/) (f1: float32, f2: float4) =
+            float4(Array.map2 (/) (Array.create 4 f1) (f2.Components))
+        static member (/) (f1: float4, f2: float32) =
+            float4(Array.map2 (/) (f1.Components) (Array.create 4 f2))
         
         static member (>>=) (f1: float4, f2: float4) =
             int4(Array.map2 (fun e1 e2 -> if e1 >= e2 then -1 else 0) (f1.Components) (f2.Components))
@@ -2021,4 +2087,16 @@ type float4 =
                        Math.Sqrt((a.y * a.y) + (b.y * b.y) |> float) |> float32,
                        Math.Sqrt((a.z * a.z) + (b.z * b.z) |> float) |> float32,
                        Math.Sqrt((a.w * a.w) + (b.w * b.w) |> float) |> float32)
+
+        member this.pown(n: int) =
+            float4(this.x ** (n |> float32), 
+                   this.y ** (n |> float32), 
+                   this.z ** (n |> float32), 
+                   this.w ** (n |> float32))
+        
+        member this.sqrt() =
+            float4(Math.Sqrt(this.x |> double) |> float32, 
+                   Math.Sqrt(this.y |> double) |> float32, 
+                   Math.Sqrt(this.z |> double) |> float32,
+                   Math.Sqrt(this.w |> double) |> float32)
     end

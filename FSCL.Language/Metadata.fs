@@ -5,5 +5,7 @@ open System
 [<AllowNullLiteral>]
 type VectorTypeAttribute() =
     inherit Attribute()
-///
-     
+
+[<AllowNullLiteral>]
+type VectorTypeConversionAttribute() =
+    inherit Attribute()

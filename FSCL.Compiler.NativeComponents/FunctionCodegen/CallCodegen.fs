@@ -1,10 +1,14 @@
 ﻿namespace FSCL.Compiler.FunctionCodegen
 
+open FSCL
 open System
 open FSCL.Compiler
 open FSCL.Language
 open System.Collections.Generic
 open Microsoft.FSharp.Quotations
+open System.Reflection
+open System.Runtime.CompilerServices
+open Microsoft.FSharp.Linq.RuntimeHelpers
 
 [<StepProcessor("FSCL_CALL_CODEGEN_PROCESSOR", "FSCL_FUNCTION_CODEGEN_STEP",
                 Dependencies = [| "FSCL_ARRAY_ACCESS_CODEGEN_PROCESSOR";
@@ -52,7 +56,8 @@ type CallCodegen() =
             let returnPostfix = if returnPrefix.Length > 0 then ";\n" else ""
             
             let args = String.concat ", " (List.map (fun (e:Expr) -> engine.Continue(e)) a)
-            if (mi.Name = "vload") then
+            // Vector OpenCL operators
+            if (mi.DeclaringType.GetCustomAttribute<VectorTypeAttribute>() <> null && mi.Name = "vload") then
                 // vload function
                 let vType = mi.ReturnType
                 let vCount = 
@@ -62,7 +67,16 @@ type CallCodegen() =
                         3
                     else 
                         2
-                Some(returnPrefix + "vload" + vCount.ToString() + "(" + args + ");" + returnPostfix)
+                Some(returnPrefix + "vload" + vCount.ToString() + "(" + args + ")" + returnPostfix)
+            else if (mi.GetCustomAttribute<VectorTypeConversionAttribute>() <> null) then
+                // vload function
+                let sat = mi.Name.EndsWith("Sat")
+                let rounding = LeafExpressionConverter.EvaluateQuotation(a.[1]) :?> VectorTypeConversionRoundingMode option
+                if rounding.IsSome then
+                    Some(returnPrefix + "convert_" + engine.TypeManager.Print(mi.ReturnType) + (if sat then "_sat" else "") + "_" + rounding.Value.ToString() + "(" + engine.Continue(a.[0]) + ")" + returnPostfix)
+                else
+                    Some(returnPrefix + "convert_" + engine.TypeManager.Print(mi.ReturnType) + (if sat then "_sat" else "") + "(" + engine.Continue(a.[0]) + ")" + returnPostfix)
+            // Pointer arithmetic
             else if (mi.Name = "[]`1.pasum") then
                 // Pointer arithmetic sum
                 Some(returnPrefix + "(" + engine.Continue(a.[0]) + ") + (" + engine.Continue(a.[1]) + ")" + returnPostfix)
