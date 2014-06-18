@@ -100,8 +100,11 @@ type int2 =
             stream.Close()
             data
 
-        static member hypot(a:int2, b:int2) = 
-            new int2(Math.Sqrt((a.x * a.x) + (b.x * b.x) |> float) |> int, Math.Sqrt((a.y * a.y) + (b.y * b.y) |> float) |> int)
+        static member mul24(a:int2, b:int2) =
+            a * b
+
+        static member mad24(a:int2, b:int2, c:int2) =
+            a * b + c
     end
     
 [<Struct>]
@@ -366,10 +369,11 @@ type int3 =
             stream.Close()
             data
 
-        static member hypot(a:int3, b:int3) = 
-            new int3(Math.Sqrt((a.x * a.x) + (b.x * b.x) |> float) |> int, 
-                     Math.Sqrt((a.y * a.y) + (b.y * b.y) |> float) |> int,
-                     Math.Sqrt((a.z * a.z) + (b.z * b.z) |> float) |> int)
+        static member mul24(a:int3, b:int3) =
+            a * b
+
+        static member mad24(a:int3, b:int3, c:int3) =
+            a * b + c
     end
 
 [<Struct>]
@@ -2015,10 +2019,10 @@ type int4 =
             stream.Close()
             data
 
-        static member hypot(a:int4, b:int4) = 
-            new int4(Math.Sqrt((a.x * a.x) + (b.x * b.x) |> float) |> int, 
-                     Math.Sqrt((a.y * a.y) + (b.y * b.y) |> float) |> int,
-                     Math.Sqrt((a.z * a.z) + (b.z * b.z) |> float) |> int,
-                     Math.Sqrt((a.w * a.w) + (b.w * b.w) |> float) |> int)
+        static member mul24(a:int4, b:int4) =
+            a * b
+
+        static member mad24(a:int4, b:int4, c:int4) =
+            a * b + c
     end    
 // **************************************************************************************************************

@@ -492,6 +492,12 @@ module Language =
     let fmod(x: float, y: float) =
         x - y * (Math.Truncate(x / y))
 
+    let inline mul24(x:^T, y:^T) =
+        x * y
+
+    let inline mad24(x:^T, y:^T, z:^T) =
+        x * y + z
+
     type VectorTypeConversionRoundingMode =
     | rte = 0
     | rtz = 1
