@@ -1,61 +1,77 @@
-<?xml version="1.0" encoding="utf-8"?>
-<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{B848652D-1070-4E69-BA15-5507B5709D83}</ProjectGuid>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>d11e1362-4d68-4f04-b340-c84a168fb531</ProjectGuid>
     <OutputType>Exe</OutputType>
     <RootNamespace>DynamicMetadataSample</RootNamespace>
     <AssemblyName>DynamicMetadataSample</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <Name>DynamicMetadataSample</Name>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
-    <OutputPath>bin\Debug</OutputPath>
-    <DefineConstants>DEBUG</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <Externalconsole>true</Externalconsole>
     <Tailcalls>false</Tailcalls>
-    <PlatformTarget>
-    </PlatformTarget>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <WarningLevel>3</WarningLevel>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DocumentationFile>bin\Debug\DynamicMetadataSample.XML</DocumentationFile>
+    <Prefer32Bit>true</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <DebugSymbols>true</DebugSymbols>
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
-    <OutputPath>bin\Release</OutputPath>
-    <ErrorReport>prompt</ErrorReport>
-    <PlatformTarget>
-    </PlatformTarget>
-    <Externalconsole>true</Externalconsole>
     <Tailcalls>true</Tailcalls>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <WarningLevel>3</WarningLevel>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DocumentationFile>bin\Release\DynamicMetadataSample.XML</DocumentationFile>
+    <Prefer32Bit>true</Prefer32Bit>
   </PropertyGroup>
+  <PropertyGroup>
+    <MinimumVisualStudioVersion Condition="'$(MinimumVisualStudioVersion)' == ''">11</MinimumVisualStudioVersion>
+  </PropertyGroup>
+  <Import Project="$(MSBuildExtensionsPath32)\..\Microsoft SDKs\F#\3.0\Framework\v4.0\Microsoft.FSharp.Targets" Condition=" Exists('$(MSBuildExtensionsPath32)\..\Microsoft SDKs\F#\3.0\Framework\v4.0\Microsoft.FSharp.Targets')" />
+  <ItemGroup>
+    <None Include="App.config" />
+    <Compile Include="Program.fs" />
+  </ItemGroup>
   <ItemGroup>
     <Reference Include="mscorlib" />
-    <Reference Include="FSharp.Core" />
+    <Reference Include="FSharp.Core, Version=4.3.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+      <Private>True</Private>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Numerics" />
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Include="AssemblyInfo.fs" />
-    <Compile Include="Program.fs" />
-  </ItemGroup>
-  <Import Project="$(MSBuildExtensionsPath32)\..\Microsoft SDKs\F#\3.1\Framework\v4.0\Microsoft.FSharp.Targets" />
-  <ItemGroup>
-    <ProjectReference Include="..\FSCL.Compiler\FSCL.Compiler.fsproj">
-      <Project>{AA752A37-7BE8-4805-8B12-7A9D1DCF66D6}</Project>
-      <Name>FSCL.Compiler</Name>
-    </ProjectReference>
     <ProjectReference Include="..\FSCL.Compiler.Core\FSCL.Compiler.Core.fsproj">
-      <Project>{54853A79-FFD2-469D-B1E4-52F24A4C95D1}</Project>
       <Name>FSCL.Compiler.Core</Name>
+      <Project>{54853a79-ffd2-469d-b1e4-52f24a4c95d1}</Project>
+      <Private>True</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\FSCL.Compiler\FSCL.Compiler.fsproj">
+      <Name>FSCL.Compiler</Name>
+      <Project>{aa752a37-7be8-4805-8b12-7a9d1dcf66d6}</Project>
+      <Private>True</Private>
     </ProjectReference>
     <ProjectReference Include="..\FSCL.Language\FSCL.Compiler.Language.fsproj">
-      <Project>{7CFBAE88-1C33-4103-B5A7-BB0A55CBBEA6}</Project>
       <Name>FSCL.Compiler.Language</Name>
+      <Project>{7cfbae88-1c33-4103-b5a7-bb0a55cbbea6}</Project>
+      <Private>True</Private>
     </ProjectReference>
   </ItemGroup>
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
 </Project>
