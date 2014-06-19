@@ -5,7 +5,7 @@
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>d2de78fb-9097-45f2-8485-8d4416de7f34</ProjectGuid>
+    <ProjectGuid>c5d852d0-843c-46e5-ae7e-aaadb79aa4cb</ProjectGuid>
     <OutputType>Exe</OutputType>
     <RootNamespace>KernelExpressionSample</RootNamespace>
     <AssemblyName>KernelExpressionSample</AssemblyName>
@@ -53,17 +53,17 @@
     <Reference Include="System.Numerics" />
     <ProjectReference Include="..\FSCL.Compiler.Core\FSCL.Compiler.Core.fsproj">
       <Name>FSCL.Compiler.Core</Name>
-      <Project>{54853a79-ffd2-469d-b1e4-52f24a4c95d1}</Project>
+      <Project>{d052e6ca-4c6c-4792-aceb-4d2633ceb37b}</Project>
+      <Private>True</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\FSCL.Compiler.Language\FSCL.Compiler.Language.fsproj">
+      <Name>FSCL.Compiler.Language</Name>
+      <Project>{9b069191-a1b7-42ba-90ab-d4c8778476ed}</Project>
       <Private>True</Private>
     </ProjectReference>
     <ProjectReference Include="..\FSCL.Compiler\FSCL.Compiler.fsproj">
       <Name>FSCL.Compiler</Name>
-      <Project>{aa752a37-7be8-4805-8b12-7a9d1dcf66d6}</Project>
-      <Private>True</Private>
-    </ProjectReference>
-    <ProjectReference Include="..\FSCL.Language\FSCL.Compiler.Language.fsproj">
-      <Name>FSCL.Compiler.Language</Name>
-      <Project>{7cfbae88-1c33-4103-b5a7-bb0a55cbbea6}</Project>
+      <Project>{52b857c3-c0d3-4280-b094-20fce4bad4b9}</Project>
       <Private>True</Private>
     </ProjectReference>
   </ItemGroup>

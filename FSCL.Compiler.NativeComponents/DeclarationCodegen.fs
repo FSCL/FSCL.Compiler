@@ -1,7 +1,6 @@
 ﻿namespace FSCL.Compiler.FunctionCodegen
 
 open FSCL.Compiler
-open FSCL.Compiler.Types
 open FSCL.Language
 open System.Collections.Generic
 open System.Reflection

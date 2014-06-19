@@ -1,40 +1,55 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{AA752A37-7BE8-4805-8B12-7A9D1DCF66D6}</ProjectGuid>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>52b857c3-c0d3-4280-b094-20fce4bad4b9</ProjectGuid>
     <OutputType>Library</OutputType>
     <RootNamespace>FSCL.Compiler</RootNamespace>
     <AssemblyName>FSCL.Compiler</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <Name>FSCL.Compiler</Name>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
-    <OutputPath>bin\Debug</OutputPath>
-    <DefineConstants>DEBUG</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <ConsolePause>false</ConsolePause>
     <Tailcalls>false</Tailcalls>
-    <PlatformTarget>
-    </PlatformTarget>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <WarningLevel>3</WarningLevel>
+    <DocumentationFile>bin\Debug\FSCL.Compiler.XML</DocumentationFile>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <DebugSymbols>true</DebugSymbols>
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
-    <OutputPath>bin\Release</OutputPath>
-    <ErrorReport>prompt</ErrorReport>
-    <PlatformTarget>
-    </PlatformTarget>
-    <ConsolePause>false</ConsolePause>
     <Tailcalls>true</Tailcalls>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <WarningLevel>3</WarningLevel>
+    <DocumentationFile>bin\Release\FSCL.Compiler.XML</DocumentationFile>
   </PropertyGroup>
+  <PropertyGroup>
+    <MinimumVisualStudioVersion Condition="'$(MinimumVisualStudioVersion)' == ''">11</MinimumVisualStudioVersion>
+  </PropertyGroup>
+  <Import Project="$(MSBuildExtensionsPath32)\..\Microsoft SDKs\F#\3.0\Framework\v4.0\Microsoft.FSharp.Targets" Condition=" Exists('$(MSBuildExtensionsPath32)\..\Microsoft SDKs\F#\3.0\Framework\v4.0\Microsoft.FSharp.Targets')" />
+  <ItemGroup>
+    <None Include="Script.fsx" />
+    <Compile Include="GraphUtil.fs" />
+    <Compile Include="ConfigurationUtil.fs" />
+    <Compile Include="PipelineConfiguration.fs" />
+    <Compile Include="PipelineBuilder.fs" />
+    <Compile Include="PipelineConfigurationManager.fs" />
+    <Compile Include="Pipeline.fs" />
+    <Compile Include="Compiler.fs" />
+  </ItemGroup>
   <ItemGroup>
     <Reference Include="mscorlib" />
-    <Reference Include="FSharp.Core" />
+    <Reference Include="FSharp.Core, Version=4.3.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+      <Private>True</Private>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Numerics" />
@@ -42,31 +57,32 @@
     <Reference Include="System.Xml.Linq" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="ConfigurationUtil.fs" />
-    <Compile Include="GraphUtil.fs" />
-    <Compile Include="PipelineConfiguration.fs" />
-    <Compile Include="PipelineBuilder.fs" />
-    <Compile Include="PipelineConfigurationManager.fs" />
-    <Compile Include="Pipeline.fs" />
-    <Compile Include="Compiler.fs" />
-  </ItemGroup>
-  <Import Project="$(MSBuildExtensionsPath32)\..\Microsoft SDKs\F#\3.1\Framework\v4.0\Microsoft.FSharp.Targets" />
-  <ItemGroup>
     <ProjectReference Include="..\FSCL.Compiler.Core\FSCL.Compiler.Core.fsproj">
-      <Project>{54853A79-FFD2-469D-B1E4-52F24A4C95D1}</Project>
       <Name>FSCL.Compiler.Core</Name>
+      <Project>{d052e6ca-4c6c-4792-aceb-4d2633ceb37b}</Project>
+      <Private>True</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\FSCL.Compiler.Language\FSCL.Compiler.Language.fsproj">
+      <Name>FSCL.Compiler.Language</Name>
+      <Project>{9b069191-a1b7-42ba-90ab-d4c8778476ed}</Project>
+      <Private>True</Private>
     </ProjectReference>
     <ProjectReference Include="..\FSCL.Compiler.NativeComponents\FSCL.Compiler.NativeComponents.fsproj">
-      <Project>{40EBD40B-6C79-4678-8BD0-FB756820FB68}</Project>
       <Name>FSCL.Compiler.NativeComponents</Name>
+      <Project>{ccf44af6-bb48-462b-9f82-5d8478244a64}</Project>
+      <Private>True</Private>
     </ProjectReference>
     <ProjectReference Include="..\FSCL.Compiler.Util\FSCL.Compiler.Util.fsproj">
-      <Project>{0E5212B9-8C3A-4E71-864E-114CD8256FA7}</Project>
       <Name>FSCL.Compiler.Util</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\FSCL.Language\FSCL.Compiler.Language.fsproj">
-      <Project>{7CFBAE88-1C33-4103-B5A7-BB0A55CBBEA6}</Project>
-      <Name>FSCL.Compiler.Language</Name>
+      <Project>{f4773f51-5f89-4631-860e-81cafb2a9af5}</Project>
+      <Private>True</Private>
     </ProjectReference>
   </ItemGroup>
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
 </Project>
