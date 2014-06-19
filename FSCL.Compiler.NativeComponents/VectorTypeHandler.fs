@@ -7,7 +7,7 @@ open Microsoft.FSharp.Quotations
 open System.Collections.Generic
 open System.Reflection
 
-[<TypeHandler("FSCL_VECTOR_TYPE_HANDLER")>]
+[<TypeHandler("FSCL_VECTOR_TYPE_HANDLER" )>]
 type VectorTypeHandler() =       
     inherit TypeHandler() with
 

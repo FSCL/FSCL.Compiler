@@ -26,11 +26,23 @@ type internal PipelineBuilder() =
             for sp in s.StepProcessors do
                 if not (processors.ContainsKey(sp.ID)) then
                     processors.Add(sp.ID, sp)
+                    
+        // Create graph of type handlers
+        let thGraph = new Graph<TypeHandlerConfiguration, string>()
+        for t in typeHandlers do 
+            thGraph.Add(t.Key, t.Value) |> ignore
+        for t in typeHandlers do 
+            for d in t.Value.Dependencies do
+                thGraph.Connect(d, t.Value.ID)
+            for d in t.Value.Before do
+                if typeHandlers.ContainsKey(d) then
+                    thGraph.Connect(t.Value.ID, d)
+        let sortedTypeHandlers = thGraph.Sorted.Value
 
         // Build type handlers and type manager
         let th = seq { 
-                        for t in typeHandlers do 
-                            yield t.Value.Type.GetConstructor([||]).Invoke([||]) :?> TypeHandler 
+                        for s,t in sortedTypeHandlers do 
+                            yield t.Type.GetConstructor([||]).Invoke([||]) :?> TypeHandler 
                      }
         let tm = new TypeManager(List.ofSeq th)
                     

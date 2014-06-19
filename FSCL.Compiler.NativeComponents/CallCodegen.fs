@@ -57,7 +57,7 @@ type CallCodegen() =
             
             let args = String.concat ", " (List.map (fun (e:Expr) -> engine.Continue(e)) a)
             // Vector OpenCL operators
-            if (mi.DeclaringType.GetCustomAttribute<VectorTypeAttribute>() <> null && mi.Name = "vload") then
+            if (mi.DeclaringType <> null && mi.DeclaringType.GetCustomAttribute<VectorTypeAttribute>() <> null && mi.Name = "vload") then
                 // vload function
                 let vType = mi.ReturnType
                 let vCount = 

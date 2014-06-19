@@ -7,7 +7,7 @@ open System.Collections.Generic
 open System.Reflection
 open Microsoft.FSharp.Reflection
 
-[<TypeHandler("FSCL_STRUCT_TYPE_HANDLER")>]
+[<TypeHandler("FSCL_STRUCT_TYPE_HANDLER", Dependencies = [| "FSCL_VECTOR_TYPE_HANDLER" |])>]
 type StructTypeHandler() =       
     inherit TypeHandler() with
 
