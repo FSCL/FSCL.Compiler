@@ -152,6 +152,9 @@ let main argv =
     result <- compiler.Compile(<@@ MatrixAddOver(MatrixAddSub a b) @@>) 
     timer.Stop()
     Console.WriteLine("Seventh kernel: " + timer.ElapsedMilliseconds.ToString() + "ms")
+    
+    Console.WriteLine("Press enter to exit")
+    Console.Read() |> ignore
     0
 
 

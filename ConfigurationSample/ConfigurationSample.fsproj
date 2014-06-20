@@ -42,6 +42,12 @@
   <ItemGroup>
     <None Include="App.config" />
     <Compile Include="Program.fs" />
+    <Content Include="ExplicitConfiguration.xml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="ImplicitConfiguration.xml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
   <ItemGroup>
     <Reference Include="mscorlib" />

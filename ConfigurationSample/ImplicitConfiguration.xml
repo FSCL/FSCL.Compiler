@@ -1,0 +1,7 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<!-- Implicit configuration file: every source is characterized only by its path, components automatically detected-->
+<CompilerConfiguration LoadDefaultSteps="false">
+  <Sources>
+    <CompilerSourceConfiguration FileSource="FSCL.Compiler.NativeComponents.dll"/>
+  </Sources>  
+</CompilerConfiguration>

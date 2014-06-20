@@ -10,9 +10,12 @@ open System.Xml.Linq
 exception PipelineConfigurationException of string
 
 type PipelineConfigurationManager(defAssemblyComp:Type array, confRoot, compRoot) = 
+    do
+        if not (Directory.Exists(Path.Combine(confRoot, compRoot))) then
+            Directory.CreateDirectory(Path.Combine(confRoot, compRoot)) |> ignore
+
     // Trick to guarantee the default components assemblies are loaded
     member val private defAssemblyComponents = defAssemblyComp
-
     // The root where to place configuration file
     member val ConfigurationRoot = confRoot
     //Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "FSCL.Compiler")
@@ -20,6 +23,7 @@ type PipelineConfigurationManager(defAssemblyComp:Type array, confRoot, compRoot
     member val ComponentsRoot = Path.Combine(confRoot, compRoot)
     //Path.Combine(PipelineConfigurationManager.ConfigurationRoot, "Components")
     
+        
     // Default configuration
     member this.DefaultConfiguration() =
         let sources = List<SourceConfiguration>()

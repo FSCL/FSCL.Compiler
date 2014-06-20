@@ -9,6 +9,7 @@ open FSCL.Compiler.Types
 open FSCL.Compiler
 open FSCL.Compiler.Configuration
 open System.IO
+open System
 
 [<EntryPoint>]
 let main argv = 
@@ -40,36 +41,17 @@ let main argv =
     //
     // ***************************************************************************************************************
     printf("03) Test object-based compiler configuration (implicit file sources)\n")
+    // Copy the dll into the components root
+    if not (File.Exists(Path.Combine(Compiler.DefaultConfigurationComponentsRoot,
+                                     "FSCL.Compiler.NativeComponents.dll"))) then
+        File.Copy("FSCL.Compiler.NativeComponents.dll", Path.Combine(Compiler.DefaultConfigurationComponentsRoot,
+                                                                     "FSCL.Compiler.NativeComponents.dll"))
     let configuration = PipelineConfiguration(false, // false = Do not load core sources (explicitely listed as second parameter)
                                               [|
                                                 SourceConfiguration(
                                                     FileSource(Path.Combine(
                                                                 Compiler.DefaultConfigurationComponentsRoot,
-                                                                "FSCL.Compiler.Core.FunctionPreprocessing.dll")));
-                                                SourceConfiguration(
-                                                    FileSource(Path.Combine(
-                                                                Compiler.DefaultConfigurationComponentsRoot,
-                                                                "FSCL.Compiler.Core.FunctionPrettyPrinting.dll")));
-                                                SourceConfiguration(
-                                                    FileSource(Path.Combine(
-                                                                Compiler.DefaultConfigurationComponentsRoot,
-                                                                "FSCL.Compiler.Core.FunctionTransformation.dll")));
-                                                SourceConfiguration(
-                                                    FileSource(Path.Combine(
-                                                                Compiler.DefaultConfigurationComponentsRoot,
-                                                                "FSCL.Compiler.Core.ModuleParsing.dll")));
-                                                SourceConfiguration(
-                                                    FileSource(Path.Combine(
-                                                                Compiler.DefaultConfigurationComponentsRoot,
-                                                                "FSCL.Compiler.Core.ModulePreprocessing.dll")));
-                                                SourceConfiguration(
-                                                    FileSource(Path.Combine(
-                                                                Compiler.DefaultConfigurationComponentsRoot,
-                                                                "FSCL.Compiler.Core.ModulePrettyPrinting.dll")));
-                                                SourceConfiguration(
-                                                    FileSource(Path.Combine(
-                                                                Compiler.DefaultConfigurationComponentsRoot,
-                                                                "FSCL.Compiler.Core.Types.dll")))
+                                                                "FSCL.Compiler.NativeComponents.dll")))
                                               |])
     let compiler3 = Compiler(configuration)
                                               
@@ -113,13 +95,13 @@ let main argv =
                                                     [| StepConfiguration("FSCL_FUNCTION_PREPROCESSING_STEP",                         // Explicitely define steps
                                                                         typeof<FunctionPreprocessingStep>,
                                                                         [| "FSCL_MODULE_PREPROCESSING_STEP"; "FSCL_MODULE_PARSING_STEP" |])|],
-                                                    [| StepProcessorConfiguration("FSCL_RTTOA_PREPROCESSING_PROCESSOR",     // Explicitely define processors
+                                                    [| StepProcessorConfiguration("FSCL_DATP_PREPROCESSING_PROCESSOR",     // Explicitely define processors
                                                                                  "FSCL_FUNCTION_PREPROCESSING_STEP",
                                                                                  typeof<DynamicArrayToParameterProcessor>);
-                                                      StepProcessorConfiguration("FSCL_RTTAR_PREPROCESSING_PROCESSOR", 
+                                                      StepProcessorConfiguration("FSCL_RTAR_PREPROCESSING_PROCESSOR", 
                                                                                  "FSCL_FUNCTION_PREPROCESSING_STEP",
                                                                                  typeof<RefTypeToArrayReplacingProcessor>,
-                                                                                 [|"FSCL_ALAI_PREPROCESSING_PROCESSOR"|])|]);
+                                                                                 [|"FSCL_DATP_PREPROCESSING_PROCESSOR"|])|]);
                                                 SourceConfiguration(
                                                     AssemblySource(typeof<FunctionTransformationStep>.Assembly));
                                                 SourceConfiguration(
@@ -152,5 +134,7 @@ let main argv =
                                               ],
                                               [])
     let compiler3 = Compiler(configuration)
-     *)                                         
+     *)             
+    Console.WriteLine("Press enter to exit")
+    Console.Read() |> ignore
     0

@@ -274,7 +274,16 @@ module QuotationAnalysis =
             GetKernelFromName (e2)
         | Patterns.Call (e, mi, a) ->
             match mi with
-            | DerivedPatterns.MethodWithReflectedDefinition(b) ->          
+            | DerivedPatterns.MethodWithReflectedDefinition(body) ->    
+                // Fix: check if Lambda(this, body) for instance methods
+                let b = match body with
+                        | Patterns.Lambda(v, b) ->
+                            if (v.Name = "this") then
+                                b
+                            else
+                                body
+                        | _ ->
+                            body
                 // Extract parameters vars
                 match GetCurriedOrTupledArgs(b) with
                 | Some(paramVars) ->       
@@ -299,7 +308,16 @@ module QuotationAnalysis =
         match expr with
         | Patterns.Call (e, mi, a) ->
             match mi with
-            | DerivedPatterns.MethodWithReflectedDefinition(b) ->                
+            | DerivedPatterns.MethodWithReflectedDefinition(body) -> 
+                // Fix: check if Lambda(this, body) for instance methods
+                let b = match body with
+                        | Patterns.Lambda(v, b) ->
+                            if (v.Name = "this") then
+                                b
+                            else
+                                body
+                        | _ ->
+                            body               
                 // Extract parameters vars
                 match GetCurriedOrTupledArgs(b) with
                 | Some(paramVars) ->                    
@@ -323,7 +341,16 @@ module QuotationAnalysis =
             
     let rec GetKernelFromMethodInfo(mi: MethodInfo) =                    
         match mi with
-        | DerivedPatterns.MethodWithReflectedDefinition(b) ->     
+        | DerivedPatterns.MethodWithReflectedDefinition(body) ->  
+            // Fix: check if Lambda(this, body) for instance methods
+            let b = match body with
+                    | Patterns.Lambda(v, b) ->
+                        if (v.Name = "this") then
+                            b
+                        else
+                            body
+                    | _ ->
+                        body   
             // Extract parameters vars
             match GetCurriedOrTupledArgs(b) with
             | Some(paramVars) ->                    
