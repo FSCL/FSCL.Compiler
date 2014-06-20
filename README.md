@@ -6,6 +6,11 @@ FSharp to OpenCL Compiler
 
 ### Latest news
 
+June 20, 2014: I created two brand new solutions for the compiler and the runtime. I spent a lot of time recovering from misterious happenings that made xamarin studio loosing f# projects when opening solutions edited in VS 2012. I also encountered weird issues in opening with VS 2012 solutions created in xamarin studio. Among the others, an error related to the fsc task that could not be instantiated from the assembly FSharpBuild.dll (bla bla).
+At the very end, I decided to create new solutions from scratch in VS 2012. Now both the compiler and the runtime should be opened correctly in VS 2012 & 2013. Also, xamarin studio should handle them preperly. It may happen that you "lose" some f# projects when you edit the solution (like adding a project or changing the startup one) in xamarin studio, you close xamarin studio, and you finally reopen it. Sorry for that, I'll try to address this problem by creating two different sln(s), one for VS 2012-2013 and one for xamarin studio (this one works well in VS 2013, but not in VS 2012 cause of th fsc task problem above).
+
+*****
+
 April 17, 2014: FSCL 1.2 is out! Checkout/pull the master branch to get all the latest features.
 If you want to discover what's new in FSCL, jump to the FSCL blog: http://www.gabrielecocco.it/fscl/
 
