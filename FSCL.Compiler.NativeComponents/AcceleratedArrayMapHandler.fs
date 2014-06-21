@@ -45,7 +45,7 @@ type AcceleratedArrayMapHandler() =
                         "ArrayMapi_", "Array.mapi"                    
 
                 // Now we can create the signature and define parameter name
-                let signature = DynamicMethod(kernelPrefix + "_" + functionInfo.Name, typeof<unit>, [| inputArrayType; outputArrayType |])
+                let signature = DynamicMethod(kernelPrefix + "_" + functionInfo.Name, outputArrayType, [| inputArrayType; outputArrayType |])
                 signature.DefineParameter(1, ParameterAttributes.In, "input_array") |> ignore
                 signature.DefineParameter(2, ParameterAttributes.In, "output_array") |> ignore
                                 
@@ -66,33 +66,37 @@ type AcceleratedArrayMapHandler() =
                                     Expr.Let(outputHolder, Expr.TupleGet(Expr.Var(tupleHolder), 1),
                                         Expr.Let(globalIdVar,
                                                     Expr.Call(AcceleratedCollectionUtil.FilterCall(<@ get_global_id @>, fun(e, mi, a) -> mi).Value, [ Expr.Value(0) ]),
-                                                    Expr.Call(setElementMethodInfo,
-                                                            [ Expr.Var(outputHolder);
-                                                                Expr.Var(globalIdVar);
-                                                                Expr.Call(functionInfo,
-                                                                        [ Expr.Call(getElementMethodInfo,
-                                                                                    [ Expr.Var(inputHolder);
-                                                                                        Expr.Var(globalIdVar) 
-                                                                                    ])
-                                                                        ])
-                                                            ])))))
+                                                    Expr.Sequential(
+                                                        Expr.Call(setElementMethodInfo,
+                                                                [ Expr.Var(outputHolder);
+                                                                    Expr.Var(globalIdVar);
+                                                                    Expr.Call(functionInfo,
+                                                                            [ Expr.Call(getElementMethodInfo,
+                                                                                        [ Expr.Var(inputHolder);
+                                                                                            Expr.Var(globalIdVar) 
+                                                                                        ])
+                                                                            ])
+                                                                ]),
+                                                        Expr.Var(outputHolder))))))
                     else
                         Expr.Lambda(tupleHolder,
                                 Expr.Let(inputHolder, Expr.TupleGet(Expr.Var(tupleHolder), 0),
                                     Expr.Let(outputHolder, Expr.TupleGet(Expr.Var(tupleHolder), 1),
                                         Expr.Let(globalIdVar,
                                                     Expr.Call(AcceleratedCollectionUtil.FilterCall(<@ get_global_id @>, fun(e, mi, a) -> mi).Value, [ Expr.Value(0) ]),
-                                                    Expr.Call(setElementMethodInfo,
-                                                            [ Expr.Var(outputHolder);
-                                                                Expr.Var(globalIdVar);
-                                                                Expr.Call(functionInfo,
-                                                                        [ Expr.Var(globalIdVar);
-                                                                          Expr.Call(getElementMethodInfo,
-                                                                                    [ Expr.Var(inputHolder);
-                                                                                        Expr.Var(globalIdVar) 
-                                                                                    ])
-                                                                        ])
-                                                            ])))))
+                                                    Expr.Sequential(
+                                                        Expr.Call(setElementMethodInfo,
+                                                                [ Expr.Var(outputHolder);
+                                                                    Expr.Var(globalIdVar);
+                                                                    Expr.Call(functionInfo,
+                                                                            [ Expr.Var(globalIdVar);
+                                                                              Expr.Call(getElementMethodInfo,
+                                                                                        [ Expr.Var(inputHolder);
+                                                                                            Expr.Var(globalIdVar) 
+                                                                                        ])
+                                                                            ])
+                                                                ]),
+                                                        Expr.Var(outputHolder))))))
 
                 let kInfo = new AcceleratedKernelInfo(signature, 
                                                       [ inputHolder; outputHolder ],
