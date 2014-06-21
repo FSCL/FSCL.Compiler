@@ -14,7 +14,7 @@ type double2 =
         val mutable x: double
         val mutable y: double
 
-        member internal this.Components
+        member this.Components
             with get() =
                 [| this.x; this.y |]
                 
@@ -122,7 +122,7 @@ type double3 =
         val mutable y: double
         val mutable z: double
 
-        member internal this.Components
+        member this.Components
             with get() =
                 [| this.x; this.y; this.z |]
                 
@@ -401,7 +401,7 @@ type double4 =
         val mutable z: double
         val mutable w: double
 
-        member internal this.Components
+        member this.Components
             with get() =
                 [| this.x; this.y; this.z; this.w |]
                 

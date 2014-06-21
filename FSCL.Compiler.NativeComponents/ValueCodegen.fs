@@ -1,5 +1,6 @@
 ﻿namespace FSCL.Compiler.FunctionCodegen
 
+open FSCL
 open FSCL.Compiler
 open System.Collections.Generic
 open System.Reflection
@@ -27,6 +28,15 @@ type ValueCodegen() =
             if (v = null) then
                 Some("")
             else
-                Some(returnPrefix + v.ToString() + returnPostfix)
+                // If value of vector type must codegen appropriately
+                if v.GetType().GetCustomAttribute<VectorTypeAttribute>() <> null then
+                    let mutable code = "(" + engine.TypeManager.Print(v.GetType()) + ")("
+                    let components = v.GetType().GetProperty("Components").GetValue(v) :?> System.Array
+                    for i = 0 to components.Length - 2 do
+                        code <- code + components.GetValue(i).ToString() + ","
+                    code <- code + components.GetValue(components.Length - 1).ToString() + ")"
+                    Some(returnPrefix + code + returnPostfix)
+                else
+                    Some(returnPrefix + v.ToString() + returnPostfix)
         | _ ->
             None

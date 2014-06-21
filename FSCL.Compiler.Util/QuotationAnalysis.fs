@@ -389,6 +389,30 @@ module QuotationAnalysis =
             not (isCallToReflectedMethod(e))
         | _ ->
             false  
+            
+    let GetComputationalLambdaOrReflectedMethodInfo(expr:Expr) =    
+        let rec getCallToReflectedMethod(expr, lambdaParams: Var list) =
+            match expr with
+            | Patterns.Lambda(v, e) -> 
+                getCallToReflectedMethod(e, lambdaParams @ [ v ])
+            | Patterns.Call (e, mi, a) ->
+                match mi with
+                | DerivedPatterns.MethodWithReflectedDefinition(b) ->
+                    Some(e, mi, a, b, lambdaParams)
+                | _ ->
+                    None
+            | _ ->
+                None
+           
+        match expr with 
+        | Patterns.Lambda(v, e) -> 
+            match getCallToReflectedMethod(expr, []) with
+            | Some(e, mi, a, b, lambdaParams) ->
+                Some(e, mi, a, b, lambdaParams), None
+            | _ ->
+                None, Some(expr)
+        | _ ->
+            None, None  
         
     let LambdaToMethod(e) = 
         let expr, kernelAttrs, returnAttrs = ParseKernelMetadata(e)
@@ -430,7 +454,121 @@ module QuotationAnalysis =
             Some(signature, parameters, body, kernelAttrs, returnAttrs, ReadOnlyMetaCollection.EmptyParamMetaCollection(parameters.Length))
         else
             None
-                
+            
+    let IsExpressionContainingRefToOneOfVars(e: Expr, varList: Var list) =
+        let rec findInternal(e: Expr, vs: Var list) =
+            match e with
+            | ExprShape.ShapeVar(thisv) ->
+                let it = List.tryFind(fun el -> el = thisv) vs
+                it.IsSome
+            | ExprShape.ShapeLambda(l, b) ->
+                findInternal(b, vs)
+            | ExprShape.ShapeCombination(it, args) ->
+                if args.Length > 0 then
+                    args |> List.map(fun it -> findInternal(it, vs)) |> List.reduce(fun a b -> a || b)
+                else
+                    false
+        findInternal(e, varList)
+        
+    let RemoveLambdaArgsBindingForVar(e: Expr, v: Var) =
+        let rec removeInternal(e: Expr, v: Var) =
+            match e with
+            | ExprShape.ShapeLambda(thisv, b) ->                
+                if thisv = v then
+                    b
+                else
+                    Expr.Lambda(thisv, removeInternal(b, v))
+            | _ ->
+                e
+        removeInternal(e, v)
+                    
+    let LiftNonLambdaParamsFromMethodCalledInLambda(mi: MethodInfo, args: Expr list, body: Expr, lambdaParams: Var list) =
+        // Lambda containing method to apply: fun it -> DoSomething x y z it
+        // We must restruct DoSomething replacing params that are references to stuff outside quotation (!= it)
+        // More precisely, if some paramters of mi are not contained in lambdaParams
+        // this means that the lambda is something like fun a b c -> myMethod a b c othPar
+        // So othPar must be evaluated, replacing it's current value inside myMethod
+        // Otherwise, the kernel would not be able to invoke it (it doesn't manage othPar)
+        // Example: Array.map (fun item -> DoSomething item otherParam). We replace otherParam with its value
+        // and we create a signature without otherParam
+        
+        // At first, extract arg binding vars from method body
+        let miParamVars, miReturnType =
+            match LiftCurriedOrTupledArgs(body) with 
+            | Some(b, p) ->
+                p, b.Type
+            | None ->
+                raise (new CompilerException("Cannot find parameters vars binding inside method body\n" + body.ToString()))
+        
+        // Now let's see which argument is not a reference to a lambda var and which is not
+        let removedParamVars = new List<Var>()
+        let keptParamVars = new List<Var>(miParamVars)
+        let keptParamIndx = new List<int>(seq { for i = 0 to miParamVars.Length - 1 do yield i })
+        let mutable finalBody = body     
+        for argIndex = 0 to args.Length - 1 do
+            let methodArg = args.[argIndex]
+            match methodArg with
+            | Patterns.Var(v) ->
+                let isLambdaParam = List.tryFind(fun (lp: Var) -> lp = v) lambdaParams
+                if isLambdaParam.IsNone then
+                    // Evaluate 
+                    let itemValue = LeafExpressionConverter.EvaluateQuotation(methodArg)
+                    removedParamVars.Add(miParamVars.[argIndex])
+                    keptParamVars.Remove(miParamVars.[argIndex]) |> ignore
+                    keptParamIndx.Remove(argIndex) |> ignore
+                    finalBody <- finalBody.Substitute(fun bv ->
+                                                        if bv = miParamVars.[argIndex] then
+                                                            Some(Expr.Value(itemValue, methodArg.Type))
+                                                        else
+                                                            None)
+            | _ ->
+                // In case one argument that is not a lambda param two situations may happen
+                // 1) It's a value or expression with values and non-lambda vars like: 0.0f * myGlobalVar + ...
+                // We can evaluate
+                // 2) It's an expression with values and lambda vars like: Array.map(fun p -> DoSomething (p + 1))
+                // we can't evaluate, let's throw exception
+                let cantEval = IsExpressionContainingRefToOneOfVars(methodArg, lambdaParams)
+                if cantEval then
+                    raise (new CompilerException("Passing an expression containing references to lambda parameters to a method called inside a lambda in not supported"))
+                else
+                    let itemValue = LeafExpressionConverter.EvaluateQuotation(methodArg)
+                    removedParamVars.Add(miParamVars.[argIndex])
+                    keptParamVars.Remove(miParamVars.[argIndex]) |> ignore
+                    keptParamIndx.Remove(argIndex) |> ignore
+                    finalBody <- finalBody.Substitute(fun bv ->
+                                                        if bv = miParamVars.[argIndex] then
+                                                            Some(Expr.Value(itemValue, methodArg.Type))
+                                                        else
+                                                            None)
+        // Now rebuild method args binding removing the ones substituted with values
+        for v in removedParamVars do
+            finalBody <- RemoveLambdaArgsBindingForVar(finalBody, v)
+
+        // Finally, create a new signature
+        (*
+        let signature = DynamicMethod(mi.Name, mi.ReturnType, keptParamVars |> Seq.map(fun (v:Var) -> v.Type) |> Seq.toArray)
+        let mutable paramIndex = 1
+        for idx in keptParamIndx do
+            signature.DefineParameter(paramIndex, ParameterAttributes.In, miParamVars.[paramIndex - 1].Name) |> ignore
+            paramIndex <- paramIndex + 1
+        *)
+        // Real method in assembly (otherwise when matching an Expr containing a call to the method .NET throws an exception    
+        let assemblyName = mi.Name + "_module";
+        let assemblyBuilder = AppDomain.CurrentDomain.DefineDynamicAssembly(new AssemblyName(assemblyName), AssemblyBuilderAccess.Run);
+        let moduleBuilder = assemblyBuilder.DefineDynamicModule(mi.Name + "_module");
+        let methodBuilder = moduleBuilder.DefineGlobalMethod(
+                                mi.Name,
+                                MethodAttributes.Public ||| MethodAttributes.Static, mi.ReturnType, 
+                                Array.ofSeq(Seq.map(fun (v: Var) -> v.Type) keptParamVars))
+        for p = 0 to keptParamIndx.Count - 1 do
+            methodBuilder.DefineParameter(p + 1, ParameterAttributes.In, miParamVars.[keptParamIndx.[p]].Name) |> ignore
+        // Body (simple return) of the method must be set to build the module and get the MethodInfo that we need as signature
+        methodBuilder.GetILGenerator().Emit(OpCodes.Ret)
+        moduleBuilder.CreateGlobalFunctions()
+        let signature = moduleBuilder.GetMethod(methodBuilder.Name) 
+
+        (signature, keptParamVars |> Seq.toList, finalBody)
+
     let rec ExtractMethodFromExpr(expr) =                 
         match expr with
         | Patterns.Lambda(v, e) -> 

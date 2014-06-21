@@ -104,6 +104,12 @@ type CallCodegen() =
                     // the function is defined in FSCL
                     Some(returnPrefix + mi.Name + "(" + args + ");" + returnPostfix)
                 else
-                    Some(returnPrefix + mi.Name + "(" + args + ")" + returnPostfix)
+                    // Sqrt must be lowercase
+                    let name = 
+                        if mi.Name = "Sqrt" then
+                            "sqrt"
+                        else
+                            mi.Name
+                    Some(returnPrefix + name + "(" + args + ")" + returnPostfix)
         | _ ->
             None

@@ -344,7 +344,9 @@ type AcceleratedArrayReduceHandler() =
                     // Store the called function (runtime execution will use it to perform latest iterations of reduction)
                     kModule.Functions.Add(reduceFunctionInfo.ID, reduceFunctionInfo)
                 | _ ->
-                    ()
+                    // Array.sum: reduce function in (+)
+                    kModule.Kernel.CustomInfo.Add("ReduceFunction", 
+                                                  QuotationAnalysis.ExtractMethodFromExpr(<@ (+) @>).Value.GetGenericMethodDefinition().MakeGenericMethod([| inputArrayType.GetElementType(); inputArrayType.GetElementType();  outputArrayType.GetElementType() |]))
                 // Return module                             
                 Some(kModule)
             else

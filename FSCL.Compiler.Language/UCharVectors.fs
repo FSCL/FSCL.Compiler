@@ -14,7 +14,7 @@ type uchar2 =
         val mutable x: byte
         val mutable y: byte
 
-        member internal this.Components
+        member this.Components
             with get() =
                 [| this.x; this.y |]
             
@@ -127,7 +127,7 @@ type uchar3 =
         val mutable y: byte
         val mutable z: byte
 
-        member internal this.Components
+        member this.Components
             with get() =
                 [| this.x; this.y; this.z |]
                 
@@ -407,7 +407,7 @@ type uchar4 =
         val mutable z: byte
         val mutable w: byte
 
-        member internal this.Components
+        member this.Components
             with get() =
                 [| this.x; this.y; this.z; this.w |]
                 

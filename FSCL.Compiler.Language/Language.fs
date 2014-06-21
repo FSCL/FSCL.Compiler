@@ -497,7 +497,7 @@ module Language =
 
     let inline mad24(x:^T, y:^T, z:^T) =
         x * y + z
-
+        
     type VectorTypeConversionRoundingMode =
     | rte = 0
     | rtz = 1

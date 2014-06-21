@@ -16,7 +16,7 @@ type uint2 =
         val mutable x: uint
         val mutable y: uint
 
-        member internal this.Components
+        member this.Components
             with get() =
                 [| this.x; this.y |]
             
@@ -118,7 +118,7 @@ type uint3 =
         val mutable y: uint
         val mutable z: uint
 
-        member internal this.Components
+        member this.Components
             with get() =
                 [| this.x; this.y; this.z |]
                 
@@ -388,7 +388,7 @@ type uint4 =
         val mutable z: uint
         val mutable w: uint
 
-        member internal this.Components
+        member this.Components
             with get() =
                 [| this.x; this.y; this.z; this.w |]
                 

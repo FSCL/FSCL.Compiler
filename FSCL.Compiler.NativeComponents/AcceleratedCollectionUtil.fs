@@ -11,6 +11,7 @@ open Microsoft.FSharp.Core.LanguagePrimitives
 open System
 open FSCL.Compiler.Util
 open Microsoft.FSharp.Reflection
+open Microsoft.FSharp.Linq.RuntimeHelpers
 
 module AcceleratedCollectionUtil =
     let GenKernelName (prefix: string, parameterTypes: Type list, utilityFunction: string) =
@@ -57,8 +58,8 @@ module AcceleratedCollectionUtil =
         | _ ->
             None 
             
-    // Check if the argument is a lambda expression of the reference of a lambda expression declared in expr
-    let GetLambdaArgument(arg, expr) =        
+    // Check if the argument is a lambda expression 
+    let GetComputationalLambdaOrMethodInsideLambda(arg, expr) =        
         let rec GetLambda(expr, var:Var) =         
             match expr with
             | Patterns.Let (dv, e1, e2) ->
@@ -67,43 +68,44 @@ module AcceleratedCollectionUtil =
                     if dv = var then
                         // Check if this is a computational lambda, that is it is not lambda(lambda(...call)) where
                         // the call is to a reflected method
-                        if QuotationAnalysis.IsComputationalLambda(e1) then
-                            Some(e1)
-                        else
-                            None
+                        QuotationAnalysis.GetComputationalLambdaOrReflectedMethodInfo(e1)
                     else
                         GetLambda(e2, var)
                 | _ ->
                     GetLambda(e2, var)
             | _ ->
-                None 
+                None, None 
           
         match arg with
         | Patterns.Var(v) ->
-            match GetLambda(expr, v) with
-            | Some(l) ->
-                Some(l)
-            | None ->
-                None
-        | Patterns.Lambda(v, e) -> 
-            if QuotationAnalysis.IsComputationalLambda(arg) then
-                Some(arg)
-            else
-                None
+            GetLambda(expr, v)            
+        | Patterns.Lambda(v, e) ->
+            QuotationAnalysis.GetComputationalLambdaOrReflectedMethodInfo(arg)
         | _ ->
-            None
+            None, None
 
     let ExtractComputationFunction(args: Expr list, root) =     
-        let lambda = GetLambdaArgument(args.[0], root)
+        let calledMethod, lambda = GetComputationalLambdaOrMethodInsideLambda(args.[0], root)
+        // If lambda we create a method for it
         let computationFunction =                
-            match lambda with
-            | Some(l) ->
+            match calledMethod, lambda with
+            | Some(o, mi, args, b, lambdaParams), None ->
+                // Lambda containing method to apply: fun it -> DoSomething x y z it
+                // We must close DoSomething replacing params that are references to stuff outside quotation (!= it)
+                // More precisely, if some paramters of mi are not contained in lambdaParams
+                // this means that the lambda is something like fun a b c -> myMethod a b c othPar
+                // So othPar must be evaluated, replacing it's current value inside myMethod
+                // Otherwise, the kernel would not be able to invoke it (it doesn't manage othPar)
+                Some(QuotationAnalysis.LiftNonLambdaParamsFromMethodCalledInLambda(mi, args, b, lambdaParams))
+            | None, Some(l) ->
+                // Computational lambda to apply to collection
                 match QuotationAnalysis.LambdaToMethod(l) with                
                 | Some(m, paramVars, b, _, _, _) ->
                     Some(m, paramVars, b)
                 | _ ->
                     failwith ("Cannot parse the body of the computation function " + root.ToString())
-            | None ->
+            | None, None ->
+                // No lambda but method ref used as function to apply to collection
                 FilterCall(args.[0], 
                     fun (e, mi, a) ->                         
                         match mi with

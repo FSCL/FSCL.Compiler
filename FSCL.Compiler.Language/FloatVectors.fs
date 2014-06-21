@@ -14,7 +14,7 @@ type float2 =
         val mutable x: float32
         val mutable y: float32
 
-        member internal this.Components
+        member this.Components
             with get() =
                 [| this.x; this.y |]
                 
@@ -138,7 +138,7 @@ type float3 =
         val mutable y: float32
         val mutable z: float32
 
-        member internal this.Components
+        member this.Components
             with get() =
                 [| this.x; this.y; this.z |]
                 
@@ -433,7 +433,7 @@ type float4 =
         val mutable z: float32
         val mutable w: float32
 
-        member internal this.Components
+        member this.Components
             with get() =
                 [| this.x; this.y; this.z; this.w |]
                 

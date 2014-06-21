@@ -14,7 +14,7 @@ type sbyte2 =
         val mutable x: sbyte
         val mutable y: sbyte
 
-        member internal this.Components
+        member this.Components
             with get() =
                 [| this.x; this.y |]
             
@@ -110,7 +110,7 @@ type sbyte3 =
         val mutable y: sbyte
         val mutable z: sbyte
 
-        member internal this.Components
+        member this.Components
             with get() =
                 [| this.x; this.y; this.z |]
                 
@@ -374,7 +374,7 @@ type sbyte4 =
         val mutable z: sbyte
         val mutable w: sbyte
 
-        member internal this.Components
+        member this.Components
             with get() =
                 [| this.x; this.y; this.z; this.w |]
                 

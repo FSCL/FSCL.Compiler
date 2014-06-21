@@ -15,11 +15,11 @@ type char2 =
         val mutable x: char
         val mutable y: char
 
-        member internal this.Components
+        member this.Components
             with get() =
                 [| this.x; this.y |]
 
-        member internal this.ByteComponents
+        member this.ByteComponents
             with get() =
                 [| this.x |> sbyte; this.y |> sbyte |]
             
@@ -118,11 +118,11 @@ type char3 =
         val mutable y: char
         val mutable z: char
 
-        member internal this.Components
+        member this.Components
             with get() =
                 [| this.x; this.y; this.z |]
 
-        member internal this.ByteComponents
+        member this.ByteComponents
             with get() =
                 [| this.x |> sbyte; this.y |> sbyte |]
 
@@ -389,11 +389,11 @@ type char4 =
         val mutable z: char
         val mutable w: char
 
-        member internal this.Components
+        member this.Components
             with get() =
                 [| this.x; this.y; this.z; this.w |]
 
-        member internal this.ByteComponents
+        member this.ByteComponents
             with get() =
                 [| this.x |> sbyte; this.y |> sbyte; this.z |> sbyte; this.w |> sbyte |]
                 
