@@ -35,17 +35,37 @@ type AcceleratedArrayMetaFiltering() =
     
     override this.Run((kmeta, rmeta, pmeta, info), s, opts) =
         let step = s :?> ModuleParsingStep
-        if info <> null && info.ContainsKey("AcceleratedCollection") then
-            // Remove the meta for the first param cause it is a lambda/function reference
-            pmeta.RemoveAt(0)
-            
+        if info <> null && info.ContainsKey("AcceleratedCollection") then            
             // Prepare params meta
             match info.["AcceleratedCollection"] :?> string with
             | "Map"
-            | "Map2" ->
+            | "Map2"
+            | "MapIndexed"
+            | "MapIndexed2" ->
+                // Remove the meta for the first param cause it is a lambda/function reference
+                pmeta.RemoveAt(0)
                 // Add meta for output parameter
                 pmeta.Add(rmeta)
+            | "Reverse" ->
+                pmeta.Add(rmeta)
+            | "Sum" ->
+                // Check device target
+                let targetType = kmeta.Get<DeviceTypeAttribute>()
+                // If gpu                
+                if targetType.Type = DeviceType.Gpu then                    
+                    let localParameterMeta = new ParamMetaCollection()
+                    localParameterMeta.Add(new AddressSpaceAttribute(AddressSpace.Local))
+                    pmeta.Add(localParameterMeta)
+                    pmeta.Add(rmeta)
+                // If cpu
+                else
+                    pmeta.Add(new ParamMetaCollection())
+                    pmeta.Add(rmeta)
+                // Force output to be read-write (cause it will be switched) 
+                pmeta.[pmeta.Count - 1].AddOrSet(new MemoryFlagsAttribute(MemoryFlags.ReadWrite))
             | "Reduce" ->
+                // Remove the meta for the first param cause it is a lambda/function reference
+                pmeta.RemoveAt(0)
                 // Check device target
                 let targetType = kmeta.Get<DeviceTypeAttribute>()
                 // If gpu                

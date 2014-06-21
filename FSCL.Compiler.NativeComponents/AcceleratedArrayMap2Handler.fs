@@ -33,12 +33,20 @@ type AcceleratedArrayMap2Handler() =
             match computationFunction with
             | Some(functionInfo, functionParamVars, functionBody) ->
                 // We need to get the type of a array whose elements type is the same of the functionInfo parameter
-                let firstInputArrayType = Array.CreateInstance(functionInfo.GetParameters().[0].ParameterType, 0).GetType()
-                let secondInputArrayType = Array.CreateInstance(functionInfo.GetParameters().[1].ParameterType, 0).GetType()
-                let outputArrayType = Array.CreateInstance(functionInfo.ReturnType, 0).GetType()
+                let firstInputArrayType, secondInputArrayType = 
+                    if methodInfo.Name = "Map2" then
+                        (functionInfo.GetParameters().[0].ParameterType.MakeArrayType(), functionInfo.GetParameters().[0].ParameterType.MakeArrayType())
+                    else
+                        (functionInfo.GetParameters().[1].ParameterType.MakeArrayType(), functionInfo.GetParameters().[1].ParameterType.MakeArrayType())
+                let outputArrayType = functionInfo.ReturnType.MakeArrayType()
+                let kernelPrefix, functionName = 
+                    if methodInfo.Name = "Map2" then
+                        "ArrayMap2_", "Array.map2"
+                    else
+                        "ArrayMapi2_", "Array.mapi2"     
                                     
                 // Now we can create the signature and define parameter name
-                let signature = DynamicMethod("ArrayMap2_" + functionInfo.Name, outputArrayType, [| firstInputArrayType; secondInputArrayType; outputArrayType |])
+                let signature = DynamicMethod(kernelPrefix + "_" + functionInfo.Name, outputArrayType, [| firstInputArrayType; secondInputArrayType; outputArrayType |])
                 signature.DefineParameter(1, ParameterAttributes.In, "input_array_1") |> ignore
                 signature.DefineParameter(2, ParameterAttributes.In, "input_array_2") |> ignore
                 signature.DefineParameter(3, ParameterAttributes.In, "output_array") |> ignore
@@ -55,35 +63,60 @@ type AcceleratedArrayMap2Handler() =
                 let secondGetElementMethodInfo, _ = AcceleratedCollectionUtil.GetArrayAccessMethodInfo(secondInputArrayType.GetElementType())
                 let _, setElementMethodInfo = AcceleratedCollectionUtil.GetArrayAccessMethodInfo(outputArrayType.GetElementType())
                 let kernelBody = 
-                    Expr.Lambda(tupleHolder,
-                        Expr.Let(input1Holder, Expr.TupleGet(Expr.Var(tupleHolder), 0),
-                            Expr.Let(input2Holder, Expr.TupleGet(Expr.Var(tupleHolder), 1),
-                                Expr.Let(outputHolder, Expr.TupleGet(Expr.Var(tupleHolder), 2),
-                                    Expr.Let(globalIdVar,
-                                                Expr.Call(AcceleratedCollectionUtil.FilterCall(<@ get_global_id @>, fun(e, mi, a) -> mi).Value, [ Expr.Value(0) ]),
-                                                Expr.Sequential(
-                                                    Expr.Call(setElementMethodInfo,
-                                                        [ Expr.Var(outputHolder);
-                                                            Expr.Var(globalIdVar);
-                                                            Expr.Call(functionInfo,
-                                                                    [ Expr.Call(firstGetElementMethodInfo,
-                                                                                [ Expr.Var(input1Holder);
-                                                                                    Expr.Var(globalIdVar) 
-                                                                                ]);
-                                                                      Expr.Call(secondGetElementMethodInfo,
-                                                                                [ Expr.Var(input2Holder);
-                                                                                    Expr.Var(globalIdVar) 
-                                                                                ])
-                                                                    ])
-                                                        ]),
-                                                     Expr.Var(outputHolder)))))))
+                    if methodInfo.Name = "Map2" then
+                        Expr.Lambda(tupleHolder,
+                            Expr.Let(input1Holder, Expr.TupleGet(Expr.Var(tupleHolder), 0),
+                                Expr.Let(input2Holder, Expr.TupleGet(Expr.Var(tupleHolder), 1),
+                                    Expr.Let(outputHolder, Expr.TupleGet(Expr.Var(tupleHolder), 2),
+                                        Expr.Let(globalIdVar,
+                                                    Expr.Call(AcceleratedCollectionUtil.FilterCall(<@ get_global_id @>, fun(e, mi, a) -> mi).Value, [ Expr.Value(0) ]),
+                                                    Expr.Sequential(
+                                                        Expr.Call(setElementMethodInfo,
+                                                            [ Expr.Var(outputHolder);
+                                                                Expr.Var(globalIdVar);
+                                                                Expr.Call(functionInfo,
+                                                                        [ Expr.Call(firstGetElementMethodInfo,
+                                                                                    [ Expr.Var(input1Holder);
+                                                                                        Expr.Var(globalIdVar) 
+                                                                                    ]);
+                                                                          Expr.Call(secondGetElementMethodInfo,
+                                                                                    [ Expr.Var(input2Holder);
+                                                                                        Expr.Var(globalIdVar) 
+                                                                                    ])
+                                                                        ])
+                                                            ]),
+                                                         Expr.Var(outputHolder)))))))
+                    else
+                        Expr.Lambda(tupleHolder,
+                            Expr.Let(input1Holder, Expr.TupleGet(Expr.Var(tupleHolder), 0),
+                                Expr.Let(input2Holder, Expr.TupleGet(Expr.Var(tupleHolder), 1),
+                                    Expr.Let(outputHolder, Expr.TupleGet(Expr.Var(tupleHolder), 2),
+                                        Expr.Let(globalIdVar,
+                                                    Expr.Call(AcceleratedCollectionUtil.FilterCall(<@ get_global_id @>, fun(e, mi, a) -> mi).Value, [ Expr.Value(0) ]),
+                                                    Expr.Sequential(
+                                                        Expr.Call(setElementMethodInfo,
+                                                            [ Expr.Var(outputHolder);
+                                                                Expr.Var(globalIdVar);
+                                                                Expr.Call(functionInfo,
+                                                                        [ Expr.Var(globalIdVar);
+                                                                          Expr.Call(firstGetElementMethodInfo,
+                                                                                    [ Expr.Var(input1Holder);
+                                                                                        Expr.Var(globalIdVar) 
+                                                                                    ]);
+                                                                          Expr.Call(secondGetElementMethodInfo,
+                                                                                    [ Expr.Var(input2Holder);
+                                                                                        Expr.Var(globalIdVar) 
+                                                                                    ])
+                                                                        ])
+                                                            ]),
+                                                         Expr.Var(outputHolder)))))))
                                   
                 // Add current kernelbody
                 let kInfo = new AcceleratedKernelInfo(signature, 
                                                       [ input1Holder; input2Holder; outputHolder ],
                                                       kernelBody,
                                                       meta, 
-                                                      "Array.map2", functionBody)
+                                                      "Array.map2", Some(functionBody))
                 let kernelModule = new KernelModule(kInfo, cleanArgs)
                 
                 // Add the current kernel

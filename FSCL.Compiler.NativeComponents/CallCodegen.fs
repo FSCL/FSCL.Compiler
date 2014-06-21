@@ -9,6 +9,7 @@ open Microsoft.FSharp.Quotations
 open System.Reflection
 open System.Runtime.CompilerServices
 open Microsoft.FSharp.Linq.RuntimeHelpers
+open FSCL.Compiler.Util.QuotationAnalysis
 
 [<StepProcessor("FSCL_CALL_CODEGEN_PROCESSOR", "FSCL_FUNCTION_CODEGEN_STEP",
                 Dependencies = [| "FSCL_ARRAY_ACCESS_CODEGEN_PROCESSOR";
@@ -23,6 +24,18 @@ open Microsoft.FSharp.Linq.RuntimeHelpers
 type CallCodegen() =
     inherit FunctionBodyCodegenProcessor()
 
+    // Set of calls to cast values
+    let castMethods = new Dictionary<MethodInfo, string>()
+    do
+        castMethods.Add(ExtractMethodFromExpr(<@ int @>).Value.GetGenericMethodDefinition(), "int")
+        castMethods.Add(ExtractMethodFromExpr(<@ uint32 @>).Value.GetGenericMethodDefinition(), "unsigned int")
+        castMethods.Add(ExtractMethodFromExpr(<@ char @>).Value.GetGenericMethodDefinition(), "char")
+        castMethods.Add(ExtractMethodFromExpr(<@ byte @>).Value.GetGenericMethodDefinition(), "uchar")
+        castMethods.Add(ExtractMethodFromExpr(<@ sbyte @>).Value.GetGenericMethodDefinition(), "char")
+        castMethods.Add(ExtractMethodFromExpr(<@ float32 @>).Value.GetGenericMethodDefinition(), "float")
+        castMethods.Add(ExtractMethodFromExpr(<@ float @>).Value.GetGenericMethodDefinition(), "double")
+        castMethods.Add(ExtractMethodFromExpr(<@ int64 @>).Value.GetGenericMethodDefinition(), "long")
+        castMethods.Add(ExtractMethodFromExpr(<@ uint64 @>).Value.GetGenericMethodDefinition(), "ulong")
     ///
     ///<summary>
     ///The method called to execute the processor
@@ -52,12 +65,15 @@ type CallCodegen() =
                         ""
                 else
                     ""
-
             let returnPostfix = if returnPrefix.Length > 0 then ";\n" else ""
             
             let args = String.concat ", " (List.map (fun (e:Expr) -> engine.Continue(e)) a)
-            // Vector OpenCL operators
-            if (mi.DeclaringType <> null && mi.DeclaringType.GetCustomAttribute<VectorTypeAttribute>() <> null && mi.Name = "vload") then
+
+            // Check if this is a cast
+            if mi.IsGenericMethod && castMethods.ContainsKey(mi.GetGenericMethodDefinition()) then
+                Some(returnPrefix + "(" + engine.TypeManager.Print(mi.ReturnType) + ")(" + engine.Continue(a.[0]) + ")" + returnPostfix)
+            // Check Vector OpenCL operators
+            else if (mi.DeclaringType <> null && mi.DeclaringType.GetCustomAttribute<VectorTypeAttribute>() <> null && mi.Name = "vload") then
                 // vload function
                 let vType = mi.ReturnType
                 let vCount = 

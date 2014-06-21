@@ -32,45 +32,73 @@ type AcceleratedArrayMapHandler() =
             | Some(functionInfo, functionParamVars, functionBody) ->
 
                 // We need to get the type of a array whose elements type is the same of the functionInfo parameter
-                let inputArrayType = Array.CreateInstance(functionInfo.GetParameters().[0].ParameterType, 0).GetType()
-                let outputArrayType = Array.CreateInstance(functionInfo.ReturnType, 0).GetType()
+                let inputArrayType = 
+                    if methodInfo.Name = "Map" then
+                        functionInfo.GetParameters().[0].ParameterType.MakeArrayType()
+                    else
+                        functionInfo.GetParameters().[1].ParameterType.MakeArrayType()
+                let outputArrayType = functionInfo.ReturnType.MakeArrayType()
+                let kernelPrefix, functionName = 
+                    if methodInfo.Name = "Map" then
+                        "ArrayMap_", "Array.map"
+                    else
+                        "ArrayMapi_", "Array.mapi"                    
 
                 // Now we can create the signature and define parameter name
-                let signature = DynamicMethod("ArrayMap_" + functionInfo.Name, typeof<unit>, [| inputArrayType; outputArrayType |])
+                let signature = DynamicMethod(kernelPrefix + "_" + functionInfo.Name, typeof<unit>, [| inputArrayType; outputArrayType |])
                 signature.DefineParameter(1, ParameterAttributes.In, "input_array") |> ignore
                 signature.DefineParameter(2, ParameterAttributes.In, "output_array") |> ignore
                                 
                 // Create parameters placeholders
                 let inputHolder = Quotations.Var("input_array", inputArrayType)
                 let outputHolder = Quotations.Var("output_array", outputArrayType)
-                let tupleHolder = Quotations.Var("tupledArg", FSharpType.MakeTupleType([| inputArrayType; outputArrayType |])) 
+                let tupleHolder = 
+                        Quotations.Var("tupledArg", FSharpType.MakeTupleType([| inputArrayType; outputArrayType |])) 
                     
                 // Finally, create the body of the kernel
                 let globalIdVar = Quotations.Var("global_id", typeof<int>)
                 let getElementMethodInfo, _ = AcceleratedCollectionUtil.GetArrayAccessMethodInfo(inputArrayType.GetElementType())
                 let _, setElementMethodInfo = AcceleratedCollectionUtil.GetArrayAccessMethodInfo(outputArrayType.GetElementType())
                 let kernelBody = 
-                    Expr.Lambda(tupleHolder,
-                            Expr.Let(inputHolder, Expr.TupleGet(Expr.Var(tupleHolder), 0),
-                                Expr.Let(outputHolder, Expr.TupleGet(Expr.Var(tupleHolder), 1),
-                                    Expr.Let(globalIdVar,
-                                                Expr.Call(AcceleratedCollectionUtil.FilterCall(<@ get_global_id @>, fun(e, mi, a) -> mi).Value, [ Expr.Value(0) ]),
-                                                Expr.Call(setElementMethodInfo,
-                                                        [ Expr.Var(outputHolder);
-                                                            Expr.Var(globalIdVar);
-                                                            Expr.Call(functionInfo,
-                                                                    [ Expr.Call(getElementMethodInfo,
-                                                                                [ Expr.Var(inputHolder);
-                                                                                    Expr.Var(globalIdVar) 
-                                                                                ])
-                                                                    ])
-                                                        ])))))
+                    if methodInfo.Name = "Map" then
+                        Expr.Lambda(tupleHolder,
+                                Expr.Let(inputHolder, Expr.TupleGet(Expr.Var(tupleHolder), 0),
+                                    Expr.Let(outputHolder, Expr.TupleGet(Expr.Var(tupleHolder), 1),
+                                        Expr.Let(globalIdVar,
+                                                    Expr.Call(AcceleratedCollectionUtil.FilterCall(<@ get_global_id @>, fun(e, mi, a) -> mi).Value, [ Expr.Value(0) ]),
+                                                    Expr.Call(setElementMethodInfo,
+                                                            [ Expr.Var(outputHolder);
+                                                                Expr.Var(globalIdVar);
+                                                                Expr.Call(functionInfo,
+                                                                        [ Expr.Call(getElementMethodInfo,
+                                                                                    [ Expr.Var(inputHolder);
+                                                                                        Expr.Var(globalIdVar) 
+                                                                                    ])
+                                                                        ])
+                                                            ])))))
+                    else
+                        Expr.Lambda(tupleHolder,
+                                Expr.Let(inputHolder, Expr.TupleGet(Expr.Var(tupleHolder), 0),
+                                    Expr.Let(outputHolder, Expr.TupleGet(Expr.Var(tupleHolder), 1),
+                                        Expr.Let(globalIdVar,
+                                                    Expr.Call(AcceleratedCollectionUtil.FilterCall(<@ get_global_id @>, fun(e, mi, a) -> mi).Value, [ Expr.Value(0) ]),
+                                                    Expr.Call(setElementMethodInfo,
+                                                            [ Expr.Var(outputHolder);
+                                                                Expr.Var(globalIdVar);
+                                                                Expr.Call(functionInfo,
+                                                                        [ Expr.Var(globalIdVar);
+                                                                          Expr.Call(getElementMethodInfo,
+                                                                                    [ Expr.Var(inputHolder);
+                                                                                        Expr.Var(globalIdVar) 
+                                                                                    ])
+                                                                        ])
+                                                            ])))))
 
                 let kInfo = new AcceleratedKernelInfo(signature, 
                                                       [ inputHolder; outputHolder ],
                                                       kernelBody, 
                                                       meta, 
-                                                      "Array.map", functionBody)
+                                                      functionName, Some(functionBody))
                 let kernelModule = new KernelModule(kInfo, cleanArgs)
                                 
                 // Add the computation function and connect it to the kernel

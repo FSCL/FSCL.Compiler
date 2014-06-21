@@ -65,7 +65,6 @@ let Reduce(g_idata:int[], [<AddressSpace(AddressSpace.Local)>]sdata:int[], n, g_
     sdata.[tid] <- if(i < n) then g_idata.[i] else 0
     if (i + get_local_size(0) < n) then 
         sdata.[tid] <- sdata.[tid] + g_idata.[i + get_local_size(0)]
-
     barrier(CLK_LOCAL_MEM_FENCE)
 
     // do reduction in shared mem

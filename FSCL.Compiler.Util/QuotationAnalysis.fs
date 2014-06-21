@@ -430,6 +430,17 @@ module QuotationAnalysis =
             Some(signature, parameters, body, kernelAttrs, returnAttrs, ReadOnlyMetaCollection.EmptyParamMetaCollection(parameters.Length))
         else
             None
+                
+    let rec ExtractMethodFromExpr(expr) =                 
+        match expr with
+        | Patterns.Lambda(v, e) -> 
+            ExtractMethodFromExpr (e)
+        | Patterns.Let (v, e1, e2) ->
+            ExtractMethodFromExpr (e2)
+        | Patterns.Call (e, mi, a) ->
+            Some(mi)
+        | _ ->
+            None 
 
     
         

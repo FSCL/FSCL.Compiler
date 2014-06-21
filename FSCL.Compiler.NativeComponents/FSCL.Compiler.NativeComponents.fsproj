@@ -97,6 +97,7 @@
     <Compile Include="AcceleratedArrayMap2Handler.fs" />
     <Compile Include="AcceleratedArrayMapHandler.fs" />
     <Compile Include="AcceleratedArrayReduceHandler.fs" />
+    <Compile Include="AcceleratedArrayReverseHandler.fs" />
     <Compile Include="AcceleratedArrayParser.fs" />
   </ItemGroup>
   <ItemGroup>
