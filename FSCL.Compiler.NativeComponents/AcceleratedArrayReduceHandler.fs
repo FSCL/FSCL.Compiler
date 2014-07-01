@@ -339,7 +339,9 @@ type AcceleratedArrayReduceHandler() =
                     if lambda.IsSome then
                         kModule.Kernel.CustomInfo.Add("ReduceFunction", lambda.Value)
                     else
-                        kModule.Kernel.CustomInfo.Add("ReduceFunction", match computationFunction.Value with a, _, _ -> a)
+                        // ExtractComputationFunction may have lifted some paramters that are referencing stuff outside the quotation, so 
+                        // a new methodinfo is generated with no body. So we can't invoke it, and therefore we add as ReduceFunction the body instead of the methodinfo
+                        kModule.Kernel.CustomInfo.Add("ReduceFunction", match computationFunction.Value with a, _, b -> b)
                                     
                     // Store the called function (runtime execution will use it to perform latest iterations of reduction)
                     kModule.Functions.Add(reduceFunctionInfo.ID, reduceFunctionInfo)
