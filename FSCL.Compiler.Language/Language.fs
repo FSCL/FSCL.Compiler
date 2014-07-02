@@ -22,11 +22,10 @@ module Language =
     /// Enumeration describing the transfer contraints to a kernel parameter (NoTransfer, NoTransferBack, Transfer)
     ///</summary>
     ///
-    [<Flags>]
     type TransferMode =
     | TransferIfNeeded = 0
     | NoTransfer = 1
-    | NoTransferBack = 2
+    | ForceTransfer = 2
 
     ///
     ///<summary>
@@ -125,13 +124,12 @@ module Language =
     ///</summary>
     ///
     [<AllowNullLiteral>]
-    type TransferModeAttribute(mode: TransferMode) =
+    type TransferModeAttribute(hostToDevice: TransferMode, deviceToHost: TransferMode) =
         inherit ParameterMetadataAttribute()
-        member val Mode = mode with get
+        member val HostToDeviceMode = hostToDevice with get
+        member val DeviceToHostMode = deviceToHost with get
         new() =
-            TransferModeAttribute(TransferMode.TransferIfNeeded)
-        override this.ToString() =
-            this.Mode.ToString()
+            TransferModeAttribute(TransferMode.TransferIfNeeded, TransferMode.TransferIfNeeded)
          
     ///
     ///<summary>
@@ -209,7 +207,7 @@ module Language =
     let ADDRESS_SPACE(m: AddressSpace, a) = 
         a
     [<ParameterMetadataFunction(typeof<TransferModeAttribute>)>]
-    let TRANSFER_MODE(m: TransferMode, a) = 
+    let TRANSFER_MODE(htd: TransferMode, dth: TransferMode, a) = 
         a
     [<ParameterMetadataFunction(typeof<MemoryFlagsAttribute>)>]
     let MEMORY_FLAGS(m: MemoryFlags, a) = 
