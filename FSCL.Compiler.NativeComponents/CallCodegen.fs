@@ -10,6 +10,7 @@ open System.Reflection
 open System.Runtime.CompilerServices
 open Microsoft.FSharp.Linq.RuntimeHelpers
 open FSCL.Compiler.Util.QuotationAnalysis
+open FSCL.Compiler.Util.ReflectionUtil
 
 [<StepProcessor("FSCL_CALL_CODEGEN_PROCESSOR", "FSCL_FUNCTION_CODEGEN_STEP",
                 Dependencies = [| "FSCL_ARRAY_ACCESS_CODEGEN_PROCESSOR";
@@ -27,15 +28,72 @@ type CallCodegen() =
     // Set of calls to cast values
     let castMethods = new Dictionary<MethodInfo, string>()
     do
-        castMethods.Add(ExtractMethodFromExpr(<@ int @>).Value.GetGenericMethodDefinition(), "int")
-        castMethods.Add(ExtractMethodFromExpr(<@ uint32 @>).Value.GetGenericMethodDefinition(), "unsigned int")
-        castMethods.Add(ExtractMethodFromExpr(<@ char @>).Value.GetGenericMethodDefinition(), "char")
-        castMethods.Add(ExtractMethodFromExpr(<@ byte @>).Value.GetGenericMethodDefinition(), "uchar")
-        castMethods.Add(ExtractMethodFromExpr(<@ sbyte @>).Value.GetGenericMethodDefinition(), "char")
-        castMethods.Add(ExtractMethodFromExpr(<@ float32 @>).Value.GetGenericMethodDefinition(), "float")
-        castMethods.Add(ExtractMethodFromExpr(<@ float @>).Value.GetGenericMethodDefinition(), "double")
-        castMethods.Add(ExtractMethodFromExpr(<@ int64 @>).Value.GetGenericMethodDefinition(), "long")
-        castMethods.Add(ExtractMethodFromExpr(<@ uint64 @>).Value.GetGenericMethodDefinition(), "ulong")
+        castMethods.Add(ExtractMethodFromExpr(<@ int @>).Value.TryGetGenericMethodDefinition(), "int")
+        castMethods.Add(ExtractMethodFromExpr(<@ uint32 @>).Value.TryGetGenericMethodDefinition(), "unsigned int")
+        castMethods.Add(ExtractMethodFromExpr(<@ char @>).Value.TryGetGenericMethodDefinition(), "char")
+        castMethods.Add(ExtractMethodFromExpr(<@ byte @>).Value.TryGetGenericMethodDefinition(), "uchar")
+        castMethods.Add(ExtractMethodFromExpr(<@ sbyte @>).Value.TryGetGenericMethodDefinition(), "char")
+        castMethods.Add(ExtractMethodFromExpr(<@ float32 @>).Value.TryGetGenericMethodDefinition(), "float")
+        castMethods.Add(ExtractMethodFromExpr(<@ float @>).Value.TryGetGenericMethodDefinition(), "double")
+        castMethods.Add(ExtractMethodFromExpr(<@ int64 @>).Value.TryGetGenericMethodDefinition(), "long")
+        castMethods.Add(ExtractMethodFromExpr(<@ uint64 @>).Value.TryGetGenericMethodDefinition(), "ulong")
+
+    // Set of .NET Math functions that can be used in place of the OpenCL matching ones
+    let alternativeFunctions = new Dictionary<MethodInfo, string>()
+    let populateAlternativeFunctions(quotedMeth: Expr, mathingFunction: string) =
+        alternativeFunctions.Add(ExtractMethodFromExpr(quotedMeth).Value.TryGetGenericMethodDefinition(), mathingFunction)
+
+    do
+        populateAlternativeFunctions(<@ Math.Acos @>, "acos")
+        populateAlternativeFunctions(<@ Microsoft.FSharp.Core.Operators.acos @>, "acos")
+        populateAlternativeFunctions(<@ Math.Asin @>, "asin")
+        populateAlternativeFunctions(<@ Microsoft.FSharp.Core.Operators.asin @>, "asin")
+        populateAlternativeFunctions(<@ Math.Atan @>, "atan")
+        populateAlternativeFunctions(<@ Microsoft.FSharp.Core.Operators.atan @>, "atan")
+        populateAlternativeFunctions(<@ Math.Atan2 @>, "atan2")
+        populateAlternativeFunctions(<@ Microsoft.FSharp.Core.Operators.atan2 @>, "atan2")
+        populateAlternativeFunctions(<@ Math.Ceiling 0.0 @>, "ceil")
+        populateAlternativeFunctions(<@ Math.Ceiling 0m @>, "ceil")
+        populateAlternativeFunctions(<@ Microsoft.FSharp.Core.Operators.ceil @>, "ceil")
+        populateAlternativeFunctions(<@ Math.Cos @>, "cos")
+        populateAlternativeFunctions(<@ Microsoft.FSharp.Core.Operators.cos @>, "cos")
+        populateAlternativeFunctions(<@ Math.Cosh @>, "cosh")
+        populateAlternativeFunctions(<@ Microsoft.FSharp.Core.Operators.cosh @>, "cosh")
+        populateAlternativeFunctions(<@ Math.Exp @>, "exp")
+        populateAlternativeFunctions(<@ Microsoft.FSharp.Core.Operators.exp @>, "exp")
+        populateAlternativeFunctions(<@ Math.Floor 0.0 @>, "floor")
+        populateAlternativeFunctions(<@ Math.Floor 0m @>, "floor")
+        populateAlternativeFunctions(<@ Microsoft.FSharp.Core.Operators.floor @>, "floor")
+        populateAlternativeFunctions(<@ Math.Sqrt 0.0 @>, "sqrt")
+        populateAlternativeFunctions(<@ Microsoft.FSharp.Core.Operators.sqrt @>, "sqrt")
+
+        populateAlternativeFunctions(<@ Math.Min(0m, 0m) @>, "min")
+        populateAlternativeFunctions(<@ Math.Min(0, 0) @>, "min")
+        populateAlternativeFunctions(<@ Math.Min(0u, 0u) @>, "min")
+        populateAlternativeFunctions(<@ Math.Min(0uL, 0uL) @>, "min")
+        populateAlternativeFunctions(<@ Math.Min(0L, 0L) @>, "min")
+        populateAlternativeFunctions(<@ Math.Min(0y, 0y) @>, "min")
+        populateAlternativeFunctions(<@ Math.Min(0uy, 0uy) @>, "min")
+        populateAlternativeFunctions(<@ Math.Min(0s, 0s) @>, "min")
+        populateAlternativeFunctions(<@ Math.Min(0us, 0us) @>, "min")
+        populateAlternativeFunctions(<@ Math.Min(0.0, 0.0) @>, "min")
+        populateAlternativeFunctions(<@ Math.Min(0.0f, 0.0f) @>, "min")
+        populateAlternativeFunctions(<@ Microsoft.FSharp.Core.Operators.min @>, "min")
+        
+        populateAlternativeFunctions(<@ Math.Max(0m, 0m) @>, "max")
+        populateAlternativeFunctions(<@ Math.Max(0, 0) @>, "max")
+        populateAlternativeFunctions(<@ Math.Max(0u, 0u) @>, "max")
+        populateAlternativeFunctions(<@ Math.Max(0uL, 0uL) @>, "max")
+        populateAlternativeFunctions(<@ Math.Max(0L, 0L) @>, "max")
+        populateAlternativeFunctions(<@ Math.Max(0y, 0y) @>, "max")
+        populateAlternativeFunctions(<@ Math.Max(0uy, 0uy) @>, "max")
+        populateAlternativeFunctions(<@ Math.Max(0s, 0s) @>, "max")
+        populateAlternativeFunctions(<@ Math.Max(0us, 0us) @>, "max")
+        populateAlternativeFunctions(<@ Math.Max(0.0, 0.0) @>, "max")
+        populateAlternativeFunctions(<@ Math.Max(0.0f, 0.0f) @>, "max")
+        populateAlternativeFunctions(<@ Microsoft.FSharp.Core.Operators.max @>, "max")
+
+
     ///
     ///<summary>
     ///The method called to execute the processor
@@ -49,8 +107,8 @@ type CallCodegen() =
     override this.Run(expr, en, opts) =
         let engine = en :?> FunctionCodegenStep
         match expr with
-        // Ignore call to __local
         | DerivedPatterns.SpecificCall <@ local @> (o, mi, a) ->
+            // Ignore call to __local
             None
         | Patterns.Call (o, mi, a) ->
             // Check if the call is the last thing done in the function body
@@ -72,7 +130,7 @@ type CallCodegen() =
             // Check if this is a cast
             if mi.IsGenericMethod && castMethods.ContainsKey(mi.GetGenericMethodDefinition()) then
                 Some(returnPrefix + "(" + engine.TypeManager.Print(mi.ReturnType) + ")(" + engine.Continue(a.[0]) + ")" + returnPostfix)
-            // Check Vector OpenCL operators
+            // Check Vector operators
             else if (mi.DeclaringType <> null && mi.DeclaringType.GetCustomAttribute<VectorTypeAttribute>() <> null && mi.Name = "vload") then
                 // vload function
                 let vType = mi.ReturnType
@@ -84,8 +142,8 @@ type CallCodegen() =
                     else 
                         2
                 Some(returnPrefix + "vload" + vCount.ToString() + "(" + args + ")" + returnPostfix)
+            // Check Vector convertions
             else if (mi.GetCustomAttribute<VectorTypeConversionAttribute>() <> null) then
-                // vload function
                 let sat = mi.Name.EndsWith("Sat")
                 let rounding = LeafExpressionConverter.EvaluateQuotation(a.[1]) :?> VectorTypeConversionRoundingMode option
                 if rounding.IsSome then
@@ -99,17 +157,15 @@ type CallCodegen() =
             else if (mi.Name = "[]`1.pasub") then
                 // Pointer arithmetic subtraction
                 Some(returnPrefix + "(" + engine.Continue(a.[0]) + ") - (" + engine.Continue(a.[1]) + ")" + returnPostfix)
-            else
-                if mi.DeclaringType <> null && mi.DeclaringType.Name = "Language" &&  mi.Name = "barrier" then
-                    // the function is defined in FSCL
-                    Some(returnPrefix + mi.Name + "(" + args + ");" + returnPostfix)
+            // Check  barrier
+            else if mi.DeclaringType <> null && mi.DeclaringType.Name = "Language" &&  mi.Name = "barrier" then
+                Some(returnPrefix + mi.Name + "(" + args + ");" + returnPostfix)
+            // Check alternative function
+            else 
+                if alternativeFunctions.ContainsKey(mi.TryGetGenericMethodDefinition()) then
+                    let definition = alternativeFunctions.[mi.TryGetGenericMethodDefinition()]
+                    Some(returnPrefix + definition + "(" + args + ");" + returnPostfix)
                 else
-                    // Sqrt must be lowercase
-                    let name = 
-                        if mi.Name = "Sqrt" then
-                            "sqrt"
-                        else
-                            mi.Name
-                    Some(returnPrefix + name + "(" + args + ")" + returnPostfix)
+                    Some(returnPrefix + mi.Name + "(" + args + ")" + returnPostfix)
         | _ ->
             None

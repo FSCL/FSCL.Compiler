@@ -32,39 +32,6 @@
     <WarningLevel>3</WarningLevel>
     <DocumentationFile>bin\Release\FSCL.Compiler.Util.XML</DocumentationFile>
   </PropertyGroup>
-  <ItemGroup>
-    <Reference Include="FSharp.Core, Version=$(TargetFSharpCoreVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="mscorlib" />
-    <Reference Include="System" />
-    <Reference Include="System.Core" />
-    <Reference Include="System.Numerics" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Script.fsx" />
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Include="ArrayUtil.fs" />
-    <Compile Include="CombinationGenerator.fs" />
-    <Compile Include="GraphUtil.fs" />
-    <Compile Include="IdGenerator.fs" />
-    <Compile Include="MathUtil.fs" />
-    <Compile Include="QuotationAnalysis.fs" />
-    <Compile Include="VerboseCompilationUtil.fs" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\FSCL.Compiler.Core\FSCL.Compiler.Core.fsproj">
-      <Name>FSCL.Compiler.Core</Name>
-      <Project>{d052e6ca-4c6c-4792-aceb-4d2633ceb37b}</Project>
-      <Private>True</Private>
-    </ProjectReference>
-    <ProjectReference Include="..\FSCL.Compiler.Language\FSCL.Compiler.Language.fsproj">
-      <Name>FSCL.Compiler.Language</Name>
-      <Project>{9b069191-a1b7-42ba-90ab-d4c8778476ed}</Project>
-      <Private>True</Private>
-    </ProjectReference>
-  </ItemGroup>
   <PropertyGroup>
     <MinimumVisualStudioVersion Condition="'$(MinimumVisualStudioVersion)' == ''">11</MinimumVisualStudioVersion>
   </PropertyGroup>
@@ -81,6 +48,36 @@
     </Otherwise>
   </Choose>
   <Import Project="$(FSharpTargetsPath)" Condition="Exists('$(FSharpTargetsPath)')" />
+  <ItemGroup>
+    <None Include="Script.fsx" />
+    <Compile Include="ArrayUtil.fs" />
+    <Compile Include="CombinationGenerator.fs" />
+    <Compile Include="GraphUtil.fs" />
+    <Compile Include="IdGenerator.fs" />
+    <Compile Include="MathUtil.fs" />
+    <Compile Include="QuotationAnalysis.fs" />
+    <Compile Include="VerboseCompilationUtil.fs" />
+    <Compile Include="ReflectionUtil.fs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="FSharp.Core, Version=$(TargetFSharpCoreVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="mscorlib" />
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Numerics" />
+    <ProjectReference Include="..\FSCL.Compiler.Core\FSCL.Compiler.Core.fsproj">
+      <Name>FSCL.Compiler.Core</Name>
+      <Project>{d052e6ca-4c6c-4792-aceb-4d2633ceb37b}</Project>
+      <Private>True</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\FSCL.Compiler.Language\FSCL.Compiler.Language.fsproj">
+      <Name>FSCL.Compiler.Language</Name>
+      <Project>{9b069191-a1b7-42ba-90ab-d4c8778476ed}</Project>
+      <Private>True</Private>
+    </ProjectReference>
+  </ItemGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">

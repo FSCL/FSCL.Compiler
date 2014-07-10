@@ -22,7 +22,9 @@ type AcceleratedArrayReduceHandler() =
         <@
             fun(g_idata:int[], g_odata:int[], block: int) ->
                 let mutable global_index = get_global_id(0) * block
-                let mutable upper_bound = (get_global_id(0) + 1) * block
+                let up = (get_global_id(0) + 1) * block
+                let mutable upper_bound = Math.Min(up, g_idata.Length)
+                
                 if upper_bound > g_idata.Length then
                     upper_bound <- g_idata.Length
 

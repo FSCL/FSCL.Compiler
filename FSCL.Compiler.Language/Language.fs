@@ -19,7 +19,7 @@ module Language =
 
     ///
     ///<summary>
-    /// Enumeration describing the transfer contraints to a kernel parameter (NoTransfer, NoTransferBack, Transfer)
+    /// Enumerationdescribing the transfer contraints to a kernel parameter (NoTransfer, NoTransferBack, Transfer)
     ///</summary>
     ///
     type TransferMode =
@@ -27,6 +27,11 @@ module Language =
     | NoTransfer = 1
     | ForceTransfer = 2
 
+    type AccessMode =
+    | ReadOnly = 0
+    | WriteOnly = 1
+    | ReadWrite = 2    
+    
     ///
     ///<summary>
     /// Enumeration describing the strategy to read from a buffer associated to an array parameter
@@ -243,12 +248,6 @@ module Language =
     [<ReturnMetadataFunction(typeof<BufferWriteModeAttribute>)>]
     let RETURN_BUFFER_WRITE_MODE(m: BufferWriteMode, a) = 
         a     
-
-    [<AllowNullLiteral>]
-    type AlternativeFunctionAttribute(s:string) =
-        inherit Attribute()
-        member this.AlternativeFunctionName 
-            with get() = s  
             
     // Dynamic (passed when compiling OpenCL kernel code) define
     type DynamicConstantDefineAttribute() =
@@ -349,33 +348,17 @@ module Language =
         0
         
     // Math functions
-    [<AlternativeFunction("Math.Acos")>]
-    let acos(x) =
-        Math.Acos(x)
-
     let acosh(x) =
         Math.Log(x + Math.Sqrt(Math.Pow(x, 2.0) - 1.0))
 
     let acospi(x) =
         Math.Acos(x) / Math.PI
-        
-    [<AlternativeFunction("Math.Asin")>]
-    let asin(x) =
-        Math.Asin(x)
-        
+                
     let asinh(x) =
         Math.Log(x + Math.Sqrt(Math.Pow(x, 2.0) + 1.0))
 
     let asinpi(x) =
         Math.Asin(x) / Math.PI
-        
-    [<AlternativeFunction("Math.Atan")>]
-    let atan(x) =
-        Math.Atan(x)
-        
-    [<AlternativeFunction("Math.Atan2")>]
-    let atan2(y, x) =
-        Math.Atan2(y, x)
         
     let atanh(x) =
         1.0/2.0 * Math.Log((1.0 + x) / (1.0 - x))
@@ -384,28 +367,16 @@ module Language =
         atan(x) / Math.PI
         
     let atan2pi(y, x) =
-        atan2(y, x) / Math.PI
+        atan2 y x / Math.PI
 
     let cbrt(x) =
         Math.Pow(x, 1.0/3.0)
         
-    [<AlternativeFunction("Math.Ceiling")>]
-    let ceil(x: float) =
-        Math.Ceiling(x)
-
     let copysign(x, y) =
         if (x / y < 0) then
             -x
         else
             x
-    
-    [<AlternativeFunction("Math.Cos")>]
-    let cos(x) =
-        Math.Cos(x)
-        
-    [<AlternativeFunction("Math.Cosh")>]
-    let cosh(x) =
-        Math.Cosh(x)
 
     let cospi(x) =
         Math.Cos(x) / Math.PI
@@ -435,10 +406,6 @@ module Language =
     let erf(x) =
         1.0 - erfc(x)
         
-    [<AlternativeFunction("Math.Exp")>]
-    let exp(x) =
-        Math.Exp(x)
-        
     let exp2(x) =
         Math.Pow(2.0, x)
         
@@ -459,10 +426,6 @@ module Language =
             x - y
         else
             0.0
-            
-    [<AlternativeFunction("Math.Floor")>]
-    let floor(x: float) =
-        Math.Floor(x)
 
     let fma(a, b, c) =
         c + (a * b)
