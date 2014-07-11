@@ -1,6 +1,10 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 2012
+# Visual Studio 2013
+VisualStudioVersion = 12.0.30501.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Samples", "Samples", "{657CBBA6-6886-41D0-82EA-F29BDB5351D4}"
+EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "FSCL.Compiler.Core", "FSCL.Compiler.Core\FSCL.Compiler.Core.fsproj", "{D052E6CA-4C6C-4792-ACEB-4D2633CEB37B}"
 EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "FSCL.Compiler.Language", "FSCL.Compiler.Language\FSCL.Compiler.Language.fsproj", "{9B069191-A1B7-42BA-90AB-D4C8778476ED}"
@@ -10,8 +14,6 @@ EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "FSCL.Compiler.NativeComponents", "FSCL.Compiler.NativeComponents\FSCL.Compiler.NativeComponents.fsproj", "{CCF44AF6-BB48-462B-9F82-5D8478244A64}"
 EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "FSCL.Compiler", "FSCL.Compiler\FSCL.Compiler.fsproj", "{52B857C3-C0D3-4280-B094-20FCE4BAD4B9}"
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Samples", "Samples", "{657CBBA6-6886-41D0-82EA-F29BDB5351D4}"
 EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "ComputationSample", "ComputationSample\ComputationSample.fsproj", "{330E7440-4C66-4183-AA00-90004D2733CF}"
 EndProject
