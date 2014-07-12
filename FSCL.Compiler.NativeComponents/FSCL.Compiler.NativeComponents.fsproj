@@ -4,8 +4,7 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>ccf44af6-bb48-462b-9f82-5d8478244a64</ProjectGuid>
+    <ProjectGuid>CCF44AF6-BB48-462B-9F82-5D8478244A64</ProjectGuid>
     <OutputType>Library</OutputType>
     <RootNamespace>FSCL.Compiler.NativeComponents</RootNamespace>
     <AssemblyName>FSCL.Compiler.NativeComponents</AssemblyName>
@@ -49,93 +48,89 @@
   </Choose>
   <Import Project="$(FSharpTargetsPath)" Condition="Exists('$(FSharpTargetsPath)')" />
   <ItemGroup>
-    <None Include="Script.fsx" />
-    <Compile Include="ModuleParsingStep.fs" />
-    <Compile Include="ModulePreprocessingStep.fs" />
-    <Compile Include="FunctionTransformationStep.fs" />
-    <Compile Include="FunctionPreprocessingStep.fs" />
-    <Compile Include="FunctionPostprocessingStep.fs" />
-    <Compile Include="FunctionCodegen.fs" />
-    <Compile Include="ModuleCodegenStep.fs" />
-    <Compile Include="KernelCallExpressionParser.fs" />
-    <Compile Include="KernelLambdaParser.fs" />
-    <Compile Include="KernelMethodInfoParser.fs" />
-    <Compile Include="KernelReferenceParser.fs" />
-    <Compile Include="ConstantDefineDiscovery.fs" />
-    <Compile Include="FunctionReferenceDiscover.fs" />
-    <Compile Include="StructDiscover.fs" />
-    <Compile Include="ArgsPreparationLifting.fs" />
-    <Compile Include="ArrayLenghtArgumentsGenerator.fs" />
-    <Compile Include="DynamicArrayArgumentsParamRefLifting.fs" />
-    <Compile Include="DynamicArrayToParameter.fs" />
-    <Compile Include="KernelReturnVarDiscoveryProcessor.fs" />
-    <Compile Include="LocalVarsDiscovery.fs" />
-    <Compile Include="RefTypeToArrayReplacing.fs" />
-    <Compile Include="ArrayAccessFlattening.fs" />
-    <Compile Include="ConditionalAssignmentNormalization.fs" />
-    <Compile Include="DynamicAllocationLifting.fs" />
-    <Compile Include="FunctionReturnExpressionDiscoveryProcessor.fs" />
-    <Compile Include="RefVariableToSingletoArrayTransformation.fs" />
-    <Compile Include="ReturnExpressionLifting.fs" />
-    <Compile Include="RightHandlLetInliner.fs" />
-    <Compile Include="ParametersAccessAnalysis.fs" />
-    <Compile Include="ArithmeticOperationCodegen.fs" />
-    <Compile Include="ArrayAccessCodegen.fs" />
-    <Compile Include="CallCodegen.fs" />
-    <Compile Include="CastCodegen.fs" />
-    <Compile Include="DeclarationCodegen.fs" />
-    <Compile Include="ForInCodegen.fs" />
-    <Compile Include="IfThenElseCodegen.fs" />
-    <Compile Include="IntegerRangeLoopCodegen.fs" />
-    <Compile Include="NewVectorCodegen.fs" />
-    <Compile Include="PropertyAccessCodegen.fs" />
-    <Compile Include="SequentialCodegen.fs" />
-    <Compile Include="SignatureCodegen.fs" />
-    <Compile Include="StructAccessCodegen.fs" />
-    <Compile Include="UnionCaseCodegen.fs" />
-    <Compile Include="ValueCodegen.fs" />
-    <Compile Include="VarCodegen.fs" />
-    <Compile Include="VarSetCodegen.fs" />
-    <Compile Include="VectorElementAccessCodegen.fs" />
-    <Compile Include="WhileLoopCodegen.fs" />
-    <Compile Include="ModuleCodegen.fs" />
-    <Compile Include="DefaultTypeHandler.fs" />
-    <Compile Include="RefVariableTypeHandler.fs" />
-    <Compile Include="StructTypeHandler.fs" />
-    <Compile Include="VectorTypeHandler.fs" />
-    <Compile Include="AcceleratedKernelInfo.fs" />
-    <Compile Include="AcceleratedCollectionHandler.fs" />
-    <Compile Include="AcceleratedCollectionUtil.fs" />
-    <Compile Include="AcceleratedArrayMetaFiltering.fs" />
-    <Compile Include="AcceleratedArrayMap2Handler.fs" />
-    <Compile Include="AcceleratedArrayMapHandler.fs" />
-    <Compile Include="AcceleratedArrayReduceHandler.fs" />
-    <Compile Include="AcceleratedArrayReverseHandler.fs" />
-    <Compile Include="AcceleratedArrayParser.fs" />
+    <Compile Include="ModuleParsing\ModuleParsingStep.fs" />
+    <Compile Include="ModulePreprocessing\ModulePreprocessingStep.fs" />
+    <Compile Include="FunctionTransformation\FunctionTransformationStep.fs" />
+    <Compile Include="FunctionPostprocessing\FunctionPostprocessingStep.fs" />
+    <Compile Include="FunctionCodegen\FunctionCodegen.fs" />
+    <Compile Include="ModuleCodegen\ModuleCodegenStep.fs" />
+    <Compile Include="ModuleParsing\AcceleratedKernelInfo.fs" />
+    <Compile Include="ModuleParsing\AcceleratedCollectionHandler.fs" />
+    <Compile Include="ModuleParsing\AcceleratedCollectionUtil.fs" />
+    <Compile Include="ModuleParsing\AcceleratedArrayMetaFiltering.fs" />
+    <Compile Include="ModuleParsing\AcceleratedArrayMap2Handler.fs" />
+    <Compile Include="ModuleParsing\AcceleratedArrayMapHandler.fs" />
+    <Compile Include="ModuleParsing\AcceleratedArrayReduceHandler.fs" />
+    <Compile Include="ModuleParsing\AcceleratedArrayReverseHandler.fs" />
+    <Compile Include="ModuleParsing\AcceleratedArrayParser.fs" />
+    <Compile Include="ModuleCodegen\ModuleCodegen.fs" />
+    <Compile Include="FunctionCodegen\ArithmeticOperationCodegen.fs" />
+    <Compile Include="FunctionCodegen\ArrayAccessCodegen.fs" />
+    <Compile Include="FunctionCodegen\CallCodegen.fs" />
+    <Compile Include="FunctionCodegen\CastCodegen.fs" />
+    <Compile Include="FunctionCodegen\DeclarationCodegen.fs" />
+    <Compile Include="FunctionCodegen\ForInCodegen.fs" />
+    <Compile Include="FunctionCodegen\IfThenElseCodegen.fs" />
+    <Compile Include="FunctionCodegen\IntegerRangeLoopCodegen.fs" />
+    <Compile Include="FunctionCodegen\NewVectorCodegen.fs" />
+    <Compile Include="FunctionCodegen\PropertyAccessCodegen.fs" />
+    <Compile Include="FunctionCodegen\SequentialCodegen.fs" />
+    <Compile Include="FunctionCodegen\SignatureCodegen.fs" />
+    <Compile Include="FunctionCodegen\StructAccessCodegen.fs" />
+    <Compile Include="FunctionCodegen\UnionCaseCodegen.fs" />
+    <Compile Include="FunctionCodegen\ValueCodegen.fs" />
+    <Compile Include="FunctionCodegen\VarCodegen.fs" />
+    <Compile Include="FunctionCodegen\VarSetCodegen.fs" />
+    <Compile Include="FunctionCodegen\VectorElementAccessCodegen.fs" />
+    <Compile Include="FunctionCodegen\WhileLoopCodegen.fs" />
+    <Compile Include="FunctionPreprocessing\FunctionPreprocessingStep.fs" />
+    <Compile Include="ModuleParsing\KernelCallExpressionParser.fs" />
+    <Compile Include="ModuleParsing\KernelLambdaParser.fs" />
+    <Compile Include="ModuleParsing\KernelMethodInfoParser.fs" />
+    <Compile Include="ModuleParsing\KernelReferenceParser.fs" />
+    <Compile Include="ModulePreprocessing\ConstantDefineDiscovery.fs" />
+    <Compile Include="ModulePreprocessing\FunctionReferenceDiscover.fs" />
+    <Compile Include="ModulePreprocessing\StructDiscover.fs" />
+    <Compile Include="FunctionPreprocessing\ArgsPreparationLifting.fs" />
+    <Compile Include="FunctionPreprocessing\ArrayLenghtArgumentsGenerator.fs" />
+    <Compile Include="FunctionPreprocessing\DynamicArrayArgumentsParamRefLifting.fs" />
+    <Compile Include="FunctionPreprocessing\DynamicArrayToParameter.fs" />
+    <Compile Include="FunctionPreprocessing\KernelReturnVarDiscoveryProcessor.fs" />
+    <Compile Include="FunctionPreprocessing\LocalVarsDiscovery.fs" />
+    <Compile Include="FunctionPreprocessing\RefTypeToArrayReplacing.fs" />
+    <Compile Include="FunctionTransformation\ArrayAccessFlattening.fs" />
+    <Compile Include="FunctionTransformation\ConditionalAssignmentNormalization.fs" />
+    <Compile Include="FunctionTransformation\DynamicAllocationLifting.fs" />
+    <Compile Include="FunctionTransformation\FunctionReturnExpressionDiscoveryProcessor.fs" />
+    <Compile Include="FunctionTransformation\RefVariableToSingletoArrayTransformation.fs" />
+    <Compile Include="FunctionTransformation\ReturnExpressionLifting.fs" />
+    <Compile Include="FunctionTransformation\RightHandlLetInliner.fs" />
+    <Compile Include="FunctionPostprocessing\ParametersAccessAnalysis.fs" />
+    <Compile Include="TypeHandlers\DefaultTypeHandler.fs" />
+    <Compile Include="TypeHandlers\RefVariableTypeHandler.fs" />
+    <Compile Include="TypeHandlers\StructTypeHandler.fs" />
+    <Compile Include="TypeHandlers\VectorTypeHandler.fs" />
   </ItemGroup>
   <ItemGroup>
-    <Reference Include="FSharp.Core, Version=$(TargetFSharpCoreVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
-      <Private>True</Private>
-    </Reference>
     <Reference Include="mscorlib" />
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Numerics" />
     <ProjectReference Include="..\FSCL.Compiler.Core\FSCL.Compiler.Core.fsproj">
       <Name>FSCL.Compiler.Core</Name>
-      <Project>{d052e6ca-4c6c-4792-aceb-4d2633ceb37b}</Project>
-      <Private>True</Private>
+      <Project>D052E6CA-4C6C-4792-ACEB-4D2633CEB37B</Project>
     </ProjectReference>
     <ProjectReference Include="..\FSCL.Compiler.Language\FSCL.Compiler.Language.fsproj">
       <Name>FSCL.Compiler.Language</Name>
-      <Project>{9b069191-a1b7-42ba-90ab-d4c8778476ed}</Project>
-      <Private>True</Private>
+      <Project>9B069191-A1B7-42BA-90AB-D4C8778476ED</Project>
     </ProjectReference>
     <ProjectReference Include="..\FSCL.Compiler.Util\FSCL.Compiler.Util.fsproj">
       <Name>FSCL.Compiler.Util</Name>
-      <Project>{f4773f51-5f89-4631-860e-81cafb2a9af5}</Project>
-      <Private>True</Private>
+      <Project>F4773F51-5F89-4631-860E-81CAFB2A9AF5</Project>
     </ProjectReference>
+    <Reference Include="FSharp.Core">
+      <Private>True</Private>
+    </Reference>
   </ItemGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
@@ -144,4 +139,14 @@
   <Target Name="AfterBuild">
   </Target>
   -->
+  <ItemGroup>
+    <Folder Include="ModuleParsing\" />
+    <Folder Include="ModulePreprocessing\" />
+    <Folder Include="FunctionPreprocessing\" />
+    <Folder Include="FunctionTransformation\" />
+    <Folder Include="FunctionPostprocessing\" />
+    <Folder Include="FunctionCodegen\" />
+    <Folder Include="ModuleCodegen\" />
+    <Folder Include="TypeHandlers\" />
+  </ItemGroup>
 </Project>
