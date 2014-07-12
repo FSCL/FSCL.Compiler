@@ -46,7 +46,11 @@ type ModuleParsingStep(tm: TypeManager,
             if opts.ContainsKey(CompilerOptions.ParseOnly) then
                 StopCompilation(this.Process(expr))
             else
-                ContinueCompilation(this.Process(expr))
+                let parsingResult = this.Process(expr)
+                if parsingResult = null then
+                    StopCompilation(parsingResult)
+                else
+                    ContinueCompilation(parsingResult)
                         
         StopVerboseStep(verb)
         r

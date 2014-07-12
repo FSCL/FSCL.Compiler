@@ -459,13 +459,33 @@ module Language =
     let inline mad24(x:^T, y:^T, z:^T) =
         x * y + z
         
+    // Array -> Vector Array markers
+    [<VectorTypeArrayReinterpret>]
+    let AsFloat2(arr: float32[]) =
+        [| float2(0.0f) |]
+    [<VectorTypeArrayReinterpret>]
+    let AsFloat3(arr: float32[]) =
+        [| float3(0.0f) |]
+    [<VectorTypeArrayReinterpret>]
+    let AsFloat4(arr: float32[]) =
+        [| float4(0.0f) |]
+    [<VectorTypeArrayReinterpret>]
+    let AsInt2(arr: float32[]) =
+        [| float2(0.0f) |]
+    [<VectorTypeArrayReinterpret>]
+    let AsInt3(arr: float32[]) =
+        [| float3(0.0f) |]
+    [<VectorTypeArrayReinterpret>]
+    let AsInt4(arr: float32[]) =
+        [| float4(0.0f) |]
+
+    // Conversions
     type VectorTypeConversionRoundingMode =
     | rte = 0
     | rtz = 1
     | rtp = 2
     | rtn = 3
 
-    // Conversions
     type int2 with
         [<VectorTypeConversion>]
         member this.ToFloat2(?rounding: VectorTypeConversionRoundingMode) =

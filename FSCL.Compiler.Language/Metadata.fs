@@ -9,3 +9,8 @@ type VectorTypeAttribute() =
 [<AllowNullLiteral>]
 type VectorTypeConversionAttribute() =
     inherit Attribute()
+    
+[<AllowNullLiteral>]
+type VectorTypeArrayReinterpretAttribute() =
+    inherit Attribute()
+
