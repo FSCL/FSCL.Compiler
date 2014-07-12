@@ -1,6 +1,7 @@
 ﻿namespace FSCL
 
 open System 
+open System.Runtime.InteropServices
 
 module Language = 
     open FSCL.Compiler
@@ -460,24 +461,50 @@ module Language =
         x * y + z
         
     // Array -> Vector Array markers
+    // Array -> Vector Array markers
     [<VectorTypeArrayReinterpret>]
     let AsFloat2(arr: float32[]) =
-        [| float2(0.0f) |]
+        let varr = Array.zeroCreate<float2>(arr.Length / 2)
+        let varrH = GCHandle.Alloc(varr, GCHandleType.Pinned)
+        Marshal.Copy(arr, 0, varrH.AddrOfPinnedObject(), arr.Length)
+        varrH.Free()
+        varr
     [<VectorTypeArrayReinterpret>]
     let AsFloat3(arr: float32[]) =
-        [| float3(0.0f) |]
+        let varr = Array.zeroCreate<float3>(arr.Length / 3)
+        let varrH = GCHandle.Alloc(varr, GCHandleType.Pinned)
+        Marshal.Copy(arr, 0, varrH.AddrOfPinnedObject(), arr.Length)
+        varrH.Free()
+        varr
     [<VectorTypeArrayReinterpret>]
     let AsFloat4(arr: float32[]) =
-        [| float4(0.0f) |]
+        let varr = Array.zeroCreate<float4>(arr.Length / 4)
+        let varrH = GCHandle.Alloc(varr, GCHandleType.Pinned)
+        Marshal.Copy(arr, 0, varrH.AddrOfPinnedObject(), arr.Length)
+        varrH.Free()
+        varr
     [<VectorTypeArrayReinterpret>]
-    let AsInt2(arr: float32[]) =
-        [| float2(0.0f) |]
+    let AsInt2(arr: int32[]) =
+        let varr = Array.zeroCreate<int2>(arr.Length / 2)
+        let varrH = GCHandle.Alloc(varr, GCHandleType.Pinned)
+        Marshal.Copy(arr, 0, varrH.AddrOfPinnedObject(), arr.Length)
+        varrH.Free()
+        varr
     [<VectorTypeArrayReinterpret>]
-    let AsInt3(arr: float32[]) =
-        [| float3(0.0f) |]
+    let AsInt3(arr: int32[]) =
+        let varr = Array.zeroCreate<int3>(arr.Length / 3)
+        let varrH = GCHandle.Alloc(varr, GCHandleType.Pinned)
+        Marshal.Copy(arr, 0, varrH.AddrOfPinnedObject(), arr.Length)
+        varrH.Free()
+        varr
     [<VectorTypeArrayReinterpret>]
-    let AsInt4(arr: float32[]) =
-        [| float4(0.0f) |]
+    let AsInt4(arr: int32[]) =
+        let varr = Array.zeroCreate<int4>(arr.Length / 4)
+        let varrH = GCHandle.Alloc(varr, GCHandleType.Pinned)
+        Marshal.Copy(arr, 0, varrH.AddrOfPinnedObject(), arr.Length)
+        varrH.Free()
+        varr
+
 
     // Conversions
     type VectorTypeConversionRoundingMode =
