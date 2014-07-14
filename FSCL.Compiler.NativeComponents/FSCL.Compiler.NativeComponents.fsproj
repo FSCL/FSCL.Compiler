@@ -4,8 +4,7 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>ccf44af6-bb48-462b-9f82-5d8478244a64</ProjectGuid>
+    <ProjectGuid>CCF44AF6-BB48-462B-9F82-5D8478244A64</ProjectGuid>
     <OutputType>Library</OutputType>
     <RootNamespace>FSCL.Compiler.NativeComponents</RootNamespace>
     <AssemblyName>FSCL.Compiler.NativeComponents</AssemblyName>
@@ -114,28 +113,25 @@
     <Compile Include="AcceleratedArrayParser.fs" />
   </ItemGroup>
   <ItemGroup>
-    <Reference Include="FSharp.Core, Version=$(TargetFSharpCoreVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
-      <Private>True</Private>
-    </Reference>
     <Reference Include="mscorlib" />
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Numerics" />
     <ProjectReference Include="..\FSCL.Compiler.Core\FSCL.Compiler.Core.fsproj">
       <Name>FSCL.Compiler.Core</Name>
-      <Project>{d052e6ca-4c6c-4792-aceb-4d2633ceb37b}</Project>
-      <Private>True</Private>
+      <Project>D052E6CA-4C6C-4792-ACEB-4D2633CEB37B</Project>
     </ProjectReference>
     <ProjectReference Include="..\FSCL.Compiler.Language\FSCL.Compiler.Language.fsproj">
       <Name>FSCL.Compiler.Language</Name>
-      <Project>{9b069191-a1b7-42ba-90ab-d4c8778476ed}</Project>
-      <Private>True</Private>
+      <Project>9B069191-A1B7-42BA-90AB-D4C8778476ED</Project>
     </ProjectReference>
     <ProjectReference Include="..\FSCL.Compiler.Util\FSCL.Compiler.Util.fsproj">
       <Name>FSCL.Compiler.Util</Name>
-      <Project>{f4773f51-5f89-4631-860e-81cafb2a9af5}</Project>
-      <Private>True</Private>
+      <Project>F4773F51-5F89-4631-860E-81CAFB2A9AF5</Project>
     </ProjectReference>
+    <Reference Include="FSharp.Core">
+      <Private>True</Private>
+    </Reference>
   </ItemGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
