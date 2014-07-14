@@ -461,6 +461,7 @@ module Language =
         x * y + z
         
     // Array -> Vector Array markers
+    // Array -> Vector Array markers
     [<VectorTypeArrayReinterpret>]
     let AsFloat2(arr: float32[]) =
         let varr = Array.zeroCreate<float2>(arr.Length / 2)
@@ -503,6 +504,10 @@ module Language =
         Marshal.Copy(arr, 0, varrH.AddrOfPinnedObject(), arr.Length)
         varrH.Free()
         varr
+<<<<<<< HEAD
+=======
+
+>>>>>>> 18929c5e1cd7cc804579187d3bc63120e4b13ec3
 
     // Conversions
     type VectorTypeConversionRoundingMode =
