@@ -504,10 +504,6 @@ module Language =
         Marshal.Copy(arr, 0, varrH.AddrOfPinnedObject(), arr.Length)
         varrH.Free()
         varr
-<<<<<<< HEAD
-=======
-
->>>>>>> 18929c5e1cd7cc804579187d3bc63120e4b13ec3
 
     // Conversions
     type VectorTypeConversionRoundingMode =

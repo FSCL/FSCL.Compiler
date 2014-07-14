@@ -49,11 +49,6 @@
   <Import Project="$(FSharpTargetsPath)" Condition="Exists('$(FSharpTargetsPath)')" />
   <ItemGroup>
     <Compile Include="ModuleParsing\ModuleParsingStep.fs" />
-    <Compile Include="ModulePreprocessing\ModulePreprocessingStep.fs" />
-    <Compile Include="FunctionTransformation\FunctionTransformationStep.fs" />
-    <Compile Include="FunctionPostprocessing\FunctionPostprocessingStep.fs" />
-    <Compile Include="FunctionCodegen\FunctionCodegen.fs" />
-    <Compile Include="ModuleCodegen\ModuleCodegenStep.fs" />
     <Compile Include="ModuleParsing\AcceleratedKernelInfo.fs" />
     <Compile Include="ModuleParsing\AcceleratedCollectionHandler.fs" />
     <Compile Include="ModuleParsing\AcceleratedCollectionUtil.fs" />
@@ -63,7 +58,17 @@
     <Compile Include="ModuleParsing\AcceleratedArrayReduceHandler.fs" />
     <Compile Include="ModuleParsing\AcceleratedArrayReverseHandler.fs" />
     <Compile Include="ModuleParsing\AcceleratedArrayParser.fs" />
+    <Compile Include="ModuleParsing\KernelCallExpressionParser.fs" />
+    <Compile Include="ModuleParsing\KernelLambdaParser.fs" />
+    <Compile Include="ModuleParsing\KernelMethodInfoParser.fs" />
+    <Compile Include="ModuleParsing\KernelReferenceParser.fs" />
+    <Compile Include="ModulePreprocessing\ModulePreprocessingStep.fs" />
+    <Compile Include="ModulePreprocessing\ConstantDefineDiscovery.fs" />
+    <Compile Include="ModulePreprocessing\FunctionReferenceDiscover.fs" />
+    <Compile Include="ModulePreprocessing\StructDiscover.fs" />
+    <Compile Include="ModuleCodegen\ModuleCodegenStep.fs" />
     <Compile Include="ModuleCodegen\ModuleCodegen.fs" />
+    <Compile Include="FunctionCodegen\FunctionCodegen.fs" />
     <Compile Include="FunctionCodegen\ArithmeticOperationCodegen.fs" />
     <Compile Include="FunctionCodegen\ArrayAccessCodegen.fs" />
     <Compile Include="FunctionCodegen\CallCodegen.fs" />
@@ -84,13 +89,6 @@
     <Compile Include="FunctionCodegen\VectorElementAccessCodegen.fs" />
     <Compile Include="FunctionCodegen\WhileLoopCodegen.fs" />
     <Compile Include="FunctionPreprocessing\FunctionPreprocessingStep.fs" />
-    <Compile Include="ModuleParsing\KernelCallExpressionParser.fs" />
-    <Compile Include="ModuleParsing\KernelLambdaParser.fs" />
-    <Compile Include="ModuleParsing\KernelMethodInfoParser.fs" />
-    <Compile Include="ModuleParsing\KernelReferenceParser.fs" />
-    <Compile Include="ModulePreprocessing\ConstantDefineDiscovery.fs" />
-    <Compile Include="ModulePreprocessing\FunctionReferenceDiscover.fs" />
-    <Compile Include="ModulePreprocessing\StructDiscover.fs" />
     <Compile Include="FunctionPreprocessing\ArgsPreparationLifting.fs" />
     <Compile Include="FunctionPreprocessing\ArrayLenghtArgumentsGenerator.fs" />
     <Compile Include="FunctionPreprocessing\DynamicArrayArgumentsParamRefLifting.fs" />
@@ -98,6 +96,7 @@
     <Compile Include="FunctionPreprocessing\KernelReturnVarDiscoveryProcessor.fs" />
     <Compile Include="FunctionPreprocessing\LocalVarsDiscovery.fs" />
     <Compile Include="FunctionPreprocessing\RefTypeToArrayReplacing.fs" />
+    <Compile Include="FunctionTransformation\FunctionTransformationStep.fs" />
     <Compile Include="FunctionTransformation\ArrayAccessFlattening.fs" />
     <Compile Include="FunctionTransformation\ConditionalAssignmentNormalization.fs" />
     <Compile Include="FunctionTransformation\DynamicAllocationLifting.fs" />
@@ -105,6 +104,7 @@
     <Compile Include="FunctionTransformation\RefVariableToSingletoArrayTransformation.fs" />
     <Compile Include="FunctionTransformation\ReturnExpressionLifting.fs" />
     <Compile Include="FunctionTransformation\RightHandlLetInliner.fs" />
+    <Compile Include="FunctionPostprocessing\FunctionPostprocessingStep.fs" />
     <Compile Include="FunctionPostprocessing\ParametersAccessAnalysis.fs" />
     <Compile Include="TypeHandlers\DefaultTypeHandler.fs" />
     <Compile Include="TypeHandlers\RefVariableTypeHandler.fs" />
