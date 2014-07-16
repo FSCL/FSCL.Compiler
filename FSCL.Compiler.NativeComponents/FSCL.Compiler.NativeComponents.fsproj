@@ -139,14 +139,4 @@
   <Target Name="AfterBuild">
   </Target>
   -->
-  <ItemGroup>
-    <Folder Include="ModuleParsing\" />
-    <Folder Include="ModulePreprocessing\" />
-    <Folder Include="FunctionPreprocessing\" />
-    <Folder Include="FunctionTransformation\" />
-    <Folder Include="FunctionPostprocessing\" />
-    <Folder Include="FunctionCodegen\" />
-    <Folder Include="ModuleCodegen\" />
-    <Folder Include="TypeHandlers\" />
-  </ItemGroup>
 </Project>
