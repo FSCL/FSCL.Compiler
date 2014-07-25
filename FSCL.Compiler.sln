@@ -1,29 +1,53 @@
-﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2013
 VisualStudioVersion = 12.0.30501.0
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Samples", "Samples", "{657CBBA6-6886-41D0-82EA-F29BDB5351D4}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".nuget", ".nuget", "{1F1B4F0F-2998-4D74-865B-9122611C2B14}"
+	ProjectSection(SolutionItems) = preProject
+		.nuget\NuGet.Config = .nuget\NuGet.Config
+		.nuget\NuGet.exe = .nuget\NuGet.exe
+		.nuget\NuGet.targets = .nuget\NuGet.targets
+	EndProjectSection
 EndProject
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "FSCL.Compiler.Core", "FSCL.Compiler.Core\FSCL.Compiler.Core.fsproj", "{D052E6CA-4C6C-4792-ACEB-4D2633CEB37B}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "docs", "docs", "{A6A6AF7D-D6E3-442D-9B1E-58CC91879BE1}"
 EndProject
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "FSCL.Compiler.Language", "FSCL.Compiler.Language\FSCL.Compiler.Language.fsproj", "{9B069191-A1B7-42BA-90AB-D4C8778476ED}"
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "FSCL.Compiler", "src\FSCL.Compiler\FSCL.Compiler.fsproj", "{52B857C3-C0D3-4280-B094-20FCE4BAD4B9}"
 EndProject
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "FSCL.Compiler.Util", "FSCL.Compiler.Util\FSCL.Compiler.Util.fsproj", "{F4773F51-5F89-4631-860E-81CAFB2A9AF5}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "project", "project", "{BF60BC93-E09B-4E5F-9D85-95A519479D54}"
+	ProjectSection(SolutionItems) = preProject
+		build.fsx = build.fsx
+		nuget\FSCL.Compiler.nuspec = nuget\FSCL.Compiler.nuspec
+		README.md = README.md
+		RELEASE_NOTES.md = RELEASE_NOTES.md
+	EndProjectSection
 EndProject
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "FSCL.Compiler.NativeComponents", "FSCL.Compiler.NativeComponents\FSCL.Compiler.NativeComponents.fsproj", "{CCF44AF6-BB48-462B-9F82-5D8478244A64}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tools", "tools", "{83F16175-43B1-4C90-A1EE-8E351C33435D}"
+	ProjectSection(SolutionItems) = preProject
+		docs\tools\generate.fsx = docs\tools\generate.fsx
+		docs\tools\templates\template.cshtml = docs\tools\templates\template.cshtml
+	EndProjectSection
 EndProject
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "FSCL.Compiler", "FSCL.Compiler\FSCL.Compiler.fsproj", "{52B857C3-C0D3-4280-B094-20FCE4BAD4B9}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "content", "content", "{8E6D5255-776D-4B61-85F9-73C37AA1FB9A}"
+	ProjectSection(SolutionItems) = preProject
+		docs\content\compilerConfigurationTutorial.fsx = docs\content\compilerConfigurationTutorial.fsx
+		docs\content\compilerCustomisationTutorial.fsx = docs\content\compilerCustomisationTutorial.fsx
+		docs\content\compilerInterfaceTutorial.fsx = docs\content\compilerInterfaceTutorial.fsx
+		docs\content\dynamicMetadataTutorial.fsx = docs\content\dynamicMetadataTutorial.fsx
+		docs\content\index.fsx = docs\content\index.fsx
+		docs\content\kernelProgrammingTutorial.fsx = docs\content\kernelProgrammingTutorial.fsx
+	EndProjectSection
 EndProject
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "ComputationSample", "ComputationSample\ComputationSample.fsproj", "{330E7440-4C66-4183-AA00-90004D2733CF}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{ED8079DD-2B06-4030-9F0F-DC548F98E1C4}"
 EndProject
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "ConfigurationSample", "ConfigurationSample\ConfigurationSample.fsproj", "{F15C540F-50B6-4C9E-8BE2-0B141EA85F6B}"
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "FSCL.Compiler.Tests", "tests\FSCL.Compiler.Tests\FSCL.Compiler.Tests.fsproj", "{E789C72A-5CFD-436B-8EF1-61AA2852A89F}"
 EndProject
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "KernelExpressionSample", "KernelExpressionSample\KernelExpressionSample.fsproj", "{C5D852D0-843C-46E5-AE7E-AAADB79AA4CB}"
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "FSCL.Compiler.Core", "src\FSCL.Compiler.Core\FSCL.Compiler.Core.fsproj", "{D052E6CA-4C6C-4792-ACEB-4D2633CEB37B}"
 EndProject
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "VectorTypeSample", "VectorTypeSample\VectorTypeSample.fsproj", "{6D906751-9E3C-4251-AAFF-44447D6012CB}"
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "FSCL.Compiler.Language", "src\FSCL.Compiler.Language\FSCL.Compiler.Language.fsproj", "{9B069191-A1B7-42BA-90AB-D4C8778476ED}"
 EndProject
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "DynamicMetadataSample", "DynamicMetadataSample\DynamicMetadataSample.fsproj", "{4FE859FA-E69C-4C67-95CB-3734561A709F}"
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "FSCL.Compiler.Util", "src\FSCL.Compiler.Util\FSCL.Compiler.Util.fsproj", "{F4773F51-5F89-4631-860E-81CAFB2A9AF5}"
+EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "FSCL.Compiler.NativeComponents", "src\FSCL.Compiler.NativeComponents\FSCL.Compiler.NativeComponents.fsproj", "{CCF44AF6-BB48-462B-9F82-5D8478244A64}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -31,6 +55,14 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{52B857C3-C0D3-4280-B094-20FCE4BAD4B9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{52B857C3-C0D3-4280-B094-20FCE4BAD4B9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{52B857C3-C0D3-4280-B094-20FCE4BAD4B9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{52B857C3-C0D3-4280-B094-20FCE4BAD4B9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E789C72A-5CFD-436B-8EF1-61AA2852A89F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E789C72A-5CFD-436B-8EF1-61AA2852A89F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E789C72A-5CFD-436B-8EF1-61AA2852A89F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E789C72A-5CFD-436B-8EF1-61AA2852A89F}.Release|Any CPU.Build.0 = Release|Any CPU
 		{D052E6CA-4C6C-4792-ACEB-4D2633CEB37B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{D052E6CA-4C6C-4792-ACEB-4D2633CEB37B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D052E6CA-4C6C-4792-ACEB-4D2633CEB37B}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -47,39 +79,13 @@ Global
 		{CCF44AF6-BB48-462B-9F82-5D8478244A64}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{CCF44AF6-BB48-462B-9F82-5D8478244A64}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{CCF44AF6-BB48-462B-9F82-5D8478244A64}.Release|Any CPU.Build.0 = Release|Any CPU
-		{52B857C3-C0D3-4280-B094-20FCE4BAD4B9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{52B857C3-C0D3-4280-B094-20FCE4BAD4B9}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{52B857C3-C0D3-4280-B094-20FCE4BAD4B9}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{52B857C3-C0D3-4280-B094-20FCE4BAD4B9}.Release|Any CPU.Build.0 = Release|Any CPU
-		{330E7440-4C66-4183-AA00-90004D2733CF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{330E7440-4C66-4183-AA00-90004D2733CF}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{330E7440-4C66-4183-AA00-90004D2733CF}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{330E7440-4C66-4183-AA00-90004D2733CF}.Release|Any CPU.Build.0 = Release|Any CPU
-		{F15C540F-50B6-4C9E-8BE2-0B141EA85F6B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{F15C540F-50B6-4C9E-8BE2-0B141EA85F6B}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{F15C540F-50B6-4C9E-8BE2-0B141EA85F6B}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{F15C540F-50B6-4C9E-8BE2-0B141EA85F6B}.Release|Any CPU.Build.0 = Release|Any CPU
-		{C5D852D0-843C-46E5-AE7E-AAADB79AA4CB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{C5D852D0-843C-46E5-AE7E-AAADB79AA4CB}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{C5D852D0-843C-46E5-AE7E-AAADB79AA4CB}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{C5D852D0-843C-46E5-AE7E-AAADB79AA4CB}.Release|Any CPU.Build.0 = Release|Any CPU
-		{6D906751-9E3C-4251-AAFF-44447D6012CB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{6D906751-9E3C-4251-AAFF-44447D6012CB}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{6D906751-9E3C-4251-AAFF-44447D6012CB}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{6D906751-9E3C-4251-AAFF-44447D6012CB}.Release|Any CPU.Build.0 = Release|Any CPU
-		{4FE859FA-E69C-4C67-95CB-3734561A709F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{4FE859FA-E69C-4C67-95CB-3734561A709F}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{4FE859FA-E69C-4C67-95CB-3734561A709F}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{4FE859FA-E69C-4C67-95CB-3734561A709F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
-		{330E7440-4C66-4183-AA00-90004D2733CF} = {657CBBA6-6886-41D0-82EA-F29BDB5351D4}
-		{F15C540F-50B6-4C9E-8BE2-0B141EA85F6B} = {657CBBA6-6886-41D0-82EA-F29BDB5351D4}
-		{C5D852D0-843C-46E5-AE7E-AAADB79AA4CB} = {657CBBA6-6886-41D0-82EA-F29BDB5351D4}
-		{6D906751-9E3C-4251-AAFF-44447D6012CB} = {657CBBA6-6886-41D0-82EA-F29BDB5351D4}
-		{4FE859FA-E69C-4C67-95CB-3734561A709F} = {657CBBA6-6886-41D0-82EA-F29BDB5351D4}
+		{83F16175-43B1-4C90-A1EE-8E351C33435D} = {A6A6AF7D-D6E3-442D-9B1E-58CC91879BE1}
+		{8E6D5255-776D-4B61-85F9-73C37AA1FB9A} = {A6A6AF7D-D6E3-442D-9B1E-58CC91879BE1}
+		{E789C72A-5CFD-436B-8EF1-61AA2852A89F} = {ED8079DD-2B06-4030-9F0F-DC548F98E1C4}
 	EndGlobalSection
 EndGlobal

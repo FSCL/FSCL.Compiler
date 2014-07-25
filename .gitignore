@@ -5,7 +5,8 @@
 *.suo
 *.user
 *.sln.docstates
-*.userpref
+
+# Xamarin Studio / monodevelop user-specific
 *.userprefs
 
 # Build results
@@ -16,6 +17,9 @@ x64/
 build/
 [Bb]in/
 [Oo]bj/
+
+# Enable "build/" folder in the NuGet Packages folder since NuGet packages use it for MSBuild targets
+!packages/*/build/
 
 # MSTest test Results
 [Tt]est[Rr]esult*/
@@ -93,11 +97,9 @@ publish/
 
 # Publish Web Output
 *.Publish.xml
-*.pubxml
 
-# NuGet Packages Directory
-## TODO: If you have NuGet Package Restore enabled, uncomment the next line
-#packages/
+# Enable nuget.exe in the .nuget folder (though normally executables are not tracked)
+!.nuget/NuGet.exe
 
 # Windows Azure Build Output
 csx
@@ -132,6 +134,12 @@ UpgradeLog*.htm
 App_Data/*.mdf
 App_Data/*.ldf
 
+
+#LightSwitch generated files
+GeneratedArtifacts/
+_Pvt_Extensions/
+ModelManifest.xml
+
 # =========================
 # Windows detritus
 # =========================
@@ -146,5 +154,24 @@ Desktop.ini
 # Recycle Bin used on file shares
 $RECYCLE.BIN/
 
-# Mac crap
+# Mac desktop service store files
 .DS_Store
+
+# ===================================================
+# Exclude F# project specific directories and files
+# ===================================================
+
+# NuGet Packages Directory
+packages/
+
+# Generated documentation folder
+docs/output/
+
+# Temp folder used for publishing docs
+temp/
+
+# Test results produced by build
+TestResults.xml
+
+# Nuget outputs
+nuget/*.nupkg

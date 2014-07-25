@@ -1,0 +1,142 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>CCF44AF6-BB48-462B-9F82-5D8478244A64</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <RootNamespace>FSCL.Compiler.NativeComponents</RootNamespace>
+    <AssemblyName>FSCL.Compiler.NativeComponents</AssemblyName>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <Name>FSCL.Compiler.NativeComponents</Name>
+    <TargetFSharpCoreVersion>4.3.0.0</TargetFSharpCoreVersion>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <Tailcalls>false</Tailcalls>
+    <OutputPath>..\..\bin\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <WarningLevel>3</WarningLevel>
+    <DocumentationFile>..\..\bin\FSCL.Compiler.NativeComponents.XML</DocumentationFile>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <Tailcalls>true</Tailcalls>
+    <OutputPath>..\..\bin\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <WarningLevel>3</WarningLevel>
+    <DocumentationFile>..\..\bin\FSCL.Compiler.NativeComponents.XML</DocumentationFile>
+  </PropertyGroup>
+  <PropertyGroup>
+    <MinimumVisualStudioVersion Condition="'$(MinimumVisualStudioVersion)' == ''">11</MinimumVisualStudioVersion>
+  </PropertyGroup>
+  <Choose>
+    <When Condition="'$(VisualStudioVersion)' == '11.0'">
+      <PropertyGroup>
+        <FSharpTargetsPath>$(MSBuildExtensionsPath32)\..\Microsoft SDKs\F#\3.0\Framework\v4.0\Microsoft.FSharp.Targets</FSharpTargetsPath>
+      </PropertyGroup>
+    </When>
+    <Otherwise>
+      <PropertyGroup>
+        <FSharpTargetsPath>$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\FSharp\Microsoft.FSharp.Targets</FSharpTargetsPath>
+      </PropertyGroup>
+    </Otherwise>
+  </Choose>
+  <Import Project="$(FSharpTargetsPath)" Condition="Exists('$(FSharpTargetsPath)')" />
+  <ItemGroup>
+    <Compile Include="ModuleParsing\ModuleParsingStep.fs" />
+    <Compile Include="ModuleParsing\AcceleratedKernelInfo.fs" />
+    <Compile Include="ModuleParsing\AcceleratedCollectionHandler.fs" />
+    <Compile Include="ModuleParsing\AcceleratedCollectionUtil.fs" />
+    <Compile Include="ModuleParsing\AcceleratedArrayMetaFiltering.fs" />
+    <Compile Include="ModuleParsing\AcceleratedArrayMap2Handler.fs" />
+    <Compile Include="ModuleParsing\AcceleratedArrayMapHandler.fs" />
+    <Compile Include="ModuleParsing\AcceleratedArrayReduceHandler.fs" />
+    <Compile Include="ModuleParsing\AcceleratedArrayReverseHandler.fs" />
+    <Compile Include="ModuleParsing\AcceleratedArrayParser.fs" />
+    <Compile Include="ModuleParsing\KernelCallExpressionParser.fs" />
+    <Compile Include="ModuleParsing\KernelLambdaParser.fs" />
+    <Compile Include="ModuleParsing\KernelMethodInfoParser.fs" />
+    <Compile Include="ModuleParsing\KernelReferenceParser.fs" />
+    <Compile Include="ModulePreprocessing\ModulePreprocessingStep.fs" />
+    <Compile Include="ModulePreprocessing\ConstantDefineDiscovery.fs" />
+    <Compile Include="ModulePreprocessing\FunctionReferenceDiscover.fs" />
+    <Compile Include="ModulePreprocessing\StructDiscover.fs" />
+    <Compile Include="ModuleCodegen\ModuleCodegenStep.fs" />
+    <Compile Include="ModuleCodegen\ModuleCodegen.fs" />
+    <Compile Include="FunctionCodegen\FunctionCodegen.fs" />
+    <Compile Include="FunctionCodegen\ArithmeticOperationCodegen.fs" />
+    <Compile Include="FunctionCodegen\ArrayAccessCodegen.fs" />
+    <Compile Include="FunctionCodegen\CallCodegen.fs" />
+    <Compile Include="FunctionCodegen\CastCodegen.fs" />
+    <Compile Include="FunctionCodegen\DeclarationCodegen.fs" />
+    <Compile Include="FunctionCodegen\ForInCodegen.fs" />
+    <Compile Include="FunctionCodegen\IfThenElseCodegen.fs" />
+    <Compile Include="FunctionCodegen\IntegerRangeLoopCodegen.fs" />
+    <Compile Include="FunctionCodegen\NewVectorCodegen.fs" />
+    <Compile Include="FunctionCodegen\PropertyAccessCodegen.fs" />
+    <Compile Include="FunctionCodegen\SequentialCodegen.fs" />
+    <Compile Include="FunctionCodegen\SignatureCodegen.fs" />
+    <Compile Include="FunctionCodegen\StructAccessCodegen.fs" />
+    <Compile Include="FunctionCodegen\UnionCaseCodegen.fs" />
+    <Compile Include="FunctionCodegen\ValueCodegen.fs" />
+    <Compile Include="FunctionCodegen\VarCodegen.fs" />
+    <Compile Include="FunctionCodegen\VarSetCodegen.fs" />
+    <Compile Include="FunctionCodegen\VectorElementAccessCodegen.fs" />
+    <Compile Include="FunctionCodegen\WhileLoopCodegen.fs" />
+    <Compile Include="FunctionPreprocessing\FunctionPreprocessingStep.fs" />
+    <Compile Include="FunctionPreprocessing\ArgsPreparationLifting.fs" />
+    <Compile Include="FunctionPreprocessing\ArrayLenghtArgumentsGenerator.fs" />
+    <Compile Include="FunctionPreprocessing\DynamicArrayArgumentsParamRefLifting.fs" />
+    <Compile Include="FunctionPreprocessing\DynamicArrayToParameter.fs" />
+    <Compile Include="FunctionPreprocessing\KernelReturnVarDiscoveryProcessor.fs" />
+    <Compile Include="FunctionPreprocessing\LocalVarsDiscovery.fs" />
+    <Compile Include="FunctionPreprocessing\RefTypeToArrayReplacing.fs" />
+    <Compile Include="FunctionTransformation\FunctionTransformationStep.fs" />
+    <Compile Include="FunctionTransformation\ArrayAccessFlattening.fs" />
+    <Compile Include="FunctionTransformation\ConditionalAssignmentNormalization.fs" />
+    <Compile Include="FunctionTransformation\DynamicAllocationLifting.fs" />
+    <Compile Include="FunctionTransformation\FunctionReturnExpressionDiscoveryProcessor.fs" />
+    <Compile Include="FunctionTransformation\RefVariableToSingletoArrayTransformation.fs" />
+    <Compile Include="FunctionTransformation\ReturnExpressionLifting.fs" />
+    <Compile Include="FunctionTransformation\RightHandlLetInliner.fs" />
+    <Compile Include="FunctionPostprocessing\FunctionPostprocessingStep.fs" />
+    <Compile Include="FunctionPostprocessing\ParametersAccessAnalysis.fs" />
+    <Compile Include="TypeHandlers\DefaultTypeHandler.fs" />
+    <Compile Include="TypeHandlers\RefVariableTypeHandler.fs" />
+    <Compile Include="TypeHandlers\StructTypeHandler.fs" />
+    <Compile Include="TypeHandlers\VectorTypeHandler.fs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="mscorlib" />
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Numerics" />
+    <ProjectReference Include="..\FSCL.Compiler.Core\FSCL.Compiler.Core.fsproj">
+      <Name>FSCL.Compiler.Core</Name>
+      <Project>D052E6CA-4C6C-4792-ACEB-4D2633CEB37B</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\FSCL.Compiler.Language\FSCL.Compiler.Language.fsproj">
+      <Name>FSCL.Compiler.Language</Name>
+      <Project>9B069191-A1B7-42BA-90AB-D4C8778476ED</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\FSCL.Compiler.Util\FSCL.Compiler.Util.fsproj">
+      <Name>FSCL.Compiler.Util</Name>
+      <Project>F4773F51-5F89-4631-860E-81CAFB2A9AF5</Project>
+    </ProjectReference>
+    <Reference Include="FSharp.Core">
+      <Private>True</Private>
+    </Reference>
+  </ItemGroup>
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>
