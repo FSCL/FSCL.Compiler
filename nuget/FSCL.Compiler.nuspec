@@ -5,9 +5,9 @@
     <version>@build.number@</version>
     <authors>@authors@</authors>
     <owners>@authors@</owners>
-    <licenseUrl>http://github.com/GabrieleCocco/FSCL.Compiler/blob/master/LICENSE.txt</licenseUrl>
-    <projectUrl>http://github.com/GabrieleCocco/FSCL.Compiler</projectUrl>
-    <iconUrl></iconUrl>
+    <licenseUrl>http://github.com/FSCL/FSCL.Compiler/blob/master/LICENSE.txt</licenseUrl>
+    <projectUrl>http://github.com/FSCL/FSCL.Compiler</projectUrl>
+    <iconUrl>https://avatars1.githubusercontent.com/u/8271254</iconUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <summary>@summary@</summary>
     <description>@description@</description>
