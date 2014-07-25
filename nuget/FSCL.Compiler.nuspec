@@ -5,9 +5,9 @@
     <version>@build.number@</version>
     <authors>@authors@</authors>
     <owners>@authors@</owners>
-    <licenseUrl>http://github.com/fsprojects/FSharp.ProjectScaffold/blob/master/LICENSE.txt</licenseUrl>
-    <projectUrl>http://fsprojects.github.com/FSharp.ProjectScaffold</projectUrl>
-    <iconUrl>https://raw.github.com/fsharp/FSharp.ProjectScaffold/master/nuget/logo.png</iconUrl>
+    <licenseUrl>http://github.com/GabrieleCocco/FSCL.Compiler/blob/master/LICENSE.txt</licenseUrl>
+    <projectUrl>http://github.com/GabrieleCocco/FSCL.Compiler</projectUrl>
+    <iconUrl></iconUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <summary>@summary@</summary>
     <description>@description@</description>

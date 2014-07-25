@@ -7,6 +7,7 @@ FSharp to OpenCL Compiler
 ### Latest news
 
 July 15, 2014: The project structure has been refactored according to the <a href="https://github.com/fsprojects/ProjectScaffold">F# Project Scaffold</a> template.
+All the coming release notes will be stored in RELEASE_NOTES.md file.
 
 *****
 
