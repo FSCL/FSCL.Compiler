@@ -57,11 +57,11 @@ In this page we give an overview on how the compiler pipeline configuration work
 There are three types of <em>components</em> that contribute to the compiler behavior.</p>
 
 <ul>
-<li>[Steps]: a step is a stage of the compiler pipeline. Generally, the step is logically represents a particular 
+<li><strong>Steps</strong>: a step is a stage of the compiler pipeline. Generally, the step is logically represents a particular 
 transformation or processing</li>
-<li>[Processors]: each step of the pipeline is made of one or more processors, each of which is contributing to realize
+<li><strong>Processors</strong>: each step of the pipeline is made of one or more processors, each of which is contributing to realize
 a particular subset of the whole funcionality of the step</li>
-<li>[Type handlers]: a type handler is resposible to validate and generate the target representation of types</li>
+<li><strong>Type handlers</strong>: a type handler is resposible to validate and generate the target representation of types</li>
 </ul>
 
 <p>For example, the <em>parsing step</em> (or parser) is the first step of the native pipeline whose task is to extract/create a <code>MethodInfo</code> for the
@@ -77,9 +77,9 @@ of execution.
 For example, each step is decribed by:</p>
 
 <ul>
-<li>[ID]: the step unique string identifier</li>
-<li>[Dependencies]: the list of IDs of steps that should execute before the current one</li>
-<li>[Before]: the list of IDs of steps that should execute after the current one</li>
+<li><strong>ID</strong>: the step unique string identifier</li>
+<li><strong>Dependencies</strong>: the list of IDs of steps that should execute before the current one</li>
+<li><strong>Before</strong>: the list of IDs of steps that should execute after the current one</li>
 </ul>
 
 <p>Processors and type handlers have the same set of properties. In addition, each processor has a <em>Step</em> property that holds the ID of the
@@ -104,23 +104,23 @@ the pre-existing step is executed only after his one.</p>
 <p>There are mainly three aspects to consider when configuring the compiler pipeline:</p>
 
 <ul>
-<li>[Component source]: the compiler configuration is specified as a set of compoents containers (or sources), from which to load the 
+<li><strong>Component source</strong>: the compiler configuration is specified as a set of compoents containers (or sources), from which to load the 
 steps, processors and type handlers that will form the pipeline. There are two kinds of components sources:
 <ul>
-<li>[File source]: a (string) path to a dll</li>
-<li>[Assembly source]: an <code>Assembly</code> object</li>
+<li><strong>File source</strong>: a (string) path to a dll</li>
+<li><strong>Assembly source</strong>: an <code>Assembly</code> object</li>
 </ul></li>
-<li>[Loading mode]: the loading mode determines the way a components source is inspected to find compiler components. There are two kinds of loading modes:
+<li><strong>Loading mode</strong>: the loading mode determines the way a components source is inspected to find compiler components. There are two kinds of loading modes:
 <ul>
-<li>[Automatic loading mode]: each compiler component is marked with a custom attribute reporting the type of component (step, processor, etc.), the ID and the dependencies/before list. 
+<li><strong>Automatic loading mode</strong>: each compiler component is marked with a custom attribute reporting the type of component (step, processor, etc.), the ID and the dependencies/before list. 
 The configuration system is inspecting the set of types declared in the dll/assembly and extract all the types marked with that specific custom attribute.</li>
-<li>[Explicit loading mode]: the user has to explicitely tell the set of types (together with the ID, the dependencies, etc.) contained in the source that should
+<li><strong>Explicit loading mode</strong>: the user has to explicitely tell the set of types (together with the ID, the dependencies, etc.) contained in the source that should
 be loaded as compiler components</li>
 </ul></li>
-<li>[Configuration mode]: the configuration mode tells which kind on object you use to represent the pipeline configuration. It can be:
+<li><strong>Configuration mode</strong>: the configuration mode tells which kind on object you use to represent the pipeline configuration. It can be:
 <ul>
-<li>[Object-based]: you use an object of type <code>PipelineConfiguration</code>, containing the list of components sources to consider</li>
-<li>[File-based]: you specify the path to an XML file that describes the pipeline configuration</li>
+<li><strong>Object-based</strong>: you use an object of type <code>PipelineConfiguration</code>, containing the list of components sources to consider</li>
+<li><strong>File-based</strong>: you specify the path to an XML file that describes the pipeline configuration</li>
 </ul></li>
 </ul>
 
@@ -140,7 +140,7 @@ and you change the compiler constructor used in your application from the one ta
 From this moment on, every change to the compiler pipeline (e.g. fixing a bug in a step, adding a custom step, change some order of execution) can be done without the need to
 change your application but instead working on the configuration file only.</p>
 
-<h2>Prototyping environment: assembly sources and automatic loading</h2>
+<h3>Prototyping environment: assembly sources and automatic loading</h3>
 
 <p>The following code shows how to configure the compiler using assembly sources and automatic component loading.
 The <code>PipelineConfiguration</code> object represents the entire pipeline configuration. In this particular case, we instantiate
@@ -213,7 +213,7 @@ change an assembly source to file source. For example, in the fillowing code the
 </tr>
 </table>
 
-<h2>Testing and tweaking environment: assembly sources and explicit loading</h2>
+<h3>Testing and tweaking environment: assembly sources and explicit loading</h3>
 
 <p>Let's consider we have the two components sources of the previous example, each of which is containing a step, and we want to test if performances or correctness change
 if we switch the order of execution.
@@ -327,7 +327,7 @@ depending from the first, as shown below.</p>
 </tr>
 </table>
 
-<h2>Production environment: file sources and configuration file</h2>
+<h3>Production environment: file sources and configuration file</h3>
 
 <p>In a production environment, you may place the dlls or your custom components in a specific folder and instantiate the compiler
 using file sources.</p>
