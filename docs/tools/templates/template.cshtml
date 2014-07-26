@@ -6,9 +6,22 @@
     <title>@Title</title>
 
     <link rel="stylesheet" href="stylesheets/styles.css">
+    <link rel="stylesheet" href="stylesheets/pygment_trac.css">
     <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
     <meta name="description" content="@Description" />
     <meta name="author" content="@Properties["project-author"]" />
+    <script type="text/javascript" src="javascripts/jquery-1.11.1.min.js"></script>
+    <script type="text/javascript">
+        $(document).ready(function () {
+            $("table.pre").wrap("<div class='code-container'></div>");
+            $("table.pre").css("width", ($("section").width() - 30) + "px");
+            $("pre.fssnip").css("width", ($("section").width() - 30) + "px");
+            $(window).resize(function () {
+                $("table.pre").css("width", ($("section").width() - 30) + "px");
+                $("pre.fssnip").css("width", ($("section").width() - 30) + "px");
+            });
+        });
+    </script>
     <!--[if lt IE 9]>
     <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
     <![endif]-->
@@ -16,21 +29,23 @@
 <body>
     <div class="wrapper">
         <header>
-            <h1>@Title</h1>
-            <p>@Description</p>
-            <p class="view"><a href="@Root/index.html">@Properties["project-name"]</a></p>
-            <ul>
-                <li><a href="https://github.com/FSCL/FSCL.Runtime/zipball/master">Download <strong>ZIP File</strong></a></li>
-                <li><a href="https://github.com/FSCL/FSCL.Runtime/tarball/master">Download <strong>TAR Ball</strong></a></li>
-                <li><a href="http://github.com/FSCL/FSCL.Runtime/master">Fork On <strong>GitHub</strong></a></li>
-            </ul>
+            <div class="header-container">
+                <h1>@Properties["project-name"]</h1>
+                <p>@Description</p>
+            </div>
+            <table class="git-links">
+                <tr>
+                    <td><a href="https://github.com/FSCL/FSCL.Runtime/zipball/master">Download <strong>ZIP File</strong></a></td>
+                    <td><a href="https://github.com/FSCL/FSCL.Runtime/tarball/master">Download <strong>TAR Ball</strong></a></td>
+                    <td><a href="http://github.com/FSCL/FSCL.Runtime/master">Fork On <strong>GitHub</strong></a></td>
+                </tr>
+            </table>
         </header>
         <section>
             @RenderBody()
         </section>
         <footer>
             <p>This project is maintained by <a href="http://github.com/FSCL">@Properties["project-author"]</a></p>
-            <p><small>Theme by <a href="https://github.com/orderedlist">orderedlist</a></small></p>
         </footer>
     </div>
     <script src="javascripts/scale.fix.js"></script>

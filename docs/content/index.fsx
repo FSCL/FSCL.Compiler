@@ -4,28 +4,27 @@
 #I "../../bin"
 
 (**
+
 FSCL Compiler
 ===================
 
 FSCL Compiler is a source-to-source compiler that translates quoted F# function calls and other contructs into valid C99 OpenCL kernel sources, enabling
 programming OpenCL-enabled parallel devices from within F#.
 
-How to get FSCL Compiler
--------
+###How to get FSCL Compiler
 
 <div class="row">
   <div class="span1"></div>
   <div class="span6">
     <div class="well well-small" id="nuget">
       The FSCL Compiler library can be <a href="https://nuget.org/packages/FSCL.Compiler">installed from NuGet</a>:
-      <pre>PM> Install-Package FSCL.Compiler</pre>
+      <div class="nugetinstall">PM> Install-Package FSCL.Compiler</div>
     </div>
   </div>
   <div class="span1"></div>
 </div>
 
-Getting started with FSCL.Compiler
--------
+###Getting started with FSCL.Compiler
 
 FSCL Compiler is able to produce valid OpenCL source code from quoted expressions containing:
 
@@ -38,17 +37,23 @@ resembling an OpenCL C kernel. Aside from the differences in syntax and in part 
 express in C99 can be coded in F# as well.
 For example, an OpenCL C kernel to execute parallel vector addition would look like:
 
-`__kernel void vectorAdd(__global float * a, __global const float * b, __global float * c)
+<div class="code-container">
+<pre class="cplusplus">
+__kernel void vectorAdd(__global float * a, __global const float * b, __global float * c)
 {
     int myId = get_global_id(0);
     c[myId] = a[myId] + b[myId];
-}`
+}
+</pre>
+</div>
 
 In FSCL, the same kernel can be coded as follows:
 *)
+(*** hide ***)
 #r "FSCL.Compiler.Core.dll"
 #r "FSCL.Compiler.dll"
 #r "FSCL.Compiler.Language.dll"
+(** *)
 open FSCL
 open FSCL.Compiler
 open FSCL.Language
@@ -71,33 +76,27 @@ let resultCompilingRef = compiler.Compile(<@ VectorAdd @>)
 let a = Array.create 1024 2.0f
 let b = Array.create 1024 3.0f
 let c = Array.zeroCreate<float32> 1024
-let size = worksize([| a.Length |], [| 128 |], [| 0 |])
+let size = WorkSize(a.LongLength, 64L)
 let resultCompilingCall = compiler.Compile(<@ VectorAdd(a, b, c, size) @>)
 
 (**
 
-Tutorials and Documentation
------------------------
+###Tutorials and Documentation
 
 The FSCL Compiler API documentation is under development and will be available soon.
 In the meantime, take a look to the following tutorials.
 
- * [Kernel Programming Tutorial](kernelProgrammingTutorial.html) introduces the object-model and the programming constructs available to write OpenCL kernels in F#.
+ * [_Kernel Programming Tutorial_](kernelProgrammingTutorial.html)program parallel kernels in F#.
  
- * [Compiler Interface Tutorial](compilerInterfaceTutorial.html) shows how to use the FSCL compiler to compile FSCL kernels and provides and overview on the set of information produced during compilation.
+ * [_Compiler Interface Tutorial_](compilerInterfaceTutorial.html)turn F# computations into OpenCL kernel sources.
 
- * [Dynamic Metadata Tutorial](dynamicMetadataTutorial.html) shows how to use the FSCL Dynamic Metadata infrastructure and how to create new, custom metadata.
+ * [_Dynamic Metadata Tutorial_](dynamicMetadataTutorial.html)use the Dynamic Metadata Infrastructure to drive kernels compilation.
  
- * [Compiler Configuration Tutorial](compilerConfigurationTutorial.html) illustrates how to configure the FSCL compiler.
+ * [_Compiler Configuration Tutorial_](compilerConfigurationTutorial.html)configure the FSCL Compiler in prototyping, testing and production environments.
 
- * [Compiler Customisation and Extension Tutorial](compilerCustomisationTutorial.html) shows how to customise and extend the FSCL Compiler pipeline.
-
- * [API Reference](reference/index.html) contains automatically generated documentation for all types, modules
-   and functions in the library. This includes additional brief samples on using most of the
-   functions.
+ * [_Compiler Customisation and Extension Tutorial_](compilerCustomisationTutorial.html)customise and extend the FSCL Compiler pipeline via plugins.
  
-Contributing and copyright
---------------------------
+###Contributing and copyright
 
 The project is hosted on [GitHub][gh] where you can [report issues][issues], fork 
 the project and submit pull requests. If you're adding new public API, please also 
@@ -107,6 +106,7 @@ also want to read [library design notes][readme] to understand how it works.
 The library is available under Apache 2.0 license. For more information see the 
 [License file][license] in the GitHub repository. 
 
+  [website]: https://gabrielecocco.it/fscl
   [content]: https://github.com/GabrieleCocco/FSCL.Compiler/tree/master/docs/content
   [gh]: https://github.com/GabrieleCocco/FSCL.Compiler
   [issues]: https://github.com/GabrieleCocco/FSCL.Compiler/issues

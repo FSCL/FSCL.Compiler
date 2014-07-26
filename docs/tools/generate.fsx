@@ -6,9 +6,9 @@
 // Binaries that have XML documentation (in a corresponding generated XML file)
 let referenceBinaries = [ "FSCL.Compiler.Core.dll" ]
 // Web site location for the generated documentation
-let website = "http://www.gabrielecocco.it/fscl/nugetdocs"
+let website = "http://fscl.github.io/FSCL.Compiler/"
 
-let githubLink = "http://github.com/GabrieleCocco/FSCL.Compiler"
+let githubLink = "http://github.com/FSCL/FSCL.Compiler"
 
 // Specify more information about your project
 let info =

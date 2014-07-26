@@ -10,8 +10,7 @@ FSCL Kernel Programming
 With the compiler and the object-model provided by the FSCL.Compiler project you can write OpenCL kernels
 as F# functions, static/instance methods and lambdas. This page gives an overview on kernel programming in FSCL.
 
-Basic example: Vector Addition
-----------------------
+###Basic example: Vector Addition
 
 The most simple example of kernel programming is very likely parallel vector addition, where each thread (known as work-item in OpenCL)
 sums the matching elements of the two input vectors whose index is determined by the thread id.
@@ -36,8 +35,7 @@ Every FSCL kernel is characterized by an additional parameter of type `WorkItemI
 to retrieve all the information related to the work-items space (global/local id of the thread, global/local thread count, work-items space rank, etc.).
 In addition, every kernel must be marked with `[<ReflectedDefinition>]` attribute to enable the compiler to inspect the AST of its body.
 
-A more complex example: Sobel Filter
-------------------------------------
+###A more complex example: Sobel Filter
 
 The FSCL compiler library exposes an object-model that allows to write every possible OpenCL kernel in F#. In particular,
 all the OpenCL built-in math/vector data/geometric functions are available to be used inside kernels, as like as vector data-types (e.g. float4, int3)
@@ -78,8 +76,7 @@ let SobelFilter2D(inputImage: uchar4[,], outputImage: uchar4[,], wi: WorkItemInf
     outputImage.[y, x] <- (float4.hypot(Gx, Gy)/float4(2.0f)).ToUChar4()
 
 (**
-Another complex example: Matrix Multiplication
-------------------------------------
+###Another complex example: Matrix Multiplication
 
 Matrix multiplication optimised for GPU execution is another example that shows how OpenCL programming
 constructs and built-in functions are mapped into F#.
@@ -167,8 +164,7 @@ let MatrixMultWithLocalParam(matA: float32[,],
 The attribute `AddressSpace` is only one of the many provided by FSCL to add meta-information to kernels and kernel parameters.
 For additional information about them, see [Dynamic Metadata Tutorial](dynamicMetadataTutorial.html).
 
-High-level constructs example: Vector Addition with return type
-------------------------------------
+###High-level constructs example: Vector Addition with return type
 
 While enabling to code "classic" OpenCL kernels in F#, FSCL gives the chance to employ additional .NET/F# programming
 constructs and data-types that are generally not supported in OpenCL.
@@ -231,8 +227,7 @@ let MyKernelWithRefVar(input: float32[], output:float32 ref, wi: WorkItemInfo) =
     if myId = 0 then
         output := resultToWrite 
 (**
-Utility functions
-------------------------------------
+###Utility functions
 
 When programming a kernel, you're not fored to encapsulate the whole code in a single kernel. Kernels can leverage on 
 utility functions to performs some computations or well defined tasks.
@@ -249,8 +244,7 @@ let VectorAddWithUtilityFunction(a: float32[], b:float32[], c:float32[], wi: Wor
     c.[myId] <- op a.[myId] b.[myId]
 
 (**
-FSCL kernels as lambdas
---------------------------
+###FSCL kernels as lambdas
 
 FSCL kernels can be also expressed using the lambdas. For example, instad of defining a function, we may write the vector addition kernel as follows.
 While the FSCL Compiler is still able to produce the appropriate kernel code in such a case, this time the name of the kernel in the OpenCL source produced
@@ -261,8 +255,7 @@ fun (a: float32[], b:float32[], c:float32[], wi: WorkItemInfo) ->
     c.[myId] <- op a.[myId] b.[myId]
 
 (**
-Using collection functions
---------------------------
+###Using collection functions
 
 In addition to custom FSCL kernels, programmers can compile to OpenCL references and calls to `Array` collection functions, such as `Array.sum`, `Array.map2` and `Array.reduce`. 
 In such a case, the kernel code is not specified by the programmer but produced automatically by the compiler given the intrinsic semantic of those functions. 

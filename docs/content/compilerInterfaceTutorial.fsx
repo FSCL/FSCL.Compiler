@@ -12,8 +12,7 @@ the only output produced by the FSCL Compiler. Instead, the compiler produces a 
 the data-types used and the way parameters are accessed from withing the kernel body.
 In this page we provide an overview on how to compile FSCL kernels and on the information produced by the compilation itself.
 
-Default compilation
-----------------------
+###Default compilation
 
 Most of the time, to compile a kernel you simply create an instance of the FSCL `Compiler` and you pass the quoted kernel
 call or kernel reference to its `Compile` method. From the compilation point of view, there is no much difference between passing the kernel 
@@ -51,8 +50,7 @@ let size = worksize([| a.Length |], [| 128 |], [| 0 |])
 let compilationResultFromCall = compiler.Compile(<@ VectorAdd(a, b, c, size) @>)
 
 (**
-The compiler data-structure: IKernelModule
-------------------------------------
+###The compiler data-structure: IKernelModule
 
 The `Compile` signature declares that the method is returning an instance of `Object`. The runtime type of the returned value
 depends on the configuration of the compiler pipeline (see [Compiler Customisation Tutorial](compilerCustomisationTutorial.html)).
@@ -76,8 +74,7 @@ let utilityFunctions = compilationResult.Functions
 let kernel = compilationResult.Kernel
 
 (**
-The kernel data structure: IKernelInfo
-------------------------------------
+###The kernel data structure: IKernelInfo
 
 One of the most interesting data in the kernel module is provided by the `Kernel` property (of type `IKernelInfo). Among the other information,
 the other information, this property holds the result of access analysis relative to each kernel parameter. 
@@ -88,8 +85,7 @@ let firstKernelPar = compilationResult.Kernel.Parameters.[0]
 let accessAnalysis = firstKernelPar.AccessAnalysis
 
 (**
-Compiler options
-------------------------------------
+###Compiler options
 
 The `Compile` method is overloaded to enable the programmer to specify some compilation options using an insteance  
 of `Dictionary<string, obj>`.

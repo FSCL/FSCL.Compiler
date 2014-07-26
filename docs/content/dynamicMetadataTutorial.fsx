@@ -12,8 +12,7 @@ From the language point of view, a dynamic metadata is a custom attribute that c
 enable dynamic association of the information the custom attribute represents.
 In this page we provide an overview on how to use dynamic metadata in FSCL programming and on the suggested approach to create your custom metadata.
 
-Built-in Dynamic Metadata
---------------------------
+###Built-in Dynamic Metadata
 
 The FSCL Compiler (and the Runtime) defines a set of built-in metadata that programmers can use to associate information to kernels and parameters.
 If you took a look to [Kernel Programming Tutorial](kernelProgrammingTutorial.html), you already encountered a dynamic metadata (i.e. `AddressSpace`) to specify the memory space
@@ -72,9 +71,7 @@ let compilationResultForGpu = compiler.Compile(<@ DEVICE_TYPE(
                                                ) @>)
 
 (**
-
-Defining Custom Metadata
-------------------------
+###Defining Custom Metadata
 
 Whenever you develop a custom compiler or runtime step (see [Compiler Customisation Tutorial](compilerCustomisationTutorial.html)) that may act differently depending on some user hints, I suggest to leverage on a custom metadata to encode that hint or suggestion that the user can give you.
 Defining custom metadata is really easy, there are only two things you need to do:

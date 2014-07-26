@@ -12,8 +12,7 @@ Even if the compiler is thought to work straight out-of-the-box by simply instan
 the pipeline can be fully changed and customised as needed.
 In this page we give an overview on how the compiler pipeline configuration works.
 
-Steps, processors and type managers
---------------------------
+###Steps, processors and type managers
 
 Before digging into the configuration infrastructure, a small introduction and a little terminology is needed.
 There are three types of *components* that contribute to the compiler behavior.
@@ -53,13 +52,11 @@ already containing another custom step that performs some optimisations on struc
 (it's a dll placed somewhere), he will add the ID of the structs-optimisation step to the *Before* list of the step he's developing to guarantee
 the pre-existing step is executed only after his one.
 
-Native configuration
---------------------------
+###Native configuration
 
 Whenever you instantiate the compiler using the parameterless constructor, the pipeline is populated with the native, built-in FSCL compiler components (which, by the way, are contained in the `FSCL.Compiler.NativeComponents.dll` library).
 
-Custom configuration
---------------------------
+###Custom configuration
 
 There are mainly three aspects to consider when configuring the compiler pipeline:
 
