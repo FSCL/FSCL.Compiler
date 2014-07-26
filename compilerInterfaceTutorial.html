@@ -1,0 +1,262 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <title>Interfacing with the FSCL compiler
+</title>
+
+    <link rel="stylesheet" href="stylesheets/styles.css">
+    <link rel="stylesheet" href="stylesheets/pygment_trac.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+    <meta name="description" content="F# to OpenCL compiler" />
+    <meta name="author" content="Gabriele Cocco" />
+    <script type="text/javascript" src="javascripts/jquery-1.11.1.min.js"></script>
+    <script type="text/javascript">
+        $(document).ready(function () {
+            $("table.pre").wrap("<div class='code-container'></div>");
+            $("table.pre").css("width", ($("section").width() - 30) + "px");
+            $("pre.fssnip").css("width", ($("section").width() - 30) + "px");
+            $(window).resize(function () {
+                $("table.pre").css("width", ($("section").width() - 30) + "px");
+                $("pre.fssnip").css("width", ($("section").width() - 30) + "px");
+            });
+        });
+    </script>
+    <!--[if lt IE 9]>
+    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+</head>
+<body>
+    <div class="wrapper">
+        <header>
+            <div class="header-container">
+                <h1>FSCL.Compiler</h1>
+                <p>F# to OpenCL compiler</p>
+            </div>
+            <table class="git-links">
+                <tr>
+                    <td><a href="https://github.com/FSCL/FSCL.Runtime/zipball/master">Download <strong>ZIP File</strong></a></td>
+                    <td><a href="https://github.com/FSCL/FSCL.Runtime/tarball/master">Download <strong>TAR Ball</strong></a></td>
+                    <td><a href="http://github.com/FSCL/FSCL.Runtime/master">Fork On <strong>GitHub</strong></a></td>
+                </tr>
+            </table>
+        </header>
+        <section>
+            
+<h1>Interfacing with the FSCL compiler</h1>
+
+<p>Once you have coded your FSCL kernels, the next step is to compile them to OpenCL. Valid OpenCL C99 source code is not
+the only output produced by the FSCL Compiler. Instead, the compiler produces a lot of useful information about the kernel structure,
+the data-types used and the way parameters are accessed from withing the kernel body.
+In this page we provide an overview on how to compile FSCL kernels and on the information produced by the compilation itself.</p>
+
+<h3>Default compilation</h3>
+
+<p>Most of the time, to compile a kernel you simply create an instance of the FSCL <code>Compiler</code> and you pass the quoted kernel
+call or kernel reference to its <code>Compile</code> method. From the compilation point of view, there is no much difference between passing the kernel 
+and passing a call to the kernel. The compilation process is exactly the same as like as the OpenCL source produced.
+The only difference is that in case of a call the result contains the expressions of the actual arguments. Those expressions
+are currently required only if you <em>Run</em> the kernel, which is a task performed by the <a href="http://nuget.org/FSCL.Runtime">FSCL Runtime</a>.
+Nonetheless, future developments may introduce compiler steps whose behavior is driven by the actual arguments of a kernel call (for example, merging two kernels into one
+when the argument of a kernel call is the result of another kernel call). In such a case, the compiler itself would produce different results
+depending on whether you pass a kernel reference of a kernel call.</p>
+
+<table class="pre"><tr><td class="lines"><pre class="fssnip">
+<span class="l"> 1: </span>
+<span class="l"> 2: </span>
+<span class="l"> 3: </span>
+<span class="l"> 4: </span>
+<span class="l"> 5: </span>
+<span class="l"> 6: </span>
+<span class="l"> 7: </span>
+<span class="l"> 8: </span>
+<span class="l"> 9: </span>
+<span class="l">10: </span>
+<span class="l">11: </span>
+<span class="l">12: </span>
+<span class="l">13: </span>
+<span class="l">14: </span>
+<span class="l">15: </span>
+<span class="l">16: </span>
+<span class="l">17: </span>
+<span class="l">18: </span>
+<span class="l">19: </span>
+</pre>
+</td>
+<td class="snippet"><pre class="fssnip">
+<span class="k">open</span> <span onmouseout="hideTip(event, 'fs1', 1)" onmouseover="showTip(event, 'fs1', 1)" class="i">FSCL</span>
+<span class="k">open</span> <span onmouseout="hideTip(event, 'fs1', 2)" onmouseover="showTip(event, 'fs1', 2)" class="i">FSCL</span><span class="o">.</span><span onmouseout="hideTip(event, 'fs2', 3)" onmouseover="showTip(event, 'fs2', 3)" class="i">Compiler</span>
+<span class="k">open</span> <span onmouseout="hideTip(event, 'fs1', 4)" onmouseover="showTip(event, 'fs1', 4)" class="i">FSCL</span><span class="o">.</span><span onmouseout="hideTip(event, 'fs3', 5)" onmouseover="showTip(event, 'fs3', 5)" class="i">Language</span>
+
+[&lt;<span onmouseout="hideTip(event, 'fs4', 6)" onmouseover="showTip(event, 'fs4', 6)" class="i">ReflectedDefinition</span>&gt;]
+<span class="k">let</span> <span onmouseout="hideTip(event, 'fs5', 7)" onmouseover="showTip(event, 'fs5', 7)" class="i">VectorAdd</span>(<span onmouseout="hideTip(event, 'fs6', 8)" onmouseover="showTip(event, 'fs6', 8)" class="i">a</span><span class="o">:</span> <span onmouseout="hideTip(event, 'fs7', 9)" onmouseover="showTip(event, 'fs7', 9)" class="i">float32</span>[], <span onmouseout="hideTip(event, 'fs8', 10)" onmouseover="showTip(event, 'fs8', 10)" class="i">b</span><span class="o">:</span><span onmouseout="hideTip(event, 'fs7', 11)" onmouseover="showTip(event, 'fs7', 11)" class="i">float32</span>[], <span onmouseout="hideTip(event, 'fs9', 12)" onmouseover="showTip(event, 'fs9', 12)" class="i">c</span><span class="o">:</span><span onmouseout="hideTip(event, 'fs7', 13)" onmouseover="showTip(event, 'fs7', 13)" class="i">float32</span>[], <span onmouseout="hideTip(event, 'fs10', 14)" onmouseover="showTip(event, 'fs10', 14)" class="i">wi</span><span class="o">:</span> <span onmouseout="hideTip(event, 'fs11', 15)" onmouseover="showTip(event, 'fs11', 15)" class="i">WorkItemInfo</span>) <span class="o">=</span>
+    <span class="k">let</span> <span onmouseout="hideTip(event, 'fs12', 16)" onmouseover="showTip(event, 'fs12', 16)" class="i">myId</span> <span class="o">=</span> <span onmouseout="hideTip(event, 'fs10', 17)" onmouseover="showTip(event, 'fs10', 17)" class="i">wi</span><span class="o">.</span><span onmouseout="hideTip(event, 'fs13', 18)" onmouseover="showTip(event, 'fs13', 18)" class="i">GlobalID</span>(<span class="n">0</span>)
+    <span onmouseout="hideTip(event, 'fs9', 19)" onmouseover="showTip(event, 'fs9', 19)" class="i">c</span><span class="o">.</span>[<span onmouseout="hideTip(event, 'fs12', 20)" onmouseover="showTip(event, 'fs12', 20)" class="i">myId</span>] <span class="o">&lt;-</span> <span onmouseout="hideTip(event, 'fs6', 21)" onmouseover="showTip(event, 'fs6', 21)" class="i">a</span><span class="o">.</span>[<span onmouseout="hideTip(event, 'fs12', 22)" onmouseover="showTip(event, 'fs12', 22)" class="i">myId</span>] <span class="o">+</span> <span onmouseout="hideTip(event, 'fs8', 23)" onmouseover="showTip(event, 'fs8', 23)" class="i">b</span><span class="o">.</span>[<span onmouseout="hideTip(event, 'fs12', 24)" onmouseover="showTip(event, 'fs12', 24)" class="i">myId</span>]
+
+<span class="c">// Instantiate the compiler</span>
+<span class="k">let</span> <span onmouseout="hideTip(event, 'fs14', 25)" onmouseover="showTip(event, 'fs14', 25)" class="i">compiler</span> <span class="o">=</span> <span class="k">new</span> <span onmouseout="hideTip(event, 'fs15', 26)" onmouseover="showTip(event, 'fs15', 26)" class="i">Compiler</span>()
+<span class="c">// Kernel reference</span>
+<span class="k">let</span> <span onmouseout="hideTip(event, 'fs16', 27)" onmouseover="showTip(event, 'fs16', 27)" class="i">compilationResultFromRef</span> <span class="o">=</span> <span onmouseout="hideTip(event, 'fs14', 28)" onmouseover="showTip(event, 'fs14', 28)" class="i">compiler</span><span class="o">.</span><span onmouseout="hideTip(event, 'fs17', 29)" onmouseover="showTip(event, 'fs17', 29)" class="i">Compile</span>(&lt;@ <span onmouseout="hideTip(event, 'fs5', 30)" onmouseover="showTip(event, 'fs5', 30)" class="i">VectorAdd</span> @&gt;)
+<span class="c">// Kernel call</span>
+<span class="k">let</span> <span onmouseout="hideTip(event, 'fs18', 31)" onmouseover="showTip(event, 'fs18', 31)" class="i">a</span> <span class="o">=</span> <span onmouseout="hideTip(event, 'fs19', 32)" onmouseover="showTip(event, 'fs19', 32)" class="i">Array</span><span class="o">.</span><span onmouseout="hideTip(event, 'fs20', 33)" onmouseover="showTip(event, 'fs20', 33)" class="i">create</span> <span class="n">1024</span> <span class="n">2.0f</span>
+<span class="k">let</span> <span onmouseout="hideTip(event, 'fs21', 34)" onmouseover="showTip(event, 'fs21', 34)" class="i">b</span> <span class="o">=</span> <span onmouseout="hideTip(event, 'fs19', 35)" onmouseover="showTip(event, 'fs19', 35)" class="i">Array</span><span class="o">.</span><span onmouseout="hideTip(event, 'fs20', 36)" onmouseover="showTip(event, 'fs20', 36)" class="i">create</span> <span class="n">1024</span> <span class="n">3.0f</span>
+<span class="k">let</span> <span onmouseout="hideTip(event, 'fs22', 37)" onmouseover="showTip(event, 'fs22', 37)" class="i">c</span> <span class="o">=</span> <span onmouseout="hideTip(event, 'fs19', 38)" onmouseover="showTip(event, 'fs19', 38)" class="i">Array</span><span class="o">.</span><span onmouseout="hideTip(event, 'fs23', 39)" onmouseover="showTip(event, 'fs23', 39)" class="i">zeroCreate</span><span class="o">&lt;</span><span onmouseout="hideTip(event, 'fs7', 40)" onmouseover="showTip(event, 'fs7', 40)" class="i">float32</span><span class="o">&gt;</span> <span class="n">1024</span>
+<span class="k">let</span> <span onmouseout="hideTip(event, 'fs24', 41)" onmouseover="showTip(event, 'fs24', 41)" class="i">size</span> <span class="o">=</span> <span class="i">worksize</span>([| <span onmouseout="hideTip(event, 'fs18', 42)" onmouseover="showTip(event, 'fs18', 42)" class="i">a</span><span class="o">.</span><span onmouseout="hideTip(event, 'fs25', 43)" onmouseover="showTip(event, 'fs25', 43)" class="i">Length</span> |], [| <span class="n">128</span> |], [| <span class="n">0</span> |])
+<span class="k">let</span> <span onmouseout="hideTip(event, 'fs26', 44)" onmouseover="showTip(event, 'fs26', 44)" class="i">compilationResultFromCall</span> <span class="o">=</span> <span onmouseout="hideTip(event, 'fs14', 45)" onmouseover="showTip(event, 'fs14', 45)" class="i">compiler</span><span class="o">.</span><span onmouseout="hideTip(event, 'fs17', 46)" onmouseover="showTip(event, 'fs17', 46)" class="i">Compile</span>(&lt;@ <span onmouseout="hideTip(event, 'fs5', 47)" onmouseover="showTip(event, 'fs5', 47)" class="i">VectorAdd</span>(<span onmouseout="hideTip(event, 'fs18', 48)" onmouseover="showTip(event, 'fs18', 48)" class="i">a</span>, <span onmouseout="hideTip(event, 'fs21', 49)" onmouseover="showTip(event, 'fs21', 49)" class="i">b</span>, <span onmouseout="hideTip(event, 'fs22', 50)" onmouseover="showTip(event, 'fs22', 50)" class="i">c</span>, <span onmouseout="hideTip(event, 'fs24', 51)" onmouseover="showTip(event, 'fs24', 51)" class="i">size</span>) @&gt;)</pre>
+</td>
+</tr>
+</table>
+
+<h3>The compiler data-structure: IKernelModule</h3>
+
+<p>The <code>Compile</code> signature declares that the method is returning an instance of <code>Object</code>. The runtime type of the returned value
+depends on the configuration of the compiler pipeline (see <a href="compilerCustomisationTutorial.html">Compiler Customisation Tutorial</a>).
+The default pipeline is composed of built-in (on <em>native</em> ) steps and generates an instance of <code>IKernelModule</code>.
+Among the other information, this instance contains the OpenCL source code produced.</p>
+
+<table class="pre"><tr><td class="lines"><pre class="fssnip">
+<span class="l"> 1: </span>
+<span class="l"> 2: </span>
+<span class="l"> 3: </span>
+<span class="l"> 4: </span>
+<span class="l"> 5: </span>
+<span class="l"> 6: </span>
+<span class="l"> 7: </span>
+<span class="l"> 8: </span>
+<span class="l"> 9: </span>
+<span class="l">10: </span>
+<span class="l">11: </span>
+<span class="l">12: </span>
+<span class="l">13: </span>
+<span class="l">14: </span>
+<span class="l">15: </span>
+</pre>
+</td>
+<td class="snippet"><pre class="fssnip">
+<span class="k">let</span> <span onmouseout="hideTip(event, 'fs27', 52)" onmouseover="showTip(event, 'fs27', 52)" class="i">compilationResult</span> <span class="o">=</span> <span onmouseout="hideTip(event, 'fs14', 53)" onmouseover="showTip(event, 'fs14', 53)" class="i">compiler</span><span class="o">.</span><span onmouseout="hideTip(event, 'fs17', 54)" onmouseover="showTip(event, 'fs17', 54)" class="i">Compile</span>(&lt;@ <span onmouseout="hideTip(event, 'fs5', 55)" onmouseover="showTip(event, 'fs5', 55)" class="i">VectorAdd</span>(<span onmouseout="hideTip(event, 'fs18', 56)" onmouseover="showTip(event, 'fs18', 56)" class="i">a</span>, <span onmouseout="hideTip(event, 'fs21', 57)" onmouseover="showTip(event, 'fs21', 57)" class="i">b</span>, <span onmouseout="hideTip(event, 'fs22', 58)" onmouseover="showTip(event, 'fs22', 58)" class="i">c</span>, <span onmouseout="hideTip(event, 'fs24', 59)" onmouseover="showTip(event, 'fs24', 59)" class="i">size</span>) @&gt;) <span class="o">:?&gt;</span> <span onmouseout="hideTip(event, 'fs17', 60)" onmouseover="showTip(event, 'fs17', 60)" class="i">IKernelModule</span>
+<span class="c">// Call arguments (if the quotation contains a kernel call)</span>
+<span class="k">let</span> <span onmouseout="hideTip(event, 'fs28', 61)" onmouseover="showTip(event, 'fs28', 61)" class="i">callArgs</span> <span class="o">=</span> <span onmouseout="hideTip(event, 'fs27', 62)" onmouseover="showTip(event, 'fs27', 62)" class="i">compilationResult</span><span class="o">.</span><span onmouseout="hideTip(event, 'fs17', 63)" onmouseover="showTip(event, 'fs17', 63)" class="i">CallArgs</span>
+<span class="c">// OpenCL source code</span>
+<span class="k">let</span> <span onmouseout="hideTip(event, 'fs29', 64)" onmouseover="showTip(event, 'fs29', 64)" class="i">code</span> <span class="o">=</span> <span onmouseout="hideTip(event, 'fs27', 65)" onmouseover="showTip(event, 'fs27', 65)" class="i">compilationResult</span><span class="o">.</span><span onmouseout="hideTip(event, 'fs17', 66)" onmouseover="showTip(event, 'fs17', 66)" class="i">Code</span>
+<span class="c">// References to global properties translated into #define(s)</span>
+<span class="k">let</span> <span onmouseout="hideTip(event, 'fs30', 67)" onmouseover="showTip(event, 'fs30', 67)" class="i">defines</span> <span class="o">=</span> <span onmouseout="hideTip(event, 'fs27', 68)" onmouseover="showTip(event, 'fs27', 68)" class="i">compilationResult</span><span class="o">.</span><span onmouseout="hideTip(event, 'fs17', 69)" onmouseover="showTip(event, 'fs17', 69)" class="i">ConstantDefines</span>
+<span class="c">// OpenCL-specific compiler directives (such as the one to enable double-precision)</span>
+<span class="k">let</span> <span onmouseout="hideTip(event, 'fs31', 70)" onmouseover="showTip(event, 'fs31', 70)" class="i">directives</span> <span class="o">=</span> <span onmouseout="hideTip(event, 'fs27', 71)" onmouseover="showTip(event, 'fs27', 71)" class="i">compilationResult</span><span class="o">.</span><span onmouseout="hideTip(event, 'fs17', 72)" onmouseover="showTip(event, 'fs17', 72)" class="i">Directives</span>
+<span class="c">// Structs or records used by the kernel or by one or more utility functions</span>
+<span class="k">let</span> <span onmouseout="hideTip(event, 'fs32', 73)" onmouseover="showTip(event, 'fs32', 73)" class="i">globalTypes</span> <span class="o">=</span> <span onmouseout="hideTip(event, 'fs27', 74)" onmouseover="showTip(event, 'fs27', 74)" class="i">compilationResult</span><span class="o">.</span><span onmouseout="hideTip(event, 'fs17', 75)" onmouseover="showTip(event, 'fs17', 75)" class="i">GlobalTypes</span>
+<span class="c">// Utility functions</span>
+<span class="k">let</span> <span onmouseout="hideTip(event, 'fs33', 76)" onmouseover="showTip(event, 'fs33', 76)" class="i">utilityFunctions</span> <span class="o">=</span> <span onmouseout="hideTip(event, 'fs27', 77)" onmouseover="showTip(event, 'fs27', 77)" class="i">compilationResult</span><span class="o">.</span><span onmouseout="hideTip(event, 'fs17', 78)" onmouseover="showTip(event, 'fs17', 78)" class="i">Functions</span>
+<span class="c">// Kernel</span>
+<span class="k">let</span> <span onmouseout="hideTip(event, 'fs34', 79)" onmouseover="showTip(event, 'fs34', 79)" class="i">kernel</span> <span class="o">=</span> <span onmouseout="hideTip(event, 'fs27', 80)" onmouseover="showTip(event, 'fs27', 80)" class="i">compilationResult</span><span class="o">.</span><span onmouseout="hideTip(event, 'fs17', 81)" onmouseover="showTip(event, 'fs17', 81)" class="i">Kernel</span></pre>
+</td>
+</tr>
+</table>
+
+<h3>The kernel data structure: IKernelInfo</h3>
+
+<p>One of the most interesting data in the kernel module is provided by the <code>Kernel</code> property (of type `IKernelInfo). Among the other information,
+the other information, this property holds the result of access analysis relative to each kernel parameter. 
+Access analysis is performed on the kernel body for each vector (array) parameter to detect the way the parameter is accessed (ReadOnly, WriteOnly, ReadWrite, NoAccess).
+This analysis is particularly useful for the FSCL Runtime to optimise buffer allocation prior to kernel execution.</p>
+
+<table class="pre"><tr><td class="lines"><pre class="fssnip">
+<span class="l">1: </span>
+<span class="l">2: </span>
+</pre>
+</td>
+<td class="snippet"><pre class="fssnip">
+<span class="k">let</span> <span onmouseout="hideTip(event, 'fs35', 82)" onmouseover="showTip(event, 'fs35', 82)" class="i">firstKernelPar</span> <span class="o">=</span> <span onmouseout="hideTip(event, 'fs27', 83)" onmouseover="showTip(event, 'fs27', 83)" class="i">compilationResult</span><span class="o">.</span><span onmouseout="hideTip(event, 'fs17', 84)" onmouseover="showTip(event, 'fs17', 84)" class="i">Kernel</span><span class="o">.</span><span onmouseout="hideTip(event, 'fs17', 85)" onmouseover="showTip(event, 'fs17', 85)" class="i">Parameters</span><span class="o">.</span>[<span class="n">0</span>]
+<span class="k">let</span> <span onmouseout="hideTip(event, 'fs36', 86)" onmouseover="showTip(event, 'fs36', 86)" class="i">accessAnalysis</span> <span class="o">=</span> <span onmouseout="hideTip(event, 'fs35', 87)" onmouseover="showTip(event, 'fs35', 87)" class="i">firstKernelPar</span><span class="o">.</span><span class="i">AccessAnalysis</span></pre>
+</td>
+</tr>
+</table>
+
+<h3>Compiler options</h3>
+
+<p>The <code>Compile</code> method is overloaded to enable the programmer to specify some compilation options using an insteance<br />
+of <code>Dictionary&lt;string, obj&gt;</code>.
+The FSCL compiler library is currently declaring two built-in options, heavily used by the FSCL Runtime to speed-up kernel compilation: <code>"ParsOnly"</code> and <code>"NoCodegen"</code>. The first stops the native
+pipeline after the parsing step, the second right before the latest two steps (function and module codegen).</p>
+
+<p>Compiler options are thought to be completely extensible. Programmer can define additional options to drive the behavior of custom compiler
+steps.</p>
+
+<table class="pre"><tr><td class="lines"><pre class="fssnip">
+<span class="l">1: </span>
+<span class="l">2: </span>
+<span class="l">3: </span>
+<span class="l">4: </span>
+<span class="l">5: </span>
+<span class="l">6: </span>
+<span class="l">7: </span>
+</pre>
+</td>
+<td class="snippet"><pre class="fssnip">
+<span class="k">open</span> <span onmouseout="hideTip(event, 'fs37', 88)" onmouseover="showTip(event, 'fs37', 88)" class="i">System</span><span class="o">.</span><span onmouseout="hideTip(event, 'fs38', 89)" onmouseover="showTip(event, 'fs38', 89)" class="i">Collections</span><span class="o">.</span><span onmouseout="hideTip(event, 'fs39', 90)" onmouseover="showTip(event, 'fs39', 90)" class="i">Generic</span>
+
+<span class="k">let</span> <span onmouseout="hideTip(event, 'fs40', 91)" onmouseover="showTip(event, 'fs40', 91)" class="i">myCustomOptions</span> <span class="o">=</span> <span class="k">new</span> <span onmouseout="hideTip(event, 'fs41', 92)" onmouseover="showTip(event, 'fs41', 92)" class="i">Dictionary</span><span class="o">&lt;</span><span onmouseout="hideTip(event, 'fs42', 93)" onmouseover="showTip(event, 'fs42', 93)" class="i">string</span>, <span onmouseout="hideTip(event, 'fs43', 94)" onmouseover="showTip(event, 'fs43', 94)" class="i">obj</span><span class="o">&gt;</span>()
+<span onmouseout="hideTip(event, 'fs40', 95)" onmouseover="showTip(event, 'fs40', 95)" class="i">myCustomOptions</span><span class="o">.</span><span onmouseout="hideTip(event, 'fs44', 96)" onmouseover="showTip(event, 'fs44', 96)" class="i">Add</span>(<span onmouseout="hideTip(event, 'fs45', 97)" onmouseover="showTip(event, 'fs45', 97)" class="i">CompilerOptions</span><span class="o">.</span><span onmouseout="hideTip(event, 'fs46', 98)" onmouseover="showTip(event, 'fs46', 98)" class="i">ParseOnly</span>, ())
+<span class="c">// The IKernelModule data structure is only partially filled</span>
+<span class="c">// It contains only data produced by the parsing step</span>
+<span class="k">let</span> <span onmouseout="hideTip(event, 'fs47', 99)" onmouseover="showTip(event, 'fs47', 99)" class="i">compilationResultOnlyParsing</span> <span class="o">=</span> <span onmouseout="hideTip(event, 'fs14', 100)" onmouseover="showTip(event, 'fs14', 100)" class="i">compiler</span><span class="o">.</span><span onmouseout="hideTip(event, 'fs17', 101)" onmouseover="showTip(event, 'fs17', 101)" class="i">Compile</span>(&lt;@ <span onmouseout="hideTip(event, 'fs5', 102)" onmouseover="showTip(event, 'fs5', 102)" class="i">VectorAdd</span>(<span onmouseout="hideTip(event, 'fs18', 103)" onmouseover="showTip(event, 'fs18', 103)" class="i">a</span>, <span onmouseout="hideTip(event, 'fs21', 104)" onmouseover="showTip(event, 'fs21', 104)" class="i">b</span>, <span onmouseout="hideTip(event, 'fs22', 105)" onmouseover="showTip(event, 'fs22', 105)" class="i">c</span>, <span onmouseout="hideTip(event, 'fs24', 106)" onmouseover="showTip(event, 'fs24', 106)" class="i">size</span>) @&gt;) <span class="o">:?&gt;</span> <span onmouseout="hideTip(event, 'fs17', 107)" onmouseover="showTip(event, 'fs17', 107)" class="i">IKernelModule</span></pre>
+</td>
+</tr>
+</table>
+
+<div class="tip" id="fs1">namespace FSCL</div>
+<div class="tip" id="fs2">namespace FSCL.Compiler</div>
+<div class="tip" id="fs3">module Language<br /><br />from FSCL</div>
+<div class="tip" id="fs4">Multiple items<br />type ReflectedDefinitionAttribute =<br />&#160;&#160;inherit Attribute<br />&#160;&#160;new : unit -&gt; ReflectedDefinitionAttribute<br /><br />Full name: Microsoft.FSharp.Core.ReflectedDefinitionAttribute<br /><br />--------------------<br />new : unit -&gt; ReflectedDefinitionAttribute</div>
+<div class="tip" id="fs5">val VectorAdd : a:float32 [] * b:float32 [] * c:float32 [] * wi:WorkItemInfo -&gt; unit<br /><br />Full name: CompilerInterfaceTutorial.VectorAdd</div>
+<div class="tip" id="fs6">val a : float32 []</div>
+<div class="tip" id="fs7">Multiple items<br />val float32 : value:&#39;T -&gt; float32 (requires member op_Explicit)<br /><br />Full name: Microsoft.FSharp.Core.Operators.float32<br /><br />--------------------<br />type float32 = System.Single<br /><br />Full name: Microsoft.FSharp.Core.float32<br /><br />--------------------<br />type float32&lt;&#39;Measure&gt; = float32<br /><br />Full name: Microsoft.FSharp.Core.float32&lt;_&gt;</div>
+<div class="tip" id="fs8">val b : float32 []</div>
+<div class="tip" id="fs9">val c : float32 []</div>
+<div class="tip" id="fs10">val wi : WorkItemInfo</div>
+<div class="tip" id="fs11">type WorkItemInfo =<br />&#160;&#160;interface<br />&#160;&#160;&#160;&#160;abstract member Barrier : MemFenceMode -&gt; unit<br />&#160;&#160;&#160;&#160;abstract member GlobalID : int -&gt; int<br />&#160;&#160;&#160;&#160;abstract member GlobalOffset : int -&gt; int<br />&#160;&#160;&#160;&#160;abstract member GlobalSize : int -&gt; int<br />&#160;&#160;&#160;&#160;abstract member GroupID : int -&gt; int<br />&#160;&#160;&#160;&#160;abstract member LocalID : int -&gt; int<br />&#160;&#160;&#160;&#160;abstract member LocalSize : int -&gt; int<br />&#160;&#160;&#160;&#160;abstract member NumGroups : int -&gt; int<br />&#160;&#160;&#160;&#160;abstract member WorkDim : unit -&gt; int<br />&#160;&#160;end<br /><br />Full name: FSCL.Language.WorkItemInfo</div>
+<div class="tip" id="fs12">val myId : int</div>
+<div class="tip" id="fs13">abstract member WorkItemInfo.GlobalID : int -&gt; int</div>
+<div class="tip" id="fs14">val compiler : Compiler<br /><br />Full name: CompilerInterfaceTutorial.compiler</div>
+<div class="tip" id="fs15">Multiple items<br />namespace FSCL.Compiler<br /><br />--------------------<br /><br />--------------------<br />new : unit -&gt; Compiler<br />new : file:string -&gt; Compiler<br />new : conf:Configuration.PipelineConfiguration -&gt; Compiler</div>
+<div class="tip" id="fs16">val compilationResultFromRef : obj<br /><br />Full name: CompilerInterfaceTutorial.compilationResultFromRef</div>
+<div class="tip" id="fs17"></div>
+<div class="tip" id="fs18">val a : float32 []<br /><br />Full name: CompilerInterfaceTutorial.a</div>
+<div class="tip" id="fs19">module Array<br /><br />from Microsoft.FSharp.Collections</div>
+<div class="tip" id="fs20">val create : count:int -&gt; value:&#39;T -&gt; &#39;T []<br /><br />Full name: Microsoft.FSharp.Collections.Array.create</div>
+<div class="tip" id="fs21">val b : float32 []<br /><br />Full name: CompilerInterfaceTutorial.b</div>
+<div class="tip" id="fs22">val c : float32 []<br /><br />Full name: CompilerInterfaceTutorial.c</div>
+<div class="tip" id="fs23">val zeroCreate : count:int -&gt; &#39;T []<br /><br />Full name: Microsoft.FSharp.Collections.Array.zeroCreate</div>
+<div class="tip" id="fs24">val size : obj<br /><br />Full name: CompilerInterfaceTutorial.size</div>
+<div class="tip" id="fs25">property System.Array.Length: int</div>
+<div class="tip" id="fs26">val compilationResultFromCall : obj<br /><br />Full name: CompilerInterfaceTutorial.compilationResultFromCall</div>
+<div class="tip" id="fs27">val compilationResult : IKernelModule<br /><br />Full name: CompilerInterfaceTutorial.compilationResult</div>
+<div class="tip" id="fs28">val callArgs : obj<br /><br />Full name: CompilerInterfaceTutorial.callArgs</div>
+<div class="tip" id="fs29">val code : obj<br /><br />Full name: CompilerInterfaceTutorial.code</div>
+<div class="tip" id="fs30">val defines : obj<br /><br />Full name: CompilerInterfaceTutorial.defines</div>
+<div class="tip" id="fs31">val directives : obj<br /><br />Full name: CompilerInterfaceTutorial.directives</div>
+<div class="tip" id="fs32">val globalTypes : obj<br /><br />Full name: CompilerInterfaceTutorial.globalTypes</div>
+<div class="tip" id="fs33">val utilityFunctions : obj<br /><br />Full name: CompilerInterfaceTutorial.utilityFunctions</div>
+<div class="tip" id="fs34">val kernel : obj<br /><br />Full name: CompilerInterfaceTutorial.kernel</div>
+<div class="tip" id="fs35">val firstKernelPar : obj<br /><br />Full name: CompilerInterfaceTutorial.firstKernelPar</div>
+<div class="tip" id="fs36">val accessAnalysis : obj<br /><br />Full name: CompilerInterfaceTutorial.accessAnalysis</div>
+<div class="tip" id="fs37">namespace System</div>
+<div class="tip" id="fs38">namespace System.Collections</div>
+<div class="tip" id="fs39">namespace System.Collections.Generic</div>
+<div class="tip" id="fs40">val myCustomOptions : Dictionary&lt;string,obj&gt;<br /><br />Full name: CompilerInterfaceTutorial.myCustomOptions</div>
+<div class="tip" id="fs41">Multiple items<br />type Dictionary&lt;&#39;TKey,&#39;TValue&gt; =<br />&#160;&#160;new : unit -&gt; Dictionary&lt;&#39;TKey, &#39;TValue&gt; + 5 overloads<br />&#160;&#160;member Add : key:&#39;TKey * value:&#39;TValue -&gt; unit<br />&#160;&#160;member Clear : unit -&gt; unit<br />&#160;&#160;member Comparer : IEqualityComparer&lt;&#39;TKey&gt;<br />&#160;&#160;member ContainsKey : key:&#39;TKey -&gt; bool<br />&#160;&#160;member ContainsValue : value:&#39;TValue -&gt; bool<br />&#160;&#160;member Count : int<br />&#160;&#160;member GetEnumerator : unit -&gt; Enumerator&lt;&#39;TKey, &#39;TValue&gt;<br />&#160;&#160;member GetObjectData : info:SerializationInfo * context:StreamingContext -&gt; unit<br />&#160;&#160;member Item : &#39;TKey -&gt; &#39;TValue with get, set<br />&#160;&#160;...<br />&#160;&#160;nested type Enumerator<br />&#160;&#160;nested type KeyCollection<br />&#160;&#160;nested type ValueCollection<br /><br />Full name: System.Collections.Generic.Dictionary&lt;_,_&gt;<br /><br />--------------------<br />Dictionary() : unit<br />Dictionary(capacity: int) : unit<br />Dictionary(comparer: IEqualityComparer&lt;&#39;TKey&gt;) : unit<br />Dictionary(dictionary: IDictionary&lt;&#39;TKey,&#39;TValue&gt;) : unit<br />Dictionary(capacity: int, comparer: IEqualityComparer&lt;&#39;TKey&gt;) : unit<br />Dictionary(dictionary: IDictionary&lt;&#39;TKey,&#39;TValue&gt;, comparer: IEqualityComparer&lt;&#39;TKey&gt;) : unit</div>
+<div class="tip" id="fs42">Multiple items<br />val string : value:&#39;T -&gt; string<br /><br />Full name: Microsoft.FSharp.Core.Operators.string<br /><br />--------------------<br />type string = System.String<br /><br />Full name: Microsoft.FSharp.Core.string</div>
+<div class="tip" id="fs43">type obj = System.Object<br /><br />Full name: Microsoft.FSharp.Core.obj</div>
+<div class="tip" id="fs44">Dictionary.Add(key: string, value: obj) : unit</div>
+<div class="tip" id="fs45">module CompilerOptions<br /><br />from FSCL.Compiler</div>
+<div class="tip" id="fs46">val ParseOnly : string<br /><br />Full name: FSCL.Compiler.CompilerOptions.ParseOnly</div>
+<div class="tip" id="fs47">val compilationResultOnlyParsing : IKernelModule<br /><br />Full name: CompilerInterfaceTutorial.compilationResultOnlyParsing</div>
+
+        </section>
+        <footer>
+            <p>This project is maintained by <a href="http://github.com/FSCL">Gabriele Cocco</a></p>
+        </footer>
+    </div>
+    <script src="javascripts/scale.fix.js"></script>
+</body>
+</html>
