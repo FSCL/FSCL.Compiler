@@ -17,11 +17,11 @@ In this page we give an overview on how the compiler pipeline configuration work
 Before digging into the configuration infrastructure, a small introduction and a little terminology is needed.
 There are three types of *components* that contribute to the compiler behavior.
 
-+ [Steps]: a step is a stage of the compiler pipeline. Generally, the step is logically represents a particular 
++ **Steps**: a step is a stage of the compiler pipeline. Generally, the step is logically represents a particular 
 transformation or processing
-+ [Processors]: each step of the pipeline is made of one or more processors, each of which is contributing to realize
++ **Processors**: each step of the pipeline is made of one or more processors, each of which is contributing to realize
 a particular subset of the whole funcionality of the step
-+ [Type handlers]: a type handler is resposible to validate and generate the target representation of types
++ **Type handlers**: a type handler is resposible to validate and generate the target representation of types
 
 For example, the *parsing step* (or parser) is the first step of the native pipeline whose task is to extract/create a `MethodInfo` for the
 kernel and to determine the set of kernel parameters starting from a quoted expression.
@@ -35,9 +35,9 @@ Steps, processors and type handlers are characterised by some properties that al
 of execution.
 For example, each step is decribed by:
 
-+ [ID]: the step unique string identifier
-+ [Dependencies]: the list of IDs of steps that should execute before the current one
-+ [Before]: the list of IDs of steps that should execute after the current one
++ **ID**: the step unique string identifier
++ **Dependencies**: the list of IDs of steps that should execute before the current one
++ **Before**: the list of IDs of steps that should execute after the current one
 
 Processors and type handlers have the same set of properties. In addition, each processor has a *Step* property that holds the ID of the
 step the processor belongs to.
@@ -60,18 +60,18 @@ Whenever you instantiate the compiler using the parameterless constructor, the p
 
 There are mainly three aspects to consider when configuring the compiler pipeline:
 
-+ [Component source]: the compiler configuration is specified as a set of compoents containers (or sources), from which to load the 
++ **Component source**: the compiler configuration is specified as a set of compoents containers (or sources), from which to load the 
 steps, processors and type handlers that will form the pipeline. There are two kinds of components sources:
-    + [File source]: a (string) path to a dll
-    + [Assembly source]: an `Assembly` object 
-+ [Loading mode]: the loading mode determines the way a components source is inspected to find compiler components. There are two kinds of loading modes:
-    + [Automatic loading mode]: each compiler component is marked with a custom attribute reporting the type of component (step, processor, etc.), the ID and the dependencies/before list. 
+    + **File source**: a (string) path to a dll
+    + **Assembly source**: an `Assembly` object 
++ **Loading mode**: the loading mode determines the way a components source is inspected to find compiler components. There are two kinds of loading modes:
+    + **Automatic loading mode**: each compiler component is marked with a custom attribute reporting the type of component (step, processor, etc.), the ID and the dependencies/before list. 
     The configuration system is inspecting the set of types declared in the dll/assembly and extract all the types marked with that specific custom attribute.
-    + [Explicit loading mode]: the user has to explicitely tell the set of types (together with the ID, the dependencies, etc.) contained in the source that should
+    + **Explicit loading mode**: the user has to explicitely tell the set of types (together with the ID, the dependencies, etc.) contained in the source that should
     be loaded as compiler components
-+ [Configuration mode]: the configuration mode tells which kind on object you use to represent the pipeline configuration. It can be:
-    + [Object-based]: you use an object of type `PipelineConfiguration`, containing the list of components sources to consider
-    + [File-based]: you specify the path to an XML file that describes the pipeline configuration
++ **Configuration mode**: the configuration mode tells which kind on object you use to represent the pipeline configuration. It can be:
+    + **Object-based**: you use an object of type `PipelineConfiguration`, containing the list of components sources to consider
+    + **File-based**: you specify the path to an XML file that describes the pipeline configuration
 
 In a prototyping environment, object-base configuration, assembly source and automatic loading mode is the suggested combination, since makes it fast to create and change
 the configuration.
@@ -89,8 +89,7 @@ and you change the compiler constructor used in your application from the one ta
 From this moment on, every change to the compiler pipeline (e.g. fixing a bug in a step, adding a custom step, change some order of execution) can be done without the need to
 change your application but instead working on the configuration file only.
 
-Prototyping environment: assembly sources and automatic loading
---------------------------
+###Prototyping environment: assembly sources and automatic loading
 
 The following code shows how to configure the compiler using assembly sources and automatic component loading.
 The `PipelineConfiguration` object represents the entire pipeline configuration. In this particular case, we instantiate
@@ -146,8 +145,7 @@ let simpleConfWithAFileSource = PipelineConfiguration(true, // true = Load nativ
 let compilerWithFileSource = Compiler(simpleConfWithAFileSource)
 
 (**
-Testing and tweaking environment: assembly sources and explicit loading
---------------------------
+###Testing and tweaking environment: assembly sources and explicit loading
 
 Let's consider we have the two components sources of the previous example, each of which is containing a step, and we want to test if performances or correctness change
 if we switch the order of execution.
@@ -205,8 +203,7 @@ let explicitConfDiffOrder = PipelineConfiguration(true,
 let compilerStepABeforeB = Compiler(explicitConfDiffOrder)
 
 (**
-Production environment: file sources and configuration file
-------------------------
+###Production environment: file sources and configuration file
 
 In a production environment, you may place the dlls or your custom components in a specific folder and instantiate the compiler
 using file sources.

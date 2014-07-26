@@ -166,15 +166,29 @@ Target "GenerateDocs" (fun _ ->
 // Release Scripts
 
 Target "ReleaseDocs" (fun _ ->
-    let tempDocsDir = "temp/gh-pages"
-    CleanDir tempDocsDir
-    Repository.cloneSingleBranch "" (gitHome + "/" + gitName + ".git") "gh-pages" tempDocsDir
+    //let tempDocsDir = "temp/gh-pages"
+    //CleanDir tempDocsDir
+    //Repository.cloneSingleBranch "" (gitHome + "/" + gitName + ".git") "gh-pages" tempDocsDir
 
-    fullclean tempDocsDir
-    CopyRecursive "docs/output" tempDocsDir true |> tracefn "%A"
-    StageAll tempDocsDir
-    Commit tempDocsDir (sprintf "Update generated documentation for version %s" release.NugetVersion)
-    Branches.push tempDocsDir
+    //fullclean tempDocsDir
+    //CopyRecursive "docs/output" tempDocsDir true |> tracefn "%A"
+    //StageAll tempDocsDir
+    //Commit tempDocsDir (sprintf "Update generated documentation for version %s" release.NugetVersion)
+    //Branches.push tempDocsDir
+    //runGitCommand ("subtree push --prefix " + tempDocsDir + " origin gh-pages") "." |> ignore
+)
+
+Target "ReleaseDocsUnsafe" (fun _ ->
+    let docDir = "docs/output"
+    //CleanDir tempDocsDir
+    //Repository.cloneSingleBranch "" (gitHome + "/" + gitName + ".git") "gh-pages" tempDocsDir
+
+    //fullclean tempDocsDir
+    //CopyRecursive "docs/output" tempDocsDir true |> tracefn "%A"
+    //StageAll tempDocsDir
+    //Commit tempDocsDir (sprintf "Update generated documentation for version %s" release.NugetVersion)
+    //Branches.push tempDocsDir
+    runGitCommand ("subtree push --prefix " + docDir + " origin gh-pages") "." |> ignore
 )
 
 Target "Release" DoNothing

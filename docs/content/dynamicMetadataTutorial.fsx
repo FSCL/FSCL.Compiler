@@ -89,7 +89,8 @@ into the corresponding scalar types.
 We want to enable the programmer to decide whether to flatten a kernel parameter or not. 
 Since FSCL kernels can return arrays we should also provide a way to tell the compiler step to flatten returned arrays (if they contain values of some vector type).
 
-####Define dynamic metadata attribute
+###Define dynamic metadata attribute
+
 The first step is to define a custom attribute to statically mark kernel paramters and return type.
 The only important thing to remember is to always give your custom meta a default constructor. 
 In fact, whenever we define a custom parameter metadata (but the same holds for kernel metadata), every possible kernel parameter 
@@ -104,7 +105,7 @@ type DevectorizeAttribute(enable: bool) =
         DevectorizeAttribute(false)
 
 (**
-####Define metadata function
+###Define metadata function
 
 If we want to enable programmers to dynamically provide a value for your meta when a particular instance of the kernel is executed (i.e. inside quotations), 
 we need to define a function that "emulates" the .NET custom attribute in a dynamic context.
@@ -119,7 +120,7 @@ Since the metadata can be associated to both parameters and return values, two d
 This is (unfortunately) required to enable FSCL to distinguish whether a metadata is associated to a parameter or to the return value when the metadata function wraps a subkernel, 
 that is a kernel passed as parameter to another kernel.
 
-####Employing metadata in kernel programming
+###Employing metadata in kernel programming
 
 Once define a custom metadata attribute and a matching metadata function, 
 programmers can mark parameters and return types in kernel definitions as well as actual arguments an return values in kernel calls.

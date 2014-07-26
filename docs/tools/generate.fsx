@@ -15,6 +15,7 @@ let info =
   [ "project-name", "FSCL.Compiler"
     "project-author", "Gabriele Cocco"
     "project-summary", "F# to OpenCL compiler"
+    "project-pages-home", website
     "project-github", githubLink
     "project-nuget", "http://nuget.com/packages/FSCL.Compiler" ]
 

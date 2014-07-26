@@ -39,7 +39,7 @@ In addition, every kernel must be marked with `[<ReflectedDefinition>]` attribut
 
 The FSCL compiler library exposes an object-model that allows to write every possible OpenCL kernel in F#. In particular,
 all the OpenCL built-in math/vector data/geometric functions are available to be used inside kernels, as like as vector data-types (e.g. float4, int3)
-and parameter qualifiers (e.g. __local, __constant). The *Image* subset of OpenCL has not been ported to FSCL yet, but it will be very soon.
+and parameter qualifiers (e.g. \_\_local_, \_\_constant). The *Image* subset of OpenCL has not been ported to FSCL yet, but it will be very soon.
 
 The following example shows some of these features applied to the Sobel filter algorithm optimised for GPU execution.
 In particular, we use vector data-types (`float4`, `uchar4`), we perform vector-types conversions (`ToFloat4()`, `ToUChar4()`) 
@@ -169,7 +169,7 @@ For additional information about them, see [Dynamic Metadata Tutorial](dynamicMe
 While enabling to code "classic" OpenCL kernels in F#, FSCL gives the chance to employ additional .NET/F# programming
 constructs and data-types that are generally not supported in OpenCL.
 
-The most important, especially from the kernel composition (http://nuget.org/FSCL.Runtime) point of view, is the 
+The most important, especially from the [kernel composition](http://nuget.org/FSCL.Runtime) point of view, is the 
 ability for and FSCL kernel to return a value.
 In OpenCL, kernels are forced to return *void*, which is a constrain respected in all the previous examples. 
 Nevertheless, the FSCL compiler is able to transform kernel returning non-void values into legal OpenCL kernels, replacing the returned

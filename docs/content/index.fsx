@@ -11,6 +11,12 @@ FSCL Compiler
 FSCL Compiler is a source-to-source compiler that translates quoted F# function calls and other contructs into valid C99 OpenCL kernel sources, enabling
 programming OpenCL-enabled parallel devices from within F#.
 
+ * [_FSCL Repo_](https://github.com/FSCL/FSCL.Compiler)contribute to FSCL on GitHub
+
+ * [_FSCL Blog_](http://www.gabrielecocco.it/fscl)the FSCL website where tutorials, benchmarks, ideas, updates are continuosly posted
+
+ * [_FSCL on Twitter_](https://twitter.com/FSCLFramework)keep up to date with all the FSCL news
+
 ###How to get FSCL Compiler
 
 <div class="row">
@@ -106,10 +112,9 @@ also want to read [library design notes][readme] to understand how it works.
 The library is available under Apache 2.0 license. For more information see the 
 [License file][license] in the GitHub repository. 
 
-  [website]: https://gabrielecocco.it/fscl
-  [content]: https://github.com/GabrieleCocco/FSCL.Compiler/tree/master/docs/content
-  [gh]: https://github.com/GabrieleCocco/FSCL.Compiler
-  [issues]: https://github.com/GabrieleCocco/FSCL.Compiler/issues
-  [readme]: https://github.com/GabrieleCocco/FSCL.Compiler/blob/master/README.md
-  [license]: https://github.com/GabrieleCocco/FSCL.Compiler/blob/master/LICENSE.txt
+  [content]: https://github.com/FSCL/FSCL.Compiler/tree/master/docs/content
+  [gh]: https://github.com/FSCL/FSCL.Compiler
+  [issues]: https://github.com/FSCL/FSCL.Compiler/issues
+  [readme]: https://github.com/FSCL/FSCL.Compiler/blob/master/README.md
+  [license]: https://github.com/FSCL/FSCL.Compiler/blob/master/LICENSE.txt
 *)
