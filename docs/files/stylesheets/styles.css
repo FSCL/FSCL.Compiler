@@ -135,6 +135,11 @@ header p {
 header .header-container {
 	padding: 50px;
 }
+header h1 a {
+	font-weight: bold;
+	color: #fff;
+}
+
 
 
 table.git-links {
