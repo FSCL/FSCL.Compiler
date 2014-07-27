@@ -182,11 +182,13 @@ Target "ReleaseDocs" (fun _ ->
     Branches.pushBranch "." "origin" "gh-pages"
 
     cd projDir
+    rm_rf tempDocsDir
 )
 
 Target "ReleaseDocsUnsafe" (fun _ ->
     let projDir = pwd()
     let tempDocsDir = "../temp_" + project
+    rm_rf tempDocsDir
     mkdir tempDocsDir
 
     Repository.cloneSingleBranch "" (gitHome + "/" + gitName + ".git") "gh-pages" tempDocsDir
@@ -197,7 +199,7 @@ Target "ReleaseDocsUnsafe" (fun _ ->
     Commit tempDocsDir (sprintf "Update generated documentation for version %s" release.NugetVersion)
     Branches.pushBranch tempDocsDir "origin" "gh-pages"
 
-    cd projDir
+    rm_rf tempDocsDir
 
     //runGitCommand ("subtree push --prefix " + docDir + " origin gh-pages") "." |> ignore
 )
