@@ -14,7 +14,7 @@ type StructTypeHandler() =
     override this.Print(t:Type) =
         let arrayStar = if t.IsArray then "*" else ""
         let plainType = if t.IsArray then t.GetElementType() else t
-        "(struct " + plainType.Name + ")" + arrayStar
+        "struct " + plainType.Name + "" + arrayStar
 
     override this.ManagedGenericInstances
         with get() = 

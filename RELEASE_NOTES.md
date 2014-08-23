@@ -1,3 +1,6 @@
+### 1.3.3 - 23 August 2014
+* Fixed bug in struct type codegen
+
 ### 1.3.2 - 23 August 2014
 * Fixed bug and extended support for structs and records. Now you can use both custom F# records and structs (and arrays of records and structs) as parameters of kernels and functions. Also, you can declare private/local structs and records using record initialisation construct, struct parameterless constructor and "special" struct constructor (a constructor taking N arguments, each of one matching one of the N fields, in the order).
 - Valid record decl: let myRec = { field1 = val1; ... fieldN = valN }
