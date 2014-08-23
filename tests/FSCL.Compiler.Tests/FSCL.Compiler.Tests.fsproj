@@ -60,6 +60,7 @@
   <ItemGroup>
     <Compile Include="ConfigurationTests.fs" />
     <Compile Include="KernelCompilationTests.fs" />
+    <Compile Include="DataTypeTests.fs" />
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>

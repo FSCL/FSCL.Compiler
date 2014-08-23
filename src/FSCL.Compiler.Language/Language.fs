@@ -1762,8 +1762,9 @@ component of x equals mantissa returned * 2exp *)
         ///</summary>
         ///<returns>The number workspace dimensions</returns>
         ///
-        member this.WorkDim() =
-            global_size.Rank
+        abstract member WorkDim: unit -> int
+        default this.WorkDim() =
+            global_size.Length
             
         abstract member Barrier: MemFenceMode -> unit
         default this.Barrier(fenceMode:MemFenceMode) =

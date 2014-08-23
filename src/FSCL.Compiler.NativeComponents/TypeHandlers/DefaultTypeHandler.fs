@@ -5,12 +5,13 @@ open FSCL.Compiler
 open Microsoft.FSharp.Quotations
 open System.Collections.Generic
 open System.Reflection
+open FSCL.Language
 
 [<TypeHandler("FSCL_DEFAULT_TYPE_HANDLER")>]
 type DefaultTypeHandler() =       
     inherit TypeHandler() with
 
-    let (managedScalarTypes:Type list) = [ typeof<unit>; typeof<System.Void>; typeof<uint32>; typeof<uint64>; typeof<int64>; typeof<int>; typeof<float32>; typeof<float> ]   
+    let (managedScalarTypes:Type list) = [ typeof<unit>; typeof<System.Void>; typeof<uint32>; typeof<uint64>; typeof<int64>; typeof<int>; typeof<float32>; typeof<float>; typeof<char>; typeof<uchar> ]   
     
     override this.Print(t:Type) =
         let arrayStar = if t.IsArray then "*" else ""
@@ -29,6 +30,10 @@ type DefaultTypeHandler() =
             "float" + arrayStar 
         elif (plainType = typeof<float>) then
             "float" + arrayStar 
+        elif (plainType = typeof<char>) then
+            "char" + arrayStar 
+        elif (plainType = typeof<uchar>) then
+            "uchar" + arrayStar 
         elif (plainType = typeof<unit>) then
             "void" + arrayStar 
         elif (plainType = typeof<System.Void>) then

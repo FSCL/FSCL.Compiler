@@ -139,6 +139,11 @@ header h1 a {
 	font-weight: bold;
 	color: #fff;
 }
+header h1 a:hover {
+	color: #fff;
+	opacity: 0.75;
+}
+
 
 
 
