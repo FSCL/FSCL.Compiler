@@ -26,13 +26,14 @@ type ModuleCodegen() =
 
     override this.Run((km, currOut), en, opts) =
         let engine = en :?> ModuleCodegenStep
-        let directives = String.concat "\n\n" (km.Directives)        
+        let directives = String.concat "\n" (km.Directives)        
         let mutable defines = ""
         for d in km.StaticConstantDefinesCode do
             defines <- defines + "\n" + PrintDefine(d.Key, d.Value, engine)
 
         let structs = km.GlobalTypes
         let pstructs = String.concat "\n" (Seq.map (fun (s: Type) -> PrintStructDefinition(s, engine)) structs)
-        let functions = String.concat "\n\n" (Seq.map (fun (f: KeyValuePair<FunctionInfoID, IFunctionInfo>) -> f.Value.Code) (km.Functions))
+        let functionDecls = String.concat "\n" (Seq.map (fun (f: KeyValuePair<FunctionInfoID, IFunctionInfo>) -> f.Value.SignatureCode + ";") (km.Functions))
+        let functionDefs = String.concat "\n" (Seq.map (fun (f: KeyValuePair<FunctionInfoID, IFunctionInfo>) -> f.Value.Code) (km.Functions))
         let kernels = km.Kernel.Code
-        String.concat "\n\n" [directives; defines; pstructs; functions; kernels]
+        String.concat "\n" [directives; defines; pstructs; functionDecls; functionDefs; kernels]

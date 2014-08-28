@@ -6,6 +6,7 @@ open System.IO
 open FSCL.Compiler
 open FSCL.Language
 open Microsoft.FSharp.Linq.RuntimeHelpers
+open System.Runtime.InteropServices
 
 type MyStruct =
     struct
@@ -14,6 +15,7 @@ type MyStruct =
         new(a: int, b: int) = { x = a; y = b }
     end
     
+[<StructLayout(LayoutKind.Sequential)>]
 type MyRecord = {
     x: int;
     y: int
@@ -69,8 +71,6 @@ let ``Can compile char vector add`` () =
     let wInfo = LeafExpressionConverter.EvaluateQuotation(result.Kernel.WorkSize.Value)
     // Work item info should be stored
     Assert.AreEqual(size, wInfo)
-    // Work item info parameter should be lifted
-    Assert.AreEqual(3, result.Kernel.OriginalParameters.Count)
     
 [<Test>]
 let ``Can compile uchar vector add`` () =
@@ -83,8 +83,6 @@ let ``Can compile uchar vector add`` () =
     let wInfo = LeafExpressionConverter.EvaluateQuotation(result.Kernel.WorkSize.Value)
     // Work item info should be stored
     Assert.AreEqual(size, wInfo)
-    // Work item info parameter should be lifted
-    Assert.AreEqual(3, result.Kernel.OriginalParameters.Count)
     
 [<Test>]
 let ``Can compile custom struct vector add`` () =
@@ -97,8 +95,6 @@ let ``Can compile custom struct vector add`` () =
     let wInfo = LeafExpressionConverter.EvaluateQuotation(result.Kernel.WorkSize.Value)
     // Work item info should be stored
     Assert.AreEqual(size, wInfo)
-    // Work item info parameter should be lifted
-    Assert.AreEqual(3, result.Kernel.OriginalParameters.Count)
     // A struct type should be added to the global types
     Assert.AreNotEqual(None, result.GlobalTypes |> List.tryFind(fun t -> t = typeof<MyStruct>))
         
@@ -113,8 +109,6 @@ let ``Can compile custom struct with custom constructor vector add`` () =
     let wInfo = LeafExpressionConverter.EvaluateQuotation(result.Kernel.WorkSize.Value)
     // Work item info should be stored
     Assert.AreEqual(size, wInfo)
-    // Work item info parameter should be lifted
-    Assert.AreEqual(3, result.Kernel.OriginalParameters.Count)
     // A struct type should be added to the global types
     Assert.AreNotEqual(None, result.GlobalTypes |> List.tryFind(fun t -> t = typeof<MyStruct>))
     
@@ -129,8 +123,6 @@ let ``Can compile custom record vector add`` () =
     let wInfo = LeafExpressionConverter.EvaluateQuotation(result.Kernel.WorkSize.Value)
     // Work item info should be stored
     Assert.AreEqual(size, wInfo)
-    // Work item info parameter should be lifted
-    Assert.AreEqual(3, result.Kernel.OriginalParameters.Count)
     // A struct type should be added to the global types
     Assert.AreNotEqual(None, result.GlobalTypes |> List.tryFind(fun t -> t = typeof<MyRecord>))
     

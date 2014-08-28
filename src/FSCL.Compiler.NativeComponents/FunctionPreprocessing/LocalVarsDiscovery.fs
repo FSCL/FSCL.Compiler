@@ -13,9 +13,9 @@ open System.Runtime.InteropServices
 [<StepProcessor("FSCL_LOCAL_VARS_DISCOVERY_PREPROCESSING_PROCESSOR", 
                 "FSCL_FUNCTION_PREPROCESSING_STEP",
                 Dependencies=[| "FSCL_ARGS_PREP_LIFTING_PREPROCESSING_PROCESSOR" |])>]
+    
 type LocalVarsDictionaryProcessor() =
     inherit FunctionPreprocessingProcessor()
-    
     member private this.AddDynamicArrayParameter(step: FunctionPreprocessingStep, kernel:FunctionInfo, var:Var, allocationArgs:Expr array) =
         if (var.IsMutable) then
             raise (new CompilerException("A kernel dynamic array must be immutable"))

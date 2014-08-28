@@ -68,7 +68,7 @@
     <Compile Include="ModulePreprocessing\StructDiscover.fs" />
     <Compile Include="ModuleCodegen\ModuleCodegenStep.fs" />
     <Compile Include="ModuleCodegen\ModuleCodegen.fs" />
-    <Compile Include="FunctionCodegen\FunctionCodegen.fs" />
+    <Compile Include="FunctionCodegen\FunctionCodegenStep.fs" />
     <Compile Include="FunctionCodegen\ArithmeticOperationCodegen.fs" />
     <Compile Include="FunctionCodegen\ArrayAccessCodegen.fs" />
     <Compile Include="FunctionCodegen\CallCodegen.fs" />
@@ -90,12 +90,13 @@
     <Compile Include="FunctionCodegen\WhileLoopCodegen.fs" />
     <Compile Include="FunctionPreprocessing\FunctionPreprocessingStep.fs" />
     <Compile Include="FunctionPreprocessing\ArgsPreparationLifting.fs" />
+    <Compile Include="FunctionPreprocessing\LocalVarsDiscovery.fs" />
+    <Compile Include="FunctionPreprocessing\KernelReturnVarDiscoveryProcessor.fs" />
+    <Compile Include="FunctionPreprocessing\DynamicArrayToParameter.fs" />
+    <Compile Include="FunctionPreprocessing\RefTypeToArrayReplacing.fs" />
     <Compile Include="FunctionPreprocessing\ArrayLenghtArgumentsGenerator.fs" />
     <Compile Include="FunctionPreprocessing\DynamicArrayArgumentsParamRefLifting.fs" />
-    <Compile Include="FunctionPreprocessing\DynamicArrayToParameter.fs" />
-    <Compile Include="FunctionPreprocessing\KernelReturnVarDiscoveryProcessor.fs" />
-    <Compile Include="FunctionPreprocessing\LocalVarsDiscovery.fs" />
-    <Compile Include="FunctionPreprocessing\RefTypeToArrayReplacing.fs" />
+    <Compile Include="FunctionPreprocessing\FunctionCallSignatureFix.fs" />
     <Compile Include="FunctionTransformation\FunctionTransformationStep.fs" />
     <Compile Include="FunctionTransformation\ArrayAccessFlattening.fs" />
     <Compile Include="FunctionTransformation\ConditionalAssignmentNormalization.fs" />

@@ -13,7 +13,7 @@ open System
 type FunctionReferenceDiscover() =      
     inherit ModulePreprocessingProcessor()
 
-    let DiscoverFunctionRef(k:KernelInfo) =
+    let DiscoverFunctionRef(k:FunctionInfo) =
         let foundFunctions = Dictionary<MethodInfo, FunctionInfo>()
 
         let rec DiscoverFunctionRefInner(expr) =
@@ -59,8 +59,25 @@ type FunctionReferenceDiscover() =
 
     override this.Run(m, en, opts) =
         let engine = en :?> ModulePreprocessingStep
-        let found = DiscoverFunctionRef(m.Kernel)
-        for item in found do
-            if not (m.Functions.ContainsKey(item.Value.ID)) then
+        // Discover functions referenced from kernel
+        let mutable functionsToAnalyse = DiscoverFunctionRef(m.Kernel)
+        let mutable newFunctionsFound = new Dictionary<MethodInfo, FunctionInfo>()
+
+        let mutable foundSomethingNew = true
+        while foundSomethingNew do
+            foundSomethingNew <- false
+            // Discover functions referenced from other functions (prepending)
+            for item in functionsToAnalyse do
+                let found = DiscoverFunctionRef(item.Value)
+                for it in found do
+                    if not (functionsToAnalyse.ContainsKey(it.Key)) && not (newFunctionsFound.ContainsKey(it.Key)) then
+                        newFunctionsFound.Add(it.Key, it.Value)
+                        foundSomethingNew <- true
+            for item in functionsToAnalyse do
                 m.Functions.Add(item.Value.ID, item.Value)
+            functionsToAnalyse <- newFunctionsFound
+            newFunctionsFound <- new Dictionary<MethodInfo, FunctionInfo>()
+
+
+
             

@@ -29,6 +29,7 @@ type IFunctionInfo =
     abstract OriginalBody: Expr with get
 
     abstract member Code: string with get
+    abstract member SignatureCode: string with get
     
     abstract IsLambda: bool with get
     abstract CustomInfo: IReadOnlyDictionary<string, obj> with get
@@ -86,6 +87,9 @@ type FunctionInfo(parsedSignature: MethodInfo,
         member this.ReturnType
             with get() =
                 this.ReturnType
+        member this.SignatureCode
+            with get() =
+                this.SignatureCode
         member this.Body
             with get() =
                 this.Body
@@ -170,7 +174,13 @@ type FunctionInfo(parsedSignature: MethodInfo,
     /// The generated target code
     ///</summary>
     ///
-    member val Code = "" with get, set      
+    member val Code = "" with get, set   
+    ///
+    ///<summary>
+    /// The generated target code for the signature
+    ///</summary>
+    ///
+    member val SignatureCode = "" with get, set   
     ///
     ///<summary>
     /// Whether this function has been generated from a lambda

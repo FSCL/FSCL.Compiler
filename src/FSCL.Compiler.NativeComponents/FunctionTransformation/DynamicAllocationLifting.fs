@@ -19,9 +19,10 @@ type DynamicllocationLiftingProcessor() =
         | Patterns.Let(var, value, body) ->
             match value with
             | Patterns.Call(o, methodInfo, args) ->               
-                if (methodInfo.DeclaringType.Name = "ArrayModule" && methodInfo.Name = "ZeroCreate") ||
+                if methodInfo.DeclaringType <> null &&
+                   ((methodInfo.DeclaringType.Name = "ArrayModule" && methodInfo.Name = "ZeroCreate") ||
                     (methodInfo.DeclaringType.Name = "Array2DModule" && methodInfo.Name = "ZeroCreate") ||
-                    (methodInfo.DeclaringType.Name = "Array3DModule" && methodInfo.Name = "ZeroCreate") then
+                    (methodInfo.DeclaringType.Name = "Array3DModule" && methodInfo.Name = "ZeroCreate")) then
                     (*if engine.FunctionInfo.CustomInfo.ContainsKey("RETURN_TYPE") then
                         let returnedVars = engine.FunctionInfo.CustomInfo.["RETURN_TYPE"] :?> (Var * Expr list) list                        
                         if (List.tryFind(fun (v:Var, args:Expr list) -> v = var) returnedVars).IsSome then*)

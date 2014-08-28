@@ -19,13 +19,13 @@ type DeclarationCodegen() =
                                    args: Expr list, 
                                    isLocal: bool) =
         let prefix = if isLocal then "local " else ""
-        if (methodInfo.DeclaringType.Name = "ArrayModule" && methodInfo.Name = "ZeroCreate") then
+        if (methodInfo.DeclaringType <> null && methodInfo.DeclaringType.Name = "ArrayModule" && methodInfo.Name = "ZeroCreate") then
             let mutable code = prefix + engine.TypeManager.Print(v.Type.GetElementType()) + " " + v.Name + "[" + engine.Continue(args.[0]) + "];\n"
             Some(code)
-        else if (methodInfo.DeclaringType.Name = "Array2DModule" && methodInfo.Name = "ZeroCreate") then
+        else if (methodInfo.DeclaringType <> null && methodInfo.DeclaringType.Name = "Array2DModule" && methodInfo.Name = "ZeroCreate") then
             let mutable code = prefix + engine.TypeManager.Print(v.Type.GetElementType()) + " " + v.Name + "[" + engine.Continue(args.[0]) + "][" + engine.Continue(args.[1]) + "];\n"
             Some(code)
-        else if (methodInfo.DeclaringType.Name = "Array3DModule" && methodInfo.Name = "ZeroCreate") then
+        else if (methodInfo.DeclaringType <> null && methodInfo.DeclaringType.Name = "Array3DModule" && methodInfo.Name = "ZeroCreate") then
             let mutable code = prefix + engine.TypeManager.Print(v.Type.GetElementType()) + " " + v.Name + "[" + engine.Continue(args.[0]) + "][" + engine.Continue(args.[1]) + "][" + engine.Continue(args.[2]) + "];\n"
             Some(code)
         else

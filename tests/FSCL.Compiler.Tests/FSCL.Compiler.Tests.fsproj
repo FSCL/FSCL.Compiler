@@ -61,6 +61,7 @@
     <Compile Include="ConfigurationTests.fs" />
     <Compile Include="KernelCompilationTests.fs" />
     <Compile Include="DataTypeTests.fs" />
+    <Compile Include="AcceleratedCollectionTest.fs" />
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>

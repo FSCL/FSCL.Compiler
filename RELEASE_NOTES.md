@@ -1,3 +1,9 @@
+### 1.3.4 - 28 August 2014
+* Enabled utility functions chain calls of arbitrary length (utility functions can call other utility functions)
+* Enabled passing arrays to utility functions
+* Inserted kernel/function declaration before definition
+* Added some tests
+
 ### 1.3.3 - 23 August 2014
 * Fixed bug in struct type codegen
 
