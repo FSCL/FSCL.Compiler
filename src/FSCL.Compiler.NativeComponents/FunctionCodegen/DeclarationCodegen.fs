@@ -1,5 +1,6 @@
 ﻿namespace FSCL.Compiler.FunctionCodegen
 
+open FSCL
 open FSCL.Compiler
 open FSCL.Language
 open System.Collections.Generic
@@ -32,37 +33,41 @@ type DeclarationCodegen() =
             None
 
     member private this.TryPrintStructOrRecordDecl(v: Var, value: Expr, body: Expr, step: FunctionCodegenStep) =
-        match value with
-        // Default struct init
-        | Patterns.DefaultValue(t) ->
-            if t.IsStruct() then
-                Some(step.TypeManager.Print(v.Type) + " " + v.Name + ";\n" + step.Continue(body))
-            else
-                None            
-        // Non-Default struct init
-        | Patterns.NewObject(constr, args) ->
-            if v.Type.IsStruct() then
+        // Check this is not a vector type (it's handled differently)
+        if v.Type.GetCustomAttribute<VectorTypeAttribute>() = null then
+            match value with
+            // Default struct init
+            | Patterns.DefaultValue(t) ->
+                if t.IsStruct() then
+                    Some(step.TypeManager.Print(v.Type) + " " + v.Name + ";\n" + step.Continue(body))
+                else
+                    None            
+            // Non-Default struct init
+            | Patterns.NewObject(constr, args) ->
+                if v.Type.IsStruct() then
+                    let mutable gencode = step.TypeManager.Print(v.Type) + " " + v.Name + " = { ";
+                    // Gen fields init
+                    let fields = v.Type.GetFields()
+                    for i = 0 to fields.Length - 1 do
+                        gencode <- gencode + "." + fields.[i].Name + " = " + step.Continue(args.[i])
+                        if i < fields.Length - 1 then
+                            gencode <- gencode + ", "
+                    Some(gencode + " };\n" + step.Continue(body))                   
+                else
+                    None
+            // Record init
+            | Patterns.NewRecord(t, args) ->
                 let mutable gencode = step.TypeManager.Print(v.Type) + " " + v.Name + " = { ";
                 // Gen fields init
-                let fields = v.Type.GetFields()
+                let fields = FSharpType.GetRecordFields(t)
                 for i = 0 to fields.Length - 1 do
                     gencode <- gencode + "." + fields.[i].Name + " = " + step.Continue(args.[i])
                     if i < fields.Length - 1 then
                         gencode <- gencode + ", "
-                Some(gencode + " };\n" + step.Continue(body))                   
-            else
+                Some(gencode + " };\n" + step.Continue(body))  
+            | _ ->
                 None
-        // Record init
-        | Patterns.NewRecord(t, args) ->
-            let mutable gencode = step.TypeManager.Print(v.Type) + " " + v.Name + " = { ";
-            // Gen fields init
-            let fields = FSharpType.GetRecordFields(t)
-            for i = 0 to fields.Length - 1 do
-                gencode <- gencode + "." + fields.[i].Name + " = " + step.Continue(args.[i])
-                if i < fields.Length - 1 then
-                    gencode <- gencode + ", "
-            Some(gencode + " };\n" + step.Continue(body))  
-        | _ ->
+        else
             None
 
     override this.Run(expr, s, opts) =

@@ -1,3 +1,12 @@
+### 1.3.7 - 7 September 2014
+* Added inline attribute for utility functions. Lambdas are inlined by default
+
+### 1.3.6 - 28 August 2014
+* Fixed reduce code generation to handle records and structs
+
+### 1.3.5 - 28 August 2014
+* Fixed conflict between new struct creation construct (NewObject()) and vectorised data-types
+
 ### 1.3.4 - 28 August 2014
 * Enabled utility functions chain calls of arbitrary length (utility functions can call other utility functions)
 * Enabled passing arrays to utility functions

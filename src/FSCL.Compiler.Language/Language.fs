@@ -208,6 +208,16 @@ module Language =
             MinReduceArrayLengthAttribute(1L)   
         override this.ToString() =
             this.Length.ToString()
+            
+        
+    ///
+    ///<summary>
+    ///The attribute to specify to inline a function
+    ///</summary>
+    ///
+    [<AllowNullLiteral>]
+    type InlineAttribute() =
+        inherit KernelMetadataAttribute()  
 
     // Functions matching attributes for dynamic marking of parameters
     [<ParameterMetadataFunction(typeof<AddressSpaceAttribute>)>]
@@ -250,7 +260,7 @@ module Language =
     [<ReturnMetadataFunction(typeof<BufferWriteModeAttribute>)>]
     let RETURN_BUFFER_WRITE_MODE(m: BufferWriteMode, a) = 
         a     
-            
+           
     // Dynamic (passed when compiling OpenCL kernel code) define
     type DynamicConstantDefineAttribute() =
         inherit Attribute()

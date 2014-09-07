@@ -56,8 +56,8 @@ let sumElementsArrays(a: float32[], b:float32[], wi:WorkItemInfo) =
 let setElement(c: float32[], value: float32, index: int) =    
     c.[index] <- value
     
-[<ReflectedDefinition>]
-let sumElementsNested(a: float32[], b:float32[], gid: int) =    
+[<ReflectedDefinition>][<Inline>]
+let inline sumElementsNested(a: float32[], b:float32[], gid: int) =    
     sumElements(a.[gid], b.[gid])
 
 [<ReflectedDefinition>]
@@ -144,7 +144,7 @@ let ``Can compile kernel with utility functions`` () =
     Assert.AreEqual(4, split.Length)
     
 [<Test>]
-let ``Can compile kernel with nested utility functions`` () =
+let ``Can compile kernel with inline and nested utility functions`` () =
     let compiler = new Compiler()
     let a = Array.create 64 1.0f
     let b = Array.create 64 1.0f
@@ -161,9 +161,10 @@ let ``Can compile kernel with nested utility functions`` () =
     for f in result.Functions do
         if (f.Value.ParsedSignature.Name = "sumElementsNested") then
             Assert.AreEqual(5, f.Value.Parameters.Count)
+            Assert.IsTrue(f.Value.Code.StartsWith("inline "))
         else
             Assert.AreEqual(2, f.Value.Parameters.Count)
-    
+            
 [<Test>]
 let ``Can compile kernel returning a parameter`` () =
     let compiler = new Compiler()

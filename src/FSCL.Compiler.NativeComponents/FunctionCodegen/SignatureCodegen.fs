@@ -22,7 +22,7 @@ type AddressSpaceMetadataComparer() =
                 sp1.AddressSpace = sp2.AddressSpace
        | _ ->
             true
-
+            
 [<StepProcessor("FSCL_SIGNATURE_CODEGEN_PROCESSOR", "FSCL_FUNCTION_CODEGEN_STEP")>]
 [<UseMetadata(typeof<AddressSpaceAttribute>, typeof<AddressSpaceMetadataComparer>)>] 
 ///
@@ -78,11 +78,16 @@ type SignatureCodegen() =
             signature
         else
             let kernelInfo = engine.FunctionInfo
-
+            // Check if inline
+            let inlinePrefix =
+                if engine.FunctionInfo.IsLambda || engine.FunctionInfo.ParsedSignature.GetCustomAttribute(typeof<InlineAttribute>) <> null then
+                    "inline "
+                else
+                    ""
+            // Print signature    
             let paramsPrint = List.map(fun (p:FunctionParameter) ->
                 engine.TypeManager.Print(p.DataType) + " " + p.Name) parameters
-            
-            let signature = Some(engine.TypeManager.Print(kernelInfo.ReturnType) + " " + name + "(" + (String.concat ", " paramsPrint) + ")")
+            let signature = Some(inlinePrefix + engine.TypeManager.Print(kernelInfo.ReturnType) + " " + name + "(" + (String.concat ", " paramsPrint) + ")")
             signature
 
            

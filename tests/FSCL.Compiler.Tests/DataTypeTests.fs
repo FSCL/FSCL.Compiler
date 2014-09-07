@@ -3,6 +3,7 @@
 open NUnit
 open NUnit.Framework
 open System.IO
+open FSCL
 open FSCL.Compiler
 open FSCL.Language
 open Microsoft.FSharp.Linq.RuntimeHelpers
@@ -33,6 +34,12 @@ let VectorAddUchar(a: uchar[], b:uchar[], c:uchar[], wi:WorkItemInfo) =
     let gid = wi.GlobalID(0)
     c.[gid] <- a.[gid] + b.[gid]
     
+// Simple vector addition int4
+[<ReflectedDefinition>]
+let VectorAddInt4(a: int4[], b:int4[], c:int4[], wi:WorkItemInfo) =
+    let gid = wi.GlobalID(0)
+    c.[gid] <- a.[gid] + b.[gid]
+
 // Simple vector addition with struct
 [<ReflectedDefinition>]
 let VectorAddStruct(a: MyStruct[], b:MyStruct[], c:MyStruct[], wi:WorkItemInfo) =
@@ -84,6 +91,20 @@ let ``Can compile uchar vector add`` () =
     // Work item info should be stored
     Assert.AreEqual(size, wInfo)
     
+[<Test>]
+let ``Can compile int4 vector add`` () =
+    let compiler = new Compiler()
+    let a = Array.create 64 (int4(1))
+    let b = Array.create 64 (int4(2))
+    let c = Array.zeroCreate<int4> 64
+    let size = new WorkSize(64L, 64L)
+    let result = compiler.Compile(<@ VectorAddInt4(a, b, c, size) @>) :?> IKernelModule
+    let wInfo = LeafExpressionConverter.EvaluateQuotation(result.Kernel.WorkSize.Value)
+    // Work item info should be stored
+    Assert.AreEqual(size, wInfo)
+    // A struct type Int4 should NOT be added to the global types
+    Assert.AreEqual(None, result.GlobalTypes |> List.tryFind(fun t -> t = typeof<int4>))
+
 [<Test>]
 let ``Can compile custom struct vector add`` () =
     let compiler = new Compiler()

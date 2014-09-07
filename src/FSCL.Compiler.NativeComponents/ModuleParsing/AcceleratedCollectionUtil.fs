@@ -17,6 +17,23 @@ module AcceleratedCollectionUtil =
     let GenKernelName (prefix: string, parameterTypes: Type list, utilityFunction: string) =
         String.concat "_" ([prefix] @ (List.map (fun (t:Type) -> t.Name.Replace(".", "")) parameterTypes) @ [utilityFunction])
     
+    let GetDefaultValueExpr(t:Type) =
+        if t.IsPrimitive then
+            // Primitive type
+            Expr.Value(Activator.CreateInstance(t), t)
+        else if FSharpType.IsRecord(t) then
+            // Record
+            Expr.DefaultValue(t)
+        else 
+            if t.GetCustomAttribute<FSCL.VectorTypeAttribute>() <> null then
+                // Vector type
+                Expr.DefaultValue(t) 
+            else if (t.IsValueType && (not t.IsPrimitive) && (not t.IsEnum) && (t <> typeof<unit>) && (t <> typeof<System.Void>)) then   
+                // Struct
+                Expr.DefaultValue(t)
+            else
+                failwith ("Cannot create a default init expr for type " + t.ToString())
+                  
     let ToTupledFunction(f: Expr) = 
         let rec convertToTupledInternal(tupledVar: Var, tupledIndex: int, e: Expr) =
             match e with

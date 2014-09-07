@@ -76,8 +76,7 @@ type AcceleratedArrayReduceHandler() =
                 Expr.Call(m, List.map(fun (e:Expr) -> SubstitutePlaceholders(e, parameters, accumulatorPlaceholder, actualFunction)) args)  
             
         match e with
-        | Patterns.Var(v) ->       
-            // Substitute parameter with the new one (of the correct type)
+        | Patterns.Var(v) ->
             if v.Name = "accumulator" then
                 Expr.Var(accumulatorPlaceholder)
             else if parameters.ContainsKey(v) then
@@ -133,7 +132,9 @@ type AcceleratedArrayReduceHandler() =
                 RebuildCall(o, m, List.map(fun (e:Expr) -> SubstitutePlaceholders(e, parameters, accumulatorPlaceholder, actualFunction)) args)
         | Patterns.Let(v, value, body) ->
             if v.Name = "accumulator" then
-                Expr.Let(accumulatorPlaceholder, Expr.Coerce(SubstitutePlaceholders(value, parameters, accumulatorPlaceholder, actualFunction), accumulatorPlaceholder.Type), SubstitutePlaceholders(body, parameters, accumulatorPlaceholder, actualFunction))
+                Expr.Let(accumulatorPlaceholder,   
+                         AcceleratedCollectionUtil.GetDefaultValueExpr(accumulatorPlaceholder.Type),
+                         SubstitutePlaceholders(body, parameters, accumulatorPlaceholder, actualFunction))
             // a and b are "special" vars that hold the params of the reduce function
             else if v.Name = "a" then
                 let newVarType = 

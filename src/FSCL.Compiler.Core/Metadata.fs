@@ -154,6 +154,7 @@ type MetadataComparer() =
         meta1 = meta2
 
 [<AllowNullLiteral>]
+[<AttributeUsage(AttributeTargets.Class, Inherited = false, AllowMultiple = true)>]
 type UseMetadataAttribute(meta: Type, comparer: Type) =
     inherit Attribute()
     

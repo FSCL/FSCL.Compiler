@@ -2,6 +2,20 @@
 // See the 'F# Tutorial' project for more help.
 open FSCL.Compiler
 open FSCL.Language
+open System.Runtime.InteropServices
+open System.Runtime.CompilerServices
+type MyStruct =
+    struct
+        val mutable x: int
+        val mutable y: int
+        new(a: int, b: int) = { x = a; y = b }
+    end
+    
+[<StructLayout(LayoutKind.Sequential)>]
+type MyRecord = {
+    x: int;
+    y: int
+}
 
 // Vector addition with utility function    
 [<ReflectedDefinition>]
@@ -17,8 +31,8 @@ let sumElementsArrays(a: float32[], b:float32[], wi:WorkItemInfo) =
 let setElement(c: float32[], value: float32, index: int) =    
     c.[index] <- value
     
-[<ReflectedDefinition>]
-let sumElementsNested(a: float32[], b:float32[], gid: int) =    
+[<ReflectedDefinition>] 
+let inline sumElementsNested(a: float32[], b:float32[], gid: int) =    
     sumElements(a.[gid], b.[gid])
 
 [<ReflectedDefinition>]
@@ -50,5 +64,11 @@ let main argv =
     let a = Array.create 64 1.0f
     let b = Array.create 64 1.0f
     let result = compiler.Compile(<@ Array.reduce (fun e1 e2 -> e1 + e2) a @>) :?> IKernelModule
-
+    
+    let a = Array.create 64 ({ x = 1; y = 1 })
+    let c = Array.zeroCreate<MyRecord> 64
+    let size = new WorkSize(64L, 64L)
+    let result = compiler.Compile(<@ Array.reduce (fun e1 e2 -> 
+                                                        let ret = { x = e1.x + e2.x; y = e1.y + e2.y }
+                                                        ret) a @>) :?> IKernelModule
     0 // return an integer exit code

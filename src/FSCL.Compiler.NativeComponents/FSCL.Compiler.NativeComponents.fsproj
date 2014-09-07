@@ -53,8 +53,8 @@
     <Compile Include="ModuleParsing\AcceleratedCollectionHandler.fs" />
     <Compile Include="ModuleParsing\AcceleratedCollectionUtil.fs" />
     <Compile Include="ModuleParsing\AcceleratedArrayMetaFiltering.fs" />
-    <Compile Include="ModuleParsing\AcceleratedArrayMap2Handler.fs" />
     <Compile Include="ModuleParsing\AcceleratedArrayMapHandler.fs" />
+    <Compile Include="ModuleParsing\AcceleratedArrayMap2Handler.fs" />
     <Compile Include="ModuleParsing\AcceleratedArrayReduceHandler.fs" />
     <Compile Include="ModuleParsing\AcceleratedArrayReverseHandler.fs" />
     <Compile Include="ModuleParsing\AcceleratedArrayParser.fs" />
