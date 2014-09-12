@@ -1,3 +1,6 @@
+### 1.3.8 - 11 September 2014
+* Fixed flattening of multi-dimensional arrays
+
 ### 1.3.7 - 7 September 2014
 * Added inline attribute for utility functions. Lambdas are inlined by default
 

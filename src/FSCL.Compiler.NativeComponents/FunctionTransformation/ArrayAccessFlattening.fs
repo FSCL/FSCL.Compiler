@@ -107,7 +107,7 @@ type ArrayAccessTransformation() =
                             //UpdateArrayAccessMode(v.Name, AccessAnalysisResult.ReadAccess, engine)
                             // Recursively process the arguments, except the array reference                   
                             let processedArgs = args |> List.tail |> List.map (fun (a:Expr) -> engine.Continue(a))
-                            let accessIndex = <@@ ((%%(processedArgs.[0]):int) * (%%(sizePlaceHolders.[0]):int) * (%%(sizePlaceHolders.[1]):int)) + (%%(sizePlaceHolders.[0]):int) * (%%(processedArgs.[1]):int) + (%%(processedArgs.[2]):int) @@>
+                            let accessIndex = <@@ ((%%(processedArgs.[0]):int) * (%%(sizePlaceHolders.[1]):int) * (%%(sizePlaceHolders.[2]):int)) + (%%(sizePlaceHolders.[2]):int) * (%%(processedArgs.[1]):int) + (%%(processedArgs.[2]):int) @@>
                             // Create a new call for the flattened array
                             let (get,set) = GetArrayAccessMethodInfo(v.Type.GetElementType())
                             Expr.Call(get, [Expr.Var(placeholder); accessIndex])
@@ -142,7 +142,7 @@ type ArrayAccessTransformation() =
                             //UpdateArrayAccessMode(v.Name, AccessAnalysisResult.WriteAccess, engine)
                             // Recursively process the arguments, except the array reference
                             let processedArgs = args |> List.tail |> List.map (fun (a:Expr) -> engine.Continue(a))
-                            let accessIndex = <@@ ((%%(processedArgs.[0]):int) * (%%(sizePlaceHolders.[0]):int) * (%%(sizePlaceHolders.[1]):int)) + (%%(sizePlaceHolders.[0]):int) * (%%(processedArgs.[1]):int) + (%%(processedArgs.[2]):int) @@>
+                            let accessIndex = <@@ ((%%(processedArgs.[0]):int) * (%%(sizePlaceHolders.[1]):int) * (%%(sizePlaceHolders.[2]):int)) + (%%(sizePlaceHolders.[2]):int) * (%%(processedArgs.[1]):int) + (%%(processedArgs.[2]):int) @@>
                             // Create a new call for the flattened array
                             let (get,set) = GetArrayAccessMethodInfo(v.Type.GetElementType())
                             Expr.Call(set, [Expr.Var(placeholder); accessIndex; processedArgs.[3]])
