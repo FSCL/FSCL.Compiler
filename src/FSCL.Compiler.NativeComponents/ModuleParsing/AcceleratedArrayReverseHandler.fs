@@ -12,6 +12,9 @@ open Microsoft.FSharp.Reflection
 open AcceleratedCollectionUtil
 open FSCL.Compiler.Util
 open Microsoft.FSharp.Linq.RuntimeHelpers
+open QuotationAnalysis.FunctionsManipulation
+open QuotationAnalysis.KernelParsing
+open QuotationAnalysis.MetadataExtraction
 
 type AcceleratedArrayReverseHandler() =
     interface IAcceleratedCollectionHandler with
@@ -40,8 +43,18 @@ type AcceleratedArrayReverseHandler() =
             let globalIdVar = Quotations.Var("global_id", typeof<int>)
             let getElementMethodInfo, _ = AcceleratedCollectionUtil.GetArrayAccessMethodInfo(inputArrayType.GetElementType())
             let _, setElementMethodInfo = AcceleratedCollectionUtil.GetArrayAccessMethodInfo(outputArrayType.GetElementType())
-            let subMethod = QuotationAnalysis.ExtractMethodFromExpr(<@ 0 - 0 @>)
-            let addMethod = QuotationAnalysis.ExtractMethodFromExpr(<@ 0 + 0 @>)
+            let subMethod = 
+                match ExtractCall(<@ 0 - 0 @>) with
+                | Some(_, mi, _, _, _) ->
+                    Some(mi)
+                | _ ->
+                    None
+            let addMethod = 
+                match ExtractCall(<@ 0 + 0 @>) with
+                | Some(_, mi, _, _, _) ->
+                    Some(mi)
+                | _ ->
+                    None
             let kernelBody = 
                 Expr.Lambda(tupleHolder,
                         Expr.Let(inputHolder, Expr.TupleGet(Expr.Var(tupleHolder), 0),

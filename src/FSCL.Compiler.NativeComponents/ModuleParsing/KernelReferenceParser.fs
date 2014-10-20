@@ -8,6 +8,9 @@ open System.Reflection
 open Microsoft.FSharp.Quotations
 open FSCL.Language
 open FSCL
+open QuotationAnalysis.FunctionsManipulation
+open QuotationAnalysis.KernelParsing
+open QuotationAnalysis.MetadataExtraction
 
 [<assembly:DefaultComponentAssembly>]
 do()
@@ -21,7 +24,7 @@ type KernelReferenceParser() =
     override this.Run(expr, s, opts) =
         let step = s :?> ModuleParsingStep
         if (expr :? Expr) then
-            match QuotationAnalysis.GetKernelFromName(expr :?> Expr) with
+            match GetKernelFromName(expr :?> Expr) with
             | Some(mi, paramInfo, paramVars, b, kMeta, rMeta, pMeta) ->              
                 // Filter and finalize metadata
                 let finalMeta = step.ProcessMeta(kMeta, rMeta, pMeta, null)

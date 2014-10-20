@@ -7,7 +7,9 @@ open Microsoft.FSharp.Quotations
 open System.Collections.Generic
 open System.Reflection
 open Microsoft.FSharp.Core.LanguagePrimitives
-open FSCL.Compiler.Util
+open FSCL.Compiler.Util.QuotationAnalysis.FunctionsManipulation
+open FSCL.Compiler.Util.QuotationAnalysis.KernelParsing
+open FSCL.Compiler.Util.QuotationAnalysis.MetadataExtraction
 
 [<StepProcessor("FSCL_ARRAY_ACCESS_TRANSFORMATION_PROCESSOR", "FSCL_FUNCTION_TRANSFORMATION_STEP",
                 Dependencies = [| "FSCL_DYNAMIC_ALLOCATION_LIFTING_TRANSFORMATION_PROCESSOR";
@@ -198,8 +200,8 @@ type ArrayAccessTransformation() =
                                     allocArgs.[0]
                                 else
                                     // Multiply alloc args to ge total length
-                                    match QuotationAnalysis.ParseCall(<@ 1 * 1 @>) with
-                                    | Some(_, mi, _) ->
+                                    match ExtractMethodInfo(<@ 1 * 1 @>) with
+                                    | Some(mi) ->
                                         if allocArgs.Length = 2 then
                                             Expr.Call(mi, allocArgs)
                                         else

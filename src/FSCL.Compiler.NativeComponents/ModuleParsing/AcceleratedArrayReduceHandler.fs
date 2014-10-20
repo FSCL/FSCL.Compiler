@@ -14,6 +14,10 @@ open AcceleratedCollectionUtil
 open System.Runtime.InteropServices
 open Microsoft.FSharp.Linq.RuntimeHelpers
 
+open FSCL.Compiler.Util.QuotationAnalysis.FunctionsManipulation
+open FSCL.Compiler.Util.QuotationAnalysis.KernelParsing
+open FSCL.Compiler.Util.QuotationAnalysis.MetadataExtraction
+
 type AcceleratedArrayReduceHandler() =
     let placeholderComp (a:int) (b:int) =
         a + b
@@ -367,7 +371,7 @@ type AcceleratedArrayReduceHandler() =
                 | _ ->
                     // Array.sum: reduce function in (+)
                     kModule.Kernel.CustomInfo.Add("ReduceFunction", 
-                                                  QuotationAnalysis.ExtractMethodFromExpr(<@ (+) @>).Value.GetGenericMethodDefinition().MakeGenericMethod([| inputArrayType.GetElementType(); inputArrayType.GetElementType();  outputArrayType.GetElementType() |]))
+                                                  ExtractMethodInfo(<@ (+) @>).Value.GetGenericMethodDefinition().MakeGenericMethod([| inputArrayType.GetElementType(); inputArrayType.GetElementType();  outputArrayType.GetElementType() |]))
                 // Return module                             
                 Some(kModule)
             else

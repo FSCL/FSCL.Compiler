@@ -13,6 +13,10 @@ open FSCL.Compiler.Util
 open Microsoft.FSharp.Reflection
 open Microsoft.FSharp.Linq.RuntimeHelpers
 
+open QuotationAnalysis.FunctionsManipulation
+open QuotationAnalysis.KernelParsing
+open QuotationAnalysis.MetadataExtraction
+
 module AcceleratedCollectionUtil =
     let GenKernelName (prefix: string, parameterTypes: Type list, utilityFunction: string) =
         String.concat "_" ([prefix] @ (List.map (fun (t:Type) -> t.Name.Replace(".", "")) parameterTypes) @ [utilityFunction])
@@ -85,7 +89,7 @@ module AcceleratedCollectionUtil =
                     if dv = var then
                         // Check if this is a computational lambda, that is it is not lambda(lambda(...call)) where
                         // the call is to a reflected method
-                        QuotationAnalysis.GetComputationalLambdaOrReflectedMethodInfo(e1)
+                        GetComputationalLambdaOrReflectedMethodInfo(e1)
                     else
                         GetLambda(e2, var)
                 | _ ->
@@ -97,7 +101,7 @@ module AcceleratedCollectionUtil =
         | Patterns.Var(v) ->
             GetLambda(expr, v)            
         | Patterns.Lambda(v, e) ->
-            QuotationAnalysis.GetComputationalLambdaOrReflectedMethodInfo(arg)
+            GetComputationalLambdaOrReflectedMethodInfo(arg)
         | _ ->
             None, None
 
@@ -115,10 +119,10 @@ module AcceleratedCollectionUtil =
                 // this means that the lambda is something like fun a b c -> myMethod a b c othPar
                 // So othPar must be evaluated, replacing it's current value inside myMethod
                 // Otherwise, the kernel would not be able to invoke it (it doesn't manage othPar)
-                Some(QuotationAnalysis.LiftNonLambdaParamsFromMethodCalledInLambda(mi, args, b, lambdaParams))
+                Some(LiftNonLambdaParamsFromMethodCalledInLambda(mi, args, b, lambdaParams))
             | None, Some(l) ->
                 // Computational lambda to apply to collection
-                match QuotationAnalysis.LambdaToMethod(l, false) with                
+                match LambdaToMethod(l, false, true) with                
                 | Some(m, paramInfo, paramVars, b, _, _, _) ->
                     Some(m, paramVars, b)
                 | _ ->
@@ -129,7 +133,7 @@ module AcceleratedCollectionUtil =
                     fun (e, mi, a) ->                         
                         match mi with
                         | DerivedPatterns.MethodWithReflectedDefinition(body) ->
-                            match QuotationAnalysis.GetCurriedOrTupledArgs(body) with
+                            match GetCurriedOrTupledArgs(body) with
                             | Some(paramVars) ->
                                 (mi, paramVars, body)
                             | _ ->

@@ -10,6 +10,9 @@ open System
 open Microsoft.FSharp.Reflection
 open System.Runtime.InteropServices
 open FSCL.Compiler.Util
+open QuotationAnalysis.FunctionsManipulation
+open QuotationAnalysis.KernelParsing
+open QuotationAnalysis.MetadataExtraction
 
 //RETURN_TYPE_TO_OUTPUT_ARG_REPLACING
 [<StepProcessor("FSCL_ARGS_PREP_LIFTING_PREPROCESSING_PROCESSOR", 
@@ -19,5 +22,5 @@ type ArgsPreparationLiftingProcessor() =
             
     override this.Run(fInfo, en, opts) =
         let engine = en :?> FunctionPreprocessingStep
-        fInfo.Body <- fst (QuotationAnalysis.LiftCurriedOrTupledArgs(fInfo.OriginalBody)).Value
+        fInfo.Body <- fst (LiftCurriedOrTupledArgs(fInfo.OriginalBody)).Value
        

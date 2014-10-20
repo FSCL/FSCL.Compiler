@@ -15,7 +15,6 @@ open FSCL.Compiler.FunctionPostprocessing
 open FSCL.Compiler.AcceleratedCollections
 open FSCL.Compiler.Types
 open System.Collections.Generic
-open FSCL.Compiler.Util.VerboseCompilationUtil
 ///
 ///<summary>
 ///The FSCL compiler
@@ -80,21 +79,17 @@ type Compiler =
         { inherit Pipeline(Compiler.DefaultConfigurationRoot, Compiler.DefaultConfigurationComponentsFolder, Compiler.defComponentsAssemply, conf) }
 
     member this.Compile(input, opts) =
-        let verb = StartVerboseCompiler(this.StepsCount, opts)
         let r = this.Run(input, opts)
-        StopVerboseCompiler(verb)
         r
         
     member this.Compile(input, [<ParamArray>] args: (string * obj)[]) =
         let opts = new Dictionary<string, obj>()
-        let verb = StartVerboseCompiler(this.StepsCount, opts)
         for key, value in args do
             if not (opts.ContainsKey(key)) then
                 opts.Add(key, value)
             else
                 opts.[key] <- value
         let r = this.Run(input, opts)
-        StopVerboseCompiler(verb)
         r
         
     member this.Compile(input) =

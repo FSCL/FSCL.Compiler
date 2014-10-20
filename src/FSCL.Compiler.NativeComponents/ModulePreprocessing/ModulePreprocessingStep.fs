@@ -5,7 +5,6 @@ open System.Reflection
 open System.Collections.Generic
 open Microsoft.FSharp.Quotations
 open FSCL.Compiler
-open FSCL.Compiler.Util.VerboseCompilationUtil
 
 [<assembly:DefaultComponentAssembly>]
 do()
@@ -22,11 +21,7 @@ type ModulePreprocessingStep(tm: TypeManager,
         km
 
     override this.Run(data, opts) =
-        let verb = StartVerboseStep(this, opts)
-
         let r = ContinueCompilation(this.Process(data, opts))
-
-        StopVerboseStep(verb)
         r
 
         

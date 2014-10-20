@@ -55,7 +55,6 @@
     <Compile Include="IdGenerator.fs" />
     <Compile Include="MathUtil.fs" />
     <Compile Include="QuotationAnalysis.fs" />
-    <Compile Include="VerboseCompilationUtil.fs" />
     <Compile Include="ReflectionUtil.fs" />
   </ItemGroup>
   <ItemGroup>

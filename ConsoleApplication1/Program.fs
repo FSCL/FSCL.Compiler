@@ -32,43 +32,60 @@ let setElement(c: float32[], value: float32, index: int) =
     c.[index] <- value
     
 [<ReflectedDefinition>] 
-let inline sumElementsNested(a: float32[], b:float32[], gid: int) =    
-    sumElements(a.[gid], b.[gid])
-
-[<ReflectedDefinition>]
-let VectorAddWithUtility(a: float32[], b:float32[], c:float32[], wi:WorkItemInfo) =
-    let s = sumElementsArrays(a, b, wi)
-    setElement(c, s, wi.GlobalID(0))
-
-[<ReflectedDefinition>]
-let VectorAddWithNestedUtility(a: float32[], b:float32[], c:float32[], wi:WorkItemInfo) =   
+let VectorAddCurried (wi:WorkItemInfo) (a: float32[]) (b:float32[]) (c:float32[]) =    
     let gid = wi.GlobalID(0)
-    c.[gid] <- sumElementsNested(a, b, gid)
+    c.[gid] <- a.[gid] + b.[gid]
+    c
+
+[<ReflectedDefinition>] 
+let VectorMulCurried (wi:WorkItemInfo) (a: float32[]) (b:float32[]) (c:float32[]) =    
+    let gid = wi.GlobalID(0)
+    c.[gid] <- a.[gid] * b.[gid]
+    c
+    
+[<ReflectedDefinition>] 
+let VectorNop (a: float32[]) =   
+    let gid = 0
+    a.[gid] <- a.[gid] * a.[gid]
+
 
 [<EntryPoint>]
-let main argv = 
-    printfn "%A" argv
-    
+let main argv =     
     let compiler = new Compiler()
     let a = Array.create 64 1.0f
-    let b = Array.create 64 1.0f
+    let b = Array.create 64 2.0f
     let c = Array.zeroCreate<float32> 64
-    let size = new WorkSize(64L, 64L)
-    let result = compiler.Compile(<@ VectorAddWithNestedUtility(a, b, c, size) @>) :?> IKernelModule
-    //printf "%s\n" (result.Code.Value.ToString())
-    // Work item info should be stored
+    let size = new WorkSize(64L, 64L) :> WorkItemInfo
+    (*
+    let result1 = compiler.Compile(<@ VectorMulCurried size (VectorAddCurried size a b c) b c @>) :?> IKernelModule
+    let result2 = compiler.Compile(<@ VectorAddCurried size a b c |> VectorMulCurried size a b  @>) :?> IKernelModule    
+    let result3 = compiler.Compile(<@ VectorAddCurried size a b c |> VectorNop  @>) :?> IKernelModule
+    let result4 = compiler.Compile(<@ (VectorAddCurried size a b c, a) ||> VectorMulCurried size a  @>) :?> IKernelModule
+    let result5 = compiler.Compile(<@ (b, c) ||> VectorMulCurried size a  @>) :?> IKernelModule
+    let result6 = compiler.Compile(<@ (a, b, c) |||> VectorMulCurried size  @>) :?> IKernelModule
+    let result7 = compiler.Compile(<@ (a, b, c) |||> VectorMulCurried size  @>) :?> IKernelModule
     
-    let size = new WorkSize(64L, 64L)
-    let result = compiler.Compile(<@ VectorAddWithUtility(a, b, c, size) @>) :?> IKernelModule
+    let result71 = compiler.Compile(<@ (fun (wi:WorkItemInfo) (a: float32[]) (b:float32[]) (c:float32[]) ->
+                                            let gid = wi.GlobalID(0)
+                                            c.[gid] <- a.[gid] * b.[gid]) size a b c @>) :?> IKernelModule
 
-    let a = Array.create 64 1.0f
-    let b = Array.create 64 1.0f
-    let result = compiler.Compile(<@ Array.reduce (fun e1 e2 -> e1 + e2) a @>) :?> IKernelModule
+    // Auto lambda (result8 should be null cause no WorkItemInfo param)
+    let result8 = compiler.Compile(<@ fun (a: float32[]) (b:float32[]) (c:float32[]) ->
+                                            let gid = 0
+                                            c.[gid] <- a.[gid] * b.[gid]
+                                   @>) :?> IKernelModule
+                                   
+    let result10 = compiler.Compile(<@ (size, VectorAddCurried size a b c) ||> 
+                                       fun (wi:WorkItemInfo) (a: float32[])  ->
+                                            let gid = wi.GlobalID(0)
+                                            a.[gid] <- a.[gid] * a.[gid]  @>) :?> IKernelModule
+                                            
+    let result11 = compiler.Compile(<@ (b, c) ||> 
+                                       (fun (wi:WorkItemInfo) (a:float32[]) (b: float32[]) (c: float32[])  ->
+                                            let gid = wi.GlobalID(0)
+                                            b.[gid] <- a.[gid] * a.[gid]) size a @>) :?> IKernelModule
+    *)
+    // Composition with accel collections
+    let result12 = compiler.Compile(<@ VectorAddCurried size a b c |> Array.map (fun a -> a * 2.0f)  @>) :?> IKernelModule
     
-    let a = Array.create 64 ({ x = 1; y = 1 })
-    let c = Array.zeroCreate<MyRecord> 64
-    let size = new WorkSize(64L, 64L)
-    let result = compiler.Compile(<@ Array.reduce (fun e1 e2 -> 
-                                                        let ret = { x = e1.x + e2.x; y = e1.y + e2.y }
-                                                        ret) a @>) :?> IKernelModule
     0 // return an integer exit code

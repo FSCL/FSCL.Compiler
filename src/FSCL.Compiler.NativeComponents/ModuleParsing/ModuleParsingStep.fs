@@ -5,7 +5,7 @@ open System.Reflection
 open System.Collections.Generic
 open Microsoft.FSharp.Quotations
 open FSCL.Compiler
-open FSCL.Compiler.Util.VerboseCompilationUtil
+open FSCL.Compiler.Util.QuotationAnalysis.KernelParsing
 
 [<Step("FSCL_MODULE_PARSING_STEP")>] 
 type ModuleParsingStep(tm: TypeManager,
@@ -21,7 +21,7 @@ type ModuleParsingStep(tm: TypeManager,
 
     let mutable opts = null
                  
-    member this.Process(expr:obj) =
+    member private this.Process(expr:obj) =
         let mutable index = 0
         let mutable output = None
         while (output.IsNone) && (index < parsingProcessors.Length) do
@@ -38,21 +38,20 @@ type ModuleParsingStep(tm: TypeManager,
             output <- p.Execute((kmeta, rmeta, pmeta, parsingInfo), this, opts) :?> KernelMetaCollection * ParamMetaCollection * List<ParamMetaCollection>
         ReadOnlyMetaCollection(kmeta, rmeta, pmeta)
 
-    override this.Run(expr, opt) =
-        let verb = StartVerboseStep(this, opt)
+    override this.Run(e, opt) =
+        // Normalize expressione first
+        let norm = CompositionToCallOrApplication(e :?> Expr, None)
 
         opts <- opt
         let r =
             if opts.ContainsKey(CompilerOptions.ParseOnly) then
-                StopCompilation(this.Process(expr))
+                StopCompilation(this.Process(norm))
             else
-                let parsingResult = this.Process(expr)
+                let parsingResult = this.Process(norm)
                 if parsingResult = null then
                     StopCompilation(parsingResult)
                 else
                     ContinueCompilation(parsingResult)
-                        
-        StopVerboseStep(verb)
         r
 
         

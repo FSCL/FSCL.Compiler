@@ -5,7 +5,6 @@ open System
 open System.Reflection
 open System.Collections.Generic
 open Microsoft.FSharp.Quotations
-open FSCL.Compiler.Util.VerboseCompilationUtil
 
 [<assembly:DefaultComponentAssembly>]
 do()
@@ -33,14 +32,10 @@ type FunctionPostprocessingStep(tm: TypeManager,
             p.Execute(k, this, opts) |> ignore
                
     override this.Run(km: KernelModule, opts) =
-        let verb = StartVerboseStep(this, opts)
-
         for f in km.Functions do
             this.Process(f.Value :?> FunctionInfo, opts)
         this.Process(km.Kernel, opts)
         let r = ContinueCompilation(km)
-        
-        StopVerboseStep(verb)
         r
 
 

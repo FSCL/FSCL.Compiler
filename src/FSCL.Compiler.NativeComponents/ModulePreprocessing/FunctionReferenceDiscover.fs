@@ -8,6 +8,10 @@ open System.Reflection
 open Microsoft.FSharp.Quotations
 open System
 
+open QuotationAnalysis.FunctionsManipulation
+open QuotationAnalysis.KernelParsing
+open QuotationAnalysis.MetadataExtraction
+
 [<StepProcessor("FSCL_FUNCTIONS_DISCOVERY_PROCESSOR", 
                 "FSCL_MODULE_PREPROCESSING_STEP")>] 
 type FunctionReferenceDiscover() =      
@@ -24,7 +28,7 @@ type FunctionReferenceDiscover() =
                     match mi with
                     | DerivedPatterns.MethodWithReflectedDefinition(b) ->
                         if not (foundFunctions.ContainsKey(mi)) then     
-                            match QuotationAnalysis.GetCurriedOrTupledArgs(b) with
+                            match GetCurriedOrTupledArgs(b) with
                             | Some(paramV) ->       
                                 // Check if one of the params is a WorkItemInfo
                                 let methodParams = mi.GetParameters()

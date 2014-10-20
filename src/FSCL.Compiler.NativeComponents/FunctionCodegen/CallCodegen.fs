@@ -12,6 +12,10 @@ open Microsoft.FSharp.Linq.RuntimeHelpers
 open FSCL.Compiler.Util.QuotationAnalysis
 open FSCL.Compiler.Util.ReflectionUtil
 
+open FSCL.Compiler.Util.QuotationAnalysis.FunctionsManipulation
+open FSCL.Compiler.Util.QuotationAnalysis.KernelParsing
+open FSCL.Compiler.Util.QuotationAnalysis.MetadataExtraction
+
 [<StepProcessor("FSCL_CALL_CODEGEN_PROCESSOR", "FSCL_FUNCTION_CODEGEN_STEP",
                 Dependencies = [| "FSCL_ARRAY_ACCESS_CODEGEN_PROCESSOR";
                                   "FSCL_DECLARATION_CODEGEN_PROCESSOR";
@@ -28,20 +32,20 @@ type CallCodegen() =
     // Set of calls to cast values
     let castMethods = new Dictionary<MethodInfo, string>()
     do
-        castMethods.Add(ExtractMethodFromExpr(<@ int @>).Value.TryGetGenericMethodDefinition(), "int")
-        castMethods.Add(ExtractMethodFromExpr(<@ uint32 @>).Value.TryGetGenericMethodDefinition(), "unsigned int")
-        castMethods.Add(ExtractMethodFromExpr(<@ char @>).Value.TryGetGenericMethodDefinition(), "char")
-        castMethods.Add(ExtractMethodFromExpr(<@ byte @>).Value.TryGetGenericMethodDefinition(), "uchar")
-        castMethods.Add(ExtractMethodFromExpr(<@ sbyte @>).Value.TryGetGenericMethodDefinition(), "char")
-        castMethods.Add(ExtractMethodFromExpr(<@ float32 @>).Value.TryGetGenericMethodDefinition(), "float")
-        castMethods.Add(ExtractMethodFromExpr(<@ float @>).Value.TryGetGenericMethodDefinition(), "double")
-        castMethods.Add(ExtractMethodFromExpr(<@ int64 @>).Value.TryGetGenericMethodDefinition(), "long")
-        castMethods.Add(ExtractMethodFromExpr(<@ uint64 @>).Value.TryGetGenericMethodDefinition(), "ulong")
+        castMethods.Add(ExtractMethodInfo(<@ int @>).Value.TryGetGenericMethodDefinition(), "int")
+        castMethods.Add(ExtractMethodInfo(<@ uint32 @>).Value.TryGetGenericMethodDefinition(), "unsigned int")
+        castMethods.Add(ExtractMethodInfo(<@ char @>).Value.TryGetGenericMethodDefinition(), "char")
+        castMethods.Add(ExtractMethodInfo(<@ byte @>).Value.TryGetGenericMethodDefinition(), "uchar")
+        castMethods.Add(ExtractMethodInfo(<@ sbyte @>).Value.TryGetGenericMethodDefinition(), "char")
+        castMethods.Add(ExtractMethodInfo(<@ float32 @>).Value.TryGetGenericMethodDefinition(), "float")
+        castMethods.Add(ExtractMethodInfo(<@ float @>).Value.TryGetGenericMethodDefinition(), "double")
+        castMethods.Add(ExtractMethodInfo(<@ int64 @>).Value.TryGetGenericMethodDefinition(), "long")
+        castMethods.Add(ExtractMethodInfo(<@ uint64 @>).Value.TryGetGenericMethodDefinition(), "ulong")
 
     // Set of .NET Math functions that can be used in place of the OpenCL matching ones
     let alternativeFunctions = new Dictionary<MethodInfo, string>()
     let populateAlternativeFunctions(quotedMeth: Expr, mathingFunction: string) =
-        alternativeFunctions.Add(ExtractMethodFromExpr(quotedMeth).Value.TryGetGenericMethodDefinition(), mathingFunction)
+        alternativeFunctions.Add(ExtractMethodInfo(quotedMeth).Value.TryGetGenericMethodDefinition(), mathingFunction)
 
     do
         populateAlternativeFunctions(<@ Math.Acos @>, "acos")

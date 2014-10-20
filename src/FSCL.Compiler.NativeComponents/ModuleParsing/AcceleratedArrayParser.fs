@@ -10,6 +10,9 @@ open System.Reflection.Emit
 open Microsoft.FSharp.Quotations
 open System
 open AcceleratedCollectionUtil
+open QuotationAnalysis.FunctionsManipulation
+open QuotationAnalysis.KernelParsing
+open QuotationAnalysis.MetadataExtraction
 
 [<StepProcessor("FSCL_ACCELERATED_ARRAY_MODULE_PARSING_PROCESSOR", 
                 "FSCL_MODULE_PARSING_STEP")>]
@@ -35,18 +38,18 @@ type AcceleratedArrayParser() =
         let step = s :?> ModuleParsingStep
         if o :? Expr then
             // Lift and get potential kernel attributes
-            let expr, kMeta, rMeta = QuotationAnalysis.ParseKernelMetadata(o :?> Expr)
+            let expr, kMeta, rMeta = ParseKernelMetadata(o :?> Expr)
 
             // Filter out potential Lambda/Let (if the function is referenced, not applied)
-            match QuotationAnalysis.ParseCall(expr) with
-            | Some(o, methodInfo, args) -> 
+            match ExtractCall(expr) with
+            | Some(o, methodInfo, args, _, _) -> 
                 if methodInfo.DeclaringType = listModuleType then
                     if (handlers.ContainsKey(methodInfo.GetGenericMethodDefinition())) then
                         // Clean arguments of potential parameter attributes
                         let pmeta = new List<ParamMetaCollection>()
                         let cleanArgs = new List<Expr>()
                         for i = 0 to args.Length - 1 do
-                            match QuotationAnalysis.ParseParameterMetadata(args.[i]) with
+                            match ParseParameterMetadata(args.[i]) with
                             | e, meta ->
                                 pmeta.Add(meta)
                                 cleanArgs.Add(e)

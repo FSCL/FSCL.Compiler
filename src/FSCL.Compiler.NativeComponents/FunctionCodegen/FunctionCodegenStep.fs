@@ -5,7 +5,6 @@ open System.Reflection
 open System.Collections.Generic
 open Microsoft.FSharp.Quotations
 open FSCL.Compiler
-open FSCL.Compiler.Util.VerboseCompilationUtil
 
 [<assembly:DefaultComponentAssembly>]
 do()
@@ -96,7 +95,6 @@ type FunctionCodegenStep(tm: TypeManager,
     ///</returns>
     ///       
     override this.Run(km: KernelModule, opt) =    
-        let verb = StartVerboseStep(this, opt)
         if not (opt.ContainsKey(CompilerOptions.NoCodegen)) then
             opts <- opt            
             // Process functions
@@ -114,7 +112,6 @@ type FunctionCodegenStep(tm: TypeManager,
                     ()
          
         let r = ContinueCompilation(km)
-        StopVerboseStep(verb)
         r
 
 

@@ -8,6 +8,10 @@ open Microsoft.FSharp.Quotations
 open FSCL.Language
 open FSCL
 
+open QuotationAnalysis.FunctionsManipulation
+open QuotationAnalysis.KernelParsing
+open QuotationAnalysis.MetadataExtraction
+
 [<StepProcessor("FSCL_METHOD_INFO_PARSING_PROCESSOR", "FSCL_MODULE_PARSING_STEP")>]
 type KernelMethodInfoParser() =      
     inherit ModuleParsingProcessor() 
@@ -15,7 +19,7 @@ type KernelMethodInfoParser() =
     override this.Run(mi, s, opts) =
         let step = s :?> ModuleParsingStep
         if (mi :? MethodInfo) then
-            match QuotationAnalysis.GetKernelFromMethodInfo(mi :?> MethodInfo) with
+            match GetKernelFromMethodInfo(mi :?> MethodInfo) with
             | Some(mi, paramInfo, paramVars, b, kMeta, rMeta, pMeta) -> 
                 // Filter and finalize metadata
                 let finalMeta = step.ProcessMeta(kMeta, rMeta, pMeta, null)

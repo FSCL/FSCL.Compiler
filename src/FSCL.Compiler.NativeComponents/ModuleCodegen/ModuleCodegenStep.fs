@@ -5,7 +5,6 @@ open System.Reflection
 open System.Collections.Generic
 open Microsoft.FSharp.Quotations
 open FSCL.Compiler
-open FSCL.Compiler.Util.VerboseCompilationUtil
 
 [<assembly:DefaultComponentAssembly>]
 do()
@@ -22,7 +21,6 @@ type ModuleCodegenStep(tm: TypeManager,
     inherit CompilerStep<KernelModule, KernelModule>(tm, processors)
         
     override this.Run(k, opts) =
-        let verb = StartVerboseStep(this, opts)
         if not (opts.ContainsKey(CompilerOptions.NoCodegen)) then
             let state = ref ""
             for p in processors do
@@ -30,5 +28,4 @@ type ModuleCodegenStep(tm: TypeManager,
             k.Code <- Some(!state)
 
         let r = ContinueCompilation(k)        
-        StopVerboseStep(verb)
         r

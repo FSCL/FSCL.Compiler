@@ -5,7 +5,6 @@ open System
 open System.Reflection
 open System.Collections.Generic
 open Microsoft.FSharp.Quotations
-open FSCL.Compiler.Util.VerboseCompilationUtil
 
 [<assembly:DefaultComponentAssembly>]
 do()
@@ -52,15 +51,11 @@ type FunctionTransformationStep(tm: TypeManager,
             this.FunctionInfo.Body <- p.Execute(this.FunctionInfo.Body, this, opts) :?> Expr 
                                   
     override this.Run(km: KernelModule, opt) =
-        let verb = StartVerboseStep(this, opt)
-
         opts <- opt
         for f in km.Functions do
             this.Process(f.Value :?> FunctionInfo)
         this.Process(km.Kernel)
         let r = ContinueCompilation(km)
-        
-        StopVerboseStep(verb)
         r
         
 
