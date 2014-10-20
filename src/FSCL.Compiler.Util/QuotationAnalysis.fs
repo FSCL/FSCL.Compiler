@@ -795,7 +795,7 @@ module QuotationAnalysis =
             | _ ->
                 None
                 
-        let rec CompositionToCallOrApplication(ex: Expr, specificCalls: ((Expr option * MethodInfo * Expr list) -> bool) option) =    
+        let rec CompositionToCallOrApplication(ex: Expr) =    
             (*let valid, compositionArgs = 
                 match ex with
                 | DerivedPatterns.SpecificCall <@ (|>) @> (e, tl, compArgs) 
@@ -818,11 +818,12 @@ module QuotationAnalysis =
                 match compositionArgs |> Seq.last with
                 | Patterns.Lambda(v, b) ->
                     // This may be a preparation to call a reflected method or a full lambda
-                    match ExtractCallWithReflectedDefinition(compositionArgs |> Seq.last) with
+                    match ExtractCall(compositionArgs |> Seq.last) with
                     | Some(o, mi, a, boundExpr, unboundVar) ->
                         // It's a call
                         // Here parsing may give wrong results, cannot do anything but hoping for good chance
                         (*
+                            OLD ->
                             Problem is the following.
                             If we have 
                                 data |> myKernel
@@ -834,11 +835,20 @@ module QuotationAnalysis =
                             the tree os the right size is still Lambda(a, Lambda(b ... Lambda(i1, Lambda(i2, Call(None, doSomething, ...)))
                             that is, Is still have a sequence of Lambda and a call at the end
                             In this case, anyway, I don't want to extract "doSomething", but Lambda(i1, Lambda(i2, ...))                           
+                            <- OLD
                         *)
-                        if o.IsSome then
-                            Expr.Call(o.Value, mi, (a |> Seq.take(a.Length - unboundVar.Length) |> List.ofSeq) @ (compositionArgs |> Seq.take(unboundVar.Length) |> List.ofSeq))
-                        else
-                            Expr.Call(mi, (a |> Seq.take(a.Length - unboundVar.Length) |> List.ofSeq) @ (compositionArgs |> Seq.take(unboundVar.Length) |> List.ofSeq))
+                        try 
+                            if o.IsSome then
+                                Expr.Call(o.Value, mi, (a |> Seq.take(a.Length - unboundVar.Length) |> List.ofSeq) @ (compositionArgs |> Seq.take(unboundVar.Length) |> List.ofSeq))
+                            else
+                                Expr.Call(mi, (a |> Seq.take(a.Length - unboundVar.Length) |> List.ofSeq) @ (compositionArgs |> Seq.take(unboundVar.Length) |> List.ofSeq))
+                        with
+                        | :? Exception ->
+                            // Very likely gone too deep, try recognize this as lambda
+                            let mutable res = compositionArgs |> Seq.last 
+                            for i = 0 to compositionArgs.Length - 2 do
+                                res <- Expr.Application(res, compositionArgs.[i])
+                            res
                     | _ ->
                         // A fully applied lambda
                         let mutable res = compositionArgs |> Seq.last 
@@ -872,6 +882,7 @@ module QuotationAnalysis =
                     ex
             else
                 ex
+                
 
             
         

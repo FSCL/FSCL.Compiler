@@ -55,8 +55,14 @@ let VectorMulCurried (wi:WorkItemInfo) (a: float32[]) (b:float32[]) (c:float32[]
 let VectorNop (a: float32[]) =   
     let gid = 0
     a.[gid] <- a.[gid] * a.[gid]
-
-
+    
+[<ReflectedDefinition>] 
+let VectorMulCurried2 (a: float32[]) (b:float32[]) (c:float32[]) =
+    let gid = 0
+    c.[gid] <- a.[gid] * b.[gid]
+    
+[<ReflectedDefinition>] 
+let sum a = a *2.0f
 [<EntryPoint>]
 let main argv =     
     let compiler = new Compiler()
@@ -76,12 +82,12 @@ let main argv =
     let result71 = compiler.Compile(<@ (fun (wi:WorkItemInfo) (a: float32[]) (b:float32[]) (c:float32[]) ->
                                             let gid = wi.GlobalID(0)
                                             c.[gid] <- a.[gid] * b.[gid]) size a b c @>) :?> IKernelModule
-
     // Auto lambda (result8 should be null cause no WorkItemInfo param)
     let result8 = compiler.Compile(<@ fun (a: float32[]) (b:float32[]) (c:float32[]) ->
                                             let gid = 0
                                             c.[gid] <- a.[gid] * b.[gid]
                                    @>) :?> IKernelModule
+    let result81 = compiler.Compile(<@ (a, b, c) |||> VectorMulCurried2  @>) :?> IKernelModule
                                    
     let result10 = compiler.Compile(<@ (size, VectorAddCurried size a b c) ||> 
                                        fun (wi:WorkItemInfo) (a: float32[])  ->
@@ -94,8 +100,9 @@ let main argv =
                                             b.[gid] <- a.[gid] * a.[gid]) size a @>) :?> IKernelModule
                                             
     // Composition with accel collections
-    let sum a b = a + b
-    let result12 = compiler.Compile(<@ VectorAddCurried size a b c |> Array.map (fun a -> a * 2.0f)  @>) :?> IKernelModule
+    
+    let result12 = compiler.Compile(<@ VectorAddCurried size a b c |> Array.map (fun a -> a * 2.0f)  @>) :?> IKernelModule 
+    
     let result13 = compiler.Compile(<@ VectorAddCurried size a b c |> Array.map sum  @>) :?> IKernelModule
     *)
 

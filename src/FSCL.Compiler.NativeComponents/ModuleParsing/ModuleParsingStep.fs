@@ -42,7 +42,7 @@ type ModuleParsingStep(tm: TypeManager,
         // Normalize expressione first
         let norm = 
             if e :? Expr then
-                CompositionToCallOrApplication(e :?> Expr, None) :> obj
+                CompositionToCallOrApplication(e :?> Expr) :> obj
             else
                 e
         opts <- opt

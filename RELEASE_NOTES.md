@@ -1,8 +1,9 @@
-### 1.4.1 - 17 October 2014
+### 1.4.0 - 20 October 2014
 * Automatic characterization of lambda functions (if a lambda has a WorkItemInfo param it's turn into a kernel, otherwise it's applied by reflection on the CPU)
+* Optimisation of parsing step to speed up the runtime. Approximatively 80 microsecs on macbook pro i5.
 * Bug fix
 
-### 1.4.0 - 16 October 2014
+### 1.3.9 - 16 October 2014
 * Added support for pipelining operators (|>, ||> and |||>)
 * Added support for partial functions (curried form)
 * Added support for lambda application
