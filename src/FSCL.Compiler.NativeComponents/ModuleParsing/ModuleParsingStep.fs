@@ -40,8 +40,11 @@ type ModuleParsingStep(tm: TypeManager,
 
     override this.Run(e, opt) =
         // Normalize expressione first
-        let norm = CompositionToCallOrApplication(e :?> Expr, None)
-
+        let norm = 
+            if e :? Expr then
+                CompositionToCallOrApplication(e :?> Expr, None) :> obj
+            else
+                e
         opts <- opt
         let r =
             if opts.ContainsKey(CompilerOptions.ParseOnly) then

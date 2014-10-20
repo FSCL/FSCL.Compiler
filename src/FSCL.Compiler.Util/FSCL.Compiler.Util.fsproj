@@ -54,8 +54,8 @@
     <Compile Include="GraphUtil.fs" />
     <Compile Include="IdGenerator.fs" />
     <Compile Include="MathUtil.fs" />
-    <Compile Include="QuotationAnalysis.fs" />
     <Compile Include="ReflectionUtil.fs" />
+    <Compile Include="QuotationAnalysis.fs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="mscorlib" />

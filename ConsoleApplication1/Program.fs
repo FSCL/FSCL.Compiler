@@ -4,6 +4,8 @@ open FSCL.Compiler
 open FSCL.Language
 open System.Runtime.InteropServices
 open System.Runtime.CompilerServices
+open System.Diagnostics
+
 type MyStruct =
     struct
         val mutable x: int
@@ -31,6 +33,12 @@ let sumElementsArrays(a: float32[], b:float32[], wi:WorkItemInfo) =
 let setElement(c: float32[], value: float32, index: int) =    
     c.[index] <- value
     
+[<ReflectedDefinition>] 
+let VectorAddTupled (wi:WorkItemInfo, a: float32[], b:float32[], c:float32[]) =    
+    let gid = wi.GlobalID(0)
+    c.[gid] <- a.[gid] + b.[gid]
+    c
+
 [<ReflectedDefinition>] 
 let VectorAddCurried (wi:WorkItemInfo) (a: float32[]) (b:float32[]) (c:float32[]) =    
     let gid = wi.GlobalID(0)
@@ -84,8 +92,23 @@ let main argv =
                                        (fun (wi:WorkItemInfo) (a:float32[]) (b: float32[]) (c: float32[])  ->
                                             let gid = wi.GlobalID(0)
                                             b.[gid] <- a.[gid] * a.[gid]) size a @>) :?> IKernelModule
-    *)
+                                            
     // Composition with accel collections
+    let sum a b = a + b
     let result12 = compiler.Compile(<@ VectorAddCurried size a b c |> Array.map (fun a -> a * 2.0f)  @>) :?> IKernelModule
-    
+    let result13 = compiler.Compile(<@ VectorAddCurried size a b c |> Array.map sum  @>) :?> IKernelModule
+    *)
+
+    let quot = <@ VectorAddTupled(size, a,b,c)  @>
+
+    // Parsing performance
+    let mutable r = null
+    let watch = new Stopwatch()
+    watch.Start()
+    for i = 1 to 50000 do
+        r <- compiler.Compile(quot, (CompilerOptions.ParseOnly, box()))
+    watch.Stop()
+    System.Console.WriteLine("Parsing time " + (((double)watch.ElapsedMilliseconds) / 50000.0).ToString() + " ms")     
+
+
     0 // return an integer exit code

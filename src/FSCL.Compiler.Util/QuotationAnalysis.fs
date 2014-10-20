@@ -25,47 +25,48 @@ module QuotationAnalysis =
                 match expr with
                 | Patterns.Call(o, mi, args) ->
                 
-                    let kernelAttrFunction = mi.GetCustomAttribute<KernelMetadataFunctionAttribute>()
-                    let returnAttrFunction = mi.GetCustomAttribute<ReturnMetadataFunctionAttribute>()
-                    let paramAttrFunction = mi.GetCustomAttribute<ParameterMetadataFunctionAttribute>()
-
-                    if kernelAttrFunction <> null || returnAttrFunction <> null then
-                        // Get attribute type
-                        let attrType = 
-                            if kernelAttrFunction <> null  then
-                                kernelAttrFunction.Metadata
-                            else
-                                returnAttrFunction.Metadata
-                        // First n - 1 args are the parameters to instantiate attribute, last is one is target (forwarded)
-                        let attrArgs = args |> 
-                                        Seq.take(args.Length - 1) |> 
-                                        Seq.map(fun (e:Expr) -> LeafExpressionConverter.EvaluateQuotation(e)) |> 
-                                        Seq.toArray
-                        let attrArgsType = args |> 
+                    let attrFunction = mi.GetCustomAttribute<MetadataFunctionAttribute>()
+                    if attrFunction <> null then
+                        if (attrFunction.Target = MetadataFunctionTarget.KernelFunction || 
+                            attrFunction.Target = MetadataFunctionTarget.KernelReturnType) then
+                            // Get attribute type
+                            let attrType = 
+                                if attrFunction.Target = MetadataFunctionTarget.KernelFunction then
+                                    attrFunction.Metadata
+                                else
+                                    attrFunction.Metadata
+                            // First n - 1 args are the parameters to instantiate attribute, last is one is target (forwarded)
+                            let attrArgs = args |> 
                                             Seq.take(args.Length - 1) |> 
-                                            Seq.map(fun (e:Expr) -> e.Type) |> 
+                                            Seq.map(fun (e:Expr) -> LeafExpressionConverter.EvaluateQuotation(e)) |> 
                                             Seq.toArray
-                        // Instantiate attribute
-                        let constr = attrType.GetConstructor(attrArgsType)
-                        if constr = null then
-                            raise (new CompilerException("Cannot instantiate attribute " + (attrType.ToString()) + " cause a proper constructor cannot be found"))
-                        else
-                            if (kernelAttrFunction <> null) then
-                                let attr = constr.Invoke(attrArgs) :?> KernelMetadataAttribute
-                                kernelAttrs.AddOrSet(attr)
+                            let attrArgsType = args |> 
+                                                Seq.take(args.Length - 1) |> 
+                                                Seq.map(fun (e:Expr) -> e.Type) |> 
+                                                Seq.toArray
+                            // Instantiate attribute
+                            let constr = attrType.GetConstructor(attrArgsType)
+                            if constr = null then
+                                raise (new CompilerException("Cannot instantiate attribute " + (attrType.ToString()) + " cause a proper constructor cannot be found"))
                             else
-                                // Return attr function
-                                let attr = constr.Invoke(attrArgs) :?> ParameterMetadataAttribute
-                                returnAttrs.AddOrSet(attr)
-                            // Continue processing body
-                            ParseMetadataInternal(args.[args.Length - 1])
-                    else if paramAttrFunction <> null then
-                        let attrArgs = args |> 
-                                        List.map(fun (e:Expr) -> ParseMetadataInternal(e))
-                        if o.IsSome then
-                            Expr.Call(o.Value, mi, attrArgs)
+                                if attrFunction.Target = MetadataFunctionTarget.KernelFunction then
+                                    let attr = constr.Invoke(attrArgs) :?> KernelMetadataAttribute
+                                    kernelAttrs.AddOrSet(attr)
+                                else
+                                    // Return attr function
+                                    let attr = constr.Invoke(attrArgs) :?> ParameterMetadataAttribute
+                                    returnAttrs.AddOrSet(attr)
+                                // Continue processing body
+                                ParseMetadataInternal(args.[args.Length - 1])
+                        else if attrFunction.Target = MetadataFunctionTarget.KernelParameter then
+                            let attrArgs = args |> 
+                                            List.map(fun (e:Expr) -> ParseMetadataInternal(e))
+                            if o.IsSome then
+                                Expr.Call(o.Value, mi, attrArgs)
+                            else
+                                Expr.Call(mi, attrArgs)
                         else
-                            Expr.Call(mi, attrArgs)
+                            expr
                     else
                         expr
                 | _ ->
@@ -77,40 +78,39 @@ module QuotationAnalysis =
             let rec ParseMetadataInternal(expr) =
                 match expr with
                 | Patterns.Call(o, mi, args) ->
-                    let paramAttrFunction = mi.GetCustomAttribute<ParameterMetadataFunctionAttribute>()
-                    let kernelAttrFunction = mi.GetCustomAttribute<KernelMetadataFunctionAttribute>()
-                    let returnAttrFunction = mi.GetCustomAttribute<ReturnMetadataFunctionAttribute>()
+                    let attrFunction = mi.GetCustomAttribute<MetadataFunctionAttribute>()
 
-                    if paramAttrFunction <> null then
-                        // Get attribute type
-                        let attrType = paramAttrFunction.Metadata
-                        // First n - 1 args are the parameters to instantiate attribute, last is one is target (forwarded)
-                        let attrArgs = args |> 
-                                        Seq.take(args.Length - 1) |> 
-                                        Seq.map(fun (e:Expr) -> LeafExpressionConverter.EvaluateQuotation(e)) |> 
-                                        Seq.toArray
-                        let attrArgsType = args |> 
+                    if attrFunction <> null then
+                        if attrFunction.Target = MetadataFunctionTarget.KernelFunction then
+                            // Get attribute type
+                            let attrType = attrFunction.Metadata
+                            // First n - 1 args are the parameters to instantiate attribute, last is one is target (forwarded)
+                            let attrArgs = args |> 
                                             Seq.take(args.Length - 1) |> 
-                                            Seq.map(fun (e:Expr) -> e.Type) |> 
+                                            Seq.map(fun (e:Expr) -> LeafExpressionConverter.EvaluateQuotation(e)) |> 
                                             Seq.toArray
-                        // Instantiate attribute
-                        let constr = attrType.GetConstructor(attrArgsType)
-                        if constr = null then
-                            raise (new CompilerException("Cannot instantiate attribute " + (attrType.ToString()) + " cause a proper constructor cannot be found"))
-                        else
-                            // Return attr function
-                            let attr = constr.Invoke(attrArgs) :?> ParameterMetadataAttribute
-                            attrs.AddOrSet(attr)
+                            let attrArgsType = args |> 
+                                                Seq.take(args.Length - 1) |> 
+                                                Seq.map(fun (e:Expr) -> e.Type) |> 
+                                                Seq.toArray
+                            // Instantiate attribute
+                            let constr = attrType.GetConstructor(attrArgsType)
+                            if constr = null then
+                                raise (new CompilerException("Cannot instantiate attribute " + (attrType.ToString()) + " cause a proper constructor cannot be found"))
+                            else
+                                // Return attr function
+                                let attr = constr.Invoke(attrArgs) :?> ParameterMetadataAttribute
+                                attrs.AddOrSet(attr)
 
-                            // Continue processing body
-                            ParseMetadataInternal(args.[args.Length - 1])
-                    else if kernelAttrFunction <> null || returnAttrFunction <> null then
-                        let attrArgs = args |> 
-                                        List.map(fun (e:Expr) -> ParseMetadataInternal(e))
-                        if o.IsSome then
-                            Expr.Call(o.Value, mi, attrArgs)
-                        else
-                            Expr.Call(mi, attrArgs)
+                                // Continue processing body
+                                ParseMetadataInternal(args.[args.Length - 1])
+                        else 
+                            let attrArgs = args |> 
+                                            List.map(fun (e:Expr) -> ParseMetadataInternal(e))
+                            if o.IsSome then
+                                Expr.Call(o.Value, mi, attrArgs)
+                            else
+                                Expr.Call(mi, attrArgs)
                     else
                         expr
                 | _ ->
@@ -132,10 +132,10 @@ module QuotationAnalysis =
                                   
             let staticAttrs = m.GetCustomAttributes()
             for attr in staticAttrs do
-                if typeof<ParameterMetadataAttribute>.IsAssignableFrom(attr.GetType()) then
+                if attr :? ParameterMetadataAttribute then
                     if not (returnAttrs.Contains(attr.GetType())) then
                         returnAttrs.Add(attr :?> ParameterMetadataAttribute)
-                else if typeof<KernelMetadataAttribute>.IsAssignableFrom(attr.GetType()) then
+                else if attr :? KernelMetadataAttribute then
                     if not (attrs.Contains(attr.GetType())) then
                         attrs.Add(attr :?> KernelMetadataAttribute)
 
@@ -144,7 +144,7 @@ module QuotationAnalysis =
             // Merge with static attributes
             let staticAttrs = p.GetCustomAttributes()
             for attr in staticAttrs do
-                if typeof<ParameterMetadataAttribute>.IsAssignableFrom(attr.GetType()) then
+                if attr :? ParameterMetadataAttribute then
                     if not (attrs.Contains(attr.GetType())) then
                         attrs.Add(attr :?> ParameterMetadataAttribute)
 
@@ -282,18 +282,22 @@ module QuotationAnalysis =
                     None       
             ExtractCallInternal(expr, [], []) 
             
-        let rec ExtractCallWithTypes(expr: Expr) =   
-            let rec ExtractCallInternal(expr, boundVarExprs: Expr list, unboundVars: Var list, t: Type list) =
+        let rec ExtractCallWithReflectedDefinition(expr: Expr) =   
+            let rec ExtractCallInternal(expr, boundVarExprs: Expr list, unboundVars: Var list) =
                 match expr with
                 | Patterns.Lambda(v, e) -> 
-                    ExtractCallInternal (e, boundVarExprs, unboundVars @ [ v ], t @ [v.Type])
+                    ExtractCallInternal (e, boundVarExprs, unboundVars @ [ v ])
                 | Patterns.Let (v, e1, e2) ->
-                    ExtractCallInternal (e2, boundVarExprs @ [ e1 ], unboundVars, t @ [v.Type])
+                    ExtractCallInternal (e2, boundVarExprs @ [ e1 ], unboundVars)
                 | Patterns.Call (e, mi, a) ->
-                    Some(e, mi, a, boundVarExprs, unboundVars, t)
+                    match mi with
+                    | DerivedPatterns.MethodWithReflectedDefinition(_) ->   
+                        Some(e, mi, a, boundVarExprs, unboundVars)
+                    | _ ->
+                        None
                 | _ ->
                     None       
-            ExtractCallInternal(expr, [], [], [])          
+            ExtractCallInternal(expr, [], [])          
                 
         let rec ExtractMethodInfo(expr) =                 
             match ExtractCall(expr) with
@@ -462,7 +466,13 @@ module QuotationAnalysis =
     module KernelParsing =
         open MetadataExtraction
         open FunctionsManipulation
+        open ReflectionUtil
         
+        let PipelineMethods = 
+            [ ExtractMethodInfo(<@ (|>) @>).Value.TryGetGenericMethodDefinition(); 
+              ExtractMethodInfo(<@ (||>) @>).Value.TryGetGenericMethodDefinition();
+              ExtractMethodInfo(<@ (|||>) @>).Value.TryGetGenericMethodDefinition() ]
+
         let LambdaToMethod(e, isKernel: bool, kernelOnlyIfWorkItemInfoParam: bool) = 
             let expr, kernelAttrs, returnAttrs = ParseKernelMetadata(e)
 
@@ -579,7 +589,7 @@ module QuotationAnalysis =
                         let arguments = new List<Expr>()
                         let mutable workItemInfoArg = None
                         for i = 0 to origParams.Length - 1 do
-                            if not (typeof<WorkItemInfo>.IsAssignableFrom(origParams.[i].ParameterType)) then
+                            if typeof<WorkItemInfo> <> (origParams.[i].ParameterType) then
                                 parameters.Add(origParams.[i])
                                 parameterVars.Add(paramVars.[i])
                                 arguments.Add(a.[i])
@@ -786,34 +796,30 @@ module QuotationAnalysis =
                 None
                 
         let rec CompositionToCallOrApplication(ex: Expr, specificCalls: ((Expr option * MethodInfo * Expr list) -> bool) option) =    
-            let valid, compositionArgs = 
+            (*let valid, compositionArgs = 
                 match ex with
                 | DerivedPatterns.SpecificCall <@ (|>) @> (e, tl, compArgs) 
                 | DerivedPatterns.SpecificCall <@ (||>) @> (e, tl, compArgs) 
                 | DerivedPatterns.SpecificCall <@ (|||>) @> (e, tl, compArgs) ->
                     true, compArgs
                 | _ ->
+                    false, []*)
+            let valid, compositionArgs = 
+                match ex with
+                | Patterns.Call(o, mi, a) ->
+                    if (PipelineMethods |> List.tryFind(fun i -> i = mi.TryGetGenericMethodDefinition())).IsSome then
+                        true, a
+                    else
+                        false, []
+                | _ ->
                     false, []
-    
-            // Constrain the call that we look for in the rightmost argument of the composition
-            let filter = 
-                if specificCalls.IsSome then
-                    specificCalls.Value
-                else
-                    fun (_, mi, _) ->
-                        // Check if Array function
-                        match mi with
-                        | DerivedPatterns.MethodWithReflectedDefinition(_) ->
-                            true
-                        | _ ->
-                            false 
 
             if valid then 
                 match compositionArgs |> Seq.last with
                 | Patterns.Lambda(v, b) ->
                     // This may be a preparation to call a reflected method or a full lambda
-                    match ExtractCallWithTypes(compositionArgs |> Seq.last) with
-                    | Some(o, mi, a, boundExpr, unboundVar, types) ->
+                    match ExtractCallWithReflectedDefinition(compositionArgs |> Seq.last) with
+                    | Some(o, mi, a, boundExpr, unboundVar) ->
                         // It's a call
                         // Here parsing may give wrong results, cannot do anything but hoping for good chance
                         (*
@@ -829,17 +835,10 @@ module QuotationAnalysis =
                             that is, Is still have a sequence of Lambda and a call at the end
                             In this case, anyway, I don't want to extract "doSomething", but Lambda(i1, Lambda(i2, ...))                           
                         *)
-                        if types = (mi.GetParameters() |> List.ofArray |> List.map(fun p -> p.ParameterType)) then
-                            if o.IsSome then
-                                Expr.Call(o.Value, mi, (a |> Seq.take(a.Length - unboundVar.Length) |> List.ofSeq) @ (compositionArgs |> Seq.take(unboundVar.Length) |> List.ofSeq))
-                            else
-                                Expr.Call(mi, (a |> Seq.take(a.Length - unboundVar.Length) |> List.ofSeq) @ (compositionArgs |> Seq.take(unboundVar.Length) |> List.ofSeq))
+                        if o.IsSome then
+                            Expr.Call(o.Value, mi, (a |> Seq.take(a.Length - unboundVar.Length) |> List.ofSeq) @ (compositionArgs |> Seq.take(unboundVar.Length) |> List.ofSeq))
                         else
-                            // Gone too far, this should be a lambda
-                            let mutable res = compositionArgs |> Seq.last 
-                            for i = 0 to compositionArgs.Length - 2 do
-                                res <- Expr.Application(res, compositionArgs.[i])
-                            res
+                            Expr.Call(mi, (a |> Seq.take(a.Length - unboundVar.Length) |> List.ofSeq) @ (compositionArgs |> Seq.take(unboundVar.Length) |> List.ofSeq))
                     | _ ->
                         // A fully applied lambda
                         let mutable res = compositionArgs |> Seq.last 

@@ -96,21 +96,17 @@ module Language =
     | CLK_LOCAL_MEM_FENCE
     | CLK_GLOBAL_MEM_FENCE  
 
-    [<AllowNullLiteral>]
-    type KernelMetadataFunctionAttribute(t: Type) =
-        inherit Attribute()
-        member val Metadata = t with get
+    type MetadataFunctionTarget =
+    | KernelFunction = 0
+    | KernelReturnType = 1
+    | KernelParameter = 2
 
     [<AllowNullLiteral>]
-    type ParameterMetadataFunctionAttribute(t: Type) =
+    type MetadataFunctionAttribute(t: Type, target: MetadataFunctionTarget) =
         inherit Attribute()
         member val Metadata = t with get
-        
-    [<AllowNullLiteral>]
-    type ReturnMetadataFunctionAttribute(t: Type) =
-        inherit Attribute()
-        member val Metadata = t with get
-        
+        member val Target = target with get
+
     ///
     ///<summary>
     ///The attribute to mark a parameter to be allocated in a particular address space (global, constant, local)
@@ -220,44 +216,44 @@ module Language =
         inherit KernelMetadataAttribute()  
 
     // Functions matching attributes for dynamic marking of parameters
-    [<ParameterMetadataFunction(typeof<AddressSpaceAttribute>)>]
+    [<MetadataFunction(typeof<AddressSpaceAttribute>, MetadataFunctionTarget.KernelParameter)>]
     let ADDRESS_SPACE(m: AddressSpace, a) = 
         a
-    [<ParameterMetadataFunction(typeof<TransferModeAttribute>)>]
+    [<MetadataFunction(typeof<TransferModeAttribute>, MetadataFunctionTarget.KernelParameter)>]
     let TRANSFER_MODE(htd: TransferMode, dth: TransferMode, a) = 
         a
-    [<ParameterMetadataFunction(typeof<MemoryFlagsAttribute>)>]
+    [<MetadataFunction(typeof<MemoryFlagsAttribute>, MetadataFunctionTarget.KernelParameter)>]
     let MEMORY_FLAGS(m: MemoryFlags, a) = 
         a     
-    [<ParameterMetadataFunction(typeof<BufferReadModeAttribute>)>]
+    [<MetadataFunction(typeof<BufferReadModeAttribute>, MetadataFunctionTarget.KernelParameter)>]
     let BUFFER_READ_MODE(m: BufferReadMode, a) = 
         a     
-    [<ParameterMetadataFunction(typeof<BufferWriteModeAttribute>)>]
+    [<MetadataFunction(typeof<BufferWriteModeAttribute>, MetadataFunctionTarget.KernelParameter)>]
     let BUFFER_WRITE_MODE(m: BufferWriteMode, a) = 
         a     
         
     // Functions matching attributes for dynamic marking of kernels
-    [<KernelMetadataFunction(typeof<DeviceTypeAttribute>)>]
+    [<MetadataFunction(typeof<DeviceTypeAttribute>, MetadataFunctionTarget.KernelFunction)>]
     let DEVICE_TYPE(t: DeviceType, a) =
         a
-    [<KernelMetadataFunction(typeof<MinReduceArrayLengthAttribute>)>]
+    [<MetadataFunction(typeof<MinReduceArrayLengthAttribute>, MetadataFunctionTarget.KernelFunction)>]
     let MIN_REDUCE_ARRAY_LENGTH(l:int64, a) = 
         a     
         
     // Functions matching attributes for dynamic marking of return buffers
-    [<ReturnMetadataFunction(typeof<AddressSpaceAttribute>)>]
+    [<MetadataFunction(typeof<AddressSpaceAttribute>, MetadataFunctionTarget.KernelReturnType)>]
     let RETURN_ADDRESS_SPACE(m: AddressSpace, a) = 
         a
-    [<ReturnMetadataFunction(typeof<TransferModeAttribute>)>]
+    [<MetadataFunction(typeof<TransferModeAttribute>, MetadataFunctionTarget.KernelReturnType)>]
     let RETURN_TRANSFER_MODE(m: TransferMode, a) = 
         a
-    [<ReturnMetadataFunction(typeof<MemoryFlagsAttribute>)>]
+    [<MetadataFunction(typeof<MemoryFlagsAttribute>, MetadataFunctionTarget.KernelReturnType)>]
     let RETURN_MEMORY_FLAGS(m: MemoryFlags, a) = 
         a 
-    [<ReturnMetadataFunction(typeof<BufferReadModeAttribute>)>]
+    [<MetadataFunction(typeof<BufferReadModeAttribute>, MetadataFunctionTarget.KernelReturnType)>]
     let RETURN_BUFFER_READ_MODE(m: BufferReadMode, a) = 
         a         
-    [<ReturnMetadataFunction(typeof<BufferWriteModeAttribute>)>]
+    [<MetadataFunction(typeof<BufferWriteModeAttribute>, MetadataFunctionTarget.KernelReturnType)>]
     let RETURN_BUFFER_WRITE_MODE(m: BufferWriteMode, a) = 
         a     
            

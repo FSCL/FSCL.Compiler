@@ -1,3 +1,12 @@
+### 1.4.1 - 17 October 2014
+* Automatic characterization of lambda functions (if a lambda has a WorkItemInfo param it's turn into a kernel, otherwise it's applied by reflection on the CPU)
+* Bug fix
+
+### 1.4.0 - 16 October 2014
+* Added support for pipelining operators (|>, ||> and |||>)
+* Added support for partial functions (curried form)
+* Added support for lambda application
+
 ### 1.3.8 - 11 September 2014
 * Fixed flattening of multi-dimensional arrays
 
