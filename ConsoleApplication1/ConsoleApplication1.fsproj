@@ -47,6 +47,7 @@
     <Reference Include="System.Numerics" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Test.fs" />
     <Compile Include="Program.fs" />
     <None Include="App.config" />
   </ItemGroup>
@@ -64,6 +65,11 @@
     <ProjectReference Include="..\src\FSCL.Compiler\FSCL.Compiler.fsproj">
       <Name>FSCL.Compiler</Name>
       <Project>{52b857c3-c0d3-4280-b094-20fce4bad4b9}</Project>
+      <Private>True</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\tests\FSCL.Compiler.Tests\FSCL.Compiler.Tests.fsproj">
+      <Name>FSCL.Compiler.Tests</Name>
+      <Project>{e789c72a-5cfd-436b-8ef1-61aa2852a89f}</Project>
       <Private>True</Private>
     </ProjectReference>
   </ItemGroup>

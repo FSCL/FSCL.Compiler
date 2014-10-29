@@ -56,10 +56,12 @@ type AcceleratedArrayMetaFiltering() =
                     let localParameterMeta = new ParamMetaCollection()
                     localParameterMeta.Add(new AddressSpaceAttribute(AddressSpace.Local))
                     pmeta.Add(localParameterMeta)
+                    rmeta.Add(new TransferModeAttribute(TransferMode.NoTransfer, TransferMode.NoTransfer))
                     pmeta.Add(rmeta)
                 // If cpu
                 else
                     pmeta.Add(new ParamMetaCollection())
+                    rmeta.Add(new TransferModeAttribute(TransferMode.NoTransfer, TransferMode.NoTransfer))
                     pmeta.Add(rmeta)
                 // Force output to be read-write (cause it will be switched) 
                 pmeta.[pmeta.Count - 1].AddOrSet(new MemoryFlagsAttribute(MemoryFlags.ReadWrite))
@@ -73,11 +75,13 @@ type AcceleratedArrayMetaFiltering() =
                     let localParameterMeta = new ParamMetaCollection()
                     localParameterMeta.Add(new AddressSpaceAttribute(AddressSpace.Local))
                     pmeta.Add(localParameterMeta)
+                    rmeta.Add(new TransferModeAttribute(TransferMode.NoTransfer, TransferMode.NoTransfer))
                     pmeta.Add(rmeta)
                 // If cpu
                 else
-                    pmeta.Add(new ParamMetaCollection())
+                    rmeta.Add(new TransferModeAttribute(TransferMode.NoTransfer, TransferMode.NoTransfer))
                     pmeta.Add(rmeta)
+                    pmeta.Add(new ParamMetaCollection())
                 // Force output to be read-write (cause it will be switched) 
                 pmeta.[pmeta.Count - 1].AddOrSet(new MemoryFlagsAttribute(MemoryFlags.ReadWrite))
             | _ ->

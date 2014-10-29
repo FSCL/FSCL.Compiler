@@ -114,6 +114,15 @@ Target "RunTests" (fun _ ->
             OutputFile = "TestResults.xml" })
 )
 
+Target "RunTestsOnly" (fun _ ->
+    !! testAssemblies 
+    |> NUnit (fun p ->
+        { p with
+            DisableShadowCopy = true
+            TimeOut = TimeSpan.FromMinutes 20.
+            OutputFile = "TestResults.xml" })
+)
+
 #if MONO
 #else
 // --------------------------------------------------------------------------------------

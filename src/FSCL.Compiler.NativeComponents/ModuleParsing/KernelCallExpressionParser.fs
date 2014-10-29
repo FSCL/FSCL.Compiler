@@ -33,24 +33,24 @@ type KernelCallExpressionParser() =
         if (e :? Expr) then
             let norm = e :?> Expr
             let data, isLambda = 
-                match GetKernelFromApplication(norm) with
+                match GetKernelFromCall(norm) with 
                 | Some(data) ->
-                    Some(data), true
+                    Some(data), false
                 | _ ->
-                    match GetKernelFromCall(norm) with 
+                    match GetKernelFromApplication(norm) with
                     | Some(data) ->
-                        Some(data), false
-                    | _ ->
+                        Some(data), true
+                    | _ ->                        
                         None, false
 
             match data with
-            | Some(mi, paramInfo, paramVars, body, cleanArgs, workItemInfo, kMeta, rMeta, pMeta) ->
+            | Some(obv, ob, mi, paramInfo, paramVars, body, cleanArgs, workItemInfo, kMeta, rMeta, pMeta) ->
                 
                 // Filter and finalize metadata
                 let finalMeta = step.ProcessMeta(kMeta, rMeta, pMeta, new Dictionary<string, obj>())
 
                 // Create module
-                let kernel = new KernelInfo(mi, paramInfo, paramVars, workItemInfo, body, finalMeta, isLambda)
+                let kernel = new KernelInfo(obv, ob, mi, paramInfo, paramVars, workItemInfo, body, finalMeta, isLambda)
                 let kernelModule = new KernelModule(kernel, cleanArgs)
                 Some(kernelModule)   
             | _ ->     

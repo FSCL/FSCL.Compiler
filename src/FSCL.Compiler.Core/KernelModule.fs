@@ -20,8 +20,8 @@ type IKernelModule =
     abstract Functions: IReadOnlyDictionary<FunctionInfoID, IFunctionInfo> with get
     abstract GlobalTypes: Type list with get
     abstract Directives: String list with get
-    abstract ConstantDefines: IReadOnlyDictionary<String, Expr * bool> with get
- //   abstract DynamicConstantDefinesEvaluator: (Expr -> string) with get
+    abstract GlobalData: IReadOnlyDictionary<Expr, Expr> with get
+    abstract DynamicConstantDefines: IReadOnlyDictionary<String, Var option * Expr option * obj> with get
 
     abstract CallArgs: Expr list option with get
     abstract Code: string option with get
@@ -51,9 +51,12 @@ type KernelModule(k: KernelInfo, ?callArgs: Expr list) =
         member this.CustomInfo
             with get() =
                 this.CustomInfo :> IReadOnlyDictionary<string, obj>
-        member this.ConstantDefines 
+        member this.GlobalData
             with get() =
-                this.ConstantDefines :> IReadOnlyDictionary<String, Expr * bool>
+                this.GlobalData :> IReadOnlyDictionary<Expr, Expr>
+        member this.DynamicConstantDefines 
+            with get() =
+                this.DynamicConstantDefines :> IReadOnlyDictionary<String, Var option * Expr option * obj>
      //   member this.DynamicConstantDefinesEvaluator
        //     with get() = 
          //       this.DynamicConstantDefinesEvaluator
@@ -63,10 +66,8 @@ type KernelModule(k: KernelInfo, ?callArgs: Expr list) =
     member val Functions = new Dictionary<FunctionInfoID, IFunctionInfo>() with get
     member val GlobalTypes = new HashSet<Type>() with get
     member val Directives = new HashSet<String>() with get
-
-    member val ConstantDefines = new Dictionary<string, Expr * bool>() with get
-    member val StaticConstantDefinesCode = new Dictionary<string, string>() with get
-   // member val DynamicConstantDefinesEvaluator = (fun _-> "") with get, set
+    member val GlobalData = new Dictionary<Expr, Expr>() with get
+    member val DynamicConstantDefines = new Dictionary<string, Var option * Expr option * obj>() with get
 
     member val CallArgs = callArgs with get
     member val Code:string option = None with get, set

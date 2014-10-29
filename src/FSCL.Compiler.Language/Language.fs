@@ -258,7 +258,8 @@ module Language =
         a     
            
     // Dynamic (passed when compiling OpenCL kernel code) define
-    type DynamicConstantDefineAttribute() =
+    [<AllowNullLiteral>]
+    type MacroAttribute() =
         inherit Attribute()
             
     /// Operator overloading for pointer arithmetic inside kernels    

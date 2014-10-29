@@ -33,8 +33,8 @@ type ArithmeticOperationCodegen() =
         match expr with 
         | Patterns.Call(o, mi, args) ->            
             let returnPrefix = 
-                if engine.FunctionInfo.CustomInfo.ContainsKey("RETURN_EXPRESSIONS") then
-                    let returnTags = engine.FunctionInfo.CustomInfo.["RETURN_EXPRESSIONS"] :?> Expr list
+                if engine.FunctionInfo.CustomInfo.ContainsKey("FUNCTION_RETURN_EXPRESSIONS") then
+                    let returnTags = engine.FunctionInfo.CustomInfo.["FUNCTION_RETURN_EXPRESSIONS"] :?> Expr list
                     if (List.tryFind(fun (e:Expr) -> e = expr) returnTags).IsSome then
                         "return "
                     else

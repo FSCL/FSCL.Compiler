@@ -103,13 +103,8 @@ type FunctionCodegenStep(tm: TypeManager,
             // Process kernel
             this.Process(km.Kernel)
             // Process defines
-            for d in km.ConstantDefines do
-                match d.Value with
-                | e, true ->
-                    // Static define
-                    km.StaticConstantDefinesCode.Add(d.Key, this.Process(e))
-                | e, false ->
-                    ()
+            //for d in km.StaticConstantDefines do
+              //  km.StaticConstantDefinesCode.Add(d.Key, this.Process(d.Value))
          
         let r = ContinueCompilation(km)
         r

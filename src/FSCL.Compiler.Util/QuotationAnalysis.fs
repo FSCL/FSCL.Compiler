@@ -171,11 +171,10 @@ module QuotationAnalysis =
                     (expr, parameters)
                 
             match expr with
-            | Patterns.Lambda(v, e) ->
-                if v.Name = "tupledArg" then
-                    Some(GetCallArgs(e, []))
-                else
-                    None
+            | Patterns.Lambda(v, Patterns.Lambda(vt, et)) when v.Name = "this" && vt.Name = "tupledArg" ->
+                Some(GetCallArgs(et, []))
+            | Patterns.Lambda(vt, et) when vt.Name = "tupledArg" ->
+                Some(GetCallArgs(et, []))
             | _ ->
                 None
             
@@ -217,7 +216,7 @@ module QuotationAnalysis =
 
             match expr with
             | Patterns.Application(l, a) ->
-                Some(LiftLambdaApplicationRec(expr, []))
+                Some(LiftLambdaApplicationRec(l, [ a ]))
             | _ ->
                 None
         
@@ -236,39 +235,62 @@ module QuotationAnalysis =
                 
             match expr with
             | Patterns.Lambda(v, e) ->
-                if v.Name = "tupledArg" then
-                    Some(GetCallArgs(e, []))
+                if v.Name = "this" then
+                    match e with
+                    | Patterns.Lambda(vTuple, eTuple) ->                        
+                        if vTuple.Name = "tupledArg" then
+                            Some(v), Some(GetCallArgs(eTuple, []))
+                        else
+                            None, None
+                    | _ ->
+                        None, None
                 else
-                    None
+                    if v.Name = "tupledArg" then
+                        None, Some(GetCallArgs(e, []))
+                    else
+                        None, None
             | _ ->
-                None
+                None, None
             
         // Extract and lift function parameters in curried form
         let GetCurriedArgs(expr) =
             let rec GetCallArgs(expr, parameters: Var list) =
                 match expr with
                 | Patterns.Lambda(v, body) ->
-                    GetCallArgs(body, parameters @ [ v ])
+                    GetCallArgs(body, parameters @ [v])
                 | _ ->
-                    (parameters)
+                    parameters
                 
             match expr with
             | Patterns.Lambda(v, e) ->
-                Some(GetCallArgs(e, [v]))
+                if v.Name = "this" then
+                    Some(v), Some(GetCallArgs(e, []))
+                else
+                    None, Some(GetCallArgs(e, [ v ]))
             | _ ->
-                None
+                None, None
 
         let GetCurriedOrTupledArgs(expr) =
             match GetTupledArgs(expr) with
-            | Some(p) ->
-                Some(p)
-            | None ->
+            | th, Some(v) ->
+                th, Some(v)
+            | _, None ->
                 match GetCurriedArgs(expr) with
-                | Some(p) ->
-                    Some(p)
+                | th, Some(v) ->
+                    th, Some(v)
                 | _ ->
-                    None
+                    None, None
 
+        let GetThisVariable(expr) =
+            match expr with
+            | Patterns.Lambda(v, e) ->
+                if v.Name = "this" then
+                    Some(v)
+                else
+                    None
+            | _ ->
+                None
+        
         let rec ExtractCall(expr: Expr) =   
             let rec ExtractCallInternal(expr, boundVarExprs: Expr list, unboundVars: Var list) =
                 match expr with
@@ -291,8 +313,8 @@ module QuotationAnalysis =
                     ExtractCallInternal (e2, boundVarExprs @ [ e1 ], unboundVars)
                 | Patterns.Call (e, mi, a) ->
                     match mi with
-                    | DerivedPatterns.MethodWithReflectedDefinition(_) ->   
-                        Some(e, mi, a, boundVarExprs, unboundVars)
+                    | DerivedPatterns.MethodWithReflectedDefinition(body) ->   
+                        Some(e, mi, body, a, boundVarExprs, unboundVars)
                     | _ ->
                         None
                 | _ ->
@@ -362,7 +384,7 @@ module QuotationAnalysis =
                     e
             removeInternal(e, v)
                     
-        let LiftNonLambdaParamsFromMethodCalledInLambda(mi: MethodInfo, args: Expr list, body: Expr, lambdaParams: Var list) =            
+        let LiftNonLambdaParamsFromMethodCalledInLambda(o: Expr option, mi: MethodInfo, args: Expr list, body: Expr, lambdaParams: Var list) =            
             let IsExpressionContainingRefToOneOfVars(e: Expr, varList: Var list) =
                 let rec findInternal(e: Expr, vs: Var list) =
                     match e with
@@ -461,7 +483,7 @@ module QuotationAnalysis =
             moduleBuilder.CreateGlobalFunctions()
             let signature = moduleBuilder.GetMethod(methodBuilder.Name) 
 
-            (signature, keptParamVars |> Seq.toList, finalBody)
+            (o, signature, keptParamVars |> Seq.toList, finalBody)
 
     module KernelParsing =
         open MetadataExtraction
@@ -525,21 +547,13 @@ module QuotationAnalysis =
                 GetKernelFromName (e)
             | Patterns.Let (v, e1, e2) ->
                 GetKernelFromName (e2)
-            | Patterns.Call (e, mi, a) ->
+            | Patterns.Call (ob, mi, a) ->
                 match mi with
                 | DerivedPatterns.MethodWithReflectedDefinition(body) ->    
                     // Fix: check if Lambda(this, body) for instance methods
-                    let b = match body with
-                            | Patterns.Lambda(v, b) ->
-                                if (v.Name = "this") then
-                                    b
-                                else
-                                    body
-                            | _ ->
-                                body
                     // Extract parameters vars
-                    match GetCurriedOrTupledArgs(b) with
-                    | Some(paramVars) ->       
+                    match GetCurriedOrTupledArgs(body) with
+                    | thisVar, Some(paramVars) ->       
                         MergeWithStaticKernelMeta(kernelAttrs, returnAttrs, mi)
                         // Take parameters except the last one (workItemInfo)
                         let origParams = mi.GetParameters()
@@ -555,7 +569,7 @@ module QuotationAnalysis =
                             let paramAttrs = new ParamMetaCollection()
                             MergeWithStaticParameterMeta(paramAttrs, p)
                             attrs.Add(paramAttrs)
-                        Some(mi, parameters |> List.ofSeq, parameterVars |> List.ofSeq, b, kernelAttrs, returnAttrs, attrs)
+                        Some(thisVar, ob, mi, parameters |> List.ofSeq, parameterVars |> List.ofSeq, body, kernelAttrs, returnAttrs, attrs)
                     | _ ->
                         None
                 | _ ->
@@ -566,51 +580,110 @@ module QuotationAnalysis =
         let rec GetKernelFromCall(e) =                
             let expr, kernelAttrs, returnAttrs = ParseKernelMetadata(e)
 
-            match expr with            
-            | Patterns.Call (e, mi, a) ->
-                match mi with
-                | DerivedPatterns.MethodWithReflectedDefinition(body) -> 
-                    // Fix: check if Lambda(this, body) for instance methods
-                    let b = match body with
-                            | Patterns.Lambda(v, b) ->
-                                if (v.Name = "this") then
-                                    b
-                                else
-                                    body
+            let callData =
+                match expr with            
+                | Patterns.Call (ob, mi, a) ->
+                    // Immediate call
+                    match mi with
+                    | DerivedPatterns.MethodWithReflectedDefinition(body) ->   
+                        let thisVar = GetThisVariable(body)
+                        Some(thisVar, ob, mi, a, body)
+                    | _ ->
+                        None
+                | Patterns.Let(_, Patterns.NewTuple(l), b) ->
+                    // This is tupled-args proparation to call a tupled function
+                    // Check b contains a reflected definition method call                    
+                    match ExtractCallWithReflectedDefinition(b) with
+                    | Some(ob, mi, body, _, _, _) -> 
+                        // Arguments must be extracted from the new tuple (already extracted, it's "l")
+                        let thisVar = GetThisVariable(body) 
+                        Some(None, ob, mi, l, body)
+                    | _ ->
+                        None 
+                | Patterns.Application(Patterns.Let(clovar, 
+                                                    Patterns.Lambda(clolv, clolval), 
+                                                    Patterns.Lambda(clovv, clovval)), ar) ->
+                    // Application of a closure
+                    match ExtractCallWithReflectedDefinition(clolval) with
+                    | Some(ob, mi, body, _, _, _) -> 
+                        // Ok this is it
+                        // Convert potential tupledArg into arg list
+                        let a =
+                            match ar with
+                            | Patterns.NewTuple(elements) ->
+                                elements
                             | _ ->
-                                body               
-                    // Extract parameters vars
-                    match GetCurriedOrTupledArgs(b) with
-                    | Some(paramVars) ->                    
-                        MergeWithStaticKernelMeta(kernelAttrs, returnAttrs, mi)
-                        let origParams = mi.GetParameters()
-                        let parameters = new List<ParameterInfo>()
-                        let parameterVars = new List<Var>()
-                        let arguments = new List<Expr>()
-                        let mutable workItemInfoArg = None
-                        for i = 0 to origParams.Length - 1 do
-                            if typeof<WorkItemInfo> <> (origParams.[i].ParameterType) then
-                                parameters.Add(origParams.[i])
-                                parameterVars.Add(paramVars.[i])
-                                arguments.Add(a.[i])
-                            else
-                                workItemInfoArg <- Some(a.[i])
-                        let attrs = new List<ParamMetaCollection>()
-                        let args = new List<Expr>()
-                        for i = 0 to parameters.Count - 1 do
-                            let paramAttrs = new ParamMetaCollection()
-                            let cleanArg, paramAttrs = ParseParameterMetadata(arguments.[i])
-                            MergeWithStaticParameterMeta(paramAttrs, parameters.[i])
-                            attrs.Add(paramAttrs)
-                            args.Add(cleanArg)
-                        Some(mi, parameters |> List.ofSeq, parameterVars |> List.ofSeq, b, args |> List.ofSeq, workItemInfoArg, kernelAttrs, returnAttrs, attrs)
+                                [ ar ]
+                        let thisVar = GetThisVariable(body) 
+                        Some(thisVar, ob, mi, a, body)
+                    | _ ->
+                        None                                                                         
+                | Patterns.Application(item, arg) ->
+                    // This may be the application of a lambda preparing the call to a reflected method info
+                    // Lift application
+                    match LiftLambdaApplication(expr) with
+                    | Some(cont, ar) ->
+                        // Check if l is a lambda with reflectedDefinition
+                        match cont with
+                        | Patterns.Lambda(l, b) ->
+                            // Check if there is a call to a reflected method
+                            match ExtractCallWithReflectedDefinition(cont) with
+                            | Some(ob, mi, body, _, _, _) -> 
+                                // Ok this is it
+                                // Convert potential tupledArg into arg list
+                                let a =
+                                    if ar.Length > 0 then
+                                        match ar.[0] with
+                                        | Patterns.NewTuple(elements) ->
+                                            elements
+                                        | _ ->
+                                            ar
+                                    else
+                                        ar
+                                let thisVar = GetThisVariable(body)
+                                Some(thisVar, ob, mi, a, body)
+                            | _ ->
+                                None
+                        | _ ->
+                            None
                     | _ ->
                         None
                 | _ ->
                     None
-            | _ ->
+              
+            match callData with
+            | None ->
                 None
-            
+            | Some(obv, ob, mi, a, b) ->        
+                // Extract parameters vars
+                match GetCurriedOrTupledArgs(b) with
+                | thisVar, Some(paramVars) ->                    
+                    MergeWithStaticKernelMeta(kernelAttrs, returnAttrs, mi)
+                    let origParams = mi.GetParameters()
+                    let parameters = new List<ParameterInfo>()
+                    let parameterVars = new List<Var>()
+                    let arguments = new List<Expr>()
+                    let mutable workItemInfoArg = None
+                    for i = 0 to origParams.Length - 1 do
+                        if typeof<WorkItemInfo> <> (origParams.[i].ParameterType) then
+                            parameters.Add(origParams.[i])
+                            parameterVars.Add(paramVars.[i])
+                            arguments.Add(a.[i])
+                        else
+                            workItemInfoArg <- Some(a.[i])
+                    let attrs = new List<ParamMetaCollection>()
+                    let args = new List<Expr>()
+                    for i = 0 to parameters.Count - 1 do
+                        let paramAttrs = new ParamMetaCollection()
+                        let cleanArg, paramAttrs = ParseParameterMetadata(arguments.[i])
+                        MergeWithStaticParameterMeta(paramAttrs, parameters.[i])
+                        attrs.Add(paramAttrs)
+                        args.Add(cleanArg)
+                    Some(obv, ob, mi, parameters |> List.ofSeq, parameterVars |> List.ofSeq, b, args |> List.ofSeq, workItemInfoArg, kernelAttrs, returnAttrs, attrs)
+                | _ ->
+                    None
+                       
+
         let rec GetKernelFromApplication(e) =                
             let expr, kernelAttrs, returnAttrs = ParseKernelMetadata(e)
          
@@ -637,7 +710,7 @@ module QuotationAnalysis =
                         MergeWithStaticParameterMeta(paramAttrs, paramInfo.[i])
                         attrs.Add(paramAttrs)
                         args.Add(cleanArg)
-                    Some(mi, paramInfo, paramVars, b, args |> List.ofSeq, workItemInfoArg, kernelAttrs, returnAttrs, attrs)                    
+                    Some(None, None, mi, paramInfo, paramVars, b, args |> List.ofSeq, workItemInfoArg, kernelAttrs, returnAttrs, attrs)                    
                 | _ ->
                     None
             | _ ->
@@ -660,15 +733,7 @@ module QuotationAnalysis =
             if valid then 
                 if methodInfo.IsSome then
                     match methodInfo.Value with
-                    | o, mi, partialArgs, body, lambdaVars ->                        
-                        let b = match body with
-                                | Patterns.Lambda(v, b) ->
-                                    if (v.Name = "this") then
-                                        b
-                                    else
-                                        body
-                                | _ ->
-                                    body    
+                    | o, mi, partialArgs, body, lambdaVars ->          
                         // In COMP1 |> COMP2 a1 .. aN the args of COMP2 are a1, .. aN, COMP1 (+1 at the end)
                         let methodInfoArgs = new List<Expr>(partialArgs)
                         methodInfoArgs.RemoveRange(methodInfoArgs.Count - lambdaVars.Length, lambdaVars.Length)
@@ -676,8 +741,8 @@ module QuotationAnalysis =
                         methodInfoArgs.RemoveAt(methodInfoArgs.Count - 1)
 
                         // Extract parameters vars
-                        match GetCurriedOrTupledArgs(b) with
-                        | Some(paramVars) ->                 
+                        match GetCurriedOrTupledArgs(body) with
+                        | thisVar, Some(paramVars) ->                 
                             MergeWithStaticKernelMeta(kernelAttrs, returnAttrs, mi)
                             let origParams = mi.GetParameters()
                             let parameters = new List<ParameterInfo>()
@@ -699,7 +764,7 @@ module QuotationAnalysis =
                                 MergeWithStaticParameterMeta(paramAttrs, parameters.[i])
                                 attrs.Add(paramAttrs)
                                 args.Add(cleanArg)
-                            Some(mi, parameters |> List.ofSeq, parameterVars |> List.ofSeq, b, args |> List.ofSeq, workItemInfoArg, kernelAttrs, returnAttrs, attrs)                      
+                            Some(mi, parameters |> List.ofSeq, parameterVars |> List.ofSeq, body, args |> List.ofSeq, workItemInfoArg, kernelAttrs, returnAttrs, attrs)                      
                         | _ ->
                             None
                 else if lambda.IsSome then
@@ -766,17 +831,9 @@ module QuotationAnalysis =
             match mi with
             | DerivedPatterns.MethodWithReflectedDefinition(body) ->  
                 // Fix: check if Lambda(this, body) for instance methods
-                let b = match body with
-                        | Patterns.Lambda(v, b) ->
-                            if (v.Name = "this") then
-                                b
-                            else
-                                body
-                        | _ ->
-                            body   
                 // Extract parameters vars
-                match GetCurriedOrTupledArgs(b) with
-                | Some(paramVars) ->                    
+                match GetCurriedOrTupledArgs(body) with
+                | thisVar, Some(paramVars) ->                    
                     let kernelMeta = new KernelMetaCollection()
                     let returnMeta = new ParamMetaCollection()
                     MergeWithStaticKernelMeta(kernelMeta, returnMeta, mi)
@@ -789,7 +846,7 @@ module QuotationAnalysis =
                         let paramAttrs = new ParamMetaCollection()
                         MergeWithStaticParameterMeta(paramAttrs, p)
                         attrs.Add(paramAttrs)
-                    Some(mi, parameters, pVars, b, kernelMeta, returnMeta, attrs)
+                    Some(thisVar, None, mi, parameters, pVars, body, kernelMeta, returnMeta, attrs)
                 | _ ->
                     None
             | _ ->

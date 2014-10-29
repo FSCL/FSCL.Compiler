@@ -25,13 +25,13 @@ type DynamicArrayToParameterProcessor() =
         
         // Fix signature and kernel parameters
         let pInfo =         
-            // Check if RETURN_VARIABLE is set in kernel custom infos. This means, during return var discovery no original parameter has
+            // Check if RETURN_ARRAY_VAR is set in kernel custom infos. This means, during return var discovery no original parameter has
             // been found that match that var. It may match this one        
-            if kernel.CustomInfo.ContainsKey("RETURN_VARIABLE") then
-                let rv = kernel.CustomInfo.["RETURN_VARIABLE"] :?> Var     
+            if kernel.CustomInfo.ContainsKey("RETURN_ARRAY_VAR") then
+                let rv = kernel.CustomInfo.["RETURN_ARRAY_VAR"] :?> Var     
                 if rv = var then
                     // Match: we must set the additionar parameter meta accordingly  
-                    kernel.CustomInfo.Remove("RETURN_VARIABLE") |> ignore                  
+                    kernel.CustomInfo.Remove("RETURN_ARRAY_VAR") |> ignore                  
                     let p = FunctionParameter(var.Name, 
                                                 var, 
                                                 DynamicParameter(allocationArgs),

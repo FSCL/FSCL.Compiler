@@ -23,3 +23,10 @@ module ReflectionUtil =
                     false
             else
                 false
+        member t.IsOption 
+            with get() =
+                t.IsGenericType && (t.GetGenericTypeDefinition() = typeof<int option>.GetGenericTypeDefinition())
+        member t.OptionInnerType 
+            with get() =
+                t.GetGenericArguments().[0]
+

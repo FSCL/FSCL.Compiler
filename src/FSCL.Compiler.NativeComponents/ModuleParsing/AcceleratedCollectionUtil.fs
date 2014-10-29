@@ -21,6 +21,12 @@ module AcceleratedCollectionUtil =
     let GenKernelName (prefix: string, parameterTypes: Type list, utilityFunction: string) =
         String.concat "_" ([prefix] @ (List.map (fun (t:Type) -> t.Name.Replace(".", "")) parameterTypes) @ [utilityFunction])
     
+    let BuildCallExpr(ob: Expr option, mi: MethodInfo, a: Expr list) =
+        if ob.IsSome then
+            Expr.Call(ob.Value, mi, a)
+        else
+            Expr.Call(mi, a)
+
     let GetDefaultValueExpr(t:Type) =
         if t.IsPrimitive then
             // Primitive type
@@ -105,7 +111,7 @@ module AcceleratedCollectionUtil =
         | _ ->
             None, None
 
-    let ExtractComputationFunction(args: Expr list, root) =     
+    let ExtractComputationFunctionForCollection(args: Expr list, root) =     
         let calledMethod, lambda = GetComputationalLambdaOrMethodInsideLambda(args.[0], root)
         // If lambda we create a method for it
         let computationFunction =                
@@ -119,23 +125,25 @@ module AcceleratedCollectionUtil =
                 // this means that the lambda is something like fun a b c -> myMethod a b c othPar
                 // So othPar must be evaluated, replacing it's current value inside myMethod
                 // Otherwise, the kernel would not be able to invoke it (it doesn't manage othPar)
-                Some(LiftNonLambdaParamsFromMethodCalledInLambda(mi, args, b, lambdaParams))
+                let thisVar = GetThisVariable(b)
+                Some(thisVar, o, mi, lambdaParams, b)
             | None, Some(l) ->
                 // Computational lambda to apply to collection
                 match LambdaToMethod(l, false, true) with                
                 | Some(m, paramInfo, paramVars, b, _, _, _) ->
-                    Some(m, paramVars, b)
+                    Some(None, None, m, paramVars, b)
                 | _ ->
                     failwith ("Cannot parse the body of the computation function " + root.ToString())
             | None, None ->
                 // No lambda but method ref used as function to apply to collection
                 FilterCall(args.[0], 
-                    fun (e, mi, a) ->                         
+                    fun (ob, mi, a) ->                         
                         match mi with
                         | DerivedPatterns.MethodWithReflectedDefinition(body) ->
                             match GetCurriedOrTupledArgs(body) with
-                            | Some(paramVars) ->
-                                (mi, paramVars, body)
+                            | obv, Some(paramVars) ->
+                                let thisVar = GetThisVariable(body)
+                                (thisVar, ob, mi, paramVars, body)
                             | _ ->
                                 failwith ("Cannot parse the body of the computation function " + mi.Name)
                         | _ ->

@@ -32,7 +32,7 @@ type DeclarationCodegen() =
         else
             None
 
-    member private this.TryPrintStructOrRecordDecl(v: Var, value: Expr, body: Expr, step: FunctionCodegenStep) =
+    member private this.TryPrintStructOrOptionOrRecordDecl(v: Var, value: Expr, body: Expr, step: FunctionCodegenStep) =
         // Check this is not a vector type (it's handled differently)
         if v.Type.GetCustomAttribute<VectorTypeAttribute>() = null then
             match value with
@@ -41,7 +41,37 @@ type DeclarationCodegen() =
                 if t.IsStruct() then
                     Some(step.TypeManager.Print(v.Type) + " " + v.Name + ";\n" + step.Continue(body))
                 else
-                    None            
+                    None   
+            // Check if tuple type                        
+            | Patterns.NewTuple(args) ->
+                let mutable gencode = step.TypeManager.Print(v.Type) + " " + v.Name + " = { ";
+                // Gen fields init
+                let fields = args
+                for i = 0 to fields.Length - 1 do
+                    gencode <- gencode + ".Item" + i.ToString() + " = " + step.Continue(args.[i])
+                    if i < fields.Length - 1 then
+                        gencode <- gencode + ", "
+                Some(gencode + " };\n" + step.Continue(body))                  
+            | Patterns.NewUnionCase(ui, args) ->
+                // Check if option type
+                if ui.DeclaringType.IsOption then
+                    // Struct initialisation
+                    if args.Length > 0 then
+                        let gencode = 
+                            Some(
+                                step.TypeManager.Print(ui.DeclaringType) + " " + 
+                                v.Name + " = { .Value = " + step.Continue(args.[0]) + ", .IsSome = 1 };\n" + 
+                                step.Continue(body))
+                        gencode                          
+                    else
+                        let gencode = 
+                            Some(
+                                step.TypeManager.Print(ui.DeclaringType) + " " + 
+                                v.Name + " = { .IsSome = 0 };\n" + 
+                                step.Continue(body))
+                        gencode  
+                else
+                    None   
             // Non-Default struct init
             | Patterns.NewObject(constr, args) ->
                 if v.Type.IsStruct() then
@@ -75,7 +105,7 @@ type DeclarationCodegen() =
         match expr with
         | Patterns.Let(v, value, body) ->
             // Try print struct
-            let structCode = this.TryPrintStructOrRecordDecl(v, value, body, step)
+            let structCode = this.TryPrintStructOrOptionOrRecordDecl(v, value, body, step)
             if structCode.IsSome then
                 structCode
             else
@@ -90,7 +120,7 @@ type DeclarationCodegen() =
                         | _ ->
                             None
                     else
-                        let structCode = this.TryPrintStructOrRecordDecl(v, a.[0], body, step)
+                        let structCode = this.TryPrintStructOrOptionOrRecordDecl(v, a.[0], body, step)
                         if structCode.IsSome then
                             Some("local " + structCode.Value)
                         else

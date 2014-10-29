@@ -62,6 +62,10 @@
     <Compile Include="KernelCompilationTests.fs" />
     <Compile Include="DataTypeTests.fs" />
     <Compile Include="AcceleratedCollectionTest.fs" />
+    <Compile Include="KernelContextTest.fs" />
+    <Compile Include="FunctionContextTest.fs" />
+    <Compile Include="AcceleratedCollectionContextTest.fs" />
+    <Compile Include="DynamicDefineTest.fs" />
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>

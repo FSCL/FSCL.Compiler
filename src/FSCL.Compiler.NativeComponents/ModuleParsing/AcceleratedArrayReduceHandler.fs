@@ -24,7 +24,9 @@ type AcceleratedArrayReduceHandler() =
 
     let cpu_template = 
         <@
-            fun(g_idata:int[], g_odata:int[], block: int, wi: WorkItemInfo) ->
+            fun(g_idata:int[], 
+                [<TransferMode(TransferMode.NoTransfer, TransferMode.NoTransfer)>]g_odata:int[],
+                block: int, wi: WorkItemInfo) ->
                 let mutable global_index = wi.GlobalID(0) * block
                 let up = (wi.GlobalID(0) + 1) * block
                 let mutable upper_bound = Math.Min(up, g_idata.Length)
@@ -49,7 +51,11 @@ type AcceleratedArrayReduceHandler() =
     // NEW: Two-Stage reduction instead of multi-stage
     let gpu_template = 
         <@
-            fun(g_idata:int[], [<Local>]sdata:int[], g_odata:int[], wi:WorkItemInfo) ->
+            fun(g_idata:int[], 
+                [<Local>]sdata:int[], 
+                [<TransferMode(TransferMode.NoTransfer, TransferMode.NoTransfer)>]g_odata:int[], 
+                wi:WorkItemInfo) ->
+
                 let global_index = wi.GlobalID(0)
                 let global_size = wi.GlobalSize(0)
                 let mutable accumulator = g_idata.[global_index]
@@ -71,13 +77,13 @@ type AcceleratedArrayReduceHandler() =
                     g_odata.[wi.GroupID(0)] <- sdata.[0]
         @>
              
-    let rec SubstitutePlaceholders(e:Expr, parameters:Dictionary<Var, Var>, accumulatorPlaceholder:Var, actualFunction: MethodInfo option) =  
+    let rec SubstitutePlaceholders(e:Expr, parameters:Dictionary<Var, Var>, accumulatorPlaceholder:Var, actualFunction: MethodInfo option, actualFunctionInstance: Expr option) =  
         // Build a call expr
         let RebuildCall(o:Expr option, m: MethodInfo, args:Expr list) =
             if o.IsSome && (not m.IsStatic) then
-                Expr.Call(o.Value, m, List.map(fun (e:Expr) -> SubstitutePlaceholders(e, parameters, accumulatorPlaceholder, actualFunction)) args)
+                Expr.Call(o.Value, m, List.map(fun (e:Expr) -> SubstitutePlaceholders(e, parameters, accumulatorPlaceholder, actualFunction, actualFunctionInstance)) args)
             else
-                Expr.Call(m, List.map(fun (e:Expr) -> SubstitutePlaceholders(e, parameters, accumulatorPlaceholder, actualFunction)) args)  
+                Expr.Call(m, List.map(fun (e:Expr) -> SubstitutePlaceholders(e, parameters, accumulatorPlaceholder, actualFunction, actualFunctionInstance)) args)  
             
         match e with
         | Patterns.Var(v) ->
@@ -91,10 +97,10 @@ type AcceleratedArrayReduceHandler() =
             // If this is the placeholder for the utility function (to be applied to each pari of elements)         
             if m.Name = "placeholderComp" then
                 if actualFunction.IsSome then
-                    RebuildCall(o, actualFunction.Value, List.map(fun (e:Expr) -> SubstitutePlaceholders(e, parameters, accumulatorPlaceholder, actualFunction)) args)
+                    RebuildCall(actualFunctionInstance, actualFunction.Value, List.map(fun (e:Expr) -> SubstitutePlaceholders(e, parameters, accumulatorPlaceholder, actualFunction, actualFunctionInstance)) args)
                 else
                     let sumM = AcceleratedCollectionUtil.FilterCall(<@@ (+) @@>, fun(e, mi, a) -> mi.GetGenericMethodDefinition().MakeGenericMethod([| accumulatorPlaceholder.Type; accumulatorPlaceholder.Type; accumulatorPlaceholder.Type |])).Value
-                    Expr.Call(sumM, (List.map(fun (e:Expr) -> SubstitutePlaceholders(e, parameters, accumulatorPlaceholder, actualFunction)) args))
+                    Expr.Call(sumM, (List.map(fun (e:Expr) -> SubstitutePlaceholders(e, parameters, accumulatorPlaceholder, actualFunction, actualFunctionInstance)) args))
             // If this is an access to array (a parameter)
             else if m.DeclaringType.Name = "IntrinsicFunctions" then
                 match args.[0] with
@@ -104,7 +110,7 @@ type AcceleratedArrayReduceHandler() =
                         if (parameters.ContainsKey(v)) then
                             // Recursively process the arguments, except the array reference
                             let arrayGet, _ = AcceleratedCollectionUtil.GetArrayAccessMethodInfo(parameters.[v].Type.GetElementType())
-                            Expr.Call(arrayGet, [ Expr.Var(parameters.[v]); SubstitutePlaceholders(args.[1], parameters, accumulatorPlaceholder, actualFunction) ])
+                            Expr.Call(arrayGet, [ Expr.Var(parameters.[v]); SubstitutePlaceholders(args.[1], parameters, accumulatorPlaceholder, actualFunction, actualFunctionInstance) ])
                         else
                             RebuildCall(o, m, args)
                     else if m.Name = "SetArray" then
@@ -122,23 +128,23 @@ type AcceleratedArrayReduceHandler() =
                                                 else
                                                     args.[2]
                                             | _ ->
-                                                SubstitutePlaceholders(args.[2], parameters, accumulatorPlaceholder, actualFunction)
-                            Expr.Call(arraySet, [ Expr.Var(parameters.[v]); SubstitutePlaceholders(args.[1], parameters, accumulatorPlaceholder, actualFunction); newValue ])
+                                                SubstitutePlaceholders(args.[2], parameters, accumulatorPlaceholder, actualFunction, actualFunctionInstance)
+                            Expr.Call(arraySet, [ Expr.Var(parameters.[v]); SubstitutePlaceholders(args.[1], parameters, accumulatorPlaceholder, actualFunction, actualFunctionInstance); newValue ])
                                                            
                         else
                             RebuildCall(o, m, args)
                     else
                          RebuildCall(o, m,args)
                 | _ ->
-                    RebuildCall(o, m, List.map(fun (e:Expr) -> SubstitutePlaceholders(e, parameters, accumulatorPlaceholder, actualFunction)) args)                  
+                    RebuildCall(o, m, List.map(fun (e:Expr) -> SubstitutePlaceholders(e, parameters, accumulatorPlaceholder, actualFunction, actualFunctionInstance)) args)                  
             // Otherwise process children and return the same call
             else
-                RebuildCall(o, m, List.map(fun (e:Expr) -> SubstitutePlaceholders(e, parameters, accumulatorPlaceholder, actualFunction)) args)
+                RebuildCall(o, m, List.map(fun (e:Expr) -> SubstitutePlaceholders(e, parameters, accumulatorPlaceholder, actualFunction, actualFunctionInstance)) args)
         | Patterns.Let(v, value, body) ->
             if v.Name = "accumulator" then
                 Expr.Let(accumulatorPlaceholder,   
                          AcceleratedCollectionUtil.GetDefaultValueExpr(accumulatorPlaceholder.Type),
-                         SubstitutePlaceholders(body, parameters, accumulatorPlaceholder, actualFunction))
+                         SubstitutePlaceholders(body, parameters, accumulatorPlaceholder, actualFunction, actualFunctionInstance))
             // a and b are "special" vars that hold the params of the reduce function
             else if v.Name = "a" then
                 let newVarType = 
@@ -148,8 +154,8 @@ type AcceleratedArrayReduceHandler() =
                         accumulatorPlaceholder.Type
                 let a = Quotations.Var("a", newVarType, false)
                 parameters.Add(v, a)
-                Expr.Let(a, SubstitutePlaceholders(value, parameters, accumulatorPlaceholder, actualFunction), 
-                            SubstitutePlaceholders(body, parameters, accumulatorPlaceholder, actualFunction))
+                Expr.Let(a, SubstitutePlaceholders(value, parameters, accumulatorPlaceholder, actualFunction, actualFunctionInstance), 
+                            SubstitutePlaceholders(body, parameters, accumulatorPlaceholder, actualFunction, actualFunctionInstance))
             else if v.Name = "b" then
                 let newVarType = 
                     if actualFunction.IsSome then
@@ -159,24 +165,24 @@ type AcceleratedArrayReduceHandler() =
                 let b = Quotations.Var("b", newVarType, false)
                 // Remember for successive references to a and b
                 parameters.Add(v, b)
-                Expr.Let(b, SubstitutePlaceholders(value, parameters, accumulatorPlaceholder, actualFunction), SubstitutePlaceholders(body, parameters, accumulatorPlaceholder, actualFunction))        
+                Expr.Let(b, SubstitutePlaceholders(value, parameters, accumulatorPlaceholder, actualFunction, actualFunctionInstance), SubstitutePlaceholders(body, parameters, accumulatorPlaceholder, actualFunction, actualFunctionInstance))        
             else
-                Expr.Let(v, SubstitutePlaceholders(value, parameters, accumulatorPlaceholder, actualFunction), SubstitutePlaceholders(body, parameters, accumulatorPlaceholder, actualFunction))
+                Expr.Let(v, SubstitutePlaceholders(value, parameters, accumulatorPlaceholder, actualFunction, actualFunctionInstance), SubstitutePlaceholders(body, parameters, accumulatorPlaceholder, actualFunction, actualFunctionInstance))
         | ExprShape.ShapeLambda(v, b) ->
-            Expr.Lambda(v, SubstitutePlaceholders(b, parameters, accumulatorPlaceholder, actualFunction))                    
+            Expr.Lambda(v, SubstitutePlaceholders(b, parameters, accumulatorPlaceholder, actualFunction, actualFunctionInstance))                    
         | ExprShape.ShapeCombination(o, l) ->
             match e with
             | Patterns.IfThenElse(cond, ifb, elseb) ->
                 let nl = new List<Expr>();
                 for e in l do 
-                    let ne = SubstitutePlaceholders(e, parameters, accumulatorPlaceholder, actualFunction) 
+                    let ne = SubstitutePlaceholders(e, parameters, accumulatorPlaceholder, actualFunction, actualFunctionInstance) 
                     // Trick to adapt "0" in (sdata.[tid] <- if(i < n) then g_idata.[i] else 0) in case of other type of values (double: 0.0)
                     nl.Add(ne)
                 ExprShape.RebuildShapeCombination(o, List.ofSeq(nl))
             | _ ->
                 let nl = new List<Expr>();
                 for e in l do 
-                    let ne = SubstitutePlaceholders(e, parameters, accumulatorPlaceholder, actualFunction) 
+                    let ne = SubstitutePlaceholders(e, parameters, accumulatorPlaceholder, actualFunction, actualFunctionInstance) 
                     nl.Add(ne)
                 ExprShape.RebuildShapeCombination(o, List.ofSeq(nl))
         | _ ->
@@ -204,7 +210,7 @@ type AcceleratedArrayReduceHandler() =
                 if isArraySum then
                     None, None
                 else
-                    AcceleratedCollectionUtil.ExtractComputationFunction(cleanArgs, root)
+                    AcceleratedCollectionUtil.ExtractComputationFunctionForCollection(cleanArgs, root)
                                             
             // Extract the reduce function 
             if isArraySum || computationFunction.IsSome then
@@ -219,7 +225,7 @@ type AcceleratedArrayReduceHandler() =
                 // We need to get the type of a array whose elements type is the same of the functionInfo parameter
                 let inputArrayType, outputArrayType =                     
                     match computationFunction with
-                    | Some(functionInfo, functionParamVars, body) ->
+                    | Some(thisVar, ob, functionInfo, functionParamVars, body) ->
                         (Array.CreateInstance(functionInfo.GetParameters().[0].ParameterType, 0).GetType(),  Array.CreateInstance(functionInfo.ReturnType, 0).GetType())
                     | _ ->
                         (methodInfo.GetParameters().[0].ParameterType, methodInfo.GetParameters().[0].ParameterType)
@@ -235,7 +241,7 @@ type AcceleratedArrayReduceHandler() =
                         // Now we can create the signature and define parameter name in the dynamic module                                                                        
                         let signature, name, appliedFunctionBody =    
                             match computationFunction with
-                            | Some(functionInfo, functionParamVars, body) ->
+                            | Some(thisVar, ob, functionInfo, functionParamVars, body) ->
                                (DynamicMethod("ArrayReduce_" + functionInfo.Name, outputArrayType, [| inputArrayType; outputArrayType; outputArrayType; typeof<WorkItemInfo> |]), "Array.reduce", Some(body))
                             | _ ->
                                (DynamicMethod("ArraySum", outputArrayType, [| inputArrayType; outputArrayType; outputArrayType; typeof<WorkItemInfo> |]), "Array.sum", None)
@@ -263,14 +269,14 @@ type AcceleratedArrayReduceHandler() =
 
                         // Replace functions and references to parameters
                         let functionMatching = new Dictionary<string, MethodInfo>()
-                        let fInfo = 
+                        let fInfo, thisObj = 
                             match computationFunction with
-                            | Some(functionInfo, functionParamVars, body) ->
-                                Some(functionInfo)
+                            | Some(_, ob, functionInfo, functionParamVars, body) ->
+                                Some(functionInfo), ob
                             | _ ->
-                                None
+                                None, None
                                          
-                        let newBody = SubstitutePlaceholders(templateBody, parameterMatching, accumulatorPlaceholder, fInfo)  
+                        let newBody = SubstitutePlaceholders(templateBody, parameterMatching, accumulatorPlaceholder, fInfo, thisObj)  
                         let finalKernel = 
                             Expr.Lambda(tupleHolder,
                                 Expr.Let(inputHolder, Expr.TupleGet(Expr.Var(tupleHolder), 0),
@@ -293,7 +299,7 @@ type AcceleratedArrayReduceHandler() =
                         // CPU CODE                                                              
                         let signature, name, appliedFunctionBody =    
                             match computationFunction with
-                            | Some(functionInfo, functionParamVars, body) ->
+                            | Some(thisVar, ob, functionInfo, functionParamVars, body) ->
                                (DynamicMethod("ArrayReduce_" + functionInfo.Name, outputArrayType, [| inputArrayType; outputArrayType; outputArrayType; typeof<WorkItemInfo> |]), "Array.reduce", Some(body))
                             | _ ->
                                (DynamicMethod("ArraySum", outputArrayType, [| inputArrayType; outputArrayType; outputArrayType; typeof<WorkItemInfo> |]), "Array.sum", None)
@@ -322,13 +328,13 @@ type AcceleratedArrayReduceHandler() =
 
                         // Replace functions and references to parameters
                         let functionMatching = new Dictionary<string, MethodInfo>()
-                        let fInfo = 
+                        let fInfo, thisObj = 
                             match computationFunction with
-                            | Some(functionInfo, functionParamVars, body) ->
-                                Some(functionInfo)
+                            | Some(thisVar, ob, functionInfo, functionParamVars, body) ->
+                                Some(functionInfo), ob
                             | _ ->
-                                None
-                        let newBody = SubstitutePlaceholders(templateBody, parameterMatching, accumulatorPlaceholder, fInfo)  
+                                None, None
+                        let newBody = SubstitutePlaceholders(templateBody, parameterMatching, accumulatorPlaceholder, fInfo, thisObj)  
                         let finalKernel = 
                             Expr.Lambda(tupleHolder,
                                 Expr.Let(inputHolder, Expr.TupleGet(Expr.Var(tupleHolder), 0),
@@ -351,8 +357,9 @@ type AcceleratedArrayReduceHandler() =
 
                 // Add applied function      
                 match computationFunction with
-                | Some(functionInfo, functionParamVars, body) ->
-                    let reduceFunctionInfo = new FunctionInfo(functionInfo, 
+                | Some(thisVar, ob, functionInfo, functionParamVars, body) ->
+                    let reduceFunctionInfo = new FunctionInfo(thisVar, ob, 
+                                                              functionInfo, 
                                                               functionInfo.GetParameters() |> List.ofArray,
                                                               functionParamVars,
                                                               None,
@@ -364,7 +371,7 @@ type AcceleratedArrayReduceHandler() =
                     else
                         // ExtractComputationFunction may have lifted some paramters that are referencing stuff outside the quotation, so 
                         // a new methodinfo is generated with no body. So we can't invoke it, and therefore we add as ReduceFunction the body instead of the methodinfo
-                        kModule.Kernel.CustomInfo.Add("ReduceFunction", match computationFunction.Value with a, _, b -> b)
+                        kModule.Kernel.CustomInfo.Add("ReduceFunction", body)
                                     
                     // Store the called function (runtime execution will use it to perform latest iterations of reduction)
                     kModule.Functions.Add(reduceFunctionInfo.ID, reduceFunctionInfo)

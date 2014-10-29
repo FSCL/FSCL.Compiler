@@ -63,7 +63,7 @@
     <Compile Include="ModuleParsing\KernelMethodInfoParser.fs" />
     <Compile Include="ModuleParsing\KernelReferenceParser.fs" />
     <Compile Include="ModulePreprocessing\ModulePreprocessingStep.fs" />
-    <Compile Include="ModulePreprocessing\ConstantDefineDiscovery.fs" />
+    <Compile Include="ModulePreprocessing\GlobalDataDiscovery.fs" />
     <Compile Include="ModulePreprocessing\FunctionReferenceDiscover.fs" />
     <Compile Include="ModulePreprocessing\StructDiscover.fs" />
     <Compile Include="ModuleCodegen\ModuleCodegenStep.fs" />
@@ -78,7 +78,7 @@
     <Compile Include="FunctionCodegen\IfThenElseCodegen.fs" />
     <Compile Include="FunctionCodegen\IntegerRangeLoopCodegen.fs" />
     <Compile Include="FunctionCodegen\NewVectorCodegen.fs" />
-    <Compile Include="FunctionCodegen\PropertyAccessCodegen.fs" />
+    <Compile Include="FunctionCodegen\PropertyAndFieldAccessCodegen.fs" />
     <Compile Include="FunctionCodegen\SequentialCodegen.fs" />
     <Compile Include="FunctionCodegen\SignatureCodegen.fs" />
     <Compile Include="FunctionCodegen\StructAccessCodegen.fs" />
@@ -103,14 +103,17 @@
     <Compile Include="FunctionTransformation\DynamicAllocationLifting.fs" />
     <Compile Include="FunctionTransformation\FunctionReturnExpressionDiscoveryProcessor.fs" />
     <Compile Include="FunctionTransformation\RefVariableToSingletoArrayTransformation.fs" />
-    <Compile Include="FunctionTransformation\ReturnExpressionLifting.fs" />
+    <Compile Include="FunctionTransformation\KernelReturnExpressionLifting.fs" />
+    <Compile Include="FunctionTransformation\OptionValuesPropertyNormalization.fs" />
     <Compile Include="FunctionTransformation\RightHandlLetInliner.fs" />
     <Compile Include="FunctionPostprocessing\FunctionPostprocessingStep.fs" />
     <Compile Include="FunctionPostprocessing\ParametersAccessAnalysis.fs" />
     <Compile Include="TypeHandlers\DefaultTypeHandler.fs" />
     <Compile Include="TypeHandlers\RefVariableTypeHandler.fs" />
     <Compile Include="TypeHandlers\StructTypeHandler.fs" />
+    <Compile Include="TypeHandlers\OptionTypeHandler.fs" />
     <Compile Include="TypeHandlers\VectorTypeHandler.fs" />
+    <Compile Include="TypeHandlers\TupleTypeHandler.fs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="mscorlib" />

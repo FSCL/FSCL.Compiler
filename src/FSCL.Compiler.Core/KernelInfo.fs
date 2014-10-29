@@ -20,7 +20,8 @@ type FunctionInfoID =
 type IFunctionInfo =
     abstract ID: FunctionInfoID with get
     abstract ParsedSignature: MethodInfo with get
-
+    abstract InstanceVar: Var option with get
+    abstract InstanceExpr: Expr option with get
     abstract OriginalParameters: ReadOnlyCollection<IOriginalFunctionParameter> with get
     abstract GeneratedParameters: ReadOnlyCollection<IFunctionParameter> with get
     abstract Parameters: ReadOnlyCollection<IFunctionParameter> with get
@@ -45,7 +46,9 @@ type IKernelInfo =
     abstract CloneTo: IKernelInfo -> unit
     
 [<AllowNullLiteral>]
-type FunctionInfo(parsedSignature: MethodInfo, 
+type FunctionInfo(objectInstanceVar: Var option,
+                  objectInstance: Expr option,
+                  parsedSignature: MethodInfo, 
                   paramInfos: ParameterInfo list,
                   paramVars: Quotations.Var list,
                   workSize: Expr option,
@@ -64,6 +67,12 @@ type FunctionInfo(parsedSignature: MethodInfo,
         member this.ParsedSignature 
             with get() =
                 this.ParsedSignature
+        member this.InstanceVar 
+            with get() =
+                this.InstanceVar
+        member this.InstanceExpr
+            with get() =
+                this.InstanceExpr
         member this.OriginalParameters
             with get() =
                 let roList = new List<IOriginalFunctionParameter>()
@@ -175,6 +184,9 @@ type FunctionInfo(parsedSignature: MethodInfo,
     ///</summary>
     ///
     member val Code = "" with get, set   
+
+    member val InstanceVar = objectInstanceVar with get
+    member val InstanceExpr = objectInstance with get
     ///
     ///<summary>
     /// The generated target code for the signature
@@ -218,14 +230,16 @@ type FunctionInfo(parsedSignature: MethodInfo,
 ///</remarks>
 ///     
 [<AllowNullLiteral>]
-type KernelInfo(originalSignature: MethodInfo, 
+type KernelInfo(objectInstanceVar: Var option,
+                objectInstance: Expr option,
+                originalSignature: MethodInfo, 
                 paramInfos: ParameterInfo list,
                 paramVars: Quotations.Var list,
                 workSize: Expr option,
                 body: Expr, 
                 meta: ReadOnlyMetaCollection, 
                 isLambda: bool) =
-    inherit FunctionInfo(originalSignature, paramInfos, paramVars, workSize, body, isLambda)
+    inherit FunctionInfo(objectInstanceVar, objectInstance, originalSignature, paramInfos, paramVars, workSize, body, isLambda)
     
     let parameters =
         paramInfos |>

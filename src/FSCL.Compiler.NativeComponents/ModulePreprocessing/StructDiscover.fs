@@ -16,9 +16,23 @@ open System
 type StructDiscover() = 
     inherit ModulePreprocessingProcessor()
     let rec CollectStructs(e: Expr, structs: Dictionary<Type, unit>) =
+        let isArgumentPreparation =
+            match e with
+            | Patterns.Var(v) when v.Name = "tupledArg" ->
+                true
+            | _ ->
+                false
         let t = e.Type
+        // Check if tuple and not argument preparation
+        if FSharpType.IsTuple(t) && not(isArgumentPreparation) then
+            if not (structs.ContainsKey(t)) then
+                structs.Add(t, ())            
+        // Check if the type is an option type
+        else if (t.IsGenericType && t.GetGenericTypeDefinition() = typeof<int option>.GetGenericTypeDefinition()) then
+            if not (structs.ContainsKey(t)) then
+                structs.Add(t, ())
         // If the type of the expression is a struct not already added to the collection, add it
-        if (FSharpType.IsRecord(t) || (t.IsValueType && (not t.IsPrimitive) && (not t.IsEnum) && (typeof<unit> <> t) && (typeof<System.Void> <> t))) then   
+        else if (FSharpType.IsRecord(t) || (t.IsValueType && (not t.IsPrimitive) && (not t.IsEnum) && (typeof<unit> <> t) && (typeof<System.Void> <> t))) then   
             // Check this is not a ref type
             if (not(t.IsGenericType) || (t.GetGenericTypeDefinition() <> typeof<Microsoft.FSharp.Core.ref<int>>.GetGenericTypeDefinition())) then
                 if not (structs.ContainsKey(t)) then
@@ -33,12 +47,7 @@ type StructDiscover() =
         | ExprShape.ShapeLambda(v, body) ->
             CollectStructs(body, structs)            
         | ExprShape.ShapeCombination(o, l) ->
-            let t = o.GetType()
-           
             // If the type of the object is a struct not already added to the collection, add it
-            if (FSharpType.IsRecord(t) || (t.IsValueType && (not t.IsPrimitive) && (not t.IsEnum))) then      
-                if not (structs.ContainsKey(t)) then
-                    structs.Add(t, ())
             List.iter(fun (e:Expr) -> CollectStructs(e, structs)) l
 
     override this.Run(km, en, opts) =

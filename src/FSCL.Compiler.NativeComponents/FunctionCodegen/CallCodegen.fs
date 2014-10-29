@@ -11,6 +11,7 @@ open System.Runtime.CompilerServices
 open Microsoft.FSharp.Linq.RuntimeHelpers
 open FSCL.Compiler.Util.QuotationAnalysis
 open FSCL.Compiler.Util.ReflectionUtil
+open Microsoft.FSharp.Reflection
 
 open FSCL.Compiler.Util.QuotationAnalysis.FunctionsManipulation
 open FSCL.Compiler.Util.QuotationAnalysis.KernelParsing
@@ -118,9 +119,9 @@ type CallCodegen() =
             // Check if the call is the last thing done in the function body
             // If so, prepend "return"
             let returnPrefix = 
-                if(engine.FunctionInfo.CustomInfo.ContainsKey("RETURN_EXPRESSIONS")) then
+                if(engine.FunctionInfo.CustomInfo.ContainsKey("FUNCTION_RETURN_EXPRESSIONS")) then
                     let returnTags = 
-                        engine.FunctionInfo.CustomInfo.["RETURN_EXPRESSIONS"] :?> Expr list
+                        engine.FunctionInfo.CustomInfo.["FUNCTION_RETURN_EXPRESSIONS"] :?> Expr list
                     if (List.tryFind(fun (e:Expr) -> e = expr) returnTags).IsSome then
                         "return "
                     else
@@ -138,6 +139,17 @@ type CallCodegen() =
             // Check if this is a cast
             if mi.IsGenericMethod && castMethods.ContainsKey(mi.GetGenericMethodDefinition()) then
                 Some(returnPrefix + "(" + engine.TypeManager.Print(mi.ReturnType) + ")(" + engine.Continue(a.[0]) + ")" + returnPostfix)
+
+            // Check if this is a call to IsSome or IsNone for option types            
+            else if o.IsNone && mi.IsStatic && mi.Name = "get_IsSome" && a.[0].Type.IsOption then 
+                Some(returnPrefix + "(" + engine.Continue(a.[0]) + ").IsSome")  
+                 
+            // Check if this is a call to fst or snd for tuple types         
+            else if o.IsNone && mi.IsStatic && mi.Name = "Fst" && a.Length > 0 && FSharpType.IsTuple(a.[0].Type) then 
+                Some(returnPrefix + "(" + engine.Continue(a.[0]) + ").Item0")     
+            else if o.IsNone && mi.IsStatic && mi.Name = "Snd" && a.Length > 0 && FSharpType.IsTuple(a.[0].Type) then 
+                Some(returnPrefix + "(" + engine.Continue(a.[0]) + ").Item1")     
+
             // Check Vector operators
             else if (mi.DeclaringType <> null && mi.DeclaringType.GetCustomAttribute<VectorTypeAttribute>() <> null && mi.Name = "vload") then
                 // vload function

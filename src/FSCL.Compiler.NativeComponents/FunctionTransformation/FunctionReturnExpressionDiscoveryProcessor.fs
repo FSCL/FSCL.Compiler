@@ -33,5 +33,5 @@ type FunctionReturnExpressionDiscoveryProcessor() =
         if not (engine.FunctionInfo :? KernelInfo) then
             let returnTags = new List<Expr>()
             SearchReturnExpression(expr, returnTags, engine)
-            engine.FunctionInfo.CustomInfo.Add("RETURN_EXPRESSIONS", List.ofSeq returnTags)
+            engine.FunctionInfo.CustomInfo.Add("FUNCTION_RETURN_EXPRESSIONS", List.ofSeq returnTags)
         expr

@@ -18,7 +18,7 @@ type AcceleratedKernelInfo(signature: MethodInfo,
                            meta, 
                            collectionFunction: String, 
                            appliedFunction: Expr option) =
-    inherit KernelInfo(signature, paramInfo, paramVars, None, body, meta, false)
+    inherit KernelInfo(None, None, signature, paramInfo, paramVars, None, body, meta, false)
             
     member val CollectionFunctionName = collectionFunction with get
 

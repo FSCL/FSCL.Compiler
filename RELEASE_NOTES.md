@@ -1,3 +1,44 @@
+### 1.5.4 - 29 October 2014
+* Support for F# two-components tuple
+
+### 1.5.3 - 29 October 2014
+* Big fix for on-the-fly anonymous structs and options
+
+### 1.5.2 - 29 October 2014
+* Support for F# options
+
+### 1.5.1 - 28 October 2014
+* Bug fix
+
+### 1.4.9 - 27 October 2014
+* Added tests to validate various possibilities of declaring an utility function (static/instance method, lambda, field)
+
+### 1.4.8 - 26 October 2014
+* Added tests to validate various possibilities of declaring a kernel (static/instance method, lambda, field)
+
+### 1.4.7 - 25 October 2014
+* Enabled class fields to represent code-time or opencl-compile-time macros
+
+### 1.4.6 - 23 October 2014
+* Bug ix in parsing static and instance methods
+
+### 1.4.5 - 23 October 2014
+* Handling parsing of closures derived from slicing and using class members
+
+### 1.4.4 - 22 October 2014
+* Bug fix
+
+### 1.4.3 - 22 October 2014
+* For Array.reduce and Array.sum the output array in kernel is forced not to be transferred back to the host. This fixes a bug that causes the final value computed on the CPU
+to be overwritten by the content of the (first item of the) output array when transferred back to the host
+
+### 1.4.2 - 21 October 2014
+* Bug fix
+
+### 1.4.1 - 21 October 2014
+* Referencing let-variables or properties declared outside kernels turn into -define- macros only if ReflectedDefinitionAttribute is associated to the variable/property 
+* No need to use DynamicDefine attribute anymore. Immutable variables/propeties are replaced with the corresponding value (expression) when OpenCL source code is generated. OpenCL-target-code-generation-time defines are generated (by the runtime) for mutable variables/properties
+
 ### 1.4.0 - 20 October 2014
 * Automatic characterization of lambda functions (if a lambda has a WorkItemInfo param it's turn into a kernel, otherwise it's applied by reflection on the CPU)
 * Optimisation of parsing step to speed up the runtime. Approximatively 80 microsecs on macbook pro i5.

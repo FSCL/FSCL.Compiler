@@ -13,7 +13,7 @@ open System
                                   "FSCL_CONDITIONAL_ASSIGN_TRANSFORMATION_PROCESSOR";
                                   "FSCL_ARRAY_ACCESS_TRANSFORMATION_PROCESSOR";
                                   "FSCL_REF_VAR_TRANSFORMATION_PROCESSOR" |])>]
-type ReturnLifting() =       
+type KernelReturnLifting() =       
     inherit FunctionTransformationProcessor()
 
     let mutable isPotentialReturnExpression = true
@@ -41,7 +41,7 @@ type ReturnLifting() =
                 result <- false
         result && (temp.Count = 0)
 
-    let LiftReturn (expr:Expr, retV:Quotations.Var, engine:FunctionTransformationStep) =
+    let LiftReturnArrayRef (expr:Expr, retV:Quotations.Var, engine:FunctionTransformationStep) =
         if isPotentialReturnExpression then
             match expr with
             | Patterns.Let(v, value, body) ->                
@@ -53,29 +53,6 @@ type ReturnLifting() =
                         Expr.Let(v, value, Expr.Var(var))
                 | _ ->                                        
                     Expr.Let(v, value, engine.Continue(body))
-                (*
-                else
-                    // Look for return tuple expression
-                    match body with
-                    | Patterns.NewTuple(args) -> 
-                        // If all the tuple components are var refs                       
-                        if isVarsTuple(args) then
-                            let vl = List.map(fun (e:Expr) -> 
-                                                match e with 
-                                                | Patterns.Var(v) ->
-                                                    v
-                                                | _ ->
-                                                    failwith "Error") args
-                            // If the refs exactly match the set of returned vars
-                            if matchLists(vl, retV) then
-                                Expr.Let(v, value, Expr.Value(()))
-                            else
-                                Expr.Let(v, value, Expr.NewTuple(args))                                
-                        else 
-                            Expr.Let(v, value, Expr.NewTuple(args))
-                    | _ ->                                        
-                        Expr.Let(v, value, engine.Continue(body))
-                        *)
             | Patterns.Sequential(e1, e2) ->
                 isPotentialReturnExpression <- false
                 let pe1 = engine.Continue(e1)
@@ -88,21 +65,7 @@ type ReturnLifting() =
                 let pe2 = engine.Continue(elsexp)
                 Expr.IfThenElse(cond, pe1, pe2)
                         
-            | Patterns.NewTuple(args) -> (*
-                // If all the tuple components are var refs                       
-                if isVarsTuple(args) then
-                    let vl = List.map(fun (e:Expr) -> 
-                                        match e with 
-                                        | Patterns.Var(v) ->
-                                            v
-                                        | _ ->
-                                            failwith "Error") args
-                    // If the refs exactly match the set of returned vars
-                    if matchLists(vl, retV) then
-                        Expr.Value(())
-                    else
-                        Expr.NewTuple(List.map(fun (e:Expr) -> engine.Continue(e)) args)                                
-                else *)
+            | Patterns.NewTuple(args) -> 
                 Expr.NewTuple(List.map(fun (e:Expr) -> engine.Continue(e)) args)    
 
             | ExprShape.ShapeLambda(v, e) ->
@@ -114,30 +77,7 @@ type ReturnLifting() =
                     else
                         Expr.Lambda(v, e1)
                 | _ ->
-                    Expr.Lambda(v, e1)
-                (*
-                else
-                    // Look for return tuple expression
-                    match e1 with
-                    | Patterns.NewTuple(args) -> 
-                        // If all the tuple components are var refs                       
-                        if isVarsTuple(args) then
-                            let vl = List.map(fun (e:Expr) -> 
-                                                match e with 
-                                                | Patterns.Var(v) ->
-                                                    v
-                                                | _ ->
-                                                    failwith "Error") args
-                            // If the refs exactly match the set of returned vars
-                            if matchLists(vl, retV) then
-                                Expr.Lambda(v, Expr.Value(()))
-                            else
-                                Expr.Lambda(v, e1)                             
-                        else 
-                            Expr.Lambda(v, e1)  
-                    | _ ->       
-                        Expr.Lambda(v, e1)          
-                        *)
+                    Expr.Lambda(v, e1)                
             | ExprShape.ShapeVar(var) ->
                 if var.Name = retV.Name then   
                     Expr.Value(())
@@ -149,15 +89,18 @@ type ReturnLifting() =
                 ExprShape.RebuildShapeCombination(o, processed)
         else
             engine.Default(expr)
-            
+              
     override this.Run(expr, en, opts) =
         let engine = en :?> FunctionTransformationStep
         if (engine.FunctionInfo :? KernelInfo)  then
             // Check if there is a parameter returned
             let p = Seq.tryFind(fun (e:FunctionParameter) -> e.IsReturned) (engine.FunctionInfo.Parameters)
             if p.IsSome then
-                let rv = p.Value.OriginalPlaceholder
-                LiftReturn(expr, rv, engine)
+                if not p.Value.IsAutoArrayParameter then
+                    let rv = p.Value.OriginalPlaceholder
+                    LiftReturnArrayRef(expr, rv, engine)
+                else
+                    expr
             else
                 expr
         else

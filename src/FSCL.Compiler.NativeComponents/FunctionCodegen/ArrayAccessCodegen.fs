@@ -29,9 +29,9 @@ type ArrayAccessCodegen() =
         | Patterns.Call(o, methodInfo, args) ->
             if methodInfo.DeclaringType <> null && methodInfo.DeclaringType.Name = "IntrinsicFunctions" then
                 let returnPrefix = 
-                    if(engine.FunctionInfo.CustomInfo.ContainsKey("RETURN_EXPRESSIONS")) then
+                    if(engine.FunctionInfo.CustomInfo.ContainsKey("FUNCTION_RETURN_EXPRESSIONS")) then
                         let returnTags = 
-                            engine.FunctionInfo.CustomInfo.["RETURN_EXPRESSIONS"] :?> Expr list
+                            engine.FunctionInfo.CustomInfo.["FUNCTION_RETURN_EXPRESSIONS"] :?> Expr list
                         if (List.tryFind(fun (e:Expr) -> e = expr) returnTags).IsSome then
                             "return "
                         else

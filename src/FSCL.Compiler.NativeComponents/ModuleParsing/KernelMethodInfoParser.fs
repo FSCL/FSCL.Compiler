@@ -20,12 +20,12 @@ type KernelMethodInfoParser() =
         let step = s :?> ModuleParsingStep
         if (mi :? MethodInfo) then
             match GetKernelFromMethodInfo(mi :?> MethodInfo) with
-            | Some(mi, paramInfo, paramVars, b, kMeta, rMeta, pMeta) -> 
+            | Some(obv, ob, mi, paramInfo, paramVars, b, kMeta, rMeta, pMeta) -> 
                 // Filter and finalize metadata
                 let finalMeta = step.ProcessMeta(kMeta, rMeta, pMeta, null)
 
                 // Create singleton kernel call graph
-                let kernelModule = new KernelModule(new KernelInfo(mi, paramInfo, paramVars, None, b, finalMeta, false))
+                let kernelModule = new KernelModule(new KernelInfo(obv, None, mi, paramInfo, paramVars, None, b, finalMeta, false))
                 
                 // Create module
                 Some(kernelModule)

@@ -25,13 +25,13 @@ type AcceleratedArrayMap2Handler() =
                 since it might be a subkernel
             *)
             let lambda, computationFunction =                
-                AcceleratedCollectionUtil.ExtractComputationFunction(cleanArgs, root)
+                AcceleratedCollectionUtil.ExtractComputationFunctionForCollection(cleanArgs, root)
 
             // Merge with the eventual subkernels
                 
             // Extract the map2 function 
             match computationFunction with
-            | Some(functionInfo, functionParamVars, functionBody) ->
+            | Some(thisVar, ob, functionInfo, functionParamVars, functionBody) ->
                 // We need to get the type of a array whose elements type is the same of the functionInfo parameter
                 let firstInputArrayType, secondInputArrayType = 
                     if methodInfo.Name = "Map2" then
@@ -77,7 +77,9 @@ type AcceleratedArrayMap2Handler() =
                                                             Expr.Call(setElementMethodInfo,
                                                                 [ Expr.Var(outputHolder);
                                                                     Expr.Var(globalIdVar);
-                                                                    Expr.Call(functionInfo,
+                                                                    AcceleratedCollectionUtil.BuildCallExpr(
+                                                                            ob, 
+                                                                            functionInfo,
                                                                             [ Expr.Call(firstGetElementMethodInfo,
                                                                                         [ Expr.Var(input1Holder);
                                                                                             Expr.Var(globalIdVar) 
@@ -101,7 +103,9 @@ type AcceleratedArrayMap2Handler() =
                                                             Expr.Call(setElementMethodInfo,
                                                                 [ Expr.Var(outputHolder);
                                                                     Expr.Var(globalIdVar);
-                                                                    Expr.Call(functionInfo,
+                                                                    AcceleratedCollectionUtil.BuildCallExpr(
+                                                                            ob, 
+                                                                            functionInfo,
                                                                             [ Expr.Var(globalIdVar);
                                                                               Expr.Call(firstGetElementMethodInfo,
                                                                                         [ Expr.Var(input1Holder);
@@ -126,7 +130,8 @@ type AcceleratedArrayMap2Handler() =
                 let kernelModule = new KernelModule(kInfo, cleanArgs)
                 
                 // Add the current kernel
-                let mapFunctionInfo = new FunctionInfo(functionInfo, 
+                let mapFunctionInfo = new FunctionInfo(thisVar, ob,                                    
+                                                       functionInfo, 
                                                        functionInfo.GetParameters() |> List.ofArray, 
                                                        functionParamVars,
                                                        None,

@@ -23,7 +23,7 @@ type KernelLambdaParser() =
                 let finalMeta = step.ProcessMeta(kMeta, rMeta, pMeta, null)
 
                 // Create signleton kernel call graph
-                let kernelModule = new KernelModule(new KernelInfo(mi, paramInfo, paramVars, None, b, finalMeta, true))
+                let kernelModule = new KernelModule(new KernelInfo(None, None, mi, paramInfo, paramVars, None, b, finalMeta, true))
                 
                 Some(kernelModule)
             | _ ->

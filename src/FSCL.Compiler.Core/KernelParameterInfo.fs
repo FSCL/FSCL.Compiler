@@ -21,6 +21,7 @@ type FunctionParameterType =
 | NormalParameter
 | SizeParameter
 | DynamicParameter of Expr array
+| AutoArrayParameter
 | ImplicitParameter
 
 ///
@@ -37,6 +38,7 @@ type IFunctionParameter =
     abstract AccessAnalysis: AccessAnalysisResult with get
     abstract ReturnExpr: Expr option with get
     abstract IsReturned: bool with get
+    abstract IsAutoArray: bool with get
     abstract SizeParameters: ReadOnlyCollection<IFunctionParameter> with get
     abstract Meta: IParamMetaCollection with get
             
@@ -44,16 +46,17 @@ type IFunctionParameter =
     abstract IsNormalParameter: bool with get
     abstract IsDynamicParameter: bool with get
     abstract IsImplicitParameter: bool with get
+    abstract IsAutoArrayParameter: bool with get
     abstract DynamicAllocationArguments: Expr array option with get
 
 type FunctionParameter(name:string, 
-                       originalPlaceholder: Quotations.Var, 
+                       originalPlaceholder: Var, 
                        parameterType: FunctionParameterType,
                        meta: IParamMetaCollection option) =
     let sp = new List<IFunctionParameter>()
 
     interface IFunctionParameter with
-
+        
         // Override starts
         member this.Name
             with get() = 
@@ -87,6 +90,10 @@ type FunctionParameter(name:string,
             with get() =
                 this.IsReturned
 
+        member this.IsAutoArray 
+            with get() =
+                this.IsAutoArray
+
         member this.SizeParameters 
             with get() =
                 sp.AsReadOnly()
@@ -110,6 +117,10 @@ type FunctionParameter(name:string,
         member this.IsImplicitParameter 
             with get() = 
                 this.IsImplicitParameter
+
+        member this.IsAutoArrayParameter 
+            with get() = 
+                this.IsAutoArrayParameter
 
         member this.DynamicAllocationArguments
             with get() =
@@ -146,6 +157,9 @@ type FunctionParameter(name:string,
     member val IsReturned = false 
         with get, set
             
+    member val IsAutoArray = false 
+        with get, set
+
     member val Meta =
         if meta.IsNone then
             new ParamMetaCollection() :> IParamMetaCollection
@@ -180,6 +194,14 @@ type FunctionParameter(name:string,
     member val IsImplicitParameter =
         match parameterType with
         | ImplicitParameter ->
+            true
+        | _ ->
+            false  
+        with get
+        
+    member val IsAutoArrayParameter =
+        match parameterType with
+        | AutoArrayParameter ->
             true
         | _ ->
             false  
