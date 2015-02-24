@@ -197,189 +197,217 @@ type AcceleratedArrayReduceHandler() =
         r2
 
     interface IAcceleratedCollectionHandler with
-        member this.Process(methodInfo, cleanArgs, root, meta, step) =       
-            (*
-                Array map looks like: Array.map fun collection
-                At first we check if fun is a lambda (first argument)
-                and in this case we transform it into a method
-                Secondly, we iterate parsing on the second argument (collection)
-                since it might be a subkernel
-            *)
+        member this.Process(methodInfo, cleanArgs, root, meta, step, env) =     
             let isArraySum = methodInfo.Name = "Sum"
-            let lambda, computationFunction =                
+            let computationFunction, subExpr, isLambda =                
                 if isArraySum then
-                    None, None
+                    None, None, false
                 else
-                    AcceleratedCollectionUtil.ExtractComputationFunctionForCollection(cleanArgs, root)
-                                            
-            // Extract the reduce function 
-            if isArraySum || computationFunction.IsSome then
+                    // Inspect operator
+                    AcceleratedCollectionUtil.ParseOperatorLambda(cleanArgs.[0], step, env)
+                                
+            match subExpr with
+            | Some(kfg, newEnv) ->
+                // This coll fun is a composition 
+                let node = new KFGCollectionCompositionNode(methodInfo, kfg)
                 
-                // Create on-the-fly module to host the kernel                
-                // The dynamic module that hosts the generated kernels
-                let assemblyName = IDGenerator.GenerateUniqueID("FSCL.Compiler.Plugins.AcceleratedCollections.AcceleratedArray");
-                let assemblyBuilder = AppDomain.CurrentDomain.DefineDynamicAssembly(new AssemblyName(assemblyName), AssemblyBuilderAccess.Run);
-                let moduleBuilder = assemblyBuilder.DefineDynamicModule("AcceleratedArrayModule");
+                // Create data node for outsiders
+//                for o in outsiders do 
+//                    node.InputNodes.Add(new KFGOutsiderDataNode(o))
 
-                // Now create the kernel
-                // We need to get the type of a array whose elements type is the same of the functionInfo parameter
-                let inputArrayType, outputArrayType =                     
+                // Parse arguments
+                let subnode = step.Process(cleanArgs.[1], env)
+                node.InputNodes.Add(subnode)
+                Some(node :> IKFGNode)   
+            | _ ->                               
+                // Extract the reduce function 
+                if isArraySum || computationFunction.IsSome then
+                
+                    // Create on-the-fly module to host the kernel                
+                    // The dynamic module that hosts the generated kernels
+                    let assemblyName = IDGenerator.GenerateUniqueID("FSCL.Compiler.Plugins.AcceleratedCollections.AcceleratedArray");
+                    let assemblyBuilder = AppDomain.CurrentDomain.DefineDynamicAssembly(new AssemblyName(assemblyName), AssemblyBuilderAccess.Run);
+                    let moduleBuilder = assemblyBuilder.DefineDynamicModule("AcceleratedArrayModule");
+                    //let mutable outsiders = new List<OutsiderRef>()
+
+                    // Now create the kernel
+                    // We need to get the type of a array whose elements type is the same of the functionInfo parameter
+                    let inputArrayType, outputArrayType =                     
+                        match computationFunction with
+                        | Some(thisVar, ob, functionInfo, functionParamVars, body) ->
+                            (Array.CreateInstance(functionInfo.GetParameters().[0].ParameterType, 0).GetType(),  Array.CreateInstance(functionInfo.ReturnType, 0).GetType())
+                        | _ ->
+                            (methodInfo.GetParameters().[0].ParameterType, methodInfo.GetParameters().[0].ParameterType)
+                    // Now that we have the types of the input and output arrays, create placeholders (var) for the kernel input and output       
+                
+                    // Check device target
+                    let targetType = meta.KernelMeta.Get<DeviceTypeAttribute>()
+            
+                    let kModule = 
+                        // GPU CODE
+                        match targetType.Type with
+                        | DeviceType.Gpu ->                    
+                            // Now we can create the signature and define parameter name in the dynamic module                                                                        
+                            let signature, name, appliedFunctionBody =    
+                                match computationFunction with
+                                | Some(thisVar, ob, functionInfo, functionParamVars, body) ->
+                                   (DynamicMethod("ArrayReduce_" + functionInfo.Name, outputArrayType, [| inputArrayType; outputArrayType; outputArrayType; typeof<WorkItemInfo> |]), "Array.reduce", Some(body))
+                                | _ ->
+                                   (DynamicMethod("ArraySum", outputArrayType, [| inputArrayType; outputArrayType; outputArrayType; typeof<WorkItemInfo> |]), "Array.sum", None)
+                                
+                            signature.DefineParameter(1, ParameterAttributes.In, "input_array") |> ignore
+                            signature.DefineParameter(2, ParameterAttributes.In, "local_array") |> ignore
+                            signature.DefineParameter(3, ParameterAttributes.In, "output_array") |> ignore
+                            signature.DefineParameter(4, ParameterAttributes.In, "wi") |> ignore
+                        
+                            // Create parameters placeholders
+                            let inputHolder = Quotations.Var("input_array", inputArrayType)
+                            let localHolder = Quotations.Var("local_array", outputArrayType)
+                            let outputHolder = Quotations.Var("output_array", outputArrayType)
+                            let wiHolder = Quotations.Var("wi", typeof<WorkItemInfo>)
+                            let accumulatorPlaceholder = Quotations.Var("accumulator", outputArrayType.GetElementType())
+                            let tupleHolder = Quotations.Var("tupledArg", FSharpType.MakeTupleType([| inputHolder.Type; localHolder.Type; outputHolder.Type; wiHolder.Type |]))
+
+                            // Finally, create the body of the kernel
+                            let templateBody, templateParameters = AcceleratedCollectionUtil.GetKernelFromCollectionFunctionTemplate(gpu_template)   
+                            let parameterMatching = new Dictionary<Var, Var>()
+                            parameterMatching.Add(templateParameters.[0], inputHolder)
+                            parameterMatching.Add(templateParameters.[1], localHolder)
+                            parameterMatching.Add(templateParameters.[2], outputHolder)
+                            parameterMatching.Add(templateParameters.[3], wiHolder)
+
+                            // Replace functions and references to parameters
+                            let functionMatching = new Dictionary<string, MethodInfo>()
+                            let fInfo, thisObj = 
+                                match computationFunction with
+                                | Some(_, ob, functionInfo, functionParamVars, body) ->
+                                    Some(functionInfo), ob
+                                | _ ->
+                                    None, None
+                                         
+                            let newBody = SubstitutePlaceholders(templateBody, parameterMatching, accumulatorPlaceholder, fInfo, thisObj)  
+                            let finalKernel = 
+                                Expr.Lambda(tupleHolder,
+                                    Expr.Let(inputHolder, Expr.TupleGet(Expr.Var(tupleHolder), 0),
+                                        Expr.Let(localHolder, Expr.TupleGet(Expr.Var(tupleHolder), 1),
+                                            Expr.Let(outputHolder, Expr.TupleGet(Expr.Var(tupleHolder), 2),
+                                                Expr.Let(wiHolder, Expr.TupleGet(Expr.Var(tupleHolder), 3),
+                                                    newBody)))))
+
+                            let methodParams = signature.GetParameters()
+                            let kInfo = new AcceleratedKernelInfo(signature, 
+                                                                  [ methodParams.[0]; methodParams.[1]; methodParams.[2] ],
+                                                                  [ inputHolder; localHolder; outputHolder ],
+                                                                  env,
+                                                                  finalKernel, 
+                                                                  meta, 
+                                                                  name, appliedFunctionBody)
+                            let kernelModule = new KernelModule(kInfo, cleanArgs)
+                        
+                            kernelModule                
+                        |_ ->
+                            // CPU CODE                                                              
+                            let signature, name, appliedFunctionBody =    
+                                match computationFunction with
+                                | Some(thisVar, ob, functionInfo, functionParamVars, body) ->
+                                   (DynamicMethod("ArrayReduce_" + functionInfo.Name, outputArrayType, [| inputArrayType; outputArrayType; outputArrayType; typeof<WorkItemInfo> |]), "Array.reduce", Some(body))
+                                | _ ->
+                                   (DynamicMethod("ArraySum", outputArrayType, [| inputArrayType; outputArrayType; outputArrayType; typeof<WorkItemInfo> |]), "Array.sum", None)
+                                                 
+                            // Now we can create the signature and define parameter name in the dynamic module                                        
+                            signature.DefineParameter(1, ParameterAttributes.In, "input_array") |> ignore
+                            signature.DefineParameter(2, ParameterAttributes.In, "output_array") |> ignore
+                            signature.DefineParameter(3, ParameterAttributes.In, "block") |> ignore
+                            signature.DefineParameter(4, ParameterAttributes.In, "wi") |> ignore
+                    
+                            // Create parameters placeholders
+                            let inputHolder = Quotations.Var("input_array", inputArrayType)
+                            let blockHolder = Quotations.Var("block", typeof<int>)
+                            let outputHolder = Quotations.Var("output_array", outputArrayType)
+                            let accumulatorPlaceholder = Quotations.Var("accumulator", outputArrayType.GetElementType())
+                            let wiHolder = Quotations.Var("wi", typeof<WorkItemInfo>)
+                            let tupleHolder = Quotations.Var("tupledArg", FSharpType.MakeTupleType([| inputHolder.Type; outputHolder.Type; blockHolder.Type; wiHolder.Type |]))
+
+                            // Finally, create the body of the kernel
+                            let templateBody, templateParameters = AcceleratedCollectionUtil.GetKernelFromCollectionFunctionTemplate(cpu_template)   
+                            let parameterMatching = new Dictionary<Var, Var>()
+                            parameterMatching.Add(templateParameters.[0], inputHolder)
+                            parameterMatching.Add(templateParameters.[1], outputHolder)
+                            parameterMatching.Add(templateParameters.[2], blockHolder)
+                            parameterMatching.Add(templateParameters.[3], wiHolder)
+
+                            // Replace functions and references to parameters
+                            let functionMatching = new Dictionary<string, MethodInfo>()
+                            let fInfo, thisObj = 
+                                match computationFunction with
+                                | Some(thisVar, ob, functionInfo, functionParamVars, body) ->
+                                    Some(functionInfo), ob
+                                | _ ->
+                                    None, None
+                            let newBody = SubstitutePlaceholders(templateBody, parameterMatching, accumulatorPlaceholder, fInfo, thisObj)  
+                            let finalKernel = 
+                                Expr.Lambda(tupleHolder,
+                                    Expr.Let(inputHolder, Expr.TupleGet(Expr.Var(tupleHolder), 0),
+                                        Expr.Let(outputHolder, Expr.TupleGet(Expr.Var(tupleHolder), 1),
+                                            Expr.Let(blockHolder, Expr.TupleGet(Expr.Var(tupleHolder), 2),
+                                                Expr.Let(wiHolder, Expr.TupleGet(Expr.Var(tupleHolder), 3),
+                                                    newBody)))))
+                    
+                            // Setup kernel module and return
+                            let methodParams = signature.GetParameters()
+                            let kInfo = new AcceleratedKernelInfo(signature, 
+                                                                    [ methodParams.[0]; methodParams.[1]; methodParams.[2] ],
+                                                                    [ inputHolder; outputHolder; blockHolder ],
+                                                                    env,
+                                                                    finalKernel, 
+                                                                    meta, 
+                                                                    name, appliedFunctionBody)
+                            let kernelModule = new KernelModule(kInfo, cleanArgs)
+                        
+                            kernelModule 
+
+                    // Add applied function    
                     match computationFunction with
                     | Some(thisVar, ob, functionInfo, functionParamVars, body) ->
-                        (Array.CreateInstance(functionInfo.GetParameters().[0].ParameterType, 0).GetType(),  Array.CreateInstance(functionInfo.ReturnType, 0).GetType())
-                    | _ ->
-                        (methodInfo.GetParameters().[0].ParameterType, methodInfo.GetParameters().[0].ParameterType)
-                // Now that we have the types of the input and output arrays, create placeholders (var) for the kernel input and output       
+                        let reduceFunctionInfo = new FunctionInfo(thisVar, ob, 
+                                                                    functionInfo, 
+                                                                    functionInfo.GetParameters() |> List.ofArray,
+                                                                    functionParamVars,
+                                                                    env,
+                                                                    None,
+                                                                    body, isLambda)
                 
-                // Check device target
-                let targetType = meta.KernelMeta.Get<DeviceTypeAttribute>()
-            
-                let kModule = 
-                    // GPU CODE
-                    match targetType.Type with
-                    | DeviceType.Gpu ->                    
-                        // Now we can create the signature and define parameter name in the dynamic module                                                                        
-                        let signature, name, appliedFunctionBody =    
-                            match computationFunction with
-                            | Some(thisVar, ob, functionInfo, functionParamVars, body) ->
-                               (DynamicMethod("ArrayReduce_" + functionInfo.Name, outputArrayType, [| inputArrayType; outputArrayType; outputArrayType; typeof<WorkItemInfo> |]), "Array.reduce", Some(body))
-                            | _ ->
-                               (DynamicMethod("ArraySum", outputArrayType, [| inputArrayType; outputArrayType; outputArrayType; typeof<WorkItemInfo> |]), "Array.sum", None)
-                                
-                        signature.DefineParameter(1, ParameterAttributes.In, "input_array") |> ignore
-                        signature.DefineParameter(2, ParameterAttributes.In, "local_array") |> ignore
-                        signature.DefineParameter(3, ParameterAttributes.In, "output_array") |> ignore
-                        signature.DefineParameter(4, ParameterAttributes.In, "wi") |> ignore
-                        
-                        // Create parameters placeholders
-                        let inputHolder = Quotations.Var("input_array", inputArrayType)
-                        let localHolder = Quotations.Var("local_array", outputArrayType)
-                        let outputHolder = Quotations.Var("output_array", outputArrayType)
-                        let wiHolder = Quotations.Var("wi", typeof<WorkItemInfo>)
-                        let accumulatorPlaceholder = Quotations.Var("accumulator", outputArrayType.GetElementType())
-                        let tupleHolder = Quotations.Var("tupledArg", FSharpType.MakeTupleType([| inputHolder.Type; localHolder.Type; outputHolder.Type; wiHolder.Type |]))
-
-                        // Finally, create the body of the kernel
-                        let templateBody, templateParameters = AcceleratedCollectionUtil.GetKernelFromLambda(gpu_template)   
-                        let parameterMatching = new Dictionary<Var, Var>()
-                        parameterMatching.Add(templateParameters.[0], inputHolder)
-                        parameterMatching.Add(templateParameters.[1], localHolder)
-                        parameterMatching.Add(templateParameters.[2], outputHolder)
-                        parameterMatching.Add(templateParameters.[3], wiHolder)
-
-                        // Replace functions and references to parameters
-                        let functionMatching = new Dictionary<string, MethodInfo>()
-                        let fInfo, thisObj = 
-                            match computationFunction with
-                            | Some(_, ob, functionInfo, functionParamVars, body) ->
-                                Some(functionInfo), ob
-                            | _ ->
-                                None, None
-                                         
-                        let newBody = SubstitutePlaceholders(templateBody, parameterMatching, accumulatorPlaceholder, fInfo, thisObj)  
-                        let finalKernel = 
-                            Expr.Lambda(tupleHolder,
-                                Expr.Let(inputHolder, Expr.TupleGet(Expr.Var(tupleHolder), 0),
-                                    Expr.Let(localHolder, Expr.TupleGet(Expr.Var(tupleHolder), 1),
-                                        Expr.Let(outputHolder, Expr.TupleGet(Expr.Var(tupleHolder), 2),
-                                            Expr.Let(wiHolder, Expr.TupleGet(Expr.Var(tupleHolder), 3),
-                                                newBody)))))
-
-                        let methodParams = signature.GetParameters()
-                        let kInfo = new AcceleratedKernelInfo(signature, 
-                                                              [ methodParams.[0]; methodParams.[1]; methodParams.[2] ],
-                                                              [ inputHolder; localHolder; outputHolder ],
-                                                              finalKernel, 
-                                                              meta, 
-                                                              name, appliedFunctionBody)
-                        let kernelModule = new KernelModule(kInfo, cleanArgs)
-                        
-                        kernelModule                
-                    |_ ->
-                        // CPU CODE                                                              
-                        let signature, name, appliedFunctionBody =    
-                            match computationFunction with
-                            | Some(thisVar, ob, functionInfo, functionParamVars, body) ->
-                               (DynamicMethod("ArrayReduce_" + functionInfo.Name, outputArrayType, [| inputArrayType; outputArrayType; outputArrayType; typeof<WorkItemInfo> |]), "Array.reduce", Some(body))
-                            | _ ->
-                               (DynamicMethod("ArraySum", outputArrayType, [| inputArrayType; outputArrayType; outputArrayType; typeof<WorkItemInfo> |]), "Array.sum", None)
-                                                 
-                        // Now we can create the signature and define parameter name in the dynamic module                                        
-                        signature.DefineParameter(1, ParameterAttributes.In, "input_array") |> ignore
-                        signature.DefineParameter(2, ParameterAttributes.In, "output_array") |> ignore
-                        signature.DefineParameter(3, ParameterAttributes.In, "block") |> ignore
-                        signature.DefineParameter(4, ParameterAttributes.In, "wi") |> ignore
-                    
-                        // Create parameters placeholders
-                        let inputHolder = Quotations.Var("input_array", inputArrayType)
-                        let blockHolder = Quotations.Var("block", typeof<int>)
-                        let outputHolder = Quotations.Var("output_array", outputArrayType)
-                        let accumulatorPlaceholder = Quotations.Var("accumulator", outputArrayType.GetElementType())
-                        let wiHolder = Quotations.Var("wi", typeof<WorkItemInfo>)
-                        let tupleHolder = Quotations.Var("tupledArg", FSharpType.MakeTupleType([| inputHolder.Type; outputHolder.Type; blockHolder.Type; wiHolder.Type |]))
-
-                        // Finally, create the body of the kernel
-                        let templateBody, templateParameters = AcceleratedCollectionUtil.GetKernelFromLambda(cpu_template)   
-                        let parameterMatching = new Dictionary<Var, Var>()
-                        parameterMatching.Add(templateParameters.[0], inputHolder)
-                        parameterMatching.Add(templateParameters.[1], outputHolder)
-                        parameterMatching.Add(templateParameters.[2], blockHolder)
-                        parameterMatching.Add(templateParameters.[3], wiHolder)
-
-                        // Replace functions and references to parameters
-                        let functionMatching = new Dictionary<string, MethodInfo>()
-                        let fInfo, thisObj = 
-                            match computationFunction with
-                            | Some(thisVar, ob, functionInfo, functionParamVars, body) ->
-                                Some(functionInfo), ob
-                            | _ ->
-                                None, None
-                        let newBody = SubstitutePlaceholders(templateBody, parameterMatching, accumulatorPlaceholder, fInfo, thisObj)  
-                        let finalKernel = 
-                            Expr.Lambda(tupleHolder,
-                                Expr.Let(inputHolder, Expr.TupleGet(Expr.Var(tupleHolder), 0),
-                                    Expr.Let(outputHolder, Expr.TupleGet(Expr.Var(tupleHolder), 1),
-                                        Expr.Let(blockHolder, Expr.TupleGet(Expr.Var(tupleHolder), 2),
-                                            Expr.Let(wiHolder, Expr.TupleGet(Expr.Var(tupleHolder), 3),
-                                                newBody)))))
-                    
-                        // Setup kernel module and return
-                        let methodParams = signature.GetParameters()
-                        let kInfo = new AcceleratedKernelInfo(signature, 
-                                                                [ methodParams.[0]; methodParams.[1]; methodParams.[2] ],
-                                                                [ inputHolder; outputHolder; blockHolder ],
-                                                                finalKernel, 
-                                                                meta, 
-                                                                name, appliedFunctionBody)
-                        let kernelModule = new KernelModule(kInfo, cleanArgs)
-                        
-                        kernelModule 
-
-                // Add applied function      
-                match computationFunction with
-                | Some(thisVar, ob, functionInfo, functionParamVars, body) ->
-                    let reduceFunctionInfo = new FunctionInfo(thisVar, ob, 
-                                                              functionInfo, 
-                                                              functionInfo.GetParameters() |> List.ofArray,
-                                                              functionParamVars,
-                                                              None,
-                                                              body, lambda.IsSome)
-                
-                    // Store the called function (runtime execution will use it to perform latest iterations of reduction)
-                    if lambda.IsSome then
-                        kModule.Kernel.CustomInfo.Add("ReduceFunction", lambda.Value)
-                    else
-                        // ExtractComputationFunction may have lifted some paramters that are referencing stuff outside the quotation, so 
-                        // a new methodinfo is generated with no body. So we can't invoke it, and therefore we add as ReduceFunction the body instead of the methodinfo
-                        kModule.Kernel.CustomInfo.Add("ReduceFunction", body)
+                        // Store the called function (runtime execution will use it to perform latest iterations of reduction)
+                        if isLambda then
+                            kModule.Kernel.CustomInfo.Add("ReduceFunction", cleanArgs.[0])
+                        else
+                            // ExtractComputationFunction may have lifted some paramters that are referencing stuff outside the quotation, so 
+                            // a new methodinfo is generated with no body. So we can't invoke it, and therefore we add as ReduceFunction the body instead of the methodinfo
+                            kModule.Kernel.CustomInfo.Add("ReduceFunction", body)
                                     
-                    // Store the called function (runtime execution will use it to perform latest iterations of reduction)
-                    kModule.Functions.Add(reduceFunctionInfo.ID, reduceFunctionInfo)
-                | _ ->
-                    // Array.sum: reduce function in (+)
-                    kModule.Kernel.CustomInfo.Add("ReduceFunction", 
-                                                  ExtractMethodInfo(<@ (+) @>).Value.GetGenericMethodDefinition().MakeGenericMethod([| inputArrayType.GetElementType(); inputArrayType.GetElementType();  outputArrayType.GetElementType() |]))
-                // Return module                             
-                Some(kModule)
-            else
-                None
+                        // Store the called function (runtime execution will use it to perform latest iterations of reduction)
+                        kModule.Functions.Add(reduceFunctionInfo.ID, reduceFunctionInfo)
+                        kModule.Kernel.CalledFunctions.Add(reduceFunctionInfo.ID)
+                    | _ ->
+                        // Array.sum: reduce function in (+)
+                        kModule.Kernel.CustomInfo.Add("ReduceFunction", 
+                                                        ExtractMethodInfo(<@ (+) @>).Value.GetGenericMethodDefinition().MakeGenericMethod([| inputArrayType.GetElementType(); inputArrayType.GetElementType();  outputArrayType.GetElementType() |]))
+                                                                   
+                    // Create node
+                    let node = new KFGKernelNode(kModule)
+                    
+                    // Create data node for outsiders
+//                    for o in outsiders do 
+//                        node.InputNodes.Add(new KFGOutsiderDataNode(o))
+
+                    // Parse arguments
+                    let subnode =
+                        if isArraySum then
+                            step.Process(cleanArgs.[0], env)
+                        else
+                            step.Process(cleanArgs.[1], env)
+                    node.InputNodes.Add(subnode)
+
+                    Some(node :> IKFGNode)  
+                else
+                    None

@@ -12,7 +12,7 @@ open System
 open FSCL.Compiler.Util
 open Microsoft.FSharp.Reflection
 open Microsoft.FSharp.Linq.RuntimeHelpers
-
+open FSCL.Compiler.ModuleParsing
 open QuotationAnalysis.FunctionsManipulation
 open QuotationAnalysis.KernelParsing
 open QuotationAnalysis.MetadataExtraction
@@ -85,70 +85,112 @@ module AcceleratedCollectionUtil =
         | _ ->
             None 
             
-    // Check if the argument is a lambda expression 
-    let GetComputationalLambdaOrMethodInsideLambda(arg, expr) =        
-        let rec GetLambda(expr, var:Var) =         
-            match expr with
-            | Patterns.Let (dv, e1, e2) ->
-                match e1 with
-                | Patterns.Lambda(v, e) ->  
-                    if dv = var then
-                        // Check if this is a computational lambda, that is it is not lambda(lambda(...call)) where
-                        // the call is to a reflected method
-                        GetComputationalLambdaOrReflectedMethodInfo(e1)
-                    else
-                        GetLambda(e2, var)
-                | _ ->
-                    GetLambda(e2, var)
+    // Important function of new language
+    // Should be able to determine in CollectionFun(op) if op is
+    // 1) A lambda preparing a call to an utility function
+    // 2) A lambda that should be turned into an utility function
+    // 3) A sub-expression (CollectionFun is not a kernel)
+    let ParseOperatorLambda(fr: Expr, step: ModuleParsingStep, currEnv: Var list) =  
+        let rec isSubExpr(k: KFGNode) =
+            match k.Type with
+            | KFGNodeType.KernelNode ->
+                true
+            | KFGNodeType.CollectionCompositionNode ->
+                true
+            | KFGNodeType.SequentialFunctionNode ->
+                let inp = (k :?> KFGSequentialFunctionNode).InputNodes |> 
+                                Seq.map(fun i -> isSubExpr(i :?> KFGNode)) |>
+                                Seq.reduce (||)
+                inp
             | _ ->
-                None, None 
-          
-        match arg with
-        | Patterns.Var(v) ->
-            GetLambda(expr, v)            
-        | Patterns.Lambda(v, e) ->
-            GetComputationalLambdaOrReflectedMethodInfo(arg)
-        | _ ->
-            None, None
-
-    let ExtractComputationFunctionForCollection(args: Expr list, root) =     
-        let calledMethod, lambda = GetComputationalLambdaOrMethodInsideLambda(args.[0], root)
-        // If lambda we create a method for it
-        let computationFunction =                
-            match calledMethod, lambda with
-            | Some(_), Some(_) ->
-                failwith ("Computation extracted resulted in both a method called and an in-place lambda")                
-            | Some(o, mi, args, b, lambdaParams), None ->
-                // Lambda containing method to apply: fun it -> DoSomething x y z it
-                // We must close DoSomething replacing params that are references to stuff outside quotation (!= it)
-                // More precisely, if some paramters of mi are not contained in lambdaParams
-                // this means that the lambda is something like fun a b c -> myMethod a b c othPar
-                // So othPar must be evaluated, replacing it's current value inside myMethod
-                // Otherwise, the kernel would not be able to invoke it (it doesn't manage othPar)
-                let thisVar = GetThisVariable(b)
-                Some(thisVar, o, mi, lambdaParams, b)
-            | None, Some(l) ->
-                // Computational lambda to apply to collection
-                match LambdaToMethod(l, false, true) with                
-                | Some(m, paramInfo, paramVars, b, _, _, _) ->
-                    Some(None, None, m, paramVars, b)
+                false
+//                
+//        let rec collectOutsiders(k: IKFGNode, l:List<OutsiderRef>) =
+//            match k.Type with
+//            | KFGNodeType.OutsiderDataNode ->
+//                let dn = k :?> KFGOutsiderDataNode 
+//                let existing = l |> Seq.tryFind(fun r ->
+//                                                    match r, dn.Outsider with
+//                                                    | ValueRef(d1), ValueRef(d2) ->
+//                                                        d1.Equals(d2)
+//                                                    | VarRef(v1), VarRef(v2) ->
+//                                                        v1 = v2
+//                                                    | _, _ ->
+//                                                        false)   
+//                if not existing.IsSome then
+//                    l.Add(dn.Outsider)
+//                | _ ->
+//                    ()
+//            | _ ->
+//                k.Input |> Seq.iter(fun i -> collectOutsiders(i, l))
+           
+        let rec checkIfPreparationToUtilityFunction(expr, lambdaParams: Var list) =
+            match expr with
+            | Patterns.Lambda(v, e) -> 
+                checkIfPreparationToUtilityFunction(e, lambdaParams @ [ v ])
+            | Patterns.Let(v, 
+                            Patterns.TupleGet(
+                                Patterns.Var(tv), i), b) when tv.Name = "tupledArg" ->
+                checkIfPreparationToUtilityFunction(b, lambdaParams @ [ tv ])
+            | _ ->           
+                match expr with
+                | CallToUtilityFunctionMethodInfo (e, mi, a, b) ->
+                    // Check if params are exactly the same of lambda
+                    let p = mi.GetParameters()
+                    let mutable isMatch = p.Length = lambdaParams.Length
+                    let mutable i = 0
+                    while isMatch && i < Math.Min(p.Length, lambdaParams.Length) do
+                        if p.[i].ParameterType <> lambdaParams.[i].Type then
+                            isMatch <- false
+                        else
+                            i <- i + 1
+                    if isMatch then
+                        Some(e, mi, a, b, lambdaParams)
+                    else
+                        None
                 | _ ->
-                    failwith ("Cannot parse the body of the computation function " + root.ToString())
-            | None, None ->
-                // No lambda but method ref used as function to apply to collection
-                FilterCall(args.[0], 
-                    fun (ob, mi, a) ->                         
-                        match mi with
-                        | DerivedPatterns.MethodWithReflectedDefinition(body) ->
-                            match GetCurriedOrTupledArgs(body) with
-                            | obv, Some(paramVars) ->
-                                let thisVar = GetThisVariable(body)
-                                (thisVar, ob, mi, paramVars, body)
-                            | _ ->
-                                failwith ("Cannot parse the body of the computation function " + mi.Name)
-                        | _ ->
-                            failwith ("Cannot parse the body of the computation function " + mi.Name))
-        lambda, computationFunction
+                    None
+                    
+        match fr with
+        | Patterns.Lambda(v, e) -> 
+            match checkIfPreparationToUtilityFunction(e, []) with
+            | Some(e, mi, a, b, lambdaParams) ->
+                // Simple preparation for an utility function call: CollectionFun(myUtilityFun)
+                let thisVar = GetThisVariable(b)
+                Some(thisVar, e, mi, lambdaParams, b), None, true
+            | _ ->         
+                // Try parse sub-expression
+                // Get the params of the operator lambda
+                // These are the (additional) env vars for what's inside the operator
+                let newEnv, lambdaBody = GetLambdaEnvironment(fr) 
+
+                // Process lambdaBody
+                let subExpr = step.Process(lambdaBody, newEnv)
+
+                // Check if any kernel call in the graph rooted in subExpr
+                if isSubExpr(subExpr :?> KFGNode) then
+                    //collectOutsiders(subExpr, outsiders)
+                    // Now check which outsider is in the evn of this collection function
+                    None, Some(subExpr, newEnv), false
+                else
+                    // Otherwise, this is a computing lambda (must turn into method)
+//                    // Now check which outsider is in the evn of this collection function
+//                    // Those who are not should be outsider of this function too
+//                    let thisOutsiders = new List<OutsiderRef>()
+//                    for o in outsiders do
+//                        match o with 
+//                        | VarRef(v) when (newEnv |> List.tryFind(fun i -> i = v)).IsSome ->
+//                            ()
+//                        | o ->
+//                            thisOutsiders.Add(o)
+
+                    match QuotationAnalysis.KernelParsing.LambdaToMethod(fr, false) with
+                    | Some(mi, paramInfo, parameters) ->
+                        Some(None, None, mi, parameters, fr), None, true
+                    | _ ->
+                        None, None, false
+        | _ ->
+            None, None, false
 
     (* 
      * Replace the arguments of a call
@@ -189,7 +231,8 @@ module AcceleratedCollectionUtil =
         let get = GetGenericMethodInfoFromExpr(<@@ arr.GetLength(0) @@>, ty)
         get
         
-    let GetKernelFromLambda(expr:Expr) = 
+        
+    let GetKernelFromCollectionFunctionTemplate(expr:Expr) = 
         let rec LiftTupledArgs(body: Expr, l:Var list) =
             match body with
             | Patterns.Let(v, value, b) ->
@@ -209,7 +252,11 @@ module AcceleratedCollectionUtil =
             else
                 failwith "Template has no tupled args"                
         | _ ->
-            failwith "No lambda found inside template"
+            failwith "No lambda found inside template" 
+            
+                        
+            
+
             
                         
             

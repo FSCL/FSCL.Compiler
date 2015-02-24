@@ -8,7 +8,7 @@ open Microsoft.FSharp.Quotations
 open System
 
 [<StepProcessor("FSCL_DYN_ARRAY_ARGS_PARAM_REF_LIFTING_PREPROCESSING_PROCESSOR", "FSCL_FUNCTION_PREPROCESSING_STEP", 
-                Dependencies = [| "FSCL_ARRAY_LENGHT_ARGS_GENERATOR_PREPROCESSING_PROCESSOR" |])>] 
+                Dependencies = [| "FSCL_ADD_LENGTH_ARGS_PREPROCESSING_PROCESSOR" |])>] 
 type DynamicArrayArgumentsParamRefLifting() =        
     inherit FunctionPreprocessingProcessor()
     

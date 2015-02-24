@@ -9,7 +9,7 @@ open System.Collections.ObjectModel
 type FunctionInfoID =
     | LambdaID of string
     | MethodID of MethodInfo
-
+    
 ///
 ///<summary>
 /// The set of information about utility functions collected and maintained by the compiler
@@ -22,13 +22,19 @@ type IFunctionInfo =
     abstract ParsedSignature: MethodInfo with get
     abstract InstanceVar: Var option with get
     abstract InstanceExpr: Expr option with get
-    abstract OriginalParameters: ReadOnlyCollection<IOriginalFunctionParameter> with get
-    abstract GeneratedParameters: ReadOnlyCollection<IFunctionParameter> with get
-    abstract Parameters: ReadOnlyCollection<IFunctionParameter> with get
+
+    abstract OriginalParameters: IReadOnlyList<IOriginalFunctionParameter> with get
+    abstract GeneratedParameters: IReadOnlyList<IFunctionParameter> with get
+    abstract Parameters: IReadOnlyList<IFunctionParameter> with get
+    abstract EnvVars: Var list with get
+    abstract EnvVarsUsed: IReadOnlyList<Var> with get
+    abstract OutValsUsed: IReadOnlyList<Expr> with get
     abstract ReturnType: Type with get
     abstract Body: Expr with get
     abstract OriginalBody: Expr with get
-
+    
+    abstract CalledFunctions: IReadOnlyList<FunctionInfoID> with get
+    
     abstract member Code: string with get
     abstract member SignatureCode: string with get
     
@@ -51,6 +57,7 @@ type FunctionInfo(objectInstanceVar: Var option,
                   parsedSignature: MethodInfo, 
                   paramInfos: ParameterInfo list,
                   paramVars: Quotations.Var list,
+                  envVars: Var list,
                   workSize: Expr option,
                   body: Expr, 
                   isLambda: bool) =   
@@ -58,7 +65,9 @@ type FunctionInfo(objectInstanceVar: Var option,
     let parameters =
         paramInfos |> 
         List.mapi(fun i (p:ParameterInfo) ->
-                    OriginalFunctionParameter(p, paramVars.[i], None) :> FunctionParameter)
+                    OriginalFunctionParameter(p, paramVars.[i], None) :> FunctionParameter) 
+    let envVarsUsed = new List<Var>()
+    let outValsUsed = new List<Expr>()                           
 
     interface IFunctionInfo with
         member this.ID 
@@ -78,13 +87,13 @@ type FunctionInfo(objectInstanceVar: Var option,
                 let roList = new List<IOriginalFunctionParameter>()
                 for item in this.OriginalParameters do
                     roList.Add(item :?> OriginalFunctionParameter)
-                roList.AsReadOnly()
+                roList :> IReadOnlyList<IOriginalFunctionParameter>
         member this.GeneratedParameters 
             with get() =
                 let roList = new List<IFunctionParameter>()
                 for item in this.GeneratedParameters do
                     roList.Add(item)
-                roList.AsReadOnly()
+                roList :> IReadOnlyList<IFunctionParameter>
         member this.Parameters 
             with get() =
                 let roList = new List<IFunctionParameter>()
@@ -92,7 +101,19 @@ type FunctionInfo(objectInstanceVar: Var option,
                     roList.Add(item)
                 for item in this.GeneratedParameters do
                     roList.Add(item)
-                roList.AsReadOnly()
+                roList :> IReadOnlyList<IFunctionParameter>
+        member this.EnvVars
+            with get() =
+                this.EnvVars
+        member this.EnvVarsUsed
+            with get() =
+                this.EnvVarsUsed :> IReadOnlyList<Var>
+        member this.OutValsUsed
+            with get() =
+                this.OutValsUsed :> IReadOnlyList<Expr>
+        member this.CalledFunctions 
+            with get() =
+                this.CalledFunctions :> IReadOnlyList<FunctionInfoID>
         member this.ReturnType
             with get() =
                 this.ReturnType
@@ -151,7 +172,14 @@ type FunctionInfo(objectInstanceVar: Var option,
     /// The set of information about generated function parameters
     ///</summary>
     ///
-    member val GeneratedParameters = new List<FunctionParameter>() with get
+    member val GeneratedParameters = 
+        new List<FunctionParameter>() 
+        with get
+    
+    member val CalledFunctions = 
+        new List<FunctionInfoID>() 
+        with get
+
     ///
     ///<summary>
     /// The set of information about all the function parameters
@@ -160,6 +188,18 @@ type FunctionInfo(objectInstanceVar: Var option,
     member this.Parameters 
         with get() =
             this.OriginalParameters @ List.ofSeq(this.GeneratedParameters)
+
+    member this.EnvVars 
+        with get() =
+            envVars
+            
+    member this.EnvVarsUsed 
+        with get() =
+            envVarsUsed
+            
+    member this.OutValsUsed 
+        with get() =
+            outValsUsed
     ///
     ///<summary>
     /// The function return type
@@ -235,11 +275,12 @@ type KernelInfo(objectInstanceVar: Var option,
                 originalSignature: MethodInfo, 
                 paramInfos: ParameterInfo list,
                 paramVars: Quotations.Var list,
+                envVars: Var list,
                 workSize: Expr option,
                 body: Expr, 
                 meta: ReadOnlyMetaCollection, 
                 isLambda: bool) =
-    inherit FunctionInfo(objectInstanceVar, objectInstance, originalSignature, paramInfos, paramVars, workSize, body, isLambda)
+    inherit FunctionInfo(objectInstanceVar, objectInstance, originalSignature, paramInfos, paramVars, envVars, workSize, body, isLambda)
     
     let parameters =
         paramInfos |>
@@ -330,6 +371,8 @@ type KernelInfo(objectInstanceVar: Var option,
             for item in this.CustomInfo do
                 if not (kInfo.CustomInfo.ContainsKey(item.Key)) then
                     kInfo.CustomInfo.Add(item.Key, item.Value)
+            for item in this.CalledFunctions do
+                kInfo.CalledFunctions.Add(item)
             for item in this.GeneratedParameters do
                 if item.IsReturned && item.IsDynamicParameter then
                     // Must associate new Return Meta

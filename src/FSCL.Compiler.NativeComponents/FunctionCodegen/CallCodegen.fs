@@ -110,7 +110,7 @@ type CallCodegen() =
     ///</returns>
     ///  
     override this.Run(expr, en, opts) =
-        let engine = en :?> FunctionCodegenStep
+        let step = en :?> FunctionCodegenStep
         match expr with
         | DerivedPatterns.SpecificCall <@ local @> (o, mi, a) ->
             // Ignore call to __local
@@ -119,9 +119,9 @@ type CallCodegen() =
             // Check if the call is the last thing done in the function body
             // If so, prepend "return"
             let returnPrefix = 
-                if(engine.FunctionInfo.CustomInfo.ContainsKey("FUNCTION_RETURN_EXPRESSIONS")) then
+                if(step.FunctionInfo.CustomInfo.ContainsKey("FUNCTION_RETURN_EXPRESSIONS")) then
                     let returnTags = 
-                        engine.FunctionInfo.CustomInfo.["FUNCTION_RETURN_EXPRESSIONS"] :?> Expr list
+                        step.FunctionInfo.CustomInfo.["FUNCTION_RETURN_EXPRESSIONS"] :?> Expr list
                     if (List.tryFind(fun (e:Expr) -> e = expr) returnTags).IsSome then
                         "return "
                     else
@@ -133,22 +133,55 @@ type CallCodegen() =
             // Get args filtering out WorkItemInfo(s)
             let mutable args = a |> 
                                List.filter(fun (e:Expr) -> e.Type <> typeof<WorkItemInfo>) |> 
-                               List.map (fun (e:Expr) -> engine.Continue(e)) |>  
+                               List.map (fun (e:Expr) -> step.Continue(e)) |>  
                                String.concat ", "
+                               
+            // Check if call to an utility function
+            // In such case codegen outsiders (and possibly length args)
+           (* let utilityFunction = step.FunctionInfo.CalledFunctions |> Seq.tryFind(fun id -> id = MethodID(mi))
+            if utilityFunction.IsSome then
+                let funInfo = step.Functions.[utilityFunction.Value]
+                let genPars = new List<string>()
+                // Pass the length of the array arguments
+                for i = 0 to a.Length - 1 do
+                    let argument = a.[i]
+                    if argument.Type.IsArray then
+                        for r = 0 to FSCL.Compiler.Util.ArrayUtil.GetArrayDimensions(argument.Type) - 1 do
+                            genPars.Add(step.FunctionInfo.Parameters.[i])
+                    ()
+                    
+                // Check outsiders
+                for genP in funInfo.GeneratedParameters do
+                    match genP.ParameterType with
+                    | OutsiderParameter ->
+                        genPars.Add(genP.Name)
+                    | _ ->
+                        ()
+                for genP in funInfo.GeneratedParameters do
+                    match genP.ParameterType with
+                    | SizeParameter ->
+                        genPars.Add(genP.Name)
+                    | _ ->
+                        ()
 
+                args <- a |> 
+                        List.filter(fun (e:Expr) -> e.Type <> typeof<WorkItemInfo>) |> 
+                        List.map (fun (e:Expr) -> step.Continue(e)) |>  
+                        String.concat ","
+*)
             // Check if this is a cast
             if mi.IsGenericMethod && castMethods.ContainsKey(mi.GetGenericMethodDefinition()) then
-                Some(returnPrefix + "(" + engine.TypeManager.Print(mi.ReturnType) + ")(" + engine.Continue(a.[0]) + ")" + returnPostfix)
+                Some(returnPrefix + "(" + step.TypeManager.Print(mi.ReturnType) + ")(" + step.Continue(a.[0]) + ")" + returnPostfix)
 
             // Check if this is a call to IsSome or IsNone for option types            
             else if o.IsNone && mi.IsStatic && mi.Name = "get_IsSome" && a.[0].Type.IsOption then 
-                Some(returnPrefix + "(" + engine.Continue(a.[0]) + ").IsSome")  
+                Some(returnPrefix + "(" + step.Continue(a.[0]) + ").IsSome")  
                  
             // Check if this is a call to fst or snd for tuple types         
             else if o.IsNone && mi.IsStatic && mi.Name = "Fst" && a.Length > 0 && FSharpType.IsTuple(a.[0].Type) then 
-                Some(returnPrefix + "(" + engine.Continue(a.[0]) + ").Item0")     
+                Some(returnPrefix + "(" + step.Continue(a.[0]) + ").Item0")     
             else if o.IsNone && mi.IsStatic && mi.Name = "Snd" && a.Length > 0 && FSharpType.IsTuple(a.[0].Type) then 
-                Some(returnPrefix + "(" + engine.Continue(a.[0]) + ").Item1")     
+                Some(returnPrefix + "(" + step.Continue(a.[0]) + ").Item1")     
 
             // Check Vector operators
             else if (mi.DeclaringType <> null && mi.DeclaringType.GetCustomAttribute<VectorTypeAttribute>() <> null && mi.Name = "vload") then
@@ -167,16 +200,16 @@ type CallCodegen() =
                 let sat = mi.Name.EndsWith("Sat")
                 let rounding = LeafExpressionConverter.EvaluateQuotation(a.[1]) :?> VectorTypeConversionRoundingMode option
                 if rounding.IsSome then
-                    Some(returnPrefix + "convert_" + engine.TypeManager.Print(mi.ReturnType) + (if sat then "_sat" else "") + "_" + rounding.Value.ToString() + "(" + engine.Continue(a.[0]) + ")" + returnPostfix)
+                    Some(returnPrefix + "convert_" + step.TypeManager.Print(mi.ReturnType) + (if sat then "_sat" else "") + "_" + rounding.Value.ToString() + "(" + step.Continue(a.[0]) + ")" + returnPostfix)
                 else
-                    Some(returnPrefix + "convert_" + engine.TypeManager.Print(mi.ReturnType) + (if sat then "_sat" else "") + "(" + engine.Continue(a.[0]) + ")" + returnPostfix)
+                    Some(returnPrefix + "convert_" + step.TypeManager.Print(mi.ReturnType) + (if sat then "_sat" else "") + "(" + step.Continue(a.[0]) + ")" + returnPostfix)
             // Pointer arithmetic
             else if (mi.Name = "[]`1.pasum") then
                 // Pointer arithmetic sum
-                Some(returnPrefix + "(" + engine.Continue(a.[0]) + ") + (" + engine.Continue(a.[1]) + ")" + returnPostfix)
+                Some(returnPrefix + "(" + step.Continue(a.[0]) + ") + (" + step.Continue(a.[1]) + ")" + returnPostfix)
             else if (mi.Name = "[]`1.pasub") then
                 // Pointer arithmetic subtraction
-                Some(returnPrefix + "(" + engine.Continue(a.[0]) + ") - (" + engine.Continue(a.[1]) + ")" + returnPostfix)
+                Some(returnPrefix + "(" + step.Continue(a.[0]) + ") - (" + step.Continue(a.[1]) + ")" + returnPostfix)
             // Check work item info functions
             else if mi.DeclaringType <> null && mi.DeclaringType = typeof<WorkItemInfo> then
                 match mi.Name with

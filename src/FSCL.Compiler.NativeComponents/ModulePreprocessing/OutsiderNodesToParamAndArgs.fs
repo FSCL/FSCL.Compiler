@@ -12,39 +12,37 @@ open QuotationAnalysis.FunctionsManipulation
 open QuotationAnalysis.KernelParsing
 open QuotationAnalysis.MetadataExtraction
 
-[<StepProcessor("FSCL_FUNCTIONS_DISCOVERY_PROCESSOR", 
+[<StepProcessor("FSCL_OUTSIDER_NODES_DISCOVERY_PROCESSOR", 
                 "FSCL_MODULE_PREPROCESSING_STEP")>] 
-type FunctionReferenceDiscover() =      
+type OutsiderNodesToParamAndArgs() =      
     inherit ModulePreprocessingProcessor()
 
-    let DiscoverFunctionRef(k:FunctionInfo) =
-        let foundFunctions = Dictionary<MethodInfo, FunctionInfo>()
-
-        let rec DiscoverFunctionRefInner(expr, env) =
-            match expr with
-            | UtilityFunctionCall(obv, ob, mi, parameters, paramVars, body, args, workItemInfo, _, _, _) ->
-                let fi = new FunctionInfo(obv,
-                                          ob,
-                                          mi, 
-                                          parameters |> List.ofArray, 
-                                          paramVars,
-                                          env,
-                                          workItemInfo,
-                                          body, false)
-                foundFunctions.Add(mi, fi)
-                k.CalledFunctions.Add(fi.ID)
-            | _ ->
-                match expr with 
-                | ExprShape.ShapeLambda(v, a) ->
-                    DiscoverFunctionRefInner(a, env)
-                | ExprShape.ShapeCombination(o, list) ->
-                    List.iter (fun el -> DiscoverFunctionRefInner(el, env)) list
+    let rec FixSignature(k:FunctionInfo) =
+        let outsiderIndex = ref 0
+        match k.Type with
+        | KFGNodeType.KernelNode ->
+            let n = k :?> KFGKernelNode
+            for el in n.Input do
+                match el.Type with
+                | KFGNodeType.OutsiderDataNode ->
+                    let d = el :?> KFGOutsiderDataNode
+                    let ov, oe = 
+                        match d.Outsider with
+                        | VarRef(v) ->
+                            v, Expr.Var(v)
+                        | DataRef(e) ->
+                            let v = Quotations.Var("outsider_val_" + outsiderIndex.Value.ToString(), e.Type)
+                            outsiderIndex := !outsiderIndex + 1
+                            v, e
+                    (n.Module.Kernel :?> KernelInfo).GeneratedParameters.Add(
+                        new FunctionParameter(ov.Name, ov, FunctionParameterType.OutsiderParameter, None))
+                    (n.Module :?> KernelModule).OutsiderArgs.Add(oe)
                 | _ ->
                     ()
-
-        DiscoverFunctionRefInner(k.Body, k.EnvVars)
-        foundFunctions
-
+        | _ ->
+            for el in k.Input do
+                FixSignature(el)
+                
     override this.Run(m, en, opts) =
         let engine = en :?> ModulePreprocessingStep
         // Do not do this if the kernel is an accelerated kernel (the function applied to the collection has been already generated)

@@ -22,6 +22,7 @@ type AcceleratedArrayParser() =
     
     // The List module type        
     let listModuleType = FilterCall(<@ Array.map @>, fun(e, mi, a) -> mi.DeclaringType).Value
+    let extListModuleType = FilterCall(<@ Array.groupBy @>, fun(e, mi, a) -> mi.DeclaringType).Value
 
     // The set of List functions handled by the parser
     let handlers = new Dictionary<MethodInfo, IAcceleratedCollectionHandler>()
@@ -33,17 +34,22 @@ type AcceleratedArrayParser() =
         handlers.Add(FilterCall(<@ Array.reduce @>, fun(e, mi, a) -> mi.GetGenericMethodDefinition()).Value, new AcceleratedArrayReduceHandler())
         handlers.Add(FilterCall(<@ Array.sum [| 0 |] @>, fun(e, mi, a) -> mi.GetGenericMethodDefinition()).Value, new AcceleratedArrayReduceHandler())
         handlers.Add(FilterCall(<@ Array.rev @>, fun(e, mi, a) -> mi.GetGenericMethodDefinition()).Value, new AcceleratedArrayReverseHandler())
-            
-    override this.Run(o, s, opts) =
+        handlers.Add(FilterCall(<@ Array.scan @>, fun(e, mi, a) -> mi.GetGenericMethodDefinition()).Value, new AcceleratedArrayReverseHandler())
+        handlers.Add(FilterCall(<@ Array.sort @>, fun(e, mi, a) -> mi.GetGenericMethodDefinition()).Value, new AcceleratedArraySortHandler())
+        handlers.Add(FilterCall(<@ Array.sortBy (fun i -> i) @>, fun(e, mi, a) -> mi.GetGenericMethodDefinition()).Value, new AcceleratedArraySortHandler()) 
+        handlers.Add(FilterCall(<@ Array.groupBy (fun i -> i) @>, fun(e, mi, a) -> mi.GetGenericMethodDefinition()).Value, new AcceleratedArrayGroupByHandler())  
+          
+    override this.Run((o, envBuilder), s, opts) =
         let step = s :?> ModuleParsingStep
-        if o :? Expr then
+        if o :? Expr then            
             // Lift and get potential kernel attributes
             let expr, kMeta, rMeta = ParseKernelMetadata(o :?> Expr)
 
             // Filter out potential Lambda/Let (if the function is referenced, not applied)
             match ExtractCall(expr) with
             | Some(o, methodInfo, args, _, _) -> 
-                if methodInfo.DeclaringType = listModuleType then
+                if methodInfo.DeclaringType = listModuleType || 
+                    methodInfo.DeclaringType = extListModuleType then
                     if (handlers.ContainsKey(methodInfo.GetGenericMethodDefinition())) then
                         // Clean arguments of potential parameter attributes
                         let pmeta = new List<ParamMetaCollection>()
@@ -60,7 +66,7 @@ type AcceleratedArrayParser() =
                         let finalMeta = step.ProcessMeta(kMeta, rMeta, pmeta, metaFilterInfo)
 
                         // Run the appropriate handler
-                        handlers.[methodInfo.GetGenericMethodDefinition()].Process(methodInfo, List.ofSeq cleanArgs, expr, finalMeta, step)
+                        handlers.[methodInfo.GetGenericMethodDefinition()].Process(methodInfo, List.ofSeq cleanArgs, expr, finalMeta, step, envBuilder)
                     else
                         None
                 else

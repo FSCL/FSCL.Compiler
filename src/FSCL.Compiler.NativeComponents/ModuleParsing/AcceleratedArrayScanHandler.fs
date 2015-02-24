@@ -15,10 +15,10 @@ open Microsoft.FSharp.Linq.RuntimeHelpers
 open QuotationAnalysis.FunctionsManipulation
 open QuotationAnalysis.KernelParsing
 open QuotationAnalysis.MetadataExtraction
-
+(*
 type AcceleratedArrayReverseHandler() =
     interface IAcceleratedCollectionHandler with
-        member this.Process(methodInfo, cleanArgs, root, meta, step, env) =
+        member this.Process(methodInfo, cleanArgs, root, meta, step) =
             // We need to get the type of a array whose elements type is the same of the functionInfo parameter
             let inputArrayType = 
                     methodInfo.GetParameters().[0].ParameterType
@@ -84,17 +84,10 @@ type AcceleratedArrayReverseHandler() =
             let kInfo = new AcceleratedKernelInfo(signature, 
                                                     [ methodParams.[0]; methodParams.[1] ],
                                                     [ inputHolder; outputHolder ],
-                                                    [],
                                                     kernelBody,
                                                     meta, 
                                                     functionName, None)
             let kernelModule = new KernelModule(kInfo, cleanArgs)
-                               
-            // Create node
-            let node = new KFGKernelNode(kernelModule)
-
-            // Parse arguments
-            let subnode = step.Process(cleanArgs.[0], env)
-            node.InputNodes.Add(subnode)
-
-            Some(node :> IKFGNode)  
+                                
+            // Return module                             
+            Some(kernelModule) *)

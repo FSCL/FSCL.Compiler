@@ -48,6 +48,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Test.fs" />
+    <Compile Include="KMeans.fs" />
     <Compile Include="Program.fs" />
     <None Include="App.config" />
   </ItemGroup>

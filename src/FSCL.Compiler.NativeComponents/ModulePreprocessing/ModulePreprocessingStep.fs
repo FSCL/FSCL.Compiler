@@ -13,16 +13,16 @@ do()
       Dependencies = [| "FSCL_MODULE_PARSING_STEP" |])>]
 type ModulePreprocessingStep(tm: TypeManager,
                              processors: ICompilerStepProcessor list) = 
-    inherit CompilerStep<KernelModule, KernelModule>(tm, processors)
+    inherit CompilerStep<ComputingExpressionModule, ComputingExpressionModule>(tm, processors)
            
     member private this.Process(km, opts) =
         for p in processors do
             p.Execute(km, this, opts) |> ignore
-        km
 
-    override this.Run(data, opts) =
-        let r = ContinueCompilation(this.Process(data, opts))
-        r
+    override this.Run(cem, opts) =
+        for km in cem.KernelModulesToCompile do
+            this.Process(km, opts)
+        ContinueCompilation(cem)
 
         
 

@@ -159,13 +159,14 @@ let main argv =
     let c = Array.zeroCreate<float32> 64
     let size = new WorkSize(64L, 64L) :> WorkItemInfo
 
+    KMeans.Run()
     //Test.Test1()
     //Test.Test2()
     //Test.Test3()
     //Test.Test8()
     //Test.Test9()
     //Test.Test10()
-    (*
+    
     let result1 = compiler.Compile(<@ VectorMulCurried size (VectorAddCurried size a b c) b c @>) :?> IKernelModule
     let result2 = compiler.Compile(<@ VectorAddCurried size a b c |> VectorMulCurried size a b  @>) :?> IKernelModule    
     let result3 = compiler.Compile(<@ VectorAddCurried size a b c |> VectorNop  @>) :?> IKernelModule
@@ -195,7 +196,7 @@ let main argv =
                                             b.[gid] <- a.[gid] * a.[gid]) size a @>) :?> IKernelModule
                                             
     // Composition with accel collections
-    *)
+    
     
     //let result13 = compiler.Compile(<@ VectorAddCurried size a b c |> Array.map sum  @>) :?> IKernelModule
     let s = 64

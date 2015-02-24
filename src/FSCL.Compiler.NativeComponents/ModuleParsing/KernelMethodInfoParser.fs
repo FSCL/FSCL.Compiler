@@ -16,7 +16,7 @@ open QuotationAnalysis.MetadataExtraction
 type KernelMethodInfoParser() =      
     inherit ModuleParsingProcessor() 
         
-    override this.Run(mi, s, opts) =
+    override this.Run((mi, envBuilder), s, opts) =
         let step = s :?> ModuleParsingStep
         if (mi :? MethodInfo) then
             match GetKernelFromMethodInfo(mi :?> MethodInfo) with
@@ -25,10 +25,11 @@ type KernelMethodInfoParser() =
                 let finalMeta = step.ProcessMeta(kMeta, rMeta, pMeta, null)
 
                 // Create singleton kernel call graph
-                let kernelModule = new KernelModule(new KernelInfo(obv, None, mi, paramInfo, paramVars, None, b, finalMeta, false))
+                let kernelModule = new KernelModule(new KernelInfo(obv, None, mi, paramInfo, paramVars, [], None, b, finalMeta, false), [])
                 
-                // Create module
-                Some(kernelModule)
+                // Create node
+                let node = new KFGKernelNode(kernelModule)                
+                Some(node :> IKFGNode)  
             | _ ->
                 None
         else

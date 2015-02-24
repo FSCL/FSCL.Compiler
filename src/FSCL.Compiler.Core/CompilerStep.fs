@@ -139,7 +139,7 @@ type NoResult = unit
 ///The type of the processors of the module parsing step. Alias of CompilerStepProcessor&lt;obj, KernelModule option&gt;
 ///</summary>
 /// 
-type ModuleParsingProcessor = CompilerStepProcessor<obj, KernelModule option>
+type ModuleParsingProcessor = CompilerStepProcessor<obj * Var list, IKFGNode option>
 ///
 ///<summary>
 ///The type of the metadata processors of the module parsing step. 
@@ -152,6 +152,12 @@ type MetadataFinalizerProcessor = CompilerStepProcessor<KernelMetaCollection * P
 ///</summary>
 /// 
 type ModulePreprocessingProcessor = CompilerStepProcessor<KernelModule>
+///
+///<summary>
+///The type of the processors of the module preprocessing step. Alias of CompilerStepProcessor&lt;KernelModule&gt;
+///</summary>
+/// 
+type ModulePostprocessingProcessor = CompilerStepProcessor<KernelModule>
 ///
 ///<summary>
 ///The type of the processors of the function preprocessing step. Alias of CompilerStepProcessor&lt;FunctionInfo * ConnectionsWrapper, ConnectionWrapper&gt;

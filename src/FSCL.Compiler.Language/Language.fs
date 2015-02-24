@@ -106,7 +106,10 @@ module Language =
         inherit Attribute()
         member val Metadata = t with get
         member val Target = target with get
-
+        
+    [<AllowNullLiteral>]
+    type KernelAttribute() =
+        inherit Attribute()
     ///
     ///<summary>
     ///The attribute to mark a parameter to be allocated in a particular address space (global, constant, local)
@@ -358,6 +361,11 @@ module Language =
         0
            
         *)
+        
+    module Array =
+        let groupBy (aggr: 'T -> 'Key) (data: 'T[]) =
+            data |> Seq.groupBy(aggr) |> Seq.map(fun (k, t) -> (k, Seq.toArray t)) |> Seq.toArray
+
     // Math functions
     let acosh(x) =
         Math.Log(x + Math.Sqrt(Math.Pow(x, 2.0) - 1.0))

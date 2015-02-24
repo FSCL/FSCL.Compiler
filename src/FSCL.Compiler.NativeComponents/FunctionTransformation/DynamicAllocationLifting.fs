@@ -9,7 +9,7 @@ open System.Reflection
 
 [<StepProcessor("FSCL_DYNAMIC_ALLOCATION_LIFTING_TRANSFORMATION_PROCESSOR", 
                 "FSCL_FUNCTION_TRANSFORMATION_STEP")>]//,
-                //Dependencies = [| "FSCL_ARG_LIFTING_TRANSFORMATION_PROCESSOR" |])>]
+               // Dependencies = [| "Z" |])>]
 type DynamicAllocationLiftingProcessor() =
     inherit FunctionTransformationProcessor()
             

@@ -1,3 +1,6 @@
+### 1.5.5 - 29 October 2014
+* Bug fix in parsing compositions
+
 ### 1.5.4 - 29 October 2014
 * Support for F# two-components tuple
 

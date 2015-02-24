@@ -10,6 +10,25 @@ open Microsoft.FSharp.Quotations
                 Dependencies = [| "FSCL_DYNAMIC_ALLOCATION_LIFTING_TRANSFORMATION_PROCESSOR" |])>]
 type ConditionalAssignmentTransformation() =   
     inherit FunctionTransformationProcessor()
+    
+    let rec ReplaceReturnExpressionWithVarSet (expr: Expr, v: Var, engine:FunctionTransformationStep) =
+        match expr with
+        | Patterns.Let(v, value, body) ->                
+            Expr.Let(v, value, ReplaceReturnExpressionWithVarSet(body, v, engine))
+        | Patterns.Sequential(e1, e2) ->
+            Expr.Sequential(e1, ReplaceReturnExpressionWithVarSet(e2, v, engine))                
+        | Patterns.IfThenElse(cond, ifexp, elsexp) ->
+            Expr.IfThenElse(cond, 
+                ReplaceReturnExpressionWithVarSet(ifexp, v, engine),
+                ReplaceReturnExpressionWithVarSet(elsexp, v, engine))  
+        | ExprShape.ShapeLambda(v, e) ->
+            Expr.Lambda(v, 
+                ReplaceReturnExpressionWithVarSet(e, v, engine))              
+        | _ ->
+            if expr.Type = v.Type then
+                Expr.VarSet(v, expr)
+            else
+                failwith "Cannot find return expression in a nested let"
 
     let rec MoveAssignmentIntoBody(var:Var, expr, engine:FunctionTransformationStep) =
         match expr with
@@ -57,6 +76,17 @@ type ConditionalAssignmentTransformation() =
     override this.Run(expr, en, opts) =
         let engine = en :?> FunctionTransformationStep
         match expr with
+        // Check let-let
+        | Patterns.Let(v, e, body) ->
+            match e with
+            | Patterns.Let(v2, e2, body2) ->                 
+                let norm = Expr.Let(v, Expr.DefaultValue(v.Type), 
+                                Expr.Sequential(Expr.Let(v2, e2, ReplaceReturnExpressionWithVarSet(body2, v, engine)),
+                                                body))
+                engine.Continue(norm)
+            | _ ->
+                engine.Default(expr)
+        // Check branches
         | Patterns.Let(v, e, body) ->
             match e with
             | Patterns.IfThenElse(cond, ib, eb) ->                    

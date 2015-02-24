@@ -11,7 +11,7 @@ open FSCL.Language
 type DefaultTypeHandler() =       
     inherit TypeHandler() with
 
-    let (managedScalarTypes:Type list) = [ typeof<unit>; typeof<System.Void>; typeof<uint32>; typeof<uint64>; typeof<int64>; typeof<int>; typeof<float32>; typeof<float>; typeof<char>; typeof<uchar> ]   
+    let (managedScalarTypes:Type list) = [ typeof<unit>; typeof<System.Void>; typeof<uint32>; typeof<uint64>; typeof<int64>; typeof<int>; typeof<bool>; typeof<float32>; typeof<float>; typeof<char>; typeof<uchar> ]   
     
     override this.Print(t:Type) =
         let arrayStar = if t.IsArray then "*" else ""
@@ -22,7 +22,7 @@ type DefaultTypeHandler() =
             "unsigned long" + arrayStar
         elif (plainType = typeof<int64>) then
             "long" + arrayStar
-        elif (plainType = typeof<int>) then
+        elif (plainType = typeof<int> || plainType = typeof<bool>) then
             "int" + arrayStar 
         elif (plainType = typeof<double>) then
             "double" + arrayStar 

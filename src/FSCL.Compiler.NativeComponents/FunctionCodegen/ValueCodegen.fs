@@ -6,6 +6,7 @@ open System.Collections.Generic
 open System.Reflection
 open Microsoft.FSharp.Quotations
 open Microsoft.FSharp.Reflection
+open Microsoft.FSharp.Linq.RuntimeHelpers
 
 [<StepProcessor("FSCL_VALUE_CODEGEN_PROCESSOR", "FSCL_FUNCTION_CODEGEN_STEP")>]
 type ValueCodegen() =   
@@ -47,7 +48,16 @@ type ValueCodegen() =
                         code <- code + components.GetValue(i).ToString() + ","
                     code <- code + components.GetValue(components.Length - 1).ToString() + ")"
                     Some(returnPrefix + code + returnPostfix)
-                else
+                // Bool values are mapped to int
+                else if v.GetType() = typeof<bool> then
+                    if v :?> bool then
+                        Some(returnPrefix + "1" + returnPostfix)
+                    else
+                        Some(returnPrefix + "0" + returnPostfix)
+                else  
                     Some(returnPrefix + v.ToString() + returnPostfix)
+        | Patterns.DefaultValue(t) ->
+            // We handle DefaultValue by evaluating the expr (getting a const value) and then processing the constant node
+            Some(step.Continue(Expr.Value(LeafExpressionConverter.EvaluateQuotation(expr), expr.Type)))
         | _ ->
             None

@@ -32,7 +32,7 @@ type ModuleCodegen() =
                 for f in t.GetProperties (BindingFlags.Public ||| BindingFlags.Instance) do
                     print <- print + engine.TypeManager.Print(f.PropertyType) + " " + f.Name + ";\n"
             else
-                for f in t.GetFields (BindingFlags.Public ||| BindingFlags.Instance) do
+                for f in t.GetFields () do
                     print <- print + engine.TypeManager.Print(f.FieldType) + " " + f.Name + ";\n"
             print <- print + "};\n";
             print
@@ -52,4 +52,4 @@ type ModuleCodegen() =
         let functionDecls = String.concat "\n" (Seq.map (fun (f: KeyValuePair<FunctionInfoID, IFunctionInfo>) -> f.Value.SignatureCode + ";") (km.Functions))
         let functionDefs = String.concat "\n" (Seq.map (fun (f: KeyValuePair<FunctionInfoID, IFunctionInfo>) -> f.Value.Code) (km.Functions))
         let kernels = km.Kernel.Code
-        String.concat "\n" [directives; pstructs; functionDecls; functionDefs; kernels]
+        String.concat "\n\n" [directives; pstructs; functionDecls; functionDefs; kernels]

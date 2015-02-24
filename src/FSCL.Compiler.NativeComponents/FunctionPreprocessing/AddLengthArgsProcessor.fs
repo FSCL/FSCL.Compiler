@@ -2,15 +2,16 @@
 
 open FSCL.Compiler
 open FSCL.Language
+open FSCL.Compiler.Util
 open System.Collections.Generic
 open System.Reflection
 open System.Reflection.Emit
 open Microsoft.FSharp.Quotations
 open System
 
-[<StepProcessor("FSCL_ARRAY_LENGHT_ARGS_GENERATOR_PREPROCESSING_PROCESSOR", "FSCL_FUNCTION_PREPROCESSING_STEP", 
+[<StepProcessor("FSCL_ADD_LENGTH_ARGS_PREPROCESSING_PROCESSOR", "FSCL_FUNCTION_PREPROCESSING_STEP", 
                 Dependencies = [| "FSCL_REF_TYPE_TO_ARRAY_REPLACING_PREPROCESSING_PROCESSOR" |])>] 
-type ArrayLenghtArgumentsGenerator() =        
+type AddLengthArgsProcessor() =        
     inherit FunctionPreprocessingProcessor()
 
     let GetArrayDimensions (t:Type) =
@@ -25,12 +26,10 @@ type ArrayLenghtArgumentsGenerator() =
 
     override this.Run(fInfo, s, opts) =
         let step = s :?> FunctionPreprocessingStep
+        let n = fInfo.ParsedSignature
 
-        // Store size parameters separately to enqueue them at the end
+        // Now generate array parameters to add lengths
         let sizeParameters = new List<FunctionParameter>()
-
-        // Get node input for each flow graph node instance of this kernel
-        //let nodes = FlowGraphManager.GetKernelNodes(fInfo.ID,  step.FlowGraph)
 
         // Process each parameter
         for p in fInfo.Parameters do

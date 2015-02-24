@@ -15,15 +15,42 @@ open FSCL.Compiler.FunctionPostprocessing
 open FSCL.Compiler.AcceleratedCollections
 open FSCL.Compiler.Types
 open System.Collections.Generic
+open Microsoft.FSharp.Quotations
+
 ///
 ///<summary>
 ///The FSCL compiler
 ///</summary>
 ///
+type KernelCacheItem(info, code, defines) =
+    member val Kernel:IKernelInfo = info with get 
+    member val OpenCLCode:String = code with get, set
+    member val DynamicDefines: IReadOnlyDictionary<string, Var option * Expr option * obj> = defines with get
+    // List of devices and kernel instances potentially executing the kernel
+    
+type KernelCache() =
+    member val Kernels = Dictionary<FunctionInfoID, List<ReadOnlyMetaCollection * KernelCacheItem>>() 
+        with get    
+    member this.TryFindCompatibleOpenCLCachedKernel(id: FunctionInfoID, 
+                                                    meta: ReadOnlyMetaCollection,
+                                                    openCLMetadataVerifier: ReadOnlyMetaCollection * ReadOnlyMetaCollection -> bool) =
+        if this.Kernels.ContainsKey(id) then
+            let potentialKernels = this.Kernels.[id]
+            // Check if compatible kernel meta in cached kernels
+            let item = Seq.tryFind(fun (cachedMeta: ReadOnlyMetaCollection, cachedKernel: KernelCacheItem) ->
+                                        openCLMetadataVerifier(cachedMeta, meta)) potentialKernels
+            match item with
+            | Some(m, k) ->
+                Some(k)
+            | _ ->
+                None
+        else
+            None                  
+  
 [<AllowNullLiteral>]
 type Compiler = 
     inherit Pipeline
-
+    
     static member DefaultConfigurationRoot = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "FSCL.Compiler")
     static member DefaultConfigurationComponentsFolder = "Components"
     static member DefaultConfigurationComponentsRoot = Path.Combine(Compiler.DefaultConfigurationRoot, Compiler.DefaultConfigurationComponentsFolder)
@@ -38,7 +65,8 @@ type Compiler =
            typeof<FunctionPostprocessingStep>;
            typeof<AcceleratedArrayParser>;
            typeof<DefaultTypeHandler> |]
-           
+     
+    //val cache: KernelCache
     ///
     ///<summary>
     ///The default constructor of the compiler
@@ -79,8 +107,7 @@ type Compiler =
         { inherit Pipeline(Compiler.DefaultConfigurationRoot, Compiler.DefaultConfigurationComponentsFolder, Compiler.defComponentsAssemply, conf) }
 
     member this.Compile(input, opts) =
-        let r = this.Run(input, opts)
-        r
+        this.Run((box input, this.IsInvariantToMetaCollection), opts)
         
     member this.Compile(input, [<ParamArray>] args: (string * obj)[]) =
         let opts = new Dictionary<string, obj>()
@@ -89,8 +116,7 @@ type Compiler =
                 opts.Add(key, value)
             else
                 opts.[key] <- value
-        let r = this.Run(input, opts)
-        r
+        this.Run(input, opts)
         
     member this.Compile(input) =
         this.Compile(input, new Dictionary<string, obj>())

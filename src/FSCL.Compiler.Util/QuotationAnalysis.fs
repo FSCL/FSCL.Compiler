@@ -156,7 +156,9 @@ module QuotationAnalysis =
             // Return
             (cleanExpr, attrs)
         
-    module FunctionsManipulation =                   
+    module FunctionsManipulation =    
+        let lambdaEnvStopName = "__environment__stop__"
+
         // Extract and lift function parameters in tupled form                               
         let LiftTupledArgs(expr) =
             let rec GetCallArgs(expr, parameters: Var list) =
@@ -328,177 +330,113 @@ module QuotationAnalysis =
             | _ ->
                 None 
 
-        let IsComputationalLambda(expr:Expr) =    
-            let rec isCallToReflectedMethod(expr) =
-                match expr with
-                | Patterns.Lambda(v, e) -> 
-                    isCallToReflectedMethod(e)
-                | Patterns.Call (e, mi, a) ->
-                    match mi with
-                    | DerivedPatterns.MethodWithReflectedDefinition(b) ->
-                        true
-                    | _ ->
-                        false
-                | _ ->
-                    false
-           
-            match expr with 
-            | Patterns.Lambda(v, e) -> 
-                not (isCallToReflectedMethod(e))
-            | _ ->
-                false  
-            
-        let GetComputationalLambdaOrReflectedMethodInfo(expr:Expr) =    
-            let rec getCallToReflectedMethod(expr, lambdaParams: Var list) =
-                match expr with
-                | Patterns.Lambda(v, e) -> 
-                    getCallToReflectedMethod(e, lambdaParams @ [ v ])
-                | Patterns.Call (e, mi, a) ->
-                    match mi with
-                    | DerivedPatterns.MethodWithReflectedDefinition(b) ->
-                        Some(e, mi, a, b, lambdaParams)
-                    | _ ->
-                        None
-                | _ ->
-                    None
-           
-            match expr with 
-            | Patterns.Lambda(v, e) -> 
-                match getCallToReflectedMethod(expr, []) with
-                | Some(e, mi, a, b, lambdaParams) ->
-                    Some(e, mi, a, b, lambdaParams), None
-                | _ ->
-                    None, Some(expr)
-            | _ ->
-                None, None  
-        
-        let RemoveLambdaArgsBindingForVar(e: Expr, v: Var) =
-            let rec removeInternal(e: Expr, v: Var) =
-                match e with
-                | ExprShape.ShapeLambda(thisv, b) ->                
-                    if thisv = v then
-                        b
-                    else
-                        Expr.Lambda(thisv, removeInternal(b, v))
-                | _ ->
+        // Environment stuff
+        let GetLambdaEnvironment(e:Expr) =
+            let rec SetLambdaBody(env, l:Var list) =
+                match env with
+                | Patterns.Lambda(v, body) when v.Name = "tupledArg" ->
+                    SetLambdaBody(body, l @ [v])
+                | Patterns.Lambda(v, body) ->
+                    SetLambdaBody(body, l @ [v])
+                | Patterns.Let(v, Patterns.TupleGet(tv, i), body) ->
+                    SetLambdaBody(body, l @ [v])
+                | e ->
+                    l, e          
+                
+            SetLambdaBody(e, [])
+                
+        let ApplyLambdaEnvironment(env:Var list, e:Expr) =
+            let rec SetLambdaBody(e:Expr, l:Var list) =
+                match l with
+                | [] ->
                     e
-            removeInternal(e, v)
+                | head::tail ->
+                    Expr.Lambda(head, SetLambdaBody(e, tail))
                     
-        let LiftNonLambdaParamsFromMethodCalledInLambda(o: Expr option, mi: MethodInfo, args: Expr list, body: Expr, lambdaParams: Var list) =            
-            let IsExpressionContainingRefToOneOfVars(e: Expr, varList: Var list) =
-                let rec findInternal(e: Expr, vs: Var list) =
-                    match e with
-                    | ExprShape.ShapeVar(thisv) ->
-                        let it = List.tryFind(fun el -> el = thisv) vs
-                        it.IsSome
-                    | ExprShape.ShapeLambda(l, b) ->
-                        findInternal(b, vs)
-                    | ExprShape.ShapeCombination(it, args) ->
-                        if args.Length > 0 then
-                            args |> List.map(fun it -> findInternal(it, vs)) |> List.reduce(fun a b -> a || b)
-                        else
-                            false
-                findInternal(e, varList)
-            // Lambda containing method to apply: fun it -> DoSomething x y z it
-            // We must restruct DoSomething replacing params that are references to stuff outside quotation (!= it)
-            // More precisely, if some paramters of mi are not contained in lambdaParams
-            // this means that the lambda is something like fun a b c -> myMethod a b c othPar
-            // So othPar must be evaluated, replacing it's current value inside myMethod
-            // Otherwise, the kernel would not be able to invoke it (it doesn't manage othPar)
-            // Example: Array.map (fun item -> DoSomething item otherParam). We replace otherParam with its value
-            // and we create a signature without otherParam
-        
-            // At first, extract arg binding vars from method body
-            let miParamVars, miReturnType =
-                match LiftCurriedOrTupledArgs(body) with 
-                | Some(b, p) ->
-                    p, b.Type
-                | None ->
-                    raise (new CompilerException("Cannot find parameters vars binding inside method body\n" + body.ToString()))
-        
-            // Now let's see which argument is not a reference to a lambda var and which is not
-            let removedParamVars = new List<Var>()
-            let keptParamVars = new List<Var>(miParamVars)
-            let keptParamIndx = new List<int>(seq { for i = 0 to miParamVars.Length - 1 do yield i })
-            let mutable finalBody = body     
-            for argIndex = 0 to args.Length - 1 do
-                let methodArg = args.[argIndex]
-                match methodArg with
-                | Patterns.Var(v) ->
-                    let isLambdaParam = List.tryFind(fun (lp: Var) -> lp = v) lambdaParams
-                    if isLambdaParam.IsNone then
-                        // Evaluate 
-                        let itemValue = LeafExpressionConverter.EvaluateQuotation(methodArg)
-                        removedParamVars.Add(miParamVars.[argIndex])
-                        keptParamVars.Remove(miParamVars.[argIndex]) |> ignore
-                        keptParamIndx.Remove(argIndex) |> ignore
-                        finalBody <- finalBody.Substitute(fun bv ->
-                                                            if bv = miParamVars.[argIndex] then
-                                                                Some(Expr.Value(itemValue, methodArg.Type))
-                                                            else
-                                                                None)
-                | _ ->
-                    // In case one argument that is not a lambda param two situations may happen
-                    // 1) It's a value or expression with values and non-lambda vars like: 0.0f * myGlobalVar + ...
-                    // We can evaluate
-                    // 2) It's an expression with values and lambda vars like: Array.map(fun p -> DoSomething (p + 1))
-                    // we can't evaluate, let's throw exception
-                    let cantEval = IsExpressionContainingRefToOneOfVars(methodArg, lambdaParams)
-                    if cantEval then
-                        raise (new CompilerException("Passing an expression containing references to lambda parameters to a method called inside a lambda in not supported"))
-                    else
-                        let itemValue = LeafExpressionConverter.EvaluateQuotation(methodArg)
-                        removedParamVars.Add(miParamVars.[argIndex])
-                        keptParamVars.Remove(miParamVars.[argIndex]) |> ignore
-                        keptParamIndx.Remove(argIndex) |> ignore
-                        finalBody <- finalBody.Substitute(fun bv ->
-                                                            if bv = miParamVars.[argIndex] then
-                                                                Some(Expr.Value(itemValue, methodArg.Type))
-                                                            else
-                                                                None)
-            // Now rebuild method args binding removing the ones substituted with values
-            for v in removedParamVars do
-                finalBody <- RemoveLambdaArgsBindingForVar(finalBody, v)
+            SetLambdaBody(e, env)
 
-            // Finally, create a new signature
-            (*
-            let signature = DynamicMethod(mi.Name, mi.ReturnType, keptParamVars |> Seq.map(fun (v:Var) -> v.Type) |> Seq.toArray)
-            let mutable paramIndex = 1
-            for idx in keptParamIndx do
-                signature.DefineParameter(paramIndex, ParameterAttributes.In, miParamVars.[paramIndex - 1].Name) |> ignore
-                paramIndex <- paramIndex + 1
-            *)
-            // Real method in assembly (otherwise when matching an Expr containing a call to the method .NET throws an exception    
-            let assemblyName = mi.Name + "_module";
-            let assemblyBuilder = AppDomain.CurrentDomain.DefineDynamicAssembly(new AssemblyName(assemblyName), AssemblyBuilderAccess.Run);
-            let moduleBuilder = assemblyBuilder.DefineDynamicModule(mi.Name + "_module");
-            let methodBuilder = moduleBuilder.DefineGlobalMethod(
-                                    mi.Name,
-                                    MethodAttributes.Public ||| MethodAttributes.Static, mi.ReturnType, 
-                                    Array.ofSeq(Seq.map(fun (v: Var) -> v.Type) keptParamVars))
-            for p = 0 to keptParamIndx.Count - 1 do
-                methodBuilder.DefineParameter(p + 1, ParameterAttributes.In, miParamVars.[keptParamIndx.[p]].Name) |> ignore
-            // Body (simple return) of the method must be set to build the module and get the MethodInfo that we need as signature
-            methodBuilder.GetILGenerator().Emit(OpCodes.Ret)
-            moduleBuilder.CreateGlobalFunctions()
-            let signature = moduleBuilder.GetMethod(methodBuilder.Name) 
-
-            (o, signature, keptParamVars |> Seq.toList, finalBody)
+        let rec ReplaceVar(e:Expr, oldVar:Var, newVar:Var) =
+            match e with
+            | ExprShape.ShapeVar(v) when v = oldVar ->
+                Expr.Var(newVar)
+            | ExprShape.ShapeVar(v) ->
+                e
+            | ExprShape.ShapeLambda(v, l) ->
+                Expr.Lambda(v, ReplaceVar(l, oldVar, newVar))
+            | ExprShape.ShapeCombination(o, l) ->
+                ExprShape.RebuildShapeCombination(o, l |> List.map(fun el -> ReplaceVar(el, oldVar, newVar)))
+                
+        let rec ReplaceExprWithVar(e:Expr, oldExpr:Expr, newVar:Var) =
+            if e = oldExpr then
+                Expr.Var(newVar)
+            else
+                match e with
+                | ExprShape.ShapeVar(v)->
+                    e
+                | ExprShape.ShapeLambda(v, l) ->
+                    Expr.Lambda(v, ReplaceExprWithVar(l, oldExpr, newVar))
+                | ExprShape.ShapeCombination(o, l) ->
+                    ExprShape.RebuildShapeCombination(o, l |> List.map(fun el -> ReplaceExprWithVar(el, oldExpr, newVar)))
+        
 
     module KernelParsing =
         open MetadataExtraction
         open FunctionsManipulation
         open ReflectionUtil
-        
+
         let PipelineMethods = 
             [ ExtractMethodInfo(<@ (|>) @>).Value.TryGetGenericMethodDefinition(); 
               ExtractMethodInfo(<@ (||>) @>).Value.TryGetGenericMethodDefinition();
               ExtractMethodInfo(<@ (|||>) @>).Value.TryGetGenericMethodDefinition() ]
-
-        let LambdaToMethod(e, isKernel: bool, kernelOnlyIfWorkItemInfoParam: bool) = 
-            let expr, kernelAttrs, returnAttrs = ParseKernelMetadata(e)
-
-            let body = expr
+              
+        let ExtractEnvRefs(f:FunctionInfo) =
+            let rec analyzeInternal(e: Expr,  
+                                    localState: HashSet<Var>, 
+                                    envVars: List<Var>,
+                                    outVals: List<Expr>) =
+                match e with
+                | Patterns.Let(v, va, b) ->
+                    analyzeInternal(va, localState, envVars, outVals)
+                    localState.Add(v) |> ignore
+                    analyzeInternal(b, localState, envVars, outVals)
+                    localState.Remove(v) |> ignore
+                | Patterns.Lambda(v, b) ->
+                    localState.Add(v) |> ignore
+                    analyzeInternal(b, localState, envVars, outVals)
+                    localState.Remove(v) |> ignore
+                | Patterns.ForIntegerRangeLoop(v, st, en, b) ->                    
+                    analyzeInternal(st, localState, envVars, outVals)             
+                    analyzeInternal(en, localState, envVars, outVals)
+                    localState.Add(v) |> ignore            
+                    analyzeInternal(b, localState, envVars, outVals)
+                    localState.Remove(v) |> ignore
+                | Patterns.Value(o, t) when t.IsArray ->
+                    let item = outVals |> Seq.tryFind(fun (v) -> e.Equals(o))
+                    if item.IsNone && (typeof<WorkItemInfo>.IsAssignableFrom(t) |> not) then
+                       outVals.Add(e)
+                | Patterns.PropertyGet(o, pi, a) ->
+                    // By now handle only o = None
+                    let item = outVals |> Seq.tryFind(fun (v) -> e.Equals(o))
+                    if item.IsNone && o.IsNone && (typeof<WorkItemInfo>.IsAssignableFrom(pi.PropertyType) |> not) then
+                       outVals.Add(e)
+                    a |> List.iter(fun e -> analyzeInternal(e, localState, envVars, outVals))
+                | ExprShape.ShapeVar(v) ->
+                    if (localState.Contains(v) |> not) && (typeof<WorkItemInfo>.IsAssignableFrom(v.Type) |> not) && (envVars.Contains(v) |> not) then
+                        envVars.Add(v) 
+                | ExprShape.ShapeLambda(v, b) -> 
+                    localState.Add(v) |> ignore
+                    analyzeInternal(b, localState, envVars, outVals)
+                    localState.Remove(v) |> ignore
+                | ExprShape.ShapeCombination(o, a) -> 
+                    a |> List.iter(fun e -> analyzeInternal(e, localState, envVars, outVals))
+            
+            let envVars = new List<Var>() 
+            let outVals = new List<Expr>()
+            let local = new HashSet<Var>()
+            analyzeInternal(f.OriginalBody, local, envVars, outVals)
+            (envVars, outVals)
+                    
+        let LambdaToMethod(expr:Expr, checkIsKernel: bool) =
             let mutable parameters = []
         
             // Extract args from lambda
@@ -506,13 +444,13 @@ module QuotationAnalysis =
                 match LiftCurriedOrTupledArgs(expr) with
                 | Some(b, ps) ->
                     parameters <- ps |> List.filter(fun p -> not (typeof<WorkItemInfo>.IsAssignableFrom(p.Type)))
-                    let shouldProcess = not isKernel || not kernelOnlyIfWorkItemInfoParam || (parameters.Length < ps.Length)
+                    let shouldProcess = (not checkIsKernel) || (parameters.Length < ps.Length)
                     shouldProcess, b.Type
                 | None ->
                     false, typeof<int>
-
+            
             // If no lifting occurred this is not a lambda
-            if shouldProcess && IsComputationalLambda(expr) then
+            if shouldProcess then
                 // Get MD5 o identify the lambda 
                 let md5 = MD5.Create()
                 let hash = md5.ComputeHash(Encoding.UTF8.GetBytes(expr.ToString()))
@@ -534,50 +472,103 @@ module QuotationAnalysis =
                 methodBuilder.GetILGenerator().Emit(OpCodes.Ret)
                 moduleBuilder.CreateGlobalFunctions()
                 let signature = moduleBuilder.GetMethod(methodBuilder.Name) 
-                Some(signature, signature.GetParameters() |> Array.toList, parameters, body, kernelAttrs, returnAttrs, ReadOnlyMetaCollection.EmptyParamMetaCollection(parameters.Length))
+                Some(signature, signature.GetParameters(), parameters)
             else
-                // No lifting occurred or this should not made parallel
                 None
+                    
+        // Active patterns                         
+        let (|KernelMethodInfo|_|) (mi: MethodInfo) =
+            match mi with
+            | DerivedPatterns.MethodWithReflectedDefinition(b) ->
+                if mi.GetCustomAttribute<KernelAttribute>() <> null then
+                    Some(b)
+                else
+                    None
+            | _ ->
+                None 
 
-        // Parsing utilities      
-        let rec GetKernelFromName(e) =     
-            let expr, kernelAttrs, returnAttrs = ParseKernelMetadata(e)
-            match expr with
-            | Patterns.Lambda(v, e) -> 
-                GetKernelFromName (e)
-            | Patterns.Let (v, e1, e2) ->
-                GetKernelFromName (e2)
-            | Patterns.Call (ob, mi, a) ->
+        let (|UtilityFunctionMethodInfo|_|) (mi: MethodInfo) =
+            match mi with
+            | DerivedPatterns.MethodWithReflectedDefinition(b) ->
+                if mi.GetCustomAttribute<KernelAttribute>() = null then
+                    Some(b)
+                else
+                    None
+            | _ ->
+                None
+                   
+        let (|CallToKernelMethodInfo|_|) (e: Expr) =
+            match e with
+            | Patterns.Call(o, mi, a) ->
                 match mi with
-                | DerivedPatterns.MethodWithReflectedDefinition(body) ->    
-                    // Fix: check if Lambda(this, body) for instance methods
-                    // Extract parameters vars
-                    match GetCurriedOrTupledArgs(body) with
-                    | thisVar, Some(paramVars) ->       
-                        MergeWithStaticKernelMeta(kernelAttrs, returnAttrs, mi)
-                        // Take parameters except the last one (workItemInfo)
-                        let origParams = mi.GetParameters()
-                        let parameters = new List<ParameterInfo>()
-                        let parameterVars = new List<Var>()
-                        let mutable workItemInfoArg = None
-                        for i = 0 to origParams.Length - 1 do
-                            if not (typeof<WorkItemInfo>.IsAssignableFrom(origParams.[i].ParameterType)) then
-                                parameters.Add(origParams.[i])
-                                parameterVars.Add(paramVars.[i])
-                        let attrs = new List<ParamMetaCollection>()
-                        for p in parameters do
-                            let paramAttrs = new ParamMetaCollection()
-                            MergeWithStaticParameterMeta(paramAttrs, p)
-                            attrs.Add(paramAttrs)
-                        Some(thisVar, ob, mi, parameters |> List.ofSeq, parameterVars |> List.ofSeq, body, kernelAttrs, returnAttrs, attrs)
-                    | _ ->
-                        None
+                | KernelMethodInfo(b) ->
+                    Some(o, mi, a, b)
                 | _ ->
                     None
             | _ ->
                 None
                 
-        let rec GetKernelFromCall(e) =                
+        let (|CallToUtilityFunctionMethodInfo|_|) (e: Expr) =
+            match e with
+            | Patterns.Call(o, mi, a) ->
+                match mi with
+                | UtilityFunctionMethodInfo(b) ->
+                    Some(o, mi, a, b)
+                | _ ->
+                    None
+            | _ ->
+                None
+                                  
+        let (|KernelLambdaApplication|_|) (e: Expr) =         
+            let expr, kernelAttrs, returnAttrs = ParseKernelMetadata(e)
+         
+            match LiftLambdaApplication(e) with
+            | Some(l, a) ->
+                match LambdaToMethod(l, true) with
+                | Some(signature, paramInfo, parameters) ->
+                    // We have everything to build the module, we must clean and set the args only   
+                    // Extract parameters vars                    
+                    let arguments = new List<Expr>()
+                    let mutable workItemInfoArg = None
+                    for i = 0 to a.Length - 1 do
+                        if not (typeof<WorkItemInfo>.IsAssignableFrom(a.[i].Type)) then
+                            arguments.Add(a.[i])
+                        else
+                            workItemInfoArg <- Some(a.[i])
+
+                    let attrs = new List<ParamMetaCollection>()
+                    let args = new List<Expr>()
+                    let paramInfo = signature.GetParameters()
+                    for i = 0 to arguments.Count - 1 do
+                        let paramAttrs = new ParamMetaCollection()
+                        let cleanArg, paramAttrs = ParseParameterMetadata(arguments.[i])
+                        MergeWithStaticParameterMeta(paramAttrs, paramInfo.[i])
+                        attrs.Add(paramAttrs)
+                        args.Add(cleanArg)
+                    Some(None, None, signature, paramInfo, parameters, l, args |> List.ofSeq, workItemInfoArg, kernelAttrs, returnAttrs, attrs)                                   
+                | _ ->
+                    None
+            | _ ->
+                None
+                        
+        // Check if an expression is an application of a lambda
+        // and evaluates it properly setting the references to 
+        // data declared outside the environment 
+        let (|SequentialLambdaApplication|_|) (e: Expr) =
+            match LiftLambdaApplication(e) with
+            | Some(l, a) ->
+                // Check free vars
+                let env = e.GetFreeVars() |> List.ofSeq
+                // To evaluate we must add environment
+                let newL = ApplyLambdaEnvironment(env, l)
+                // Now evaluate
+                let lambdaValue = LeafExpressionConverter.EvaluateQuotation(newL)
+                let invokeMethod = lambdaValue.GetType().GetMethod("Invoke")
+                Some(invokeMethod, a, env)
+            | _ ->
+                None               
+                                
+        let (|KernelCall|_|) (e: Expr) =             
             let expr, kernelAttrs, returnAttrs = ParseKernelMetadata(e)
 
             let callData =
@@ -585,10 +576,11 @@ module QuotationAnalysis =
                 | Patterns.Call (ob, mi, a) ->
                     // Immediate call
                     match mi with
-                    | DerivedPatterns.MethodWithReflectedDefinition(body) ->   
+                    | KernelMethodInfo(body) ->   
                         let thisVar = GetThisVariable(body)
                         Some(thisVar, ob, mi, a, body)
                     | _ ->
+                        // Sequential call 
                         None
                 | Patterns.Let(_, Patterns.NewTuple(l), b) ->
                     // This is tupled-args proparation to call a tupled function
@@ -597,9 +589,9 @@ module QuotationAnalysis =
                     | Some(ob, mi, body, _, _, _) -> 
                         // Arguments must be extracted from the new tuple (already extracted, it's "l")
                         let thisVar = GetThisVariable(body) 
-                        Some(None, ob, mi, l, body)
+                        Some(thisVar, ob, mi, l, body)
                     | _ ->
-                        None 
+                        None
                 | Patterns.Application(Patterns.Let(clovar, 
                                                     Patterns.Lambda(clolv, clolval), 
                                                     Patterns.Lambda(clovv, clovval)), ar) ->
@@ -614,10 +606,11 @@ module QuotationAnalysis =
                                 elements
                             | _ ->
                                 [ ar ]
+                        //let outsideRefs = ExtractRefsToEnvironment(body, false)
                         let thisVar = GetThisVariable(body) 
                         Some(thisVar, ob, mi, a, body)
                     | _ ->
-                        None                                                                         
+                        None                                                                       
                 | Patterns.Application(item, arg) ->
                     // This may be the application of a lambda preparing the call to a reflected method info
                     // Lift application
@@ -641,6 +634,7 @@ module QuotationAnalysis =
                                     else
                                         ar
                                 let thisVar = GetThisVariable(body)
+                                //let outsideRefs = ExtractRefsToEnvironment(body, false)
                                 Some(thisVar, ob, mi, a, body)
                             | _ ->
                                 None
@@ -654,7 +648,8 @@ module QuotationAnalysis =
             match callData with
             | None ->
                 None
-            | Some(obv, ob, mi, a, b) ->        
+            | Some(obv, ob, mi, a, b) ->    
+                // If b is None then sequentialFun
                 // Extract parameters vars
                 match GetCurriedOrTupledArgs(b) with
                 | thisVar, Some(paramVars) ->                    
@@ -679,157 +674,155 @@ module QuotationAnalysis =
                         MergeWithStaticParameterMeta(paramAttrs, parameters.[i])
                         attrs.Add(paramAttrs)
                         args.Add(cleanArg)
-                    Some(obv, ob, mi, parameters |> List.ofSeq, parameterVars |> List.ofSeq, b, args |> List.ofSeq, workItemInfoArg, kernelAttrs, returnAttrs, attrs)
+                    Some(obv, ob, mi, parameters |> Seq.toArray, parameterVars |> List.ofSeq, b, args |> List.ofSeq, workItemInfoArg, kernelAttrs, returnAttrs, attrs)
                 | _ ->
                     None
-                       
-
-        let rec GetKernelFromApplication(e) =                
+                                
+                                              
+        let (|UtilityFunctionCall|_|) (e: Expr) =             
             let expr, kernelAttrs, returnAttrs = ParseKernelMetadata(e)
-         
-            match LiftLambdaApplication(e) with
-            | Some(l, a) ->
-                // Convert to method
-                match LambdaToMethod(l, true, true) with
-                | Some(mi, paramInfo, paramVars, b, kMeta, rMeta, pMeta) -> 
-                    // We have everything to build the module, we must clean and set the args only   
-                    // Extract parameters vars                    
+
+            let callData =
+                match expr with            
+                | Patterns.Call (ob, mi, a) ->
+                    // Immediate call
+                    match mi with
+                    | UtilityFunctionMethodInfo(body) ->  
+                        //let outsiders = ExtractRefsToEnvironment(body, false) 
+                        let thisVar = GetThisVariable(body)
+                        Some(thisVar, ob, mi, a, body)
+                    | _ ->
+                        // Sequential call 
+                        None
+                | Patterns.Let(_, Patterns.NewTuple(l), b) ->
+                    // This is tupled-args proparation to call a tupled function
+                    // Check b contains a reflected definition method call                    
+                    match ExtractCallWithReflectedDefinition(b) with
+                    | Some(ob, mi, body, _, _, _) -> 
+                        // Arguments must be extracted from the new tuple (already extracted, it's "l")
+                        //let outsiders = ExtractRefsToEnvironment(body, false)
+                        let thisVar = GetThisVariable(body) 
+                        Some(thisVar, ob, mi, l, body)
+                    | _ ->
+                        None
+                | _ ->
+                    None
+              
+            match callData with
+            | None ->
+                None
+            | Some(obv, ob, mi, a, b) ->    
+                // If b is None then sequentialFun
+                // Extract parameters vars
+                match GetCurriedOrTupledArgs(b) with
+                | thisVar, Some(paramVars) ->                    
+                    MergeWithStaticKernelMeta(kernelAttrs, returnAttrs, mi)
+                    let origParams = mi.GetParameters()
+                    let parameters = new List<ParameterInfo>()
+                    let parameterVars = new List<Var>()
                     let arguments = new List<Expr>()
                     let mutable workItemInfoArg = None
-                    for i = 0 to a.Length - 1 do
-                        if not (typeof<WorkItemInfo>.IsAssignableFrom(a.[i].Type)) then
+                    for i = 0 to origParams.Length - 1 do
+                        if typeof<WorkItemInfo> <> (origParams.[i].ParameterType) then
+                            parameters.Add(origParams.[i])
+                            parameterVars.Add(paramVars.[i])
                             arguments.Add(a.[i])
                         else
                             workItemInfoArg <- Some(a.[i])
-
                     let attrs = new List<ParamMetaCollection>()
                     let args = new List<Expr>()
-                    for i = 0 to arguments.Count - 1 do
+                    for i = 0 to parameters.Count - 1 do
                         let paramAttrs = new ParamMetaCollection()
                         let cleanArg, paramAttrs = ParseParameterMetadata(arguments.[i])
-                        MergeWithStaticParameterMeta(paramAttrs, paramInfo.[i])
+                        MergeWithStaticParameterMeta(paramAttrs, parameters.[i])
                         attrs.Add(paramAttrs)
                         args.Add(cleanArg)
-                    Some(None, None, mi, paramInfo, paramVars, b, args |> List.ofSeq, workItemInfoArg, kernelAttrs, returnAttrs, attrs)                    
+                    Some(obv, ob, mi, parameters |> Seq.toArray, parameterVars |> List.ofSeq, b, args |> List.ofSeq, workItemInfoArg, kernelAttrs, returnAttrs, attrs)
                 | _ ->
                     None
-            | _ ->
-                None
+                                   
+                
+        let rec CompositionToCallOrApplication(e: Expr) =    
+            match e with
+            | Patterns.Call(o, mi, a) ->
+                if (PipelineMethods |> List.tryFind(fun i -> i = mi.TryGetGenericMethodDefinition())).IsSome then
+                    let compositionArgs = a |> List.map(fun i -> CompositionToCallOrApplication(i))
+                    match compositionArgs |> Seq.last with
+                    | Patterns.Lambda(v, b) ->
+                        // This may be a preparation to call a reflected method or a full lambda
+                        match ExtractCall(compositionArgs |> Seq.last) with
+                        | Some(o, mi, a, boundExpr, unboundVar) ->
+                            // It's a call
+                            // Here parsing may give wrong results, cannot do anything but hoping for good chance
+                            (*
+                                OLD ->
+                                Problem is the following.
+                                If we have 
+                                    data |> myKernel
+                                the tree of the right side is Lambda(a, Lambda(b ... Call(None, myKernel, ...))
+                                In this case I want to get the call to myKernel
 
-        let rec GetKernelFromComposition(ex: Expr) =    
-            let expr, kernelAttrs, returnAttrs = ParseKernelMetadata(ex)
-            
-            let valid, (methodInfo, lambda), compositionArgs = 
-                match expr with
-                | DerivedPatterns.SpecificCall <@ (|>) @> (e, tl, compArgs) ->
-                    true, GetComputationalLambdaOrReflectedMethodInfo(compArgs.[1]), compArgs
-                | DerivedPatterns.SpecificCall <@ (||>) @> (e, tl, compArgs) ->
-                    true, GetComputationalLambdaOrReflectedMethodInfo(compArgs.[2]), compArgs
-                | DerivedPatterns.SpecificCall <@ (|||>) @> (e, tl, compArgs) ->
-                    true, GetComputationalLambdaOrReflectedMethodInfo(compArgs.[3]), compArgs
-                | _ ->
-                    false, (None, None), []
-            
-            if valid then 
-                if methodInfo.IsSome then
-                    match methodInfo.Value with
-                    | o, mi, partialArgs, body, lambdaVars ->          
-                        // In COMP1 |> COMP2 a1 .. aN the args of COMP2 are a1, .. aN, COMP1 (+1 at the end)
-                        let methodInfoArgs = new List<Expr>(partialArgs)
-                        methodInfoArgs.RemoveRange(methodInfoArgs.Count - lambdaVars.Length, lambdaVars.Length)
-                        methodInfoArgs.AddRange(compositionArgs)
-                        methodInfoArgs.RemoveAt(methodInfoArgs.Count - 1)
-
-                        // Extract parameters vars
-                        match GetCurriedOrTupledArgs(body) with
-                        | thisVar, Some(paramVars) ->                 
-                            MergeWithStaticKernelMeta(kernelAttrs, returnAttrs, mi)
-                            let origParams = mi.GetParameters()
-                            let parameters = new List<ParameterInfo>()
-                            let parameterVars = new List<Var>()
-                            let arguments = new List<Expr>()
-                            let mutable workItemInfoArg = None
-                            for i = 0 to origParams.Length - 1 do
-                                if not (typeof<WorkItemInfo>.IsAssignableFrom(origParams.[i].ParameterType)) then
-                                    parameters.Add(origParams.[i])
-                                    parameterVars.Add(paramVars.[i])
-                                    arguments.Add(methodInfoArgs.[i])
+                                If we have
+                                    data |> (fun i1 i2 ... -> doSomething)
+                                the tree os the right size is still Lambda(a, Lambda(b ... Lambda(i1, Lambda(i2, Call(None, doSomething, ...)))
+                                that is, Is still have a sequence of Lambda and a call at the end
+                                In this case, anyway, I don't want to extract "doSomething", but Lambda(i1, Lambda(i2, ...))                           
+                                <- OLD
+                            *)
+                            try 
+                                if o.IsSome then
+                                    Expr.Call(o.Value, mi, (a |> Seq.take(a.Length - unboundVar.Length) |> List.ofSeq) @ (compositionArgs |> Seq.take(unboundVar.Length) |> List.ofSeq))
                                 else
-                                    workItemInfoArg <- Some(methodInfoArgs.[i])
-                            let attrs = new List<ParamMetaCollection>()
-                            let args = new List<Expr>()
-                            for i = 0 to parameters.Count - 1 do
-                                let paramAttrs = new ParamMetaCollection()
-                                let cleanArg, paramAttrs = ParseParameterMetadata(arguments.[i])
-                                MergeWithStaticParameterMeta(paramAttrs, parameters.[i])
-                                attrs.Add(paramAttrs)
-                                args.Add(cleanArg)
-                            Some(mi, parameters |> List.ofSeq, parameterVars |> List.ofSeq, body, args |> List.ofSeq, workItemInfoArg, kernelAttrs, returnAttrs, attrs)                      
+                                    Expr.Call(mi, (a |> Seq.take(a.Length - unboundVar.Length) |> List.ofSeq) @ (compositionArgs |> Seq.take(unboundVar.Length) |> List.ofSeq))
+                            with
+                            | :? Exception ->
+                                // Very likely gone too deep, try recognize this as lambda
+                                let mutable res = compositionArgs |> Seq.last 
+                                for i = 0 to compositionArgs.Length - 2 do
+                                    res <- Expr.Application(res, compositionArgs.[i])
+                                res
                         | _ ->
-                            None
-                else if lambda.IsSome then
-                    // The right hand side of composition is a lambda                
-                    match LambdaToMethod(lambda.Value, true, true) with
-                    | Some(mi, paramInfo, paramVars, b, kMeta, rMeta, pMeta) -> 
-                        // We have everything to build the module, we must clean and set the args only   
-                        // Extract parameters vars                    
-                        let arguments = new List<Expr>()
-                        let mutable workItemInfoArg = None
+                            // A fully applied lambda
+                            let mutable res = compositionArgs |> Seq.last 
+                            for i = 0 to compositionArgs.Length - 2 do
+                                res <- Expr.Application(res, compositionArgs.[i])
+                            res
+
+                    | Patterns.Application(l, a) ->
+                        // A partially applied lambda
+                        let mutable res = compositionArgs |> Seq.last 
                         for i = 0 to compositionArgs.Length - 2 do
-                            if not (typeof<WorkItemInfo>.IsAssignableFrom(compositionArgs.[i].Type)) then
-                                arguments.Add(compositionArgs.[i])
+                            res <- Expr.Application(res, compositionArgs.[i])
+                        res
+                    | Patterns.Let(v, va, b) ->
+                        // This is generally the case of collection functions                    
+                        match ExtractCall(compositionArgs |> Seq.last) with
+                        | Some(o, mi, a, boundExpr, unboundVar) ->
+                            // It's a call
+                            if o.IsSome then
+                                Expr.Call(o.Value, mi, (boundExpr |> Seq.take(a.Length - unboundVar.Length) |> List.ofSeq) @ (compositionArgs |> Seq.take(unboundVar.Length) |> List.ofSeq))
                             else
-                                workItemInfoArg <- Some(compositionArgs.[i])
-
-                        let attrs = new List<ParamMetaCollection>()
-                        let args = new List<Expr>()
-                        for i = 0 to arguments.Count - 1 do
-                            let paramAttrs = new ParamMetaCollection()
-                            let cleanArg, paramAttrs = ParseParameterMetadata(arguments.[i])
-                            MergeWithStaticParameterMeta(paramAttrs, paramInfo.[i])
-                            attrs.Add(paramAttrs)
-                            args.Add(cleanArg)
-                        Some(mi, paramInfo, paramVars, b, args |> List.ofSeq, workItemInfoArg, kernelAttrs, returnAttrs, attrs)                    
-                    | _ ->
-                        None
-                else
-                    // Right side is a lambda partially applied
-                    let lift = LiftLambdaApplication(compositionArgs |> Seq.last)
-                    match lift with
-                    | Some(l, partialArgs) ->
-                        // The right hand side of composition is a lambda                
-                        match LambdaToMethod(l, true, true) with
-                        | Some(mi, paramInfo, paramVars, b, kMeta, rMeta, pMeta) -> 
-                            // We have everything to build the module, we must clean and set the args only   
-                            // Extract parameters vars      
-                            let mergedArgs = partialArgs @ compositionArgs              
-                            let arguments = new List<Expr>()
-                            let mutable workItemInfoArg = None
-                            for i = 0 to mergedArgs.Length - 2 do
-                                if not (typeof<WorkItemInfo>.IsAssignableFrom(mergedArgs.[i].Type)) then
-                                    arguments.Add(mergedArgs.[i])
-                                else
-                                    workItemInfoArg <- Some(mergedArgs.[i])
-
-                            let attrs = new List<ParamMetaCollection>()
-                            let args = new List<Expr>()
-                            for i = 0 to arguments.Count - 1 do
-                                let paramAttrs = new ParamMetaCollection()
-                                let cleanArg, paramAttrs = ParseParameterMetadata(arguments.[i])
-                                MergeWithStaticParameterMeta(paramAttrs, paramInfo.[i])
-                                attrs.Add(paramAttrs)
-                                args.Add(cleanArg)
-                            Some(mi, paramInfo, paramVars, b, args |> List.ofSeq, workItemInfoArg, kernelAttrs, returnAttrs, attrs)                    
+                                Expr.Call(mi, (boundExpr |> Seq.take(a.Length - unboundVar.Length) |> List.ofSeq) @ (compositionArgs |> Seq.take(unboundVar.Length) |> List.ofSeq))
                         | _ ->
-                            None
+                            // A fully applied lambda
+                            let mutable res = compositionArgs |> Seq.last 
+                            for i = 0 to compositionArgs.Length - 2 do
+                                res <- Expr.Application(res, compositionArgs.[i])
+                            res            
                     | _ ->
-                        None
-            else
-                None
-
+                        failwith "error"
+                else
+                    e
+            | ExprShape.ShapeVar(v) ->
+                e
+            | ExprShape.ShapeLambda(l, b) ->
+                Expr.Lambda(l, CompositionToCallOrApplication(b))
+            | ExprShape.ShapeCombination(o, a) ->
+                ExprShape.RebuildShapeCombination(o, a |> List.map(fun i -> CompositionToCallOrApplication(i)))
+              
         let rec GetKernelFromMethodInfo(mi: MethodInfo) =                    
             match mi with
-            | DerivedPatterns.MethodWithReflectedDefinition(body) ->  
+            | KernelMethodInfo(body) ->  
                 // Fix: check if Lambda(this, body) for instance methods
                 // Extract parameters vars
                 match GetCurriedOrTupledArgs(body) with
@@ -852,94 +845,9 @@ module QuotationAnalysis =
             | _ ->
                 None
                 
-        let rec CompositionToCallOrApplication(ex: Expr) =    
-            (*let valid, compositionArgs = 
-                match ex with
-                | DerivedPatterns.SpecificCall <@ (|>) @> (e, tl, compArgs) 
-                | DerivedPatterns.SpecificCall <@ (||>) @> (e, tl, compArgs) 
-                | DerivedPatterns.SpecificCall <@ (|||>) @> (e, tl, compArgs) ->
-                    true, compArgs
-                | _ ->
-                    false, []*)
-            let valid, compositionArgs = 
-                match ex with
-                | Patterns.Call(o, mi, a) ->
-                    if (PipelineMethods |> List.tryFind(fun i -> i = mi.TryGetGenericMethodDefinition())).IsSome then
-                        true, a
-                    else
-                        false, []
-                | _ ->
-                    false, []
-
-            if valid then 
-                match compositionArgs |> Seq.last with
-                | Patterns.Lambda(v, b) ->
-                    // This may be a preparation to call a reflected method or a full lambda
-                    match ExtractCall(compositionArgs |> Seq.last) with
-                    | Some(o, mi, a, boundExpr, unboundVar) ->
-                        // It's a call
-                        // Here parsing may give wrong results, cannot do anything but hoping for good chance
-                        (*
-                            OLD ->
-                            Problem is the following.
-                            If we have 
-                                data |> myKernel
-                            the tree of the right side is Lambda(a, Lambda(b ... Call(None, myKernel, ...))
-                            In this case I want to get the call to myKernel
-
-                            If we have
-                                data |> (fun i1 i2 ... -> doSomething)
-                            the tree os the right size is still Lambda(a, Lambda(b ... Lambda(i1, Lambda(i2, Call(None, doSomething, ...)))
-                            that is, Is still have a sequence of Lambda and a call at the end
-                            In this case, anyway, I don't want to extract "doSomething", but Lambda(i1, Lambda(i2, ...))                           
-                            <- OLD
-                        *)
-                        try 
-                            if o.IsSome then
-                                Expr.Call(o.Value, mi, (a |> Seq.take(a.Length - unboundVar.Length) |> List.ofSeq) @ (compositionArgs |> Seq.take(unboundVar.Length) |> List.ofSeq))
-                            else
-                                Expr.Call(mi, (a |> Seq.take(a.Length - unboundVar.Length) |> List.ofSeq) @ (compositionArgs |> Seq.take(unboundVar.Length) |> List.ofSeq))
-                        with
-                        | :? Exception ->
-                            // Very likely gone too deep, try recognize this as lambda
-                            let mutable res = compositionArgs |> Seq.last 
-                            for i = 0 to compositionArgs.Length - 2 do
-                                res <- Expr.Application(res, compositionArgs.[i])
-                            res
-                    | _ ->
-                        // A fully applied lambda
-                        let mutable res = compositionArgs |> Seq.last 
-                        for i = 0 to compositionArgs.Length - 2 do
-                            res <- Expr.Application(res, compositionArgs.[i])
-                        res
-
-                | Patterns.Application(l, a) ->
-                    // A partially applied lambda
-                    let mutable res = compositionArgs |> Seq.last 
-                    for i = 0 to compositionArgs.Length - 2 do
-                        res <- Expr.Application(res, compositionArgs.[i])
-                    res
-                | Let(v, va, b) ->
-                    // This is generally the case of collection functions                    
-                    match ExtractCall(compositionArgs |> Seq.last) with
-                    | Some(o, mi, a, boundExpr, unboundVar) ->
-                        // It's a call
-                        if o.IsSome then
-                            Expr.Call(o.Value, mi, (boundExpr |> Seq.take(a.Length - unboundVar.Length) |> List.ofSeq) @ (compositionArgs |> Seq.take(unboundVar.Length) |> List.ofSeq))
-                        else
-                            Expr.Call(mi, (boundExpr |> Seq.take(a.Length - unboundVar.Length) |> List.ofSeq) @ (compositionArgs |> Seq.take(unboundVar.Length) |> List.ofSeq))
-                    | _ ->
-                        // A fully applied lambda
-                        let mutable res = compositionArgs |> Seq.last 
-                        for i = 0 to compositionArgs.Length - 2 do
-                            res <- Expr.Application(res, compositionArgs.[i])
-                        res
-
-                | _ ->
-                    ex
-            else
-                ex
                 
+
+
 
             
         

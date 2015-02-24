@@ -22,6 +22,8 @@ type FunctionParameterType =
 | SizeParameter
 | DynamicParameter of Expr array
 | AutoArrayParameter
+| OutValParameter of Expr
+| EnvVarParameter of Var
 | ImplicitParameter
 
 ///
@@ -194,6 +196,22 @@ type FunctionParameter(name:string,
     member val IsImplicitParameter =
         match parameterType with
         | ImplicitParameter ->
+            true
+        | _ ->
+            false  
+        with get
+        
+    member val IsEnvVarParameter =
+        match parameterType with
+        | EnvVarParameter(_) ->
+            true
+        | _ ->
+            false  
+        with get
+        
+    member val IsOutValParameter =
+        match parameterType with
+        | OutValParameter(_) ->
             true
         | _ ->
             false  

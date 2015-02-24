@@ -13,6 +13,7 @@ do()
       Dependencies = [| "FSCL_FUNCTION_TRANSFORMATION_STEP";
                         "FSCL_FUNCTION_PREPROCESSING_STEP";
                         "FSCL_FUNCTION_POSTPROCESSING_STEP";
+                        "FSCL_MODULE_POSTPROCESSING_STEP";
                         "FSCL_MODULE_PREPROCESSING_STEP";
                         "FSCL_MODULE_PARSING_STEP" |])>]
 ///
@@ -25,7 +26,7 @@ do()
 ///
 type FunctionCodegenStep(tm: TypeManager,
                                 processors: ICompilerStepProcessor list) = 
-    inherit CompilerStep<KernelModule, KernelModule>(tm, processors)
+    inherit CompilerStep<ComputingExpressionModule, ComputingExpressionModule>(tm, processors)
     
     let mutable opts = null
 
@@ -47,6 +48,7 @@ type FunctionCodegenStep(tm: TypeManager,
             this.currentFunction
         and private set(v) =
             this.currentFunction <- v
+            
 
     member private this.Process(expression: Expr) =
         // At first, check generic processors (for complex constructs)
@@ -94,19 +96,19 @@ type FunctionCodegenStep(tm: TypeManager,
     ///The modified kernel module
     ///</returns>
     ///       
-    override this.Run(km: KernelModule, opt) =    
+    override this.Run(cem, opt) =    
         if not (opt.ContainsKey(CompilerOptions.NoCodegen)) then
-            opts <- opt            
-            // Process functions
-            for f in km.Functions do
-                this.Process(f.Value :?> FunctionInfo)
-            // Process kernel
-            this.Process(km.Kernel)
+            opts <- opt           
+            for km in cem.KernelModulesToCompile do 
+                // Process functions
+                for f in km.Functions do
+                    this.Process(f.Value :?> FunctionInfo)
+                // Process kernel
+                this.Process(km.Kernel)
             // Process defines
             //for d in km.StaticConstantDefines do
               //  km.StaticConstantDefinesCode.Add(d.Key, this.Process(d.Value))
          
-        let r = ContinueCompilation(km)
-        r
+        ContinueCompilation(cem)
 
 

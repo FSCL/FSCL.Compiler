@@ -9,6 +9,7 @@ open System.Collections.ObjectModel
 type ConstantDefineValue =
 | StaticValue of Expr
 | DynamicValue of (Expr -> string)
+
 ///
 ///<summary>
 /// The main information built and returned by the compiler, represeting the result of the compilation process together with a set of meta-information generated during the compilation itself
@@ -23,12 +24,12 @@ type IKernelModule =
     abstract GlobalData: IReadOnlyDictionary<Expr, Expr> with get
     abstract DynamicConstantDefines: IReadOnlyDictionary<String, Var option * Expr option * obj> with get
 
-    abstract CallArgs: Expr list option with get
+    abstract CallArgs: Expr list with get
     abstract Code: string option with get
     abstract CustomInfo: IReadOnlyDictionary<string, obj> with get
 
 [<AllowNullLiteral>]
-type KernelModule(k: KernelInfo, ?callArgs: Expr list) =  
+type KernelModule(k: KernelInfo, callArgs: Expr list) =  
     interface IKernelModule with
         member this.Kernel
             with get() =
@@ -56,7 +57,7 @@ type KernelModule(k: KernelInfo, ?callArgs: Expr list) =
                 this.GlobalData :> IReadOnlyDictionary<Expr, Expr>
         member this.DynamicConstantDefines 
             with get() =
-                this.DynamicConstantDefines :> IReadOnlyDictionary<String, Var option * Expr option * obj>
+                this.DynamicConstantDefines :> IReadOnlyDictionary<String, Var option * Expr option * obj>      
      //   member this.DynamicConstantDefinesEvaluator
        //     with get() = 
          //       this.DynamicConstantDefinesEvaluator
@@ -68,9 +69,8 @@ type KernelModule(k: KernelInfo, ?callArgs: Expr list) =
     member val Directives = new HashSet<String>() with get
     member val GlobalData = new Dictionary<Expr, Expr>() with get
     member val DynamicConstantDefines = new Dictionary<string, Var option * Expr option * obj>() with get
-
+    
     member val CallArgs = callArgs with get
     member val Code:string option = None with get, set
     member val CustomInfo = new Dictionary<String, Object>() with get
     
-                             
