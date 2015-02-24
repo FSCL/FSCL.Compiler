@@ -1,0 +1,225 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <title>release-notes</title>
+
+    <link rel="stylesheet" href="stylesheets/styles.css">
+    <link rel="stylesheet" href="stylesheets/pygment_trac.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+    <meta name="description" content="F# to OpenCL compiler" />
+    <meta name="author" content="Gabriele Cocco" />
+    <script type="text/javascript" src="javascripts/jquery-1.11.1.min.js"></script>
+    <script type="text/javascript">
+        $(document).ready(function () {
+            $("table.pre").wrap("<div class='code-container'></div>");
+            $("table.pre").css("width", ($("section").width() - 30) + "px");
+            $("pre.fssnip").css("width", ($("section").width() - 30) + "px");
+            $(window).resize(function () {
+                $("table.pre").css("width", ($("section").width() - 30) + "px");
+                $("pre.fssnip").css("width", ($("section").width() - 30) + "px");
+            });
+        });
+    </script>
+    <!--[if lt IE 9]>
+    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+</head>
+<body>
+    <div class="wrapper">
+        <header>
+            <div class="header-container">
+                <h1><a href="/FSCL.Compiler">FSCL.Compiler</a></h1>
+                <p>F# to OpenCL compiler</p>
+            </div>
+            <table class="git-links">
+                <tr>
+                    <td><a href="https://github.com/FSCL/FSCL.Runtime/zipball/master">Download <strong>ZIP File</strong></a></td>
+                    <td><a href="https://github.com/FSCL/FSCL.Runtime/tarball/master">Download <strong>TAR Ball</strong></a></td>
+                    <td><a href="http://github.com/FSCL/FSCL.Runtime/master">Fork On <strong>GitHub</strong></a></td>
+                </tr>
+            </table>
+        </header>
+        <section>
+            
+<h3><a name="2-0-24-February-2015" class="anchor" href="#2-0-24-February-2015">2.0 - 24 February 2015</a></h3>
+
+<ul>
+<li>New FSCL language. Collection functions can be used of any order. Collection functions of lowest order are translated into OpenCL kernels, the ones of higher orders encodes multi-thread coordination of (sub)kernels. Kernel-FlowGraph creation inside the compiler (previously was built from within the FSCL.Runtime).</li>
+</ul>
+
+<h3><a name="1-5-5-29-October-2014" class="anchor" href="#1-5-5-29-October-2014">1.5.5 - 29 October 2014</a></h3>
+
+<ul>
+<li>Bug fix in parsing compositions</li>
+</ul>
+
+<h3><a name="1-5-4-29-October-2014" class="anchor" href="#1-5-4-29-October-2014">1.5.4 - 29 October 2014</a></h3>
+
+<ul>
+<li>Support for F# two-components tuple</li>
+</ul>
+
+<h3><a name="1-5-3-29-October-2014" class="anchor" href="#1-5-3-29-October-2014">1.5.3 - 29 October 2014</a></h3>
+
+<ul>
+<li>Big fix for on-the-fly anonymous structs and options</li>
+</ul>
+
+<h3><a name="1-5-2-29-October-2014" class="anchor" href="#1-5-2-29-October-2014">1.5.2 - 29 October 2014</a></h3>
+
+<ul>
+<li>Support for F# options</li>
+</ul>
+
+<h3><a name="1-5-1-28-October-2014" class="anchor" href="#1-5-1-28-October-2014">1.5.1 - 28 October 2014</a></h3>
+
+<ul>
+<li>Bug fix</li>
+</ul>
+
+<h3><a name="1-4-9-27-October-2014" class="anchor" href="#1-4-9-27-October-2014">1.4.9 - 27 October 2014</a></h3>
+
+<ul>
+<li>Added tests to validate various possibilities of declaring an utility function (static/instance method, lambda, field)</li>
+</ul>
+
+<h3><a name="1-4-8-26-October-2014" class="anchor" href="#1-4-8-26-October-2014">1.4.8 - 26 October 2014</a></h3>
+
+<ul>
+<li>Added tests to validate various possibilities of declaring a kernel (static/instance method, lambda, field)</li>
+</ul>
+
+<h3><a name="1-4-7-25-October-2014" class="anchor" href="#1-4-7-25-October-2014">1.4.7 - 25 October 2014</a></h3>
+
+<ul>
+<li>Enabled class fields to represent code-time or opencl-compile-time macros</li>
+</ul>
+
+<h3><a name="1-4-6-23-October-2014" class="anchor" href="#1-4-6-23-October-2014">1.4.6 - 23 October 2014</a></h3>
+
+<ul>
+<li>Bug ix in parsing static and instance methods</li>
+</ul>
+
+<h3><a name="1-4-5-23-October-2014" class="anchor" href="#1-4-5-23-October-2014">1.4.5 - 23 October 2014</a></h3>
+
+<ul>
+<li>Handling parsing of closures derived from slicing and using class members</li>
+</ul>
+
+<h3><a name="1-4-4-22-October-2014" class="anchor" href="#1-4-4-22-October-2014">1.4.4 - 22 October 2014</a></h3>
+
+<ul>
+<li>Bug fix</li>
+</ul>
+
+<h3><a name="1-4-3-22-October-2014" class="anchor" href="#1-4-3-22-October-2014">1.4.3 - 22 October 2014</a></h3>
+
+<ul>
+<li>For Array.reduce and Array.sum the output array in kernel is forced not to be transferred back to the host. This fixes a bug that causes the final value computed on the CPU
+to be overwritten by the content of the (first item of the) output array when transferred back to the host</li>
+</ul>
+
+<h3><a name="1-4-2-21-October-2014" class="anchor" href="#1-4-2-21-October-2014">1.4.2 - 21 October 2014</a></h3>
+
+<ul>
+<li>Bug fix</li>
+</ul>
+
+<h3><a name="1-4-1-21-October-2014" class="anchor" href="#1-4-1-21-October-2014">1.4.1 - 21 October 2014</a></h3>
+
+<ul>
+<li>Referencing let-variables or properties declared outside kernels turn into -define- macros only if ReflectedDefinitionAttribute is associated to the variable/property</li>
+<li>No need to use DynamicDefine attribute anymore. Immutable variables/propeties are replaced with the corresponding value (expression) when OpenCL source code is generated. OpenCL-target-code-generation-time defines are generated (by the runtime) for mutable variables/properties</li>
+</ul>
+
+<h3><a name="1-4-0-20-October-2014" class="anchor" href="#1-4-0-20-October-2014">1.4.0 - 20 October 2014</a></h3>
+
+<ul>
+<li>Automatic characterization of lambda functions (if a lambda has a WorkItemInfo param it's turn into a kernel, otherwise it's applied by reflection on the CPU)</li>
+<li>Optimisation of parsing step to speed up the runtime. Approximatively 80 microsecs on macbook pro i5.</li>
+<li>Bug fix</li>
+</ul>
+
+<h3><a name="1-3-9-16-October-2014" class="anchor" href="#1-3-9-16-October-2014">1.3.9 - 16 October 2014</a></h3>
+
+<ul>
+<li>Added support for pipelining operators (|>, ||> and |||>)</li>
+<li>Added support for partial functions (curried form)</li>
+<li>Added support for lambda application</li>
+</ul>
+
+<h3><a name="1-3-8-11-September-2014" class="anchor" href="#1-3-8-11-September-2014">1.3.8 - 11 September 2014</a></h3>
+
+<ul>
+<li>Fixed flattening of multi-dimensional arrays</li>
+</ul>
+
+<h3><a name="1-3-7-7-September-2014" class="anchor" href="#1-3-7-7-September-2014">1.3.7 - 7 September 2014</a></h3>
+
+<ul>
+<li>Added inline attribute for utility functions. Lambdas are inlined by default</li>
+</ul>
+
+<h3><a name="1-3-6-28-August-2014" class="anchor" href="#1-3-6-28-August-2014">1.3.6 - 28 August 2014</a></h3>
+
+<ul>
+<li>Fixed reduce code generation to handle records and structs</li>
+</ul>
+
+<h3><a name="1-3-5-28-August-2014" class="anchor" href="#1-3-5-28-August-2014">1.3.5 - 28 August 2014</a></h3>
+
+<ul>
+<li>Fixed conflict between new struct creation construct (NewObject()) and vectorised data-types</li>
+</ul>
+
+<h3><a name="1-3-4-28-August-2014" class="anchor" href="#1-3-4-28-August-2014">1.3.4 - 28 August 2014</a></h3>
+
+<ul>
+<li>Enabled utility functions chain calls of arbitrary length (utility functions can call other utility functions)</li>
+<li>Enabled passing arrays to utility functions</li>
+<li>Inserted kernel/function declaration before definition</li>
+<li>Added some tests</li>
+</ul>
+
+<h3><a name="1-3-3-23-August-2014" class="anchor" href="#1-3-3-23-August-2014">1.3.3 - 23 August 2014</a></h3>
+
+<ul>
+<li>Fixed bug in struct type codegen</li>
+</ul>
+
+<h3><a name="1-3-2-23-August-2014" class="anchor" href="#1-3-2-23-August-2014">1.3.2 - 23 August 2014</a></h3>
+
+<ul>
+<li>Fixed bug and extended support for structs and records. Now you can use both custom F# records and structs (and arrays of records and structs) as parameters of kernels and functions. Also, you can declare private/local structs and records using record initialisation construct, struct parameterless constructor and "special" struct constructor (a constructor taking N arguments, each of one matching one of the N fields, in the order).</li>
+<li>Valid record decl: let myRec = { field1 = val1; ... fieldN = valN }</li>
+<li>Valid default struct decl: let myStruct = new MyStruct()</li>
+<li>Valid "special constructor" struct decl: let myStruct = new MyStruct(valForField1, valForField2, ... valForFieldN)</li>
+<li>NOT valid struct decl: let myStruct = new MyStruct(<Args where the i-TH is not a value assigned to the i-TH field>)</li>
+</ul>
+
+<h3><a name="1-3-1-20-August-2014" class="anchor" href="#1-3-1-20-August-2014">1.3.1 - 20 August 2014</a></h3>
+
+<ul>
+<li>Fixed bug in char and uchar types handling in codegen</li>
+</ul>
+
+<h3><a name="1-3-25-July-2014" class="anchor" href="#1-3-25-July-2014">1.3 - 25 July 2014</a></h3>
+
+<ul>
+<li>Restructured project according to F# Project Scaffold</li>
+<li>Iterative reduction execution on CPU</li>
+<li>Work size specification as part of kernel signature</li>
+</ul>
+
+
+        </section>
+        <footer>
+            <p>This project is maintained by <a href="http://github.com/FSCL">Gabriele Cocco</a></p>
+        </footer>
+    </div>
+    <script src="javascripts/scale.fix.js"></script>
+</body>
+</html>

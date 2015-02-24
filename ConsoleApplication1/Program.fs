@@ -148,6 +148,21 @@ type MyRecord = {
 let sumCurried (a: MyRecord) (b: MyRecord)  =
     let v = { x = a.x + b.x; y = a.y + b.y }
     v
+    
+// Simple vector addition int4
+[<ReflectedDefinition; Kernel>]
+let VectorAddInt4(a: int4[], b:int4[], c:int4[], wi:WorkItemInfo) =
+    let gid = wi.GlobalID(0)
+    c.[gid] <- a.[gid] + b.[gid]
+    
+[<ReflectedDefinition; Kernel>]
+let VectorAddWithUtility(a: float32[], b:float32[], c:float32[], wi:WorkItemInfo) =
+    let s = sumElementsArrays(a, b, wi)
+    setElement(c, s, wi.GlobalID(0))
+    
+[<ReflectedDefinition>]
+let FloatSum(a: float32) (b:float32) =
+    a + b
 
 [<ReflectedDefinition>] 
 let sum a = a *2.0f
@@ -155,9 +170,15 @@ let sum a = a *2.0f
 let main argv =     
     let compiler = new Compiler()
     let a = Array.create 64 1.0f
+    let b = Array.create 64 1.0f
+    let result = compiler.Compile(<@ Array.map2 FloatSum a b @>) :?> IComputingExpressionModule
+
+    let compiler = new Compiler()
+    let a = Array.create 64 1.0f
     let b = Array.create 64 2.0f
     let c = Array.zeroCreate<float32> 64
     let size = new WorkSize(64L, 64L) :> WorkItemInfo
+    
 
     KMeans.Run()
     //Test.Test1()

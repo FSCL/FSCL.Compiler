@@ -1,7 +1,7 @@
 ﻿namespace System
 open System.Reflection
 
-[<assembly: AssemblyTitleAttribute("FSCL.Compiler")>]
+[<assembly: AssemblyTitleAttribute("FSCL.Compiler.NativeComponents")>]
 [<assembly: AssemblyProductAttribute("FSCL.Compiler")>]
 [<assembly: AssemblyDescriptionAttribute("F# to OpenCL compiler")>]
 [<assembly: AssemblyVersionAttribute("2.0")>]

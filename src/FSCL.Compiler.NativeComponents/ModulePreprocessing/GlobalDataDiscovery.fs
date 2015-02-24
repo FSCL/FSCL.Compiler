@@ -28,8 +28,8 @@ type GlobalDataDiscovery() =
         // WE ASSUME INSTANCE IS "THIS", WHICH MEANS THE SAME OBJECT CONTEXT OF THE KERNEL 
         match e with
         | Patterns.FieldGet(o, fi) ->
-            if fi.GetCustomAttributes<ReflectedDefinitionAttribute>() |> Seq.isEmpty |> not then
-                // Set this dynamic cause we cannot get the Expr of the value associated here                
+            let attr = fi.GetCustomAttribute<ConstantDefineAttribute>()
+            if attr <> null then               
                 if not (dynDef.ContainsKey(fi.Name)) then
                     if o.IsSome then
                         let placeholder = Quotations.Var("ph", o.Value.Type)
@@ -42,12 +42,8 @@ type GlobalDataDiscovery() =
                                             LeafExpressionConverter.EvaluateQuotation(
                                                 Expr.Lambda(placeholder, Expr.FieldGet(fi)))))
         | Patterns.PropertyGet(ob, pi, idx) ->
-            // If the property is mutable no #define is generated when producing OpenCL code, but a marker
-            // is added to KernelModule to remember the define has to be added when compiling OpenCL code to target code
-            // If the property is immutable, the define is generated when producing kernel code.
-            
-            match pi with
-            | DerivedPatterns.PropertyGetterWithReflectedDefinition(v) ->  
+            let attr = pi.GetCustomAttribute<ConstantDefineAttribute>()
+            if attr <> null then               
                 if not (dynDef.ContainsKey(pi.Name)) then
                     if ob.IsSome then
                         let placeholder = Quotations.Var("ph", ob.Value.Type)
@@ -58,9 +54,7 @@ type GlobalDataDiscovery() =
                         let placeholder = Quotations.Var("ph", typeof<unit>)
                         dynDef.Add(pi.Name, (None, ob,
                                             LeafExpressionConverter.EvaluateQuotation(
-                                                Expr.Lambda(placeholder, Expr.PropertyGet(pi, idx)))))
-            | _ ->
-                ()                           
+                                                Expr.Lambda(placeholder, Expr.PropertyGet(pi, idx)))))                                     
         | ExprShape.ShapeVar(v) ->
             ()
         | ExprShape.ShapeLambda(v, body) ->

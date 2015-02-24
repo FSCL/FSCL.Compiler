@@ -17,21 +17,21 @@ module KernelModule =
     let UtilFunctionCurried a b =
         a + b
 
-    [<ReflectedDefinition>] 
+    [<ReflectedDefinition; Kernel>] 
     let VectorAddWithModuleTupledFunction (wi:WorkItemInfo, a: float32[], b:float32[], c:float32[]) =    
         let gid = wi.GlobalID(0)
         c.[gid] <- UtilFunctionTupled(a.[gid], b.[gid]) 
         
-    [<ReflectedDefinition>] 
+    [<ReflectedDefinition; Kernel>] 
     let VectorAddWithModuleCurriedFunction (wi:WorkItemInfo, a: float32[], b:float32[], c:float32[]) =    
         let gid = wi.GlobalID(0)
         c.[gid] <- UtilFunctionCurried a.[gid] b.[gid]
         
     let CompileVectorAddTupled(compiler: Compiler, size, a, b, c) =
-        compiler.Compile(<@ VectorAddWithModuleTupledFunction(size, a, b, c) @>) :?> IKernelModule
+        compiler.Compile(<@ VectorAddWithModuleTupledFunction(size, a, b, c) @>) :?> IComputingExpressionModule
         
     let CompileVectorAddCurried(compiler: Compiler, size, a, b, c) =        
-        compiler.Compile(<@ VectorAddWithModuleCurriedFunction(size, a, b, c) @>) :?> IKernelModule
+        compiler.Compile(<@ VectorAddWithModuleCurriedFunction(size, a, b, c) @>) :?> IComputingExpressionModule
     
 type KernelWrapper() =
     [<ReflectedDefinition>] 
@@ -42,12 +42,12 @@ type KernelWrapper() =
     let UtilFunctionCurried a b =
         a + b
         
-    [<ReflectedDefinition>] 
+    [<ReflectedDefinition; Kernel>] 
     let VectorAddFieldTupledFunction (wi:WorkItemInfo, a: float32[], b:float32[], c:float32[]) =    
         let gid = wi.GlobalID(0)
         c.[gid] <- UtilFunctionTupled(a.[gid], b.[gid]) 
         
-    [<ReflectedDefinition>] 
+    [<ReflectedDefinition; Kernel>] 
     let VectorAddFieldCurriedFunction (wi:WorkItemInfo, a: float32[], b:float32[], c:float32[]) =    
         let gid = wi.GlobalID(0)
         c.[gid] <- UtilFunctionCurried a.[gid] b.[gid]
@@ -68,91 +68,91 @@ type KernelWrapper() =
     static member UtilFunctionCurriedStatic a b =
         a + b
         
-    [<ReflectedDefinition>] 
+    [<ReflectedDefinition; Kernel>] 
     member this.VectorAddMemberTupledFunction (wi:WorkItemInfo, a: float32[], b:float32[], c:float32[]) =    
         let gid = wi.GlobalID(0)
         c.[gid] <- this.UtilFunctionTupledMember(a.[gid], b.[gid])
         
-    [<ReflectedDefinition>] 
+    [<ReflectedDefinition; Kernel>] 
     member this.VectorAddMemberCurriedFunction (wi:WorkItemInfo, a: float32[], b:float32[], c:float32[]) =    
         let gid = wi.GlobalID(0)
         c.[gid] <- this.UtilFunctionCurriedMember a.[gid] b.[gid]
         
-    [<ReflectedDefinition>] 
+    [<ReflectedDefinition; Kernel>] 
     member this.VectorAddFieldTupledFunctionFromMember (wi:WorkItemInfo, a: float32[], b:float32[], c:float32[]) =    
         let gid = wi.GlobalID(0)
         c.[gid] <- UtilFunctionTupled(a.[gid], b.[gid])
         
-    [<ReflectedDefinition>] 
+    [<ReflectedDefinition; Kernel>] 
     member this.VectorAddFieldCurriedFunctionFromMember (wi:WorkItemInfo, a: float32[], b:float32[], c:float32[]) =    
         let gid = wi.GlobalID(0)
         c.[gid] <- UtilFunctionCurried a.[gid] b.[gid]
                 
-    [<ReflectedDefinition>] 
+    [<ReflectedDefinition; Kernel>] 
     member this.VectorAddStaticTupledFunction (wi:WorkItemInfo, a: float32[], b:float32[], c:float32[]) =    
         let gid = wi.GlobalID(0)
         c.[gid] <- KernelWrapper.UtilFunctionTupledStatic(a.[gid], b.[gid])
         
-    [<ReflectedDefinition>] 
+    [<ReflectedDefinition; Kernel>] 
     member this.VectorAddStaticCurriedFunction (wi:WorkItemInfo, a: float32[], b:float32[], c:float32[]) =    
         let gid = wi.GlobalID(0)
         c.[gid] <- KernelWrapper.UtilFunctionCurriedStatic a.[gid] b.[gid]
         
-    [<ReflectedDefinition>] 
+    [<ReflectedDefinition; Kernel>] 
     member this.VectorAddModuleTupledFunction (wi:WorkItemInfo, a: float32[], b:float32[], c:float32[]) =    
         let gid = wi.GlobalID(0)
         c.[gid] <- KernelModule.UtilFunctionTupled(a.[gid], b.[gid])
         
-    [<ReflectedDefinition>] 
+    [<ReflectedDefinition; Kernel>] 
     member this.VectorAddModuleCurriedFunction (wi:WorkItemInfo, a: float32[], b:float32[], c:float32[]) =    
         let gid = wi.GlobalID(0)
         c.[gid] <- KernelModule.UtilFunctionCurried a.[gid] b.[gid]
         
-    [<ReflectedDefinition>] 
+    [<ReflectedDefinition; Kernel>] 
     static member VectorAddStaticTupledFunctionFromStatic (wi:WorkItemInfo, a: float32[], b:float32[], c:float32[]) =    
         let gid = wi.GlobalID(0)
         c.[gid] <- KernelWrapper.UtilFunctionTupledStatic(a.[gid], b.[gid])
         
-    [<ReflectedDefinition>] 
+    [<ReflectedDefinition; Kernel>] 
     static member VectorAddStaticCurriedFunctionFromStatic (wi:WorkItemInfo, a: float32[], b:float32[], c:float32[]) =    
         let gid = wi.GlobalID(0)
         c.[gid] <- KernelWrapper.UtilFunctionCurriedStatic a.[gid] b.[gid]
         
     member this.CompileVectorAddTupledField(compiler: Compiler, size, a, b, c) =
-        compiler.Compile(<@ VectorAddFieldTupledFunction(size, a, b, c) @>) :?> IKernelModule
+        compiler.Compile(<@ VectorAddFieldTupledFunction(size, a, b, c) @>) :?> IComputingExpressionModule
         
     member this.CompileVectorAddCurriedField(compiler: Compiler, size, a, b, c) =        
-        compiler.Compile(<@ VectorAddFieldCurriedFunction(size, a, b, c) @>) :?> IKernelModule
+        compiler.Compile(<@ VectorAddFieldCurriedFunction(size, a, b, c) @>) :?> IComputingExpressionModule
         
     member this.CompileVectorAddTupledFieldFromMember(compiler: Compiler, size, a, b, c) =
-        compiler.Compile(<@ this.VectorAddFieldTupledFunctionFromMember(size, a, b, c) @>) :?> IKernelModule
+        compiler.Compile(<@ this.VectorAddFieldTupledFunctionFromMember(size, a, b, c) @>) :?> IComputingExpressionModule
         
     member this.CompileVectorAddCurriedFieldFromMember(compiler: Compiler, size, a, b, c) =        
-        compiler.Compile(<@ this.VectorAddFieldCurriedFunctionFromMember(size, a, b, c) @>) :?> IKernelModule
+        compiler.Compile(<@ this.VectorAddFieldCurriedFunctionFromMember(size, a, b, c) @>) :?> IComputingExpressionModule
                 
     member this.CompileVectorAddTupledMember(compiler: Compiler, size, a, b, c) =
-        compiler.Compile(<@ this.VectorAddMemberTupledFunction(size, a, b, c) @>) :?> IKernelModule
+        compiler.Compile(<@ this.VectorAddMemberTupledFunction(size, a, b, c) @>) :?> IComputingExpressionModule
         
     member this.CompileVectorAddCurriedMember(compiler: Compiler, size, a, b, c) =
-        compiler.Compile(<@ this.VectorAddMemberCurriedFunction(size, a, b, c) @>) :?> IKernelModule
+        compiler.Compile(<@ this.VectorAddMemberCurriedFunction(size, a, b, c) @>) :?> IComputingExpressionModule
         
     member this.CompileVectorAddTupledMemberStatic(compiler: Compiler, size, a, b, c) =
-        compiler.Compile(<@ this.VectorAddStaticTupledFunction(size, a, b, c) @>) :?> IKernelModule
+        compiler.Compile(<@ this.VectorAddStaticTupledFunction(size, a, b, c) @>) :?> IComputingExpressionModule
         
     member this.CompileVectorAddCurriedMemberStatic(compiler: Compiler, size, a, b, c) =
-        compiler.Compile(<@ this.VectorAddStaticCurriedFunction(size, a, b, c) @>) :?> IKernelModule
+        compiler.Compile(<@ this.VectorAddStaticCurriedFunction(size, a, b, c) @>) :?> IComputingExpressionModule
                 
     member this.CompileVectorAddTupledMemberStaticFromStatic(compiler: Compiler, size, a, b, c) =
-        compiler.Compile(<@ KernelWrapper.VectorAddStaticTupledFunctionFromStatic(size, a, b, c) @>) :?> IKernelModule
+        compiler.Compile(<@ KernelWrapper.VectorAddStaticTupledFunctionFromStatic(size, a, b, c) @>) :?> IComputingExpressionModule
         
     member this.CompileVectorAddCurriedMemberStaticFromStatic(compiler: Compiler, size, a, b, c) =
-        compiler.Compile(<@ KernelWrapper.VectorAddStaticCurriedFunctionFromStatic(size, a, b, c) @>) :?> IKernelModule
+        compiler.Compile(<@ KernelWrapper.VectorAddStaticCurriedFunctionFromStatic(size, a, b, c) @>) :?> IComputingExpressionModule
         
     member this.CompileVectorAddTupledModule(compiler: Compiler, size, a, b, c) =
-        compiler.Compile(<@ this.VectorAddModuleTupledFunction(size, a, b, c) @>) :?> IKernelModule
+        compiler.Compile(<@ this.VectorAddModuleTupledFunction(size, a, b, c) @>) :?> IComputingExpressionModule
         
     member this.CompileVectorAddCurriedModule(compiler: Compiler, size, a, b, c) =
-        compiler.Compile(<@ this.VectorAddModuleCurriedFunction(size, a, b, c) @>) :?> IKernelModule
+        compiler.Compile(<@ this.VectorAddModuleCurriedFunction(size, a, b, c) @>) :?> IComputingExpressionModule
     
 let GetData() =
     let compiler = new Compiler()
@@ -169,132 +169,132 @@ let ``Can compile kernel with tupled module function from inside and outside mod
 
     let insideResult = KernelModule.CompileVectorAddTupled(compiler, size, a, b, c)
     Assert.NotNull(insideResult)
-    Assert.AreSame(None, insideResult.Kernel.InstanceExpr)
-    let outsideResult = compiler.Compile(<@ KernelModule.VectorAddWithModuleTupledFunction(size, a, b, c) @>) :?> IKernelModule
+    Assert.AreSame(None, (insideResult.KFGRoot :?> KFGKernelNode).Module.Kernel.InstanceExpr)
+    let outsideResult = compiler.Compile(<@ KernelModule.VectorAddWithModuleTupledFunction(size, a, b, c) @>) :?> IComputingExpressionModule
     Assert.NotNull(outsideResult)
-    Assert.AreSame(None, outsideResult.Kernel.InstanceExpr)
+    Assert.AreSame(None, (outsideResult.KFGRoot :?> KFGKernelNode).Module.Kernel.InstanceExpr)
     
 [<Test>]
 let ``Can compile kernel with curried module function from inside and outside module`` () =
     let compiler, a, b, c, size, wrapper = GetData()
     let insideResult = KernelModule.CompileVectorAddCurried(compiler, size, a, b, c)
     Assert.NotNull(insideResult)
-    Assert.AreSame(None, insideResult.Kernel.InstanceExpr)
-    let outsideResult = compiler.Compile(<@ KernelModule.VectorAddWithModuleCurriedFunction(size, a, b, c) @>) :?> IKernelModule
+    Assert.AreSame(None, (insideResult.KFGRoot :?> KFGKernelNode).Module.Kernel.InstanceExpr)
+    let outsideResult = compiler.Compile(<@ KernelModule.VectorAddWithModuleCurriedFunction(size, a, b, c) @>) :?> IComputingExpressionModule
     Assert.NotNull(outsideResult)
-    Assert.AreSame(None, outsideResult.Kernel.InstanceExpr)
+    Assert.AreSame(None, (outsideResult.KFGRoot :?> KFGKernelNode).Module.Kernel.InstanceExpr)
     
 [<Test>]
 let ``Can compile kernel with tupled module function called from instance kernel from inside and outside instance`` () =
     let compiler, a, b, c, size, wrapper = GetData()
     let insideResult = wrapper.CompileVectorAddTupledModule(compiler, size, a, b, c)
     Assert.NotNull(insideResult)
-    Assert.AreNotSame(None, insideResult.Kernel.InstanceExpr)
-    let outsideResult = compiler.Compile(<@ wrapper.VectorAddModuleCurriedFunction(size, a, b, c) @>) :?> IKernelModule
+    Assert.AreNotSame(None, (insideResult.KFGRoot :?> KFGKernelNode).Module.Kernel.InstanceExpr)
+    let outsideResult = compiler.Compile(<@ wrapper.VectorAddModuleCurriedFunction(size, a, b, c) @>) :?> IComputingExpressionModule
     Assert.NotNull(outsideResult)
-    Assert.AreNotSame(None, outsideResult.Kernel.InstanceExpr)
+    Assert.AreNotSame(None, (outsideResult.KFGRoot :?> KFGKernelNode).Module.Kernel.InstanceExpr)
     
 [<Test>]
 let ``Can compile kernel with curried module function called from instance kernel from inside and outside instance`` () =
     let compiler, a, b, c, size, wrapper = GetData()
     let insideResult = wrapper.CompileVectorAddCurriedModule(compiler, size, a, b, c)
     Assert.NotNull(insideResult)
-    Assert.AreNotSame(None, insideResult.Kernel.InstanceExpr)
-    let outsideResult = compiler.Compile(<@ wrapper.VectorAddModuleCurriedFunction(size, a, b, c) @>) :?> IKernelModule
+    Assert.AreNotSame(None, (insideResult.KFGRoot :?> KFGKernelNode).Module.Kernel.InstanceExpr)
+    let outsideResult = compiler.Compile(<@ wrapper.VectorAddModuleCurriedFunction(size, a, b, c) @>) :?> IComputingExpressionModule
     Assert.NotNull(outsideResult)
-    Assert.AreNotSame(None, outsideResult.Kernel.InstanceExpr)
+    Assert.AreNotSame(None, (outsideResult.KFGRoot :?> KFGKernelNode).Module.Kernel.InstanceExpr)
 
 [<Test>]
 let ``Can compile kernel with tupled instance field function from inside instance`` () =
     let compiler, a, b, c, size, wrapper = GetData()
     let insideResult = wrapper.CompileVectorAddTupledField(compiler, size, a, b, c)
     Assert.NotNull(insideResult)
-    Assert.AreNotSame(None, insideResult.Kernel.InstanceExpr)
+    Assert.AreNotSame(None, (insideResult.KFGRoot :?> KFGKernelNode).Module.Kernel.InstanceExpr)
     
 [<Test>]
 let ``Can compile kernel with curried instance field function from inside instance`` () =
     let compiler, a, b, c, size, wrapper = GetData()
     let insideResult = wrapper.CompileVectorAddCurriedField(compiler, size, a, b, c)
     Assert.NotNull(insideResult)
-    Assert.AreNotSame(None, insideResult.Kernel.InstanceExpr)
+    Assert.AreNotSame(None, (insideResult.KFGRoot :?> KFGKernelNode).Module.Kernel.InstanceExpr)
     
 [<Test>]
 let ``Can compile kernel with tupled instance field function called from member kernel from inside and outside instance`` () =
     let compiler, a, b, c, size, wrapper = GetData()
     let insideResult = wrapper.CompileVectorAddTupledFieldFromMember(compiler, size, a, b, c)
     Assert.NotNull(insideResult)
-    Assert.AreNotSame(None, insideResult.Kernel.InstanceExpr)
-    let outsideResult = compiler.Compile(<@ wrapper.VectorAddFieldTupledFunctionFromMember(size, a, b, c) @>) :?> IKernelModule
+    Assert.AreNotSame(None, (insideResult.KFGRoot :?> KFGKernelNode).Module.Kernel.InstanceExpr)
+    let outsideResult = compiler.Compile(<@ wrapper.VectorAddFieldTupledFunctionFromMember(size, a, b, c) @>) :?> IComputingExpressionModule
     Assert.NotNull(outsideResult)
-    Assert.AreNotSame(None, outsideResult.Kernel.InstanceExpr)
+    Assert.AreNotSame(None, (outsideResult.KFGRoot :?> KFGKernelNode).Module.Kernel.InstanceExpr)
     
 [<Test>]
 let ``Can compile kernel with curried instance field function called from member kernel from inside and outside instance`` () =
     let compiler, a, b, c, size, wrapper = GetData()
     let insideResult = wrapper.CompileVectorAddCurriedFieldFromMember(compiler, size, a, b, c)
     Assert.NotNull(insideResult)
-    Assert.AreNotSame(None, insideResult.Kernel.InstanceExpr)
-    let outsideResult = compiler.Compile(<@ wrapper.VectorAddFieldCurriedFunctionFromMember(size, a, b, c) @>) :?> IKernelModule
+    Assert.AreNotSame(None, (insideResult.KFGRoot :?> KFGKernelNode).Module.Kernel.InstanceExpr)
+    let outsideResult = compiler.Compile(<@ wrapper.VectorAddFieldCurriedFunctionFromMember(size, a, b, c) @>) :?> IComputingExpressionModule
     Assert.NotNull(outsideResult)
-    Assert.AreNotSame(None, outsideResult.Kernel.InstanceExpr)
+    Assert.AreNotSame(None, (outsideResult.KFGRoot :?> KFGKernelNode).Module.Kernel.InstanceExpr)
     
 [<Test>]
 let ``Can compile kernel with tupled instance member function from inside and outside instance`` () =
     let compiler, a, b, c, size, wrapper = GetData()
     let insideResult = wrapper.CompileVectorAddTupledMember(compiler, size, a, b, c)
     Assert.NotNull(insideResult)
-    Assert.AreNotSame(None, insideResult.Kernel.InstanceExpr)
-    let outsideResult = compiler.Compile(<@ wrapper.VectorAddMemberTupledFunction(size, a, b, c) @>) :?> IKernelModule
+    Assert.AreNotSame(None, (insideResult.KFGRoot :?> KFGKernelNode).Module.Kernel.InstanceExpr)
+    let outsideResult = compiler.Compile(<@ wrapper.VectorAddMemberTupledFunction(size, a, b, c) @>) :?> IComputingExpressionModule
     Assert.NotNull(outsideResult)
-    Assert.AreNotSame(None, outsideResult.Kernel.InstanceExpr)
+    Assert.AreNotSame(None, (outsideResult.KFGRoot :?> KFGKernelNode).Module.Kernel.InstanceExpr)
     
 [<Test>]
 let ``Can compile kernel with curried instance member from inside and outside instance`` () =
     let compiler, a, b, c, size, wrapper = GetData()
     let insideResult = wrapper.CompileVectorAddCurriedMember(compiler, size, a, b, c)
     Assert.NotNull(insideResult)
-    Assert.AreNotSame(None, insideResult.Kernel.InstanceExpr)
-    let outsideResult = compiler.Compile(<@ wrapper.VectorAddMemberCurriedFunction(size, a, b, c) @>) :?> IKernelModule
+    Assert.AreNotSame(None, (insideResult.KFGRoot :?> KFGKernelNode).Module.Kernel.InstanceExpr)
+    let outsideResult = compiler.Compile(<@ wrapper.VectorAddMemberCurriedFunction(size, a, b, c) @>) :?> IComputingExpressionModule
     Assert.NotNull(outsideResult)
-    Assert.AreNotSame(None, outsideResult.Kernel.InstanceExpr)
+    Assert.AreNotSame(None, (outsideResult.KFGRoot :?> KFGKernelNode).Module.Kernel.InstanceExpr)
     
 [<Test>]
 let ``Can compile kernel with tupled static member function called from instance kernel from inside and outside instance`` () =
     let compiler, a, b, c, size, wrapper = GetData()
     let insideResult = wrapper.CompileVectorAddTupledMemberStatic(compiler, size, a, b, c)
     Assert.NotNull(insideResult)
-    Assert.AreNotSame(None, insideResult.Kernel.InstanceExpr)
-    let outsideResult = compiler.Compile(<@ wrapper.VectorAddStaticTupledFunction(size, a, b, c) @>) :?> IKernelModule
+    Assert.AreNotSame(None, (insideResult.KFGRoot :?> KFGKernelNode).Module.Kernel.InstanceExpr)
+    let outsideResult = compiler.Compile(<@ wrapper.VectorAddStaticTupledFunction(size, a, b, c) @>) :?> IComputingExpressionModule
     Assert.NotNull(outsideResult)
-    Assert.AreNotSame(None, outsideResult.Kernel.InstanceExpr)
+    Assert.AreNotSame(None, (outsideResult.KFGRoot :?> KFGKernelNode).Module.Kernel.InstanceExpr)
     
 [<Test>]
 let ``Can compile kernel with curried static member function called from instance kernel from inside and outside instance`` () =
     let compiler, a, b, c, size, wrapper = GetData()
     let insideResult = wrapper.CompileVectorAddCurriedMemberStatic(compiler, size, a, b, c)
     Assert.NotNull(insideResult)
-    Assert.AreNotSame(None, insideResult.Kernel.InstanceExpr)
-    let outsideResult = compiler.Compile(<@ wrapper.VectorAddStaticCurriedFunction(size, a, b, c) @>) :?> IKernelModule
+    Assert.AreNotSame(None, (insideResult.KFGRoot :?> KFGKernelNode).Module.Kernel.InstanceExpr)
+    let outsideResult = compiler.Compile(<@ wrapper.VectorAddStaticCurriedFunction(size, a, b, c) @>) :?> IComputingExpressionModule
     Assert.NotNull(outsideResult)
-    Assert.AreNotSame(None, outsideResult.Kernel.InstanceExpr)
+    Assert.AreNotSame(None, (outsideResult.KFGRoot :?> KFGKernelNode).Module.Kernel.InstanceExpr)
     
 [<Test>]
 let ``Can compile kernel with tupled static member function called from static kernel from inside and outside instance`` () =
     let compiler, a, b, c, size, wrapper = GetData()
     let insideResult = wrapper.CompileVectorAddTupledMemberStaticFromStatic(compiler, size, a, b, c)
     Assert.NotNull(insideResult)
-    Assert.AreSame(None, insideResult.Kernel.InstanceExpr)
-    let outsideResult = compiler.Compile(<@ KernelWrapper.VectorAddStaticTupledFunctionFromStatic(size, a, b, c) @>) :?> IKernelModule
+    Assert.AreSame(None, (insideResult.KFGRoot :?> KFGKernelNode).Module.Kernel.InstanceExpr)
+    let outsideResult = compiler.Compile(<@ KernelWrapper.VectorAddStaticTupledFunctionFromStatic(size, a, b, c) @>) :?> IComputingExpressionModule
     Assert.NotNull(outsideResult)
-    Assert.AreSame(None, outsideResult.Kernel.InstanceExpr)
+    Assert.AreSame(None, (outsideResult.KFGRoot :?> KFGKernelNode).Module.Kernel.InstanceExpr)
     
 [<Test>]
 let ``Can compile kernel with curried static member function called from static kernel from inside and outside instance`` () =
     let compiler, a, b, c, size, wrapper = GetData()
     let insideResult = wrapper.CompileVectorAddCurriedMemberStaticFromStatic(compiler, size, a, b, c)
     Assert.NotNull(insideResult)
-    Assert.AreSame(None, insideResult.Kernel.InstanceExpr)
-    let outsideResult = compiler.Compile(<@ KernelWrapper.VectorAddStaticCurriedFunctionFromStatic(size, a, b, c) @>) :?> IKernelModule
+    Assert.AreSame(None, (insideResult.KFGRoot :?> KFGKernelNode).Module.Kernel.InstanceExpr)
+    let outsideResult = compiler.Compile(<@ KernelWrapper.VectorAddStaticCurriedFunctionFromStatic(size, a, b, c) @>) :?> IComputingExpressionModule
     Assert.NotNull(outsideResult)
-    Assert.AreSame(None, outsideResult.Kernel.InstanceExpr)
+    Assert.AreSame(None, (outsideResult.KFGRoot :?> KFGKernelNode).Module.Kernel.InstanceExpr)
     

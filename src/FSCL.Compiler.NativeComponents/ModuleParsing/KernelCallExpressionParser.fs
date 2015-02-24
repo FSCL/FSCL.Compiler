@@ -54,7 +54,7 @@ type KernelCallExpressionParser() =
                 let node = new KFGKernelNode(kernelModule)
 
                 // Parse arguments
-                for i = 0 to paramVars.Length do
+                for i = 0 to paramVars.Length - 1 do
                     let subnode = step.Process(cleanArgs.[i], env)
                     node.InputNodes.Add(subnode)
                 Some(node :> IKFGNode)   

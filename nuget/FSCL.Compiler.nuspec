@@ -17,10 +17,10 @@
     <dependencies />
   </metadata>
   <files>
-    <file src="..\bin\FSCL.Compiler.Core.dll" target="lib/net45" />
-    <file src="..\bin\FSCL.Compiler.Language.dll" target="lib/net45" />
-    <file src="..\bin\FSCL.Compiler.Util.dll" target="lib/net45" />
-    <file src="..\bin\FSCL.Compiler.NativeComponents.dll" target="lib/net45" />
-    <file src="..\bin\FSCL.Compiler.dll" target="lib/net45" />
+    <file src="bin\FSCL.Compiler.Core.dll" target="lib/net45" />
+    <file src="bin\FSCL.Compiler.Language.dll" target="lib/net45" />
+    <file src="bin\FSCL.Compiler.Util.dll" target="lib/net45" />
+    <file src="bin\FSCL.Compiler.NativeComponents.dll" target="lib/net45" />
+    <file src="bin\FSCL.Compiler.dll" target="lib/net45" />
   </files>
 </package>

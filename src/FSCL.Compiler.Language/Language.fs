@@ -217,6 +217,15 @@ module Language =
     [<AllowNullLiteral>]
     type InlineAttribute() =
         inherit KernelMetadataAttribute()  
+        
+    ///
+    ///<summary>
+    ///The attribute to specify that a property or field should be translated into a C #define
+    ///</summary>
+    ///
+    [<AllowNullLiteral>]
+    type ConstantDefineAttribute() =
+        inherit KernelMetadataAttribute()  
 
     // Functions matching attributes for dynamic marking of parameters
     [<MetadataFunction(typeof<AddressSpaceAttribute>, MetadataFunctionTarget.KernelParameter)>]

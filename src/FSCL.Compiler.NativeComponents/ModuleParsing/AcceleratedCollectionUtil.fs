@@ -153,7 +153,7 @@ module AcceleratedCollectionUtil =
                     
         match fr with
         | Patterns.Lambda(v, e) -> 
-            match checkIfPreparationToUtilityFunction(e, []) with
+            match checkIfPreparationToUtilityFunction(fr, []) with
             | Some(e, mi, a, b, lambdaParams) ->
                 // Simple preparation for an utility function call: CollectionFun(myUtilityFun)
                 let thisVar = GetThisVariable(b)

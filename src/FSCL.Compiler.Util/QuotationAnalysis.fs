@@ -415,11 +415,20 @@ module QuotationAnalysis =
                     if item.IsNone && (typeof<WorkItemInfo>.IsAssignableFrom(t) |> not) then
                        outVals.Add(e)
                 | Patterns.PropertyGet(o, pi, a) ->
-                    // By now handle only o = None
-                    let item = outVals |> Seq.tryFind(fun (v) -> e.Equals(o))
-                    if item.IsNone && o.IsNone && (typeof<WorkItemInfo>.IsAssignableFrom(pi.PropertyType) |> not) then
-                       outVals.Add(e)
-                    a |> List.iter(fun e -> analyzeInternal(e, localState, envVars, outVals))
+                    // Check if this is a constant define
+                    let attr = pi.GetCustomAttribute<ConstantDefineAttribute>()
+                    if attr = null then
+                        let item = outVals |> Seq.tryFind(fun (v) -> e.Equals(o))
+                        if item.IsNone && o.IsNone && (typeof<WorkItemInfo>.IsAssignableFrom(pi.PropertyType) |> not) then
+                           outVals.Add(e)
+                        a |> List.iter(fun e -> analyzeInternal(e, localState, envVars, outVals))
+                | Patterns.FieldGet(o, fi) ->
+                    // Check if this is a constant define
+                    let attr = fi.GetCustomAttribute<ConstantDefineAttribute>()
+                    if attr = null then
+                        let item = outVals |> Seq.tryFind(fun (v) -> e.Equals(o))
+                        if item.IsNone && o.IsNone && (typeof<WorkItemInfo>.IsAssignableFrom(fi.FieldType) |> not) then
+                           outVals.Add(e)
                 | ExprShape.ShapeVar(v) ->
                     if (localState.Contains(v) |> not) && (typeof<WorkItemInfo>.IsAssignableFrom(v.Type) |> not) && (envVars.Contains(v) |> not) then
                         envVars.Add(v) 

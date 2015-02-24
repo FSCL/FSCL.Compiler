@@ -36,7 +36,8 @@ type CallFixProcessor() =
             if utilityFunction.IsSome then
                 // Must create a new method info with additional length parameters for each array par
                 let newArgs = new List<Var>(utilityFunction.Value.OriginalParameters |> Seq.map(fun p -> p.Placeholder))
-                let newArgsActualValues = new List<Expr>(a)
+                // Remove any WorkItemInfo value from arguments
+                let newArgsActualValues = new List<Expr>(a |> List.filter(fun e -> typeof<WorkItemInfo>.IsAssignableFrom(e.Type) |> not))
                 let newArgsLengths = new List<Var>()
                 let newArgsLengthsActualValues = new List<Expr>()
 

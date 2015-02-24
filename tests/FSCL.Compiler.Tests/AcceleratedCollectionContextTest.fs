@@ -14,7 +14,7 @@ module KernelModule =
         a + b
         
     let Compile(compiler: Compiler, size, a, b) =
-        compiler.Compile(<@ Array.map2 UtilFunction @>) :?> IKernelModule
+        compiler.Compile(<@ Array.map2 UtilFunction @>) :?> IComputingExpressionModule
             
 type KernelWrapper() =        
     [<ReflectedDefinition>] 
@@ -30,16 +30,16 @@ type KernelWrapper() =
         a + b
         
     member this.CompileAccelCollField(compiler: Compiler, size, a, b) =        
-        compiler.Compile(<@ Array.map2 UtilFunction @>) :?> IKernelModule
+        compiler.Compile(<@ Array.map2 UtilFunction @>) :?> IComputingExpressionModule
                 
     member this.CompileAccelCollMember(compiler: Compiler, size, a, b) =        
-        compiler.Compile(<@ Array.map2 this.UtilFunctionMember @>) :?> IKernelModule
+        compiler.Compile(<@ Array.map2 this.UtilFunctionMember @>) :?> IComputingExpressionModule
         
     member this.CompileAccelCollStatic(compiler: Compiler, size, a, b) =  
-        compiler.Compile(<@ Array.map2 KernelWrapper.UtilFunctionStatic @>) :?> IKernelModule
+        compiler.Compile(<@ Array.map2 KernelWrapper.UtilFunctionStatic @>) :?> IComputingExpressionModule
         
     member this.CompileAccelCollModule(compiler: Compiler, size, a, b) =  
-        compiler.Compile(<@ Array.map2 KernelModule.UtilFunction @>) :?> IKernelModule
+        compiler.Compile(<@ Array.map2 KernelModule.UtilFunction @>) :?> IComputingExpressionModule
         
 let GetData() =
     let compiler = new Compiler()
@@ -55,10 +55,10 @@ let ``Can compile module collection from inside and outside module`` () =
 
     let insideResult = KernelModule.Compile(compiler, size, a, b)
     Assert.NotNull(insideResult)
-    Assert.AreSame(None, insideResult.Kernel.InstanceExpr)
-    let outsideResult = compiler.Compile(<@ Array.map2 KernelModule.UtilFunction @>) :?> IKernelModule
+    Assert.AreSame(None, (insideResult.KFGRoot :?> KFGKernelNode).Module.Kernel.InstanceExpr)
+    let outsideResult = compiler.Compile(<@ Array.map2 KernelModule.UtilFunction @>) :?> IComputingExpressionModule
     Assert.NotNull(outsideResult)
-    Assert.AreSame(None, outsideResult.Kernel.InstanceExpr)
+    Assert.AreSame(None, (outsideResult.KFGRoot :?> KFGKernelNode).Module.Kernel.InstanceExpr)
     
 [<Test>]
 let ``Can compile instance field collection from inside instance`` () =
@@ -66,7 +66,7 @@ let ``Can compile instance field collection from inside instance`` () =
 
     let insideResult = wrapper.CompileAccelCollField(compiler, size, a, b)
     Assert.NotNull(insideResult)
-    Assert.AreSame(None, insideResult.Kernel.InstanceExpr)
+    Assert.AreSame(None, (insideResult.KFGRoot :?> KFGKernelNode).Module.Kernel.InstanceExpr)
     
 [<Test>]
 let ``Can compile instance member collection from inside and outside instance`` () =
@@ -74,10 +74,10 @@ let ``Can compile instance member collection from inside and outside instance`` 
 
     let insideResult = wrapper.CompileAccelCollMember(compiler, size, a, b)
     Assert.NotNull(insideResult)
-    Assert.AreSame(None, insideResult.Kernel.InstanceExpr)
-    let outsideResult = compiler.Compile(<@ Array.map2 wrapper.UtilFunctionMember @>) :?> IKernelModule
+    Assert.AreSame(None, (insideResult.KFGRoot :?> KFGKernelNode).Module.Kernel.InstanceExpr)
+    let outsideResult = compiler.Compile(<@ Array.map2 wrapper.UtilFunctionMember @>) :?> IComputingExpressionModule
     Assert.NotNull(outsideResult)
-    Assert.AreSame(None, outsideResult.Kernel.InstanceExpr)
+    Assert.AreSame(None, (outsideResult.KFGRoot :?> KFGKernelNode).Module.Kernel.InstanceExpr)
         
 [<Test>]
 let ``Can compile static member collection from inside and outside instance`` () =
@@ -85,10 +85,10 @@ let ``Can compile static member collection from inside and outside instance`` ()
 
     let insideResult = wrapper.CompileAccelCollStatic(compiler, size, a, b)
     Assert.NotNull(insideResult)
-    Assert.AreSame(None, insideResult.Kernel.InstanceExpr)
-    let outsideResult = compiler.Compile(<@ Array.map2 KernelWrapper.UtilFunctionStatic @>) :?> IKernelModule
+    Assert.AreSame(None, (insideResult.KFGRoot :?> KFGKernelNode).Module.Kernel.InstanceExpr)
+    let outsideResult = compiler.Compile(<@ Array.map2 KernelWrapper.UtilFunctionStatic @>) :?> IComputingExpressionModule
     Assert.NotNull(outsideResult)
-    Assert.AreSame(None, outsideResult.Kernel.InstanceExpr)
+    Assert.AreSame(None, (outsideResult.KFGRoot :?> KFGKernelNode).Module.Kernel.InstanceExpr)
     
 [<Test>]
 let ``Can compile module collection called from instance member from inside instance`` () =
@@ -96,5 +96,5 @@ let ``Can compile module collection called from instance member from inside inst
 
     let insideResult = wrapper.CompileAccelCollModule(compiler, size, a, b)
     Assert.NotNull(insideResult)
-    Assert.AreSame(None, insideResult.Kernel.InstanceExpr)
+    Assert.AreSame(None, (insideResult.KFGRoot :?> KFGKernelNode).Module.Kernel.InstanceExpr)
     
