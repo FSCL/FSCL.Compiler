@@ -15,7 +15,7 @@ do()
                          "FSCL_MODULE_PARSING_STEP" |])>]
 type FunctionTransformationStep(tm: TypeManager, 
                                 processors:ICompilerStepProcessor list) = 
-    inherit CompilerStep<ComputingExpressionModule, ComputingExpressionModule>(tm, processors)
+    inherit CompilerStep<KernelExpression, KernelExpression>(tm, processors)
     
     let mutable opts = null
 
@@ -52,7 +52,7 @@ type FunctionTransformationStep(tm: TypeManager,
                                   
     override this.Run(cem, opt) =
         opts <- opt        
-        for km in cem.KernelModulesToCompile do
+        for km in cem.KernelModulesRequiringCompilation do
             for f in km.Functions do
                 this.Process(f.Value :?> FunctionInfo)
             this.Process(km.Kernel)

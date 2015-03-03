@@ -378,6 +378,28 @@ module QuotationAnalysis =
                 | ExprShape.ShapeCombination(o, l) ->
                     ExprShape.RebuildShapeCombination(o, l |> List.map(fun el -> ReplaceExprWithVar(el, oldExpr, newVar)))
         
+        let rec ReplaceVarWithValue(e:Expr, oldVar:Var, o:obj) =
+            match e with
+            | ExprShape.ShapeVar(v) when v = oldVar ->
+                Expr.Value(o)    
+            | ExprShape.ShapeVar(_) ->
+                e        
+            | ExprShape.ShapeLambda(v, l) ->
+                Expr.Lambda(v, ReplaceVarWithValue(l, oldVar, o))
+            | ExprShape.ShapeCombination(o, l) ->
+                ExprShape.RebuildShapeCombination(o, l |> List.map(fun el -> ReplaceVarWithValue(el, oldVar, o)))
+                
+        let rec ReplaceVarsWithValues(e:Expr, matching:Dictionary<Var, obj>) =
+            match e with
+            | ExprShape.ShapeVar(v) when matching.ContainsKey(v) ->
+                Expr.Value(matching.[v])    
+            | ExprShape.ShapeVar(_) ->
+                e        
+            | ExprShape.ShapeLambda(v, l) ->
+                Expr.Lambda(v, ReplaceVarsWithValues(l, matching))
+            | ExprShape.ShapeCombination(o, l) ->
+                ExprShape.RebuildShapeCombination(o, l |> List.map(fun el -> ReplaceVarsWithValues(el, matching)))
+        
 
     module KernelParsing =
         open MetadataExtraction
@@ -445,6 +467,7 @@ module QuotationAnalysis =
             analyzeInternal(f.OriginalBody, local, envVars, outVals)
             (envVars, outVals)
                     
+
         let LambdaToMethod(expr:Expr, checkIsKernel: bool) =
             let mutable parameters = []
         
@@ -527,6 +550,7 @@ module QuotationAnalysis =
                     None
             | _ ->
                 None
+
                                   
         let (|KernelLambdaApplication|_|) (e: Expr) =         
             let expr, kernelAttrs, returnAttrs = ParseKernelMetadata(e)
@@ -853,6 +877,32 @@ module QuotationAnalysis =
                     None
             | _ ->
                 None
+//                
+//        let DiscoverUtilityFunctionRefs(body, env:Var list) =
+//            let foundFunctions = Dictionary<MethodInfo, FunctionInfo>()
+//
+//            let rec DiscoverFunctionRefInner(expr, env) =
+//                match expr with
+//                | UtilityFunctionCall(obv, ob, mi, parameters, paramVars, body, args, workItemInfo, _, _, _) ->
+//                    let fi = new FunctionInfo(obv,
+//                                              ob,
+//                                              mi, 
+//                                              parameters |> List.ofArray, 
+//                                              paramVars,
+//                                              env,
+//                                              workItemInfo,
+//                                              body, false)
+//                    foundFunctions.Add(mi, fi)
+//                | _ ->
+//                    match expr with 
+//                    | ExprShape.ShapeLambda(v, a) ->
+//                        DiscoverFunctionRefInner(a, env)
+//                    | ExprShape.ShapeCombination(o, list) ->
+//                        List.iter (fun el -> DiscoverFunctionRefInner(el, env)) list
+//                    | _ ->
+//                        ()
+//            DiscoverFunctionRefInner(body, env)
+//            foundFunctions
                 
                 
 

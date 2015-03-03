@@ -12,10 +12,10 @@ module KernelModule =
     let DataFieldModule =
         10.0f
     
-    [<ReflectedDefinition>] 
+    [<ReflectedDefinition;Kernel>] 
     let VectorAddModule (wi:WorkItemInfo, a: float32[], b:float32[], c:float32[]) =    
         let gid = wi.GlobalID(0)
-        c.[gid] <- a.[gid] + b.[gid] * DataFieldModule
+        c.[gid] <- a.[gid] + b.[gid]
         
     let Compile(compiler: Compiler, size, a, b, c) =        
         compiler.Compile(<@ VectorAddModule(size, a, b, c) @>) :?> IKernelModule
@@ -154,10 +154,11 @@ let FirstConstDefineValue(m: IKernelModule, inst:KernelWrapper option) =
 let Test1 () =
     let compiler, a, b, c, size, wrapper = GetData()
 
-    let insideResult = KernelModule.Compile(compiler, size, a, b, c)
-    let outsideResult = compiler.Compile(<@ KernelModule.VectorAddModule(size, a, b, c) @>) :?> IKernelModule
-    let _, _, f = (outsideResult.DynamicConstantDefines.Values |> List.ofSeq |> List.head)
-    let v = FirstConstDefineValue(insideResult, Some(wrapper))
+    //let insideResult = KernelModule.Compile(compiler, size, a, b, c)
+    let outsideResult = compiler.Compile(<@ KernelModule.VectorAddModule(size, a, b, c) @>) :?> IKernelExpression
+    let outsideResult2 = compiler.Compile(<@ KernelModule.VectorAddModule(size, a, b, c) @>) :?> IKernelExpression
+    let _, _, f = null, null, null
+    //let v = FirstConstDefineValue(insideResult, Some(wrapper))
     ()
     
 let Test2 () =

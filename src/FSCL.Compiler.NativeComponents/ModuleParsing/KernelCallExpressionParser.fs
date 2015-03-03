@@ -48,7 +48,7 @@ type KernelCallExpressionParser() =
 
                 // Create module
                 let kernel = new KernelInfo(obv, ob, mi, paramInfo |> List.ofArray, paramVars, env, workItemInfo, body, finalMeta, isLambdaFun)
-                let kernelModule = new KernelModule(kernel, cleanArgs)
+                let kernelModule = new KernelModule(kernel)
 
                 // Create node
                 let node = new KFGKernelNode(kernelModule)

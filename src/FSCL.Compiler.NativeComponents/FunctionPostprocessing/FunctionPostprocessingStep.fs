@@ -16,7 +16,7 @@ do()
                         "FSCL_MODULE_PARSING_STEP" |])>]
 type FunctionPostprocessingStep(tm: TypeManager, 
                                 processors: ICompilerStepProcessor list) = 
-    inherit CompilerStep<ComputingExpressionModule, ComputingExpressionModule>(tm, processors)
+    inherit CompilerStep<KernelExpression, KernelExpression>(tm, processors)
     
     member val private currentFunction:FunctionInfo = null with get, set
    
@@ -31,8 +31,8 @@ type FunctionPostprocessingStep(tm: TypeManager,
         for p in processors do
             p.Execute(k, this, opts) |> ignore
                
-    override this.Run(cem: ComputingExpressionModule, opts) =
-        for km in cem.KernelModulesToCompile do
+    override this.Run(cem: KernelExpression, opts) =
+        for km in cem.KernelModulesRequiringCompilation do
             for f in km.Functions do
                 this.Process(f.Value :?> FunctionInfo, opts)
             this.Process(km.Kernel, opts)

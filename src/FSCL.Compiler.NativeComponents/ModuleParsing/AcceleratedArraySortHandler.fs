@@ -197,7 +197,7 @@ type AcceleratedArraySortHandler() =
             match subExpr with
             | Some(kfg, newEnv) ->
                 // This coll fun is a composition 
-                let node = new KFGCollectionCompositionNode(methodInfo, kfg)
+                let node = new KFGCollectionCompositionNode(methodInfo, kfg, newEnv)
                 
                 // Create data node for outsiders
 //                for o in outsiders do 
@@ -281,7 +281,7 @@ type AcceleratedArraySortHandler() =
                                                                 finalKernel, 
                                                                 meta, 
                                                                 name, appliedFunctionBody)
-                        let kernelModule = new KernelModule(kInfo, cleanArgs)
+                        let kernelModule = new KernelModule(kInfo)
                         
                         kernelModule 
 

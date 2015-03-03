@@ -20,8 +20,8 @@ type AccessAnalysisResult =
 type FunctionParameterType =
 | NormalParameter
 | SizeParameter
-| DynamicParameter of Expr array
-| AutoArrayParameter
+| DynamicArrayParameter of Expr array
+//| AutoArrayParameter
 | OutValParameter of Expr
 | EnvVarParameter of Var
 | ImplicitParameter
@@ -46,10 +46,12 @@ type IFunctionParameter =
             
     abstract IsSizeParameter: bool with get
     abstract IsNormalParameter: bool with get
-    abstract IsDynamicParameter: bool with get
+    abstract IsDynamicArrayParameter: bool with get
+    abstract IsOutValParameter: bool with get
+    abstract IsEnvVarParameter: bool with get
     abstract IsImplicitParameter: bool with get
-    abstract IsAutoArrayParameter: bool with get
-    abstract DynamicAllocationArguments: Expr array option with get
+    //abstract IsAutoArrayParameter: bool with get
+    //abstract DynamicAllocationArguments: Expr array option with get
 
 type FunctionParameter(name:string, 
                        originalPlaceholder: Var, 
@@ -112,21 +114,29 @@ type FunctionParameter(name:string,
             with get() = 
                 this.IsNormalParameter     
 
-        member this.IsDynamicParameter 
+        member this.IsDynamicArrayParameter 
             with get() = 
-                this.IsDynamicParameter
+                this.IsDynamicArrayParameter
                  
         member this.IsImplicitParameter 
             with get() = 
                 this.IsImplicitParameter
 
-        member this.IsAutoArrayParameter 
+        member this.IsOutValParameter 
             with get() = 
-                this.IsAutoArrayParameter
+                this.IsOutValParameter
 
-        member this.DynamicAllocationArguments
-            with get() =
-                this.DynamicAllocationArguments
+        member this.IsEnvVarParameter 
+            with get() = 
+                this.IsEnvVarParameter
+
+//        member this.IsAutoArrayParameter 
+//            with get() = 
+//                this.IsAutoArrayParameter
+
+//        member this.DynamicAllocationArguments
+//            with get() =
+//                this.DynamicAllocationArguments
     // Override ends
 
     // Get-set properties
@@ -185,9 +195,9 @@ type FunctionParameter(name:string,
             false     
         with get
            
-    member val IsDynamicParameter =
+    member val IsDynamicArrayParameter =
         match parameterType with
-        | DynamicParameter(_) ->
+        | DynamicArrayParameter(_) ->
             true
         | _ ->
             false     
@@ -216,22 +226,34 @@ type FunctionParameter(name:string,
         | _ ->
             false  
         with get
+
+    member this.CloneTo(f:FunctionParameter) =
+        f.AccessAnalysis <- this.AccessAnalysis
+        f.IsReturned <- this.IsReturned
+        f.Placeholder <- this.Placeholder
+        f.ReturnExpr <- this.ReturnExpr
+        f.SizeParameters.Clear()
+        for item in this.SizeParameters do
+            let p = new FunctionParameter(item.Name, item.Placeholder, item.ParameterType, None)
+            (item :?> FunctionParameter).CloneTo(p)
+            f.SizeParameters.Add(p)
         
-    member val IsAutoArrayParameter =
-        match parameterType with
-        | AutoArrayParameter ->
-            true
-        | _ ->
-            false  
-        with get
-              
-    member val DynamicAllocationArguments =
-        match parameterType with
-        | DynamicParameter(allocArgs) ->
-            Some(allocArgs)
-        | _ ->
-            None
-        with get
+//    member val IsAutoArrayParameter =
+//        match parameterType with
+//        | AutoArrayParameter ->
+//            true
+//        | _ ->
+//            false  
+//        with get
+//              
+//    member val DynamicAllocationArguments =
+//        match parameterType with
+//        | DynamicArrayParameter(allocArgs) ->
+//            Some(allocArgs)
+//        | _ ->
+//            None
+//        with get
+    
                     
 
 type IOriginalFunctionParameter =

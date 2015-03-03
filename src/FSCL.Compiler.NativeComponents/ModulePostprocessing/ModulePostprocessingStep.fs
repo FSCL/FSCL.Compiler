@@ -17,13 +17,13 @@ do()
                          "FSCL_MODULE_PARSING_STEP" |])>]
 type ModulePostprocessingStep(tm: TypeManager, 
                               processors: ICompilerStepProcessor list) = 
-    inherit CompilerStep<ComputingExpressionModule, ComputingExpressionModule>(tm, processors)
+    inherit CompilerStep<KernelExpression, KernelExpression>(tm, processors)
         
     member private this.Process(km, opts) =
         for p in processors do
             p.Execute(km, this, opts) |> ignore
 
     override this.Run(cem, opts) =
-        for km in cem.KernelModulesToCompile do
+        for km in cem.KernelModulesRequiringCompilation do
             this.Process(km, opts)
         ContinueCompilation(cem)

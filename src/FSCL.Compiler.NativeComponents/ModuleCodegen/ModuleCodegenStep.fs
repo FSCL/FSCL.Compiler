@@ -19,11 +19,11 @@ do()
                          "FSCL_MODULE_PARSING_STEP" |])>]
 type ModuleCodegenStep(tm: TypeManager, 
                        processors: ICompilerStepProcessor list) = 
-    inherit CompilerStep<ComputingExpressionModule, ComputingExpressionModule>(tm, processors)
+    inherit CompilerStep<KernelExpression, KernelExpression>(tm, processors)
         
     override this.Run(cem, opts) =
         if not (opts.ContainsKey(CompilerOptions.NoCodegen)) then    
-            for km in cem.KernelModulesToCompile do
+            for km in cem.KernelModulesRequiringCompilation do
                 let state = ref ""
                 for p in processors do
                     state := p.Execute((km, !state), this, opts) :?> string

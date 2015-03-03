@@ -13,7 +13,7 @@ do()
        Dependencies = [| "FSCL_MODULE_PREPROCESSING_STEP"; "FSCL_MODULE_PARSING_STEP" |])>]
 type FunctionPreprocessingStep(tm: TypeManager, 
                                processors: ICompilerStepProcessor list) = 
-    inherit CompilerStep<ComputingExpressionModule, ComputingExpressionModule>(tm, processors)
+    inherit CompilerStep<KernelExpression, KernelExpression>(tm, processors)
     
     member val private currentFunction:FunctionInfo = null with get, set
     member val private functions = new Dictionary<FunctionInfoID, IFunctionInfo>() with get, set
@@ -36,7 +36,7 @@ type FunctionPreprocessingStep(tm: TypeManager,
             p.Execute(k, this, opts) |> ignore
                
     override this.Run(cem, opts) =    
-        for km in cem.KernelModulesToCompile do
+        for km in cem.KernelModulesRequiringCompilation do
             this.Functions <- km.Functions
             for f in km.Functions do            
                 this.Process(f.Value :?> FunctionInfo, opts)

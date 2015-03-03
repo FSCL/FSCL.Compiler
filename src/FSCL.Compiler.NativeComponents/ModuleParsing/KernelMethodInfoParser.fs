@@ -25,7 +25,7 @@ type KernelMethodInfoParser() =
                 let finalMeta = step.ProcessMeta(kMeta, rMeta, pMeta, null)
 
                 // Create singleton kernel call graph
-                let kernelModule = new KernelModule(new KernelInfo(obv, None, mi, paramInfo, paramVars, [], None, b, finalMeta, false), [])
+                let kernelModule = new KernelModule(new KernelInfo(obv, None, mi, paramInfo, paramVars, [], None, b, finalMeta, false))
                 
                 // Create node
                 let node = new KFGKernelNode(kernelModule)                

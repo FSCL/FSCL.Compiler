@@ -21,31 +21,31 @@ open Microsoft.FSharp.Quotations
 ///<summary>
 ///The FSCL compiler
 ///</summary>
-///
-type KernelCacheItem(info, code, defines) =
-    member val Kernel:IKernelInfo = info with get 
-    member val OpenCLCode:String = code with get, set
-    member val DynamicDefines: IReadOnlyDictionary<string, Var option * Expr option * obj> = defines with get
-    // List of devices and kernel instances potentially executing the kernel
-    
-type KernelCache() =
-    member val Kernels = Dictionary<FunctionInfoID, List<ReadOnlyMetaCollection * KernelCacheItem>>() 
-        with get    
-    member this.TryFindCompatibleOpenCLCachedKernel(id: FunctionInfoID, 
-                                                    meta: ReadOnlyMetaCollection,
-                                                    openCLMetadataVerifier: ReadOnlyMetaCollection * ReadOnlyMetaCollection -> bool) =
-        if this.Kernels.ContainsKey(id) then
-            let potentialKernels = this.Kernels.[id]
-            // Check if compatible kernel meta in cached kernels
-            let item = Seq.tryFind(fun (cachedMeta: ReadOnlyMetaCollection, cachedKernel: KernelCacheItem) ->
-                                        openCLMetadataVerifier(cachedMeta, meta)) potentialKernels
-            match item with
-            | Some(m, k) ->
-                Some(k)
-            | _ ->
-                None
-        else
-            None                  
+/////
+//type KernelCacheItem(info, code, defines) =
+//    member val Kernel:IKernelInfo = info with get 
+//    member val OpenCLCode:String = code with get, set
+//    member val DynamicDefines: IReadOnlyDictionary<string, Var option * Expr option * obj> = defines with get
+//    // List of devices and kernel instances potentially executing the kernel
+//    
+//type KernelCache() =
+//    member val Kernels = Dictionary<FunctionInfoID, List<ReadOnlyMetaCollection * KernelCacheItem>>() 
+//        with get    
+//    member this.TryFindCompatibleOpenCLCachedKernel(id: FunctionInfoID, 
+//                                                    meta: ReadOnlyMetaCollection,
+//                                                    openCLMetadataVerifier: ReadOnlyMetaCollection * ReadOnlyMetaCollection -> bool) =
+//        if this.Kernels.ContainsKey(id) then
+//            let potentialKernels = this.Kernels.[id]
+//            // Check if compatible kernel meta in cached kernels
+//            let item = Seq.tryFind(fun (cachedMeta: ReadOnlyMetaCollection, cachedKernel: KernelCacheItem) ->
+//                                        openCLMetadataVerifier(cachedMeta, meta)) potentialKernels
+//            match item with
+//            | Some(m, k) ->
+//                Some(k)
+//            | _ ->
+//                None
+//        else
+//            None                  
   
 [<AllowNullLiteral>]
 type Compiler = 
@@ -105,19 +105,29 @@ type Compiler =
     ///
     new(conf: PipelineConfiguration) =
         { inherit Pipeline(Compiler.DefaultConfigurationRoot, Compiler.DefaultConfigurationComponentsFolder, Compiler.defComponentsAssemply, conf) }
-
-    member this.Compile(input, opts) =
-        this.Run((box input, this.IsInvariantToMetaCollection), opts)
         
-    member this.Compile(input, [<ParamArray>] args: (string * obj)[]) =
+    member this.Compile(input, cache:IKernelCache, opts:IReadOnlyDictionary<string,obj>) =
+        this.Run((box input, cache), opts)
+        
+    member this.Compile(input, cache: IKernelCache, [<ParamArray>] args: (string * obj)[]) =
         let opts = new Dictionary<string, obj>()
         for key, value in args do
             if not (opts.ContainsKey(key)) then
                 opts.Add(key, value)
             else
                 opts.[key] <- value
-        this.Run(input, opts)
+        this.Run((box input, cache), opts)
+        
+    member this.Compile(input, cache) =
+        this.Compile(input, cache, new Dictionary<string, obj>())
+
+    member this.Compile(input, opts:IReadOnlyDictionary<string,obj>) =
+        this.Compile(input, new NullCache() :> IKernelCache, opts)
+        
+    member this.Compile(input, [<ParamArray>] args: (string * obj)[]) =
+        this.Compile(input, new NullCache() :> IKernelCache, args)
         
     member this.Compile(input) =
-        this.Compile(input, new Dictionary<string, obj>())
+        this.Compile(input, new NullCache() :> IKernelCache)
+
     

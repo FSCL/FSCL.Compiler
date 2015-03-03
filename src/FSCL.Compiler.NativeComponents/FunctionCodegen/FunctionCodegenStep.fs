@@ -26,7 +26,7 @@ do()
 ///
 type FunctionCodegenStep(tm: TypeManager,
                                 processors: ICompilerStepProcessor list) = 
-    inherit CompilerStep<ComputingExpressionModule, ComputingExpressionModule>(tm, processors)
+    inherit CompilerStep<KernelExpression, KernelExpression>(tm, processors)
     
     let mutable opts = null
 
@@ -99,7 +99,7 @@ type FunctionCodegenStep(tm: TypeManager,
     override this.Run(cem, opt) =    
         if not (opt.ContainsKey(CompilerOptions.NoCodegen)) then
             opts <- opt           
-            for km in cem.KernelModulesToCompile do 
+            for km in cem.KernelModulesRequiringCompilation do 
                 // Process functions
                 for f in km.Functions do
                     this.Process(f.Value :?> FunctionInfo)

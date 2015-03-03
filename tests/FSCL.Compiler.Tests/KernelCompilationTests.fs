@@ -73,7 +73,7 @@ let VectorAddWithNestedUtility(a: float32[], b:float32[], c:float32[], wi:WorkIt
 //[<Test>]
 let ``Can compile tupled kernel reference`` () =
     let compiler = new Compiler()
-    let result = compiler.Compile(<@ VectorAdd @>) :?> IComputingExpressionModule
+    let result = compiler.Compile(<@ VectorAdd @>) :?> IKernelExpression
     //printf "%s\n" (result.Code.Value.ToString())
     // No work item info should be stored
     Assert.AreEqual((result.KFGRoot :?> KFGKernelNode).Module.Kernel.WorkSize, None)
@@ -83,7 +83,7 @@ let ``Can compile tupled kernel reference`` () =
 //[<Test>]
 let ``Can compile curried kernel reference`` () =
     let compiler = new Compiler()
-    let result = compiler.Compile(<@ VectorAddCurried @>) :?> IComputingExpressionModule
+    let result = compiler.Compile(<@ VectorAddCurried @>) :?> IKernelExpression
     //printf "%s\n" (result.Code.Value.ToString())
     // No work item info should be stored
     Assert.AreEqual(None, (result.KFGRoot :?> KFGKernelNode).Module.Kernel.WorkSize)
@@ -97,7 +97,7 @@ let ``Can compile tupled kernel call`` () =
     let b = Array.create 64 1.0f
     let c = Array.zeroCreate<float32> 64
     let size = new WorkSize(64L, 64L)
-    let result = compiler.Compile(<@ VectorAdd(a, b, c, size) @>) :?> IComputingExpressionModule
+    let result = compiler.Compile(<@ VectorAdd(a, b, c, size) @>) :?> IKernelExpression
     //printf "%s\n" (result.Code.Value.ToString())
     let wInfo = LeafExpressionConverter.EvaluateQuotation((result.KFGRoot :?> KFGKernelNode).Module.Kernel.WorkSize.Value)
     // Work item info should be stored
@@ -112,7 +112,7 @@ let ``Can compile curried kernel call`` () =
     let b = Array.create 64 1.0f
     let c = Array.zeroCreate<float32> 64
     let size = new WorkSize(64L, 64L)
-    let result = compiler.Compile(<@ VectorAddCurried a b c size @>) :?> IComputingExpressionModule
+    let result = compiler.Compile(<@ VectorAddCurried a b c size @>) :?> IKernelExpression
     let wInfo = LeafExpressionConverter.EvaluateQuotation((result.KFGRoot :?> KFGKernelNode).Module.Kernel.WorkSize.Value)
     // Work item info should be stored
     Assert.AreEqual(size, wInfo)
@@ -124,7 +124,7 @@ let ``Can compile kernel with utility functions`` () =
     let b = Array.create 64 1.0f
     let c = Array.zeroCreate<float32> 64
     let size = new WorkSize(64L, 64L)
-    let result = compiler.Compile(<@ VectorAddWithUtility(a, b, c, size) @>) :?> IComputingExpressionModule
+    let result = compiler.Compile(<@ VectorAddWithUtility(a, b, c, size) @>) :?> IKernelExpression
     //printf "%s\n" (result.Code.Value.ToString())
     let wInfo = LeafExpressionConverter.EvaluateQuotation((result.KFGRoot :?> KFGKernelNode).Module.Kernel.WorkSize.Value)
     // Work item info should be stored
@@ -150,7 +150,7 @@ let ``Can compile kernel with inline and nested utility functions`` () =
     let b = Array.create 64 1.0f
     let c = Array.zeroCreate<float32> 64
     let size = new WorkSize(64L, 64L)
-    let result = compiler.Compile(<@ VectorAddWithNestedUtility(a, b, c, size) @>) :?> IComputingExpressionModule
+    let result = compiler.Compile(<@ VectorAddWithNestedUtility(a, b, c, size) @>) :?> IKernelExpression
     //printf "%s\n" (result.Code.Value.ToString())
     let wInfo = LeafExpressionConverter.EvaluateQuotation((result.KFGRoot :?> KFGKernelNode).Module.Kernel.WorkSize.Value)
     // Work item info should be stored
@@ -172,7 +172,7 @@ let ``Can compile kernel returning a parameter`` () =
     let b = Array.create 64 1.0f
     let c = Array.zeroCreate<float32> 64
     let size = new WorkSize(64L, 64L)
-    let result = compiler.Compile(<@ VectorAddWithReturnParameter(a, b, c, size) @>) :?> IComputingExpressionModule
+    let result = compiler.Compile(<@ VectorAddWithReturnParameter(a, b, c, size) @>) :?> IKernelExpression
     //printf "%s\n" (result.Code.Value.ToString())
     let wInfo = LeafExpressionConverter.EvaluateQuotation((result.KFGRoot :?> KFGKernelNode).Module.Kernel.WorkSize.Value)
     // Work item info should be stored
@@ -186,7 +186,7 @@ let ``Can compile kernel with reference cells`` () =
     let c = Array.zeroCreate<float32> 64
     let r = ref 2.0f
     let size = new WorkSize(64L, 64L)
-    let result = compiler.Compile(<@ VectorAddWithRefCell(a, b, c, r, size) @>) :?> IComputingExpressionModule
+    let result = compiler.Compile(<@ VectorAddWithRefCell(a, b, c, r, size) @>) :?> IKernelExpression
     //printf "%s\n" (result.Code.Value.ToString())
     let wInfo = LeafExpressionConverter.EvaluateQuotation((result.KFGRoot :?> KFGKernelNode).Module.Kernel.WorkSize.Value)
     // Work item info should be stored

@@ -73,7 +73,7 @@ let ``Can compile char vector add`` () =
     let b = Array.create 64 ((char)2)
     let c = Array.zeroCreate<char> 64
     let size = new WorkSize(64L, 64L)
-    let result = compiler.Compile(<@ VectorAddChar(a, b, c, size) @>) :?> IComputingExpressionModule
+    let result = compiler.Compile(<@ VectorAddChar(a, b, c, size) @>) :?> IKernelExpression
     //printf "%s\n" (result.Code.Value.ToString())
     let wInfo = LeafExpressionConverter.EvaluateQuotation((result.KFGRoot :?> KFGKernelNode).Module.Kernel.WorkSize.Value)
     // Work item info should be stored
@@ -86,7 +86,7 @@ let ``Can compile uchar vector add`` () =
     let b = Array.create 64 ((byte)2)
     let c = Array.zeroCreate<byte> 64
     let size = new WorkSize(64L, 64L)
-    let result = compiler.Compile(<@ VectorAddUchar(a, b, c, size) @>) :?> IComputingExpressionModule
+    let result = compiler.Compile(<@ VectorAddUchar(a, b, c, size) @>) :?> IKernelExpression
     let wInfo = LeafExpressionConverter.EvaluateQuotation((result.KFGRoot :?> KFGKernelNode).Module.Kernel.WorkSize.Value)
     // Work item info should be stored
     Assert.AreEqual(size, wInfo)
@@ -98,7 +98,7 @@ let ``Can compile int4 vector add`` () =
     let b = Array.create 64 (int4(2))
     let c = Array.zeroCreate<int4> 64
     let size = new WorkSize(64L, 64L)
-    let result = compiler.Compile(<@ VectorAddInt4(a, b, c, size) @>) :?> IComputingExpressionModule
+    let result = compiler.Compile(<@ VectorAddInt4(a, b, c, size) @>) :?> IKernelExpression
     let wInfo = LeafExpressionConverter.EvaluateQuotation((result.KFGRoot :?> KFGKernelNode).Module.Kernel.WorkSize.Value)
     // Work item info should be stored
     Assert.AreEqual(size, wInfo)
@@ -112,7 +112,7 @@ let ``Can compile custom struct vector add`` () =
     let b = Array.create 64 (new MyStruct(2, 3))
     let c = Array.zeroCreate<MyStruct> 64
     let size = new WorkSize(64L, 64L)
-    let result = compiler.Compile(<@ VectorAddStruct(a, b, c, size) @>) :?> IComputingExpressionModule
+    let result = compiler.Compile(<@ VectorAddStruct(a, b, c, size) @>) :?> IKernelExpression
     let wInfo = LeafExpressionConverter.EvaluateQuotation((result.KFGRoot :?> KFGKernelNode).Module.Kernel.WorkSize.Value)
     // Work item info should be stored
     Assert.AreEqual(size, wInfo)
@@ -126,7 +126,7 @@ let ``Can compile custom struct with custom constructor vector add`` () =
     let b = Array.create 64 (new MyStruct(2, 3))
     let c = Array.zeroCreate<MyStruct> 64
     let size = new WorkSize(64L, 64L)
-    let result = compiler.Compile(<@ VectorAddStructWithConstructor(a, b, c, size) @>) :?> IComputingExpressionModule
+    let result = compiler.Compile(<@ VectorAddStructWithConstructor(a, b, c, size) @>) :?> IKernelExpression
     let wInfo = LeafExpressionConverter.EvaluateQuotation((result.KFGRoot :?> KFGKernelNode).Module.Kernel.WorkSize.Value)
     // Work item info should be stored
     Assert.AreEqual(size, wInfo)
@@ -140,7 +140,7 @@ let ``Can compile custom record vector add`` () =
     let b = Array.create 64 ({ x = 2; y = 2 })
     let c = Array.zeroCreate<MyRecord> 64
     let size = new WorkSize(64L, 64L)
-    let result = compiler.Compile(<@ VectorAddRecord(a, b, c, size) @>) :?> IComputingExpressionModule
+    let result = compiler.Compile(<@ VectorAddRecord(a, b, c, size) @>) :?> IKernelExpression
     let wInfo = LeafExpressionConverter.EvaluateQuotation((result.KFGRoot :?> KFGKernelNode).Module.Kernel.WorkSize.Value)
     // Work item info should be stored
     Assert.AreEqual(size, wInfo)

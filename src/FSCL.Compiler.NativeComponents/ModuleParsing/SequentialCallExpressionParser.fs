@@ -33,7 +33,7 @@ type SequentialCallExpressionParser() =
             match data with
             | Some(mi, args, outsiders) ->
                 // Create node
-                let node = new KFGSequentialFunctionNode(None, Some(mi), norm)
+                let node = new KFGSequentialFunctionNode(None, mi, norm)
 
                 // Create data node for outsiders
 //                for o in outsiders do 

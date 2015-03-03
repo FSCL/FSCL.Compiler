@@ -23,12 +23,12 @@ type IKernelModule =
     abstract Directives: String list with get
     abstract DynamicConstantDefines: IReadOnlyDictionary<String, Var option * Expr option * obj> with get
 
-    abstract CallArgs: Expr list with get
+//    abstract CallArgs: Expr list with get
     abstract Code: string option with get
     abstract CustomInfo: IReadOnlyDictionary<string, obj> with get
 
 [<AllowNullLiteral>]
-type KernelModule(k: KernelInfo, callArgs: Expr list) =  
+type KernelModule(k: KernelInfo) =  
     interface IKernelModule with
         member this.Kernel
             with get() =
@@ -42,9 +42,9 @@ type KernelModule(k: KernelInfo, callArgs: Expr list) =
         member this.Directives
             with get() =
                 this.Directives |> List.ofSeq
-        member this.CallArgs
-            with get() =
-                this.CallArgs
+//        member this.CallArgs
+//            with get() =
+//                this.CallArgs
         member this.Code
             with get() =
                 this.Code
@@ -65,7 +65,7 @@ type KernelModule(k: KernelInfo, callArgs: Expr list) =
     member val Directives = new HashSet<String>() with get
     member val DynamicConstantDefines = new Dictionary<string, Var option * Expr option * obj>() with get
     
-    member val CallArgs = callArgs with get
+    //member val CallArgs = callArgs with get
     member val Code:string option = None with get, set
     member val CustomInfo = new Dictionary<String, Object>() with get
     

@@ -50,7 +50,7 @@ type IKernelInfo =
     abstract LocalVars: IReadOnlyDictionary<Quotations.Var, Type * (Expr list option)>
     abstract Meta: ReadOnlyMetaCollection with get
     abstract CloneTo: IKernelInfo -> unit
-    
+
 [<AllowNullLiteral>]
 type FunctionInfo(objectInstanceVar: Var option,
                   objectInstance: Expr option,
@@ -61,11 +61,12 @@ type FunctionInfo(objectInstanceVar: Var option,
                   workSize: Expr option,
                   body: Expr, 
                   isLambda: bool) =   
-
+                  
     let parameters =
         paramInfos |> 
         List.mapi(fun i (p:ParameterInfo) ->
                     OriginalFunctionParameter(p, paramVars.[i], None) :> FunctionParameter) 
+
     let envVarsUsed = new List<Var>()
     let outValsUsed = new List<Expr>()                           
 
@@ -164,7 +165,7 @@ type FunctionInfo(objectInstanceVar: Var option,
     ///</summary>
     ///
     abstract member OriginalParameters: FunctionParameter list
-    default this.OriginalParameters 
+    default this.OriginalParameters
         with get() =
             parameters
     ///
@@ -256,6 +257,25 @@ type FunctionInfo(objectInstanceVar: Var option,
             Some(p)
         | _ ->
             Seq.tryFind(fun (p: FunctionParameter) -> p.Name = name) (this.GeneratedParameters)
+            
+//    member this.CloneTo(f:FunctionInfo) =
+//        // Copy kernel info fields
+//        f.Body <- this.Body
+//        f.SignatureCode <- this.SignatureCode
+//        f.Code <- this.Code
+//        f.ReturnType <- this.ReturnType
+//
+//        for item in this.CustomInfo do
+//            if not (f.CustomInfo.ContainsKey(item.Key)) then
+//                f.CustomInfo.Add(item.Key, item.Value)
+//        for item in this.CalledFunctions do
+//            f.CalledFunctions.Add(item)
+//            
+//        for i = 0 to this.Parameters.Length - 1 do
+//            this.Parameters.[i].CloneTo(f.Parameters.[i])
+
+
+
 ///
 ///<summary>
 /// The set of information about kernels collected and maintained by the compiler
@@ -289,45 +309,6 @@ type KernelInfo(objectInstanceVar: Var option,
 
     let localVars = new Dictionary<Quotations.Var, Type * (Expr list option)>()
 
-    // Get static kernel and return meta
-    (*
-    let metaCollection = 
-        let staticKernelMeta = new KernelMetaCollection()
-        let staticReturnMeta = new ParamMetaCollection()
-        let staticParamMeta = new List<ReadOnlyParamMetaCollection>()
-        
-        for attr in signature.GetCustomAttributes() do
-            if typeof<ParameterMetadataAttribute>.IsAssignableFrom(attr.GetType()) then
-                staticReturnMeta.Add(attr.GetType(), attr :?> ParameterMetadataAttribute)
-            else if typeof<KernelMetadataAttribute>.IsAssignableFrom(attr.GetType()) then
-                staticKernelMeta.Add(attr.GetType(), attr :?> KernelMetadataAttribute)
-        for p in signature.GetParameters() do
-            let coll = new ParamMetaCollection()
-            for attr in p.GetCustomAttributes() do
-                if typeof<ParameterMetadataAttribute>.IsAssignableFrom(attr.GetType()) then
-                    coll.Add(attr.GetType(), attr :?> ParameterMetadataAttribute)
-            staticParamMeta.Add(coll)
-                
-        // Merge with dynamic meta
-        for item in meta.KernelMeta do
-            if staticKernelMeta.ContainsKey(item.Key) then
-                staticKernelMeta.[item.Key] <- item.Value
-            else
-                staticKernelMeta.Add(item.Key, item.Value)
-        for item in meta.ReturnMeta do
-            if staticReturnMeta.ContainsKey(item.Key) then
-                staticReturnMeta.[item.Key] <- item.Value
-            else
-                staticReturnMeta.Add(item.Key, item.Value)
-        for i = 0 to  signature.GetParameters().Length - 1 do
-            for item in meta.ParamMeta.[i] do
-                if staticParamMeta.[i].ContainsKey(item.Key) then
-                    (staticParamMeta.[i] :?> ParamMetaCollection).[item.Key] <- item.Value
-                else
-                    (staticParamMeta.[i] :?> ParamMetaCollection).Add(item.Key, item.Value)
-
-        new ReadOnlyMetaCollection(staticKernelMeta, staticReturnMeta, List.ofSeq staticParamMeta)
-     *)
     override this.OriginalParameters
         with get() =
             parameters
@@ -362,39 +343,33 @@ type KernelInfo(objectInstanceVar: Var option,
         member this.WorkSize
             with get() =
                 this.WorkSize
-
-        member this.CloneTo(ikInfo: IKernelInfo) =
-            let kInfo = ikInfo :?> KernelInfo
+                
+        member this.CloneTo(k:IKernelInfo) =
+            let f = k :?> KernelInfo
             // Copy kernel info fields
-            kInfo.Body <- this.Body
-            kInfo.Code <- this.Code
-            for item in this.CustomInfo do
-                if not (kInfo.CustomInfo.ContainsKey(item.Key)) then
-                    kInfo.CustomInfo.Add(item.Key, item.Value)
-            for item in this.CalledFunctions do
-                kInfo.CalledFunctions.Add(item)
-            for item in this.GeneratedParameters do
-                if item.IsReturned && item.IsDynamicParameter then
-                    // Must associate new Return Meta
-                    let oldParameter = item
-                    let newParameter = new FunctionParameter(item.Name, item.OriginalPlaceholder, item.ParameterType, Some(ikInfo.Meta.ReturnMeta :> IParamMetaCollection)) 
-                    newParameter.AccessAnalysis <- oldParameter.AccessAnalysis
-                    newParameter.IsReturned <- oldParameter.IsReturned
-                    newParameter.ReturnExpr <- oldParameter.ReturnExpr
-                    newParameter.Placeholder <- oldParameter.Placeholder
-                    for i = 0 to oldParameter.SizeParameters.Count - 1 do
-                        newParameter.SizeParameters.Add(oldParameter.SizeParameters.[i])
-                    kInfo.GeneratedParameters.Add(newParameter)
-                else                    
-                    kInfo.GeneratedParameters.Add(item)
-            for i = 0 to this.OriginalParameters.Length - 1 do
-                let oldParameter = this.OriginalParameters.[i]
-                let newParameter = kInfo.OriginalParameters.[i]
-                newParameter.AccessAnalysis <- oldParameter.AccessAnalysis
-                newParameter.IsReturned <- oldParameter.IsReturned
-                newParameter.ReturnExpr <- oldParameter.ReturnExpr
-                newParameter.Placeholder <- oldParameter.Placeholder
-                for i = 0 to oldParameter.SizeParameters.Count - 1 do
-                    newParameter.SizeParameters.Add(oldParameter.SizeParameters.[i])
-            kInfo.ReturnType <- this.ReturnType            
+            f.Body <- this.Body
+            f.SignatureCode <- this.SignatureCode
+            f.Code <- this.Code
+            f.ReturnType <- this.ReturnType
 
+            for item in this.CustomInfo do
+                if not (f.CustomInfo.ContainsKey(item.Key)) then
+                    f.CustomInfo.Add(item.Key, item.Value)
+            for item in this.CalledFunctions do
+                f.CalledFunctions.Add(item)
+            
+            for i = 0 to this.OriginalParameters.Length - 1 do
+                this.Parameters.[i].CloneTo(f.Parameters.[i])
+            
+            for i = 0 to this.GeneratedParameters.Count - 1 do
+                let oldParameter = this.GeneratedParameters.[i]
+                if oldParameter.IsReturned && oldParameter.IsDynamicArrayParameter then
+                    // Must associate new Return Meta
+                    let newParameter = new FunctionParameter(oldParameter.Name, oldParameter.OriginalPlaceholder, oldParameter.ParameterType, Some(f.Meta.ReturnMeta :> IParamMetaCollection)) 
+                    oldParameter.CloneTo(newParameter)
+                    f.GeneratedParameters.Add(newParameter)
+                else                    
+                    let newParameter = new FunctionParameter(oldParameter.Name, oldParameter.OriginalPlaceholder, oldParameter.ParameterType, None) 
+                    oldParameter.CloneTo(newParameter)
+                    f.GeneratedParameters.Add(newParameter)
+               

@@ -171,7 +171,7 @@ let main argv =
     let compiler = new Compiler()
     let a = Array.create 64 1.0f
     let b = Array.create 64 1.0f
-    let result = compiler.Compile(<@ Array.map2 FloatSum a b @>) :?> IComputingExpressionModule
+    //let result = compiler.Compile(<@ Array.map2 FloatSum a b @>) :?> IKernelExpression
 
     let compiler = new Compiler()
     let a = Array.create 64 1.0f
@@ -180,8 +180,8 @@ let main argv =
     let size = new WorkSize(64L, 64L) :> WorkItemInfo
     
 
-    KMeans.Run()
-    //Test.Test1()
+    //KMeans.Run()
+    Test.Test1()
     //Test.Test2()
     //Test.Test3()
     //Test.Test8()

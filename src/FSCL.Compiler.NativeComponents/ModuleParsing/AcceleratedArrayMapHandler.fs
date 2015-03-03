@@ -24,7 +24,7 @@ type AcceleratedArrayMapHandler() =
             match subExpr with
             | Some(kfg, newEnv) ->
                 // This coll fun is a composition 
-                let node = new KFGCollectionCompositionNode(methodInfo, kfg)
+                let node = new KFGCollectionCompositionNode(methodInfo, kfg, newEnv)
 
                 // Create data node for outsiders
 //                for o in outsiders do 
@@ -38,124 +38,112 @@ type AcceleratedArrayMapHandler() =
                 // This coll fun is a kernel
                 match computationFunction with
                 | Some(thisVar, ob, functionInfo, functionParamVars, functionBody) ->
-                    // Check if functionBody is a computing expression, in which case the current collection function
-                    // must not map to a kernel but it's an host-side composition
-                    let subParsing = step.Process(functionBody, env)
-                    if subParsing <> null then
-                        // Create composition node
-                        let node = new KFGCollectionCompositionNode(methodInfo, subParsing)
+                    // We need to get the type of a array whose elements type is the same of the functionInfo parameter
+                    let inputArrayType = 
+                        if methodInfo.Name = "Map" then
+                            functionInfo.GetParameters().[0].ParameterType.MakeArrayType()
+                        else
+                            functionInfo.GetParameters().[1].ParameterType.MakeArrayType()
+                    let outputArrayType = functionInfo.ReturnType.MakeArrayType()
+                    let kernelPrefix, functionName = 
+                        if methodInfo.Name = "Map" then
+                            "ArrayMap_", "Array.map"
+                        else
+                            "ArrayMapi_", "Array.mapi"                    
 
-                        // Parse arguments
-                        let subnode = step.Process(cleanArgs.[1], env)
-                        node.InputNodes.Add(subnode)
-                        Some(node :> IKFGNode)   
-                    else
-                        // We need to get the type of a array whose elements type is the same of the functionInfo parameter
-                        let inputArrayType = 
-                            if methodInfo.Name = "Map" then
-                                functionInfo.GetParameters().[0].ParameterType.MakeArrayType()
-                            else
-                                functionInfo.GetParameters().[1].ParameterType.MakeArrayType()
-                        let outputArrayType = functionInfo.ReturnType.MakeArrayType()
-                        let kernelPrefix, functionName = 
-                            if methodInfo.Name = "Map" then
-                                "ArrayMap_", "Array.map"
-                            else
-                                "ArrayMapi_", "Array.mapi"                    
+                    // Now we can create the signature and define parameter name
+                    let signature = DynamicMethod(kernelPrefix + "_" + functionInfo.Name, outputArrayType, [| inputArrayType; outputArrayType; typeof<WorkItemInfo> |])
+                    signature.DefineParameter(1, ParameterAttributes.In, "input_array") |> ignore
+                    signature.DefineParameter(2, ParameterAttributes.In, "output_array") |> ignore
+                    signature.DefineParameter(3, ParameterAttributes.In, "workItemInfo") |> ignore
+                    let wiHolder = Quotations.Var("workItemInfo", typeof<WorkItemInfo>)                                
 
-                        // Now we can create the signature and define parameter name
-                        let signature = DynamicMethod(kernelPrefix + "_" + functionInfo.Name, outputArrayType, [| inputArrayType; outputArrayType; typeof<WorkItemInfo> |])
-                        signature.DefineParameter(1, ParameterAttributes.In, "input_array") |> ignore
-                        signature.DefineParameter(2, ParameterAttributes.In, "output_array") |> ignore
-                        signature.DefineParameter(3, ParameterAttributes.In, "workItemInfo") |> ignore
-                        let wiHolder = Quotations.Var("workItemInfo", typeof<WorkItemInfo>)                                
-
-                        // Create parameters placeholders
-                        let inputHolder = Quotations.Var("input_array", inputArrayType)
-                        let outputHolder = Quotations.Var("output_array", outputArrayType)
-                        let tupleHolder = 
-                                Quotations.Var("tupledArg", FSharpType.MakeTupleType([| inputArrayType; outputArrayType; typeof<WorkItemInfo> |])) 
+                    // Create parameters placeholders
+                    let inputHolder = Quotations.Var("input_array", inputArrayType)
+                    let outputHolder = Quotations.Var("output_array", outputArrayType)
+                    let tupleHolder = 
+                            Quotations.Var("tupledArg", FSharpType.MakeTupleType([| inputArrayType; outputArrayType; typeof<WorkItemInfo> |])) 
                     
-                        // Finally, create the body of the kernel
-                        let globalIdVar = Quotations.Var("global_id", typeof<int>)
-                        let getElementMethodInfo, _ = AcceleratedCollectionUtil.GetArrayAccessMethodInfo(inputArrayType.GetElementType())
-                        let _, setElementMethodInfo = AcceleratedCollectionUtil.GetArrayAccessMethodInfo(outputArrayType.GetElementType())
-                        let kernelBody = 
-                            if methodInfo.Name = "Map" then
-                                Expr.Lambda(tupleHolder,
-                                        Expr.Let(inputHolder, Expr.TupleGet(Expr.Var(tupleHolder), 0),
-                                            Expr.Let(outputHolder, Expr.TupleGet(Expr.Var(tupleHolder), 1),
-                                                Expr.Let(wiHolder, Expr.TupleGet(Expr.Var(tupleHolder), 2),
-                                                    Expr.Let(globalIdVar,
-                                                                Expr.Call(Expr.Var(wiHolder), typeof<WorkItemInfo>.GetMethod("GlobalID"), [ Expr.Value(0) ]),
-                                                                Expr.Sequential(
-                                                                    Expr.Call(setElementMethodInfo,
-                                                                            [ Expr.Var(outputHolder);
-                                                                                Expr.Var(globalIdVar);
-                                                                                AcceleratedCollectionUtil.BuildCallExpr(
-                                                                                        ob, 
-                                                                                        functionInfo,
-                                                                                        [ Expr.Call(getElementMethodInfo,
-                                                                                                    [ Expr.Var(inputHolder);
-                                                                                                        Expr.Var(globalIdVar) 
-                                                                                                    ])
-                                                                                        ])
-                                                                            ]),
-                                                                    Expr.Var(outputHolder)))))))
-                            else
-                                Expr.Lambda(tupleHolder,
-                                        Expr.Let(inputHolder, Expr.TupleGet(Expr.Var(tupleHolder), 0),
-                                            Expr.Let(outputHolder, Expr.TupleGet(Expr.Var(tupleHolder), 1),
-                                                Expr.Let(wiHolder, Expr.TupleGet(Expr.Var(tupleHolder), 2),
-                                                    Expr.Let(globalIdVar,
-                                                                Expr.Call(Expr.Var(wiHolder), typeof<WorkItemInfo>.GetMethod("GlobalID"), [ Expr.Value(0) ]),
-                                                                Expr.Sequential(
-                                                                    Expr.Call(setElementMethodInfo,
-                                                                            [ Expr.Var(outputHolder);
-                                                                                Expr.Var(globalIdVar);
-                                                                                AcceleratedCollectionUtil.BuildCallExpr(
-                                                                                        ob, 
-                                                                                        functionInfo,
-                                                                                        [ Expr.Var(globalIdVar);
-                                                                                          Expr.Call(getElementMethodInfo,
-                                                                                                    [ Expr.Var(inputHolder);
-                                                                                                        Expr.Var(globalIdVar) 
-                                                                                                    ])
-                                                                                        ])
-                                                                            ]),
-                                                                    Expr.Var(outputHolder)))))))
+                    // Finally, create the body of the kernel
+                    let globalIdVar = Quotations.Var("global_id", typeof<int>)
+                    let getElementMethodInfo, _ = AcceleratedCollectionUtil.GetArrayAccessMethodInfo(inputArrayType.GetElementType())
+                    let _, setElementMethodInfo = AcceleratedCollectionUtil.GetArrayAccessMethodInfo(outputArrayType.GetElementType())
+                    let kernelBody = 
+                        if methodInfo.Name = "Map" then
+                            Expr.Lambda(tupleHolder,
+                                    Expr.Let(inputHolder, Expr.TupleGet(Expr.Var(tupleHolder), 0),
+                                        Expr.Let(outputHolder, Expr.TupleGet(Expr.Var(tupleHolder), 1),
+                                            Expr.Let(wiHolder, Expr.TupleGet(Expr.Var(tupleHolder), 2),
+                                                Expr.Let(globalIdVar,
+                                                            Expr.Call(Expr.Var(wiHolder), typeof<WorkItemInfo>.GetMethod("GlobalID"), [ Expr.Value(0) ]),
+                                                            Expr.Sequential(
+                                                                Expr.Call(setElementMethodInfo,
+                                                                        [ Expr.Var(outputHolder);
+                                                                            Expr.Var(globalIdVar);
+                                                                            AcceleratedCollectionUtil.BuildCallExpr(
+                                                                                    ob, 
+                                                                                    functionInfo,
+                                                                                    [ Expr.Call(getElementMethodInfo,
+                                                                                                [ Expr.Var(inputHolder);
+                                                                                                    Expr.Var(globalIdVar) 
+                                                                                                ])
+                                                                                    ])
+                                                                        ]),
+                                                                Expr.Var(outputHolder)))))))
+                        else
+                            Expr.Lambda(tupleHolder,
+                                    Expr.Let(inputHolder, Expr.TupleGet(Expr.Var(tupleHolder), 0),
+                                        Expr.Let(outputHolder, Expr.TupleGet(Expr.Var(tupleHolder), 1),
+                                            Expr.Let(wiHolder, Expr.TupleGet(Expr.Var(tupleHolder), 2),
+                                                Expr.Let(globalIdVar,
+                                                            Expr.Call(Expr.Var(wiHolder), typeof<WorkItemInfo>.GetMethod("GlobalID"), [ Expr.Value(0) ]),
+                                                            Expr.Sequential(
+                                                                Expr.Call(setElementMethodInfo,
+                                                                        [ Expr.Var(outputHolder);
+                                                                            Expr.Var(globalIdVar);
+                                                                            AcceleratedCollectionUtil.BuildCallExpr(
+                                                                                    ob, 
+                                                                                    functionInfo,
+                                                                                    [ Expr.Var(globalIdVar);
+                                                                                        Expr.Call(getElementMethodInfo,
+                                                                                                [ Expr.Var(inputHolder);
+                                                                                                    Expr.Var(globalIdVar) 
+                                                                                                ])
+                                                                                    ])
+                                                                        ]),
+                                                                Expr.Var(outputHolder)))))))
 
-                        let methodParams = signature.GetParameters()
-                        let kInfo = new AcceleratedKernelInfo(signature, 
-                                                              [ methodParams.[0]; methodParams.[1] ],
-                                                              [ inputHolder; outputHolder ],     
-                                                              env,                                                 
-                                                              kernelBody, 
-                                                              meta, 
-                                                              functionName, Some(functionBody))
-                        let kernelModule = new KernelModule(kInfo, cleanArgs)
+                    let methodParams = signature.GetParameters()
+                    let kInfo = new AcceleratedKernelInfo(signature, 
+                                                            [ methodParams.[0]; methodParams.[1] ],
+                                                            [ inputHolder; outputHolder ],     
+                                                            env,                                                 
+                                                            kernelBody, 
+                                                            meta, 
+                                                            functionName, Some(functionBody))
+                    let kernelModule = new KernelModule(kInfo)
                                 
-                        // Add the computation function and connect it to the kernel
-                        let mapFunctionInfo = new FunctionInfo(thisVar, ob,
-                                                               functionInfo, 
-                                                               functionInfo.GetParameters() |> List.ofArray, 
-                                                               functionParamVars, 
-                                                               env,
-                                                               None,
-                                                               functionBody, isLambda)
-                        kernelModule.Functions.Add(mapFunctionInfo.ID, mapFunctionInfo)
-                        kInfo.CalledFunctions.Add(mapFunctionInfo.ID)
+                    // Add the computation function and connect it to the kernel
+                    let mapFunctionInfo = new FunctionInfo(thisVar, ob,
+                                                            functionInfo, 
+                                                            functionInfo.GetParameters() |> List.ofArray, 
+                                                            functionParamVars, 
+                                                            env,
+                                                            None,
+                                                            functionBody, isLambda)
+                    kernelModule.Functions.Add(mapFunctionInfo.ID, mapFunctionInfo)
+                    kInfo.CalledFunctions.Add(mapFunctionInfo.ID)
 
-                        // Create node
-                        let node = new KFGKernelNode(kernelModule)
+                    // Create node
+                    let node = new KFGKernelNode(kernelModule)
                         
-                        // Create data node for outsiders
+                    // Create data node for outsiders
 //                        for o in outsiders do 
 //                            node.InputNodes.Add(new KFGOutsiderDataNode(o))
 
-                        // Parse arguments
-                        let subnode = step.Process(cleanArgs.[1], env)
-                        node.InputNodes.Add(subnode)
-                        Some(node :> IKFGNode)   
+                    // Parse arguments
+                    let subnode = step.Process(cleanArgs.[1], env)
+                    node.InputNodes.Add(subnode)
+                    Some(node :> IKFGNode)   
                 | _ ->
                     None

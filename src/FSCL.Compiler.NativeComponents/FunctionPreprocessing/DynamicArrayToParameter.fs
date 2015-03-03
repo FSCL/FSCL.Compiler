@@ -34,7 +34,7 @@ type DynamicArrayToParameterProcessor() =
                     kernel.CustomInfo.Remove("RETURN_ARRAY_VAR") |> ignore                  
                     let p = FunctionParameter(var.Name, 
                                                 var, 
-                                                DynamicParameter(allocationArgs),
+                                                DynamicArrayParameter(allocationArgs),
                                                 Some(kernelInfo.Meta.ReturnMeta :> IParamMetaCollection))
                     p.IsReturned <- true
                     p
@@ -42,13 +42,13 @@ type DynamicArrayToParameterProcessor() =
                     // No match, no meta
                     new FunctionParameter(var.Name, 
                                             var, 
-                                            DynamicParameter(allocationArgs),
+                                            DynamicArrayParameter(allocationArgs),
                                             None)
             else
                 // No return variable or return variable already set
                 new FunctionParameter(var.Name, 
                                         var, 
-                                        DynamicParameter(allocationArgs),
+                                        DynamicArrayParameter(allocationArgs),
                                         None)
         // Add parameter
         kernelInfo.GeneratedParameters.Add(pInfo)

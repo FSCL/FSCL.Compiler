@@ -209,7 +209,7 @@ type AcceleratedArrayReduceHandler() =
             match subExpr with
             | Some(kfg, newEnv) ->
                 // This coll fun is a composition 
-                let node = new KFGCollectionCompositionNode(methodInfo, kfg)
+                let node = new KFGCollectionCompositionNode(methodInfo, kfg, newEnv)
                 
                 // Create data node for outsiders
 //                for o in outsiders do 
@@ -302,7 +302,7 @@ type AcceleratedArrayReduceHandler() =
                                                                   finalKernel, 
                                                                   meta, 
                                                                   name, appliedFunctionBody)
-                            let kernelModule = new KernelModule(kInfo, cleanArgs)
+                            let kernelModule = new KernelModule(kInfo)
                         
                             kernelModule                
                         |_ ->
@@ -362,7 +362,7 @@ type AcceleratedArrayReduceHandler() =
                                                                     finalKernel, 
                                                                     meta, 
                                                                     name, appliedFunctionBody)
-                            let kernelModule = new KernelModule(kInfo, cleanArgs)
+                            let kernelModule = new KernelModule(kInfo)
                         
                             kernelModule 
 

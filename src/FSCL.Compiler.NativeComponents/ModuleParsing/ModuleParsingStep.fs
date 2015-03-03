@@ -12,7 +12,7 @@ type MetadataVerifier = ReadOnlyMetaCollection * ReadOnlyMetaCollection -> bool
 [<Step("FSCL_MODULE_PARSING_STEP")>] 
 type ModuleParsingStep(tm: TypeManager,
                        procs: ICompilerStepProcessor list) = 
-    inherit CompilerStep<obj * MetadataVerifier, ComputingExpressionModule>(tm, procs)
+    inherit CompilerStep<obj * IKernelCache, KernelExpression>(tm, procs)
     
     let parsingProcessors = List.map(fun (p:ICompilerStepProcessor) ->
                                         p :?> ModuleParsingProcessor) (List.filter (fun (p:ICompilerStepProcessor) -> 
@@ -49,7 +49,7 @@ type ModuleParsingStep(tm: TypeManager,
             output <- p.Execute((kmeta, rmeta, pmeta, parsingInfo), this, opts) :?> KernelMetaCollection * ParamMetaCollection * List<ParamMetaCollection>
         ReadOnlyMetaCollection(kmeta, rmeta, pmeta)
 
-    override this.Run((e, verifier), opt) =
+    override this.Run((e, cache), opt) =
         // Normalize expressione first    
         let norm = 
             if e :? Expr then
@@ -59,14 +59,29 @@ type ModuleParsingStep(tm: TypeManager,
                 e
         opts <- opt
         let r =
+            let procResult = this.Process(norm, [])
+            let expr = new KernelExpression(procResult)
+
             if opts.ContainsKey(CompilerOptions.ParseOnly) then
-                StopCompilation(new ComputingExpressionModule(this.Process(norm, []), verifier))
+                StopCompilation(expr)
             else
-                let parsingResult = new ComputingExpressionModule(this.Process(norm, []), verifier)
-                if parsingResult = null then
-                    StopCompilation(parsingResult)
+                if procResult = null then
+                    StopCompilation(expr)
                 else
-                    ContinueCompilation(parsingResult)
+                    // Inspect cache to check which kernel modules have to be compiled 
+                    // and which ones can be copied from cache
+                    for km in expr.KernelModules do
+                        match cache.TryGet(km.Kernel.ID, km.Kernel.Meta) with
+                        | Some(entry) ->
+                            entry.KernelInfo.CloneTo(km.Kernel)
+                        | None ->
+                            // This must be fully compiled
+                            expr.KernelModulesRequiringCompilation.Add(km :?> KernelModule)
+                     
+                    if expr.KernelModulesRequiringCompilation.Count = 0 then
+                        StopCompilation(expr)
+                    else
+                        ContinueCompilation(expr)
         r
 
         

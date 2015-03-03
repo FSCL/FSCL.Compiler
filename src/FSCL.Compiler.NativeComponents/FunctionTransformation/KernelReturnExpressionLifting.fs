@@ -96,11 +96,11 @@ type KernelReturnLifting() =
             // Check if there is a parameter returned
             let p = Seq.tryFind(fun (e:FunctionParameter) -> e.IsReturned) (engine.FunctionInfo.Parameters)
             if p.IsSome then
-                if not p.Value.IsAutoArrayParameter then
+                //if not p.Value.IsAutoArrayParameter then
                     let rv = p.Value.OriginalPlaceholder
                     LiftReturnArrayRef(expr, rv, engine)
-                else
-                    expr
+                //else
+                    //expr
             else
                 expr
         else

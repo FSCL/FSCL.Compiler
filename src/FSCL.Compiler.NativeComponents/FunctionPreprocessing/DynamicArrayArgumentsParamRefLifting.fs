@@ -51,7 +51,7 @@ type DynamicArrayArgumentsParamRefLifting() =
         for i = 0 to fInfo.OriginalParameters.Length - 1 do
             let p = fInfo.Parameters.[i]
             match p.ParameterType with
-            | DynamicParameter(args) ->
+            | DynamicArrayParameter(args) ->
                 for i = 0 to args.Length - 1 do
                     let fixedArg = fixArrayRefInAllocationArg(args.[i], fInfo :?> KernelInfo)
                     args.[i] <- fixedArg

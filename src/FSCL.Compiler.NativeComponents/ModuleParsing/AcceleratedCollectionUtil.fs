@@ -92,12 +92,12 @@ module AcceleratedCollectionUtil =
     // 3) A sub-expression (CollectionFun is not a kernel)
     let ParseOperatorLambda(fr: Expr, step: ModuleParsingStep, currEnv: Var list) =  
         let rec isSubExpr(k: KFGNode) =
-            match k.Type with
-            | KFGNodeType.KernelNode ->
+            match k with
+            | :? KFGKernelNode ->
                 true
-            | KFGNodeType.CollectionCompositionNode ->
+            | :? KFGCollectionCompositionNode ->
                 true
-            | KFGNodeType.SequentialFunctionNode ->
+            | :? KFGSequentialFunctionNode ->
                 let inp = (k :?> KFGSequentialFunctionNode).InputNodes |> 
                                 Seq.map(fun i -> isSubExpr(i :?> KFGNode)) |>
                                 Seq.reduce (||)

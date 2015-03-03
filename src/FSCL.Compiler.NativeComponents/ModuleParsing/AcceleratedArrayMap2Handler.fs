@@ -21,9 +21,9 @@ type AcceleratedArrayMap2Handler() =
                 AcceleratedCollectionUtil.ParseOperatorLambda(cleanArgs.[0], step, env)
                                 
             match subExpr with
-            | Some(kfg, thisEnv) ->
+            | Some(kfg, newEnv) ->
                 // This coll fun is a composition 
-                let node = new KFGCollectionCompositionNode(methodInfo, kfg)
+                let node = new KFGCollectionCompositionNode(methodInfo, kfg, newEnv)
                 
                 // Parse arguments
                 let subnode1 = step.Process(cleanArgs.[1], env)
@@ -131,7 +131,7 @@ type AcceleratedArrayMap2Handler() =
                                                           kernelBody,
                                                           meta, 
                                                           "Array.map2", Some(functionBody))
-                    let kernelModule = new KernelModule(kInfo, cleanArgs)
+                    let kernelModule = new KernelModule(kInfo)
                 
                     // Add the current kernel
                     let mapFunctionInfo = new FunctionInfo(thisVar, ob,                                    

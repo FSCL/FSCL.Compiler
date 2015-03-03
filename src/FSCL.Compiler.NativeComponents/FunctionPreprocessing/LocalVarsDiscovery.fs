@@ -26,7 +26,7 @@ type LocalVarsDictionaryProcessor() =
         // Add parameter
         let pInfo = new FunctionParameter(var.Name, 
                                           var, 
-                                          DynamicParameter(allocationArgs),
+                                          DynamicArrayParameter(allocationArgs),
                                           None)
         kernelInfo.GeneratedParameters.Add(pInfo)
        
