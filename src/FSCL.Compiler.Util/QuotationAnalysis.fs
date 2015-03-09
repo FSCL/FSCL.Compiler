@@ -712,9 +712,7 @@ module QuotationAnalysis =
                     None
                                 
                                               
-        let (|UtilityFunctionCall|_|) (e: Expr) =             
-            let expr, kernelAttrs, returnAttrs = ParseKernelMetadata(e)
-
+        let (|UtilityFunctionCall|_|) (expr: Expr) =             
             let callData =
                 match expr with            
                 | Patterns.Call (ob, mi, a) ->
@@ -749,7 +747,7 @@ module QuotationAnalysis =
                 // Extract parameters vars
                 match GetCurriedOrTupledArgs(b) with
                 | thisVar, Some(paramVars) ->                    
-                    MergeWithStaticKernelMeta(kernelAttrs, returnAttrs, mi)
+                    //MergeWithStaticKernelMeta(kernelAttrs, returnAttrs, mi)
                     let origParams = mi.GetParameters()
                     let parameters = new List<ParameterInfo>()
                     let parameterVars = new List<Var>()
@@ -762,15 +760,7 @@ module QuotationAnalysis =
                             arguments.Add(a.[i])
                         else
                             workItemInfoArg <- Some(a.[i])
-                    let attrs = new List<ParamMetaCollection>()
-                    let args = new List<Expr>()
-                    for i = 0 to parameters.Count - 1 do
-                        let paramAttrs = new ParamMetaCollection()
-                        let cleanArg, paramAttrs = ParseParameterMetadata(arguments.[i])
-                        MergeWithStaticParameterMeta(paramAttrs, parameters.[i])
-                        attrs.Add(paramAttrs)
-                        args.Add(cleanArg)
-                    Some(obv, ob, mi, parameters |> Seq.toArray, parameterVars |> List.ofSeq, b, args |> List.ofSeq, workItemInfoArg, kernelAttrs, returnAttrs, attrs)
+                    Some(obv, ob, mi, parameters |> Seq.toArray, parameterVars |> List.ofSeq, b, arguments |> List.ofSeq, workItemInfoArg)
                 | _ ->
                     None
                                    
@@ -877,32 +867,132 @@ module QuotationAnalysis =
                     None
             | _ ->
                 None
-//                
-//        let DiscoverUtilityFunctionRefs(body, env:Var list) =
-//            let foundFunctions = Dictionary<MethodInfo, FunctionInfo>()
-//
-//            let rec DiscoverFunctionRefInner(expr, env) =
-//                match expr with
-//                | UtilityFunctionCall(obv, ob, mi, parameters, paramVars, body, args, workItemInfo, _, _, _) ->
-//                    let fi = new FunctionInfo(obv,
-//                                              ob,
-//                                              mi, 
-//                                              parameters |> List.ofArray, 
-//                                              paramVars,
-//                                              env,
-//                                              workItemInfo,
-//                                              body, false)
-//                    foundFunctions.Add(mi, fi)
-//                | _ ->
-//                    match expr with 
-//                    | ExprShape.ShapeLambda(v, a) ->
-//                        DiscoverFunctionRefInner(a, env)
-//                    | ExprShape.ShapeCombination(o, list) ->
-//                        List.iter (fun el -> DiscoverFunctionRefInner(el, env)) list
-//                    | _ ->
-//                        ()
-//            DiscoverFunctionRefInner(body, env)
-//            foundFunctions
+                
+        let DiscoverUtilityFunctionsAndEnvRefs(body) =
+            let rec DiscoverInner(e:Expr, 
+                                  localState: HashSet<Var>, 
+                                  envVars: List<Var>,
+                                  outVals: List<Expr>,
+                                  constDef: Dictionary<string, Var option * Expr option * obj>,
+                                  utilityFunctions: Dictionary<FunctionInfoID, IFunctionInfo>) =
+                match e with       
+                | UtilityFunctionCall (obv, ob, mi, parameters, paramVars, body, args, workItemInfo) ->
+                    if not (utilityFunctions.ContainsKey(FunctionInfoID.MethodID(mi))) then                        
+                        let subFoundFunctions = Dictionary<FunctionInfoID, IFunctionInfo>()
+                        let subEnvVars = new List<Var>() 
+                        let subOutVals = new List<Expr>()
+                        let subLocal = new HashSet<Var>()
+                        let subConstDef = new Dictionary<string, Var option * Expr option * obj>()
+                        DiscoverInner(body, subLocal, subEnvVars, subOutVals, subConstDef, subFoundFunctions)
+
+                        let fi = new FunctionInfo(obv,
+                                                  ob,
+                                                  mi, 
+                                                  parameters |> List.ofArray,
+                                                  paramVars,
+                                                  subEnvVars,
+                                                  subOutVals,
+                                                  workItemInfo,
+                                                  body,
+                                                  new List<FunctionInfoID>(subFoundFunctions.Keys), false)
+                        utilityFunctions.Add(fi.ID, fi)
+                        // Add all sub utilities found
+                        for item in subFoundFunctions do
+                            if not (utilityFunctions.ContainsKey(item.Key)) then
+                                utilityFunctions.Add(item.Key, item.Value)
+                        // Add all sub refs
+                        for item in subEnvVars do
+                            if not(envVars.Contains(item)) then
+                                envVars.Add(item)
+                        for item in subOutVals do
+                            let it = outVals |> Seq.tryFind(fun (v) -> e.Equals(item))
+                            if it.IsNone then
+                                outVals.Add(item)
+                        // Add sub const def
+                        for item in subConstDef do
+                            if not (constDef.ContainsKey(item.Key)) then
+                                constDef.Add(item.Key, item.Value)
+                | _ ->
+                    ()
+
+                match e with
+                | Patterns.Let(v, va, b) ->
+                    DiscoverInner(va, localState, envVars, outVals, constDef, utilityFunctions)
+                    localState.Add(v) |> ignore
+                    DiscoverInner(b, localState, envVars, outVals, constDef, utilityFunctions)
+                    localState.Remove(v) |> ignore
+                | Patterns.Lambda(v, b) ->
+                    localState.Add(v) |> ignore
+                    DiscoverInner(b, localState, envVars, outVals, constDef, utilityFunctions)
+                    localState.Remove(v) |> ignore
+                | Patterns.ForIntegerRangeLoop(v, st, en, b) ->                    
+                    DiscoverInner(st, localState, envVars, outVals, constDef, utilityFunctions)             
+                    DiscoverInner(en, localState, envVars, outVals, constDef, utilityFunctions)
+                    localState.Add(v) |> ignore            
+                    DiscoverInner(b, localState, envVars, outVals, constDef, utilityFunctions)
+                    localState.Remove(v) |> ignore
+                | Patterns.Value(o, t) when t.IsArray ->
+                    let item = outVals |> Seq.tryFind(fun (v) -> e.Equals(o))
+                    if item.IsNone && (typeof<WorkItemInfo>.IsAssignableFrom(t) |> not) then
+                       outVals.Add(e)
+                | Patterns.PropertyGet(o, pi, a) ->
+                    // Check if this is a constant define
+                    let attr = pi.GetCustomAttribute<ConstantDefineAttribute>()
+                    if attr = null then
+                        let item = outVals |> Seq.tryFind(fun (v) -> e.Equals(o))
+                        if item.IsNone && o.IsNone && (typeof<WorkItemInfo>.IsAssignableFrom(pi.PropertyType) |> not) then
+                           outVals.Add(e)
+                        a |> List.iter(fun e -> DiscoverInner(e, localState, envVars, outVals, constDef, utilityFunctions))
+                    else
+                        // Constant define
+                        if not (constDef.ContainsKey(pi.Name) || (typeof<WorkItemInfo>.IsAssignableFrom(pi.PropertyType))) then
+                            if o.IsSome then
+                                let placeholder = Quotations.Var("ph", o.Value.Type)
+                                constDef.Add(pi.Name, (Some(placeholder), o,
+                                                    LeafExpressionConverter.EvaluateQuotation(
+                                                        Expr.Lambda(placeholder, Expr.PropertyGet(Expr.Var(placeholder), pi)))))
+                            else
+                                let placeholder = Quotations.Var("ph", typeof<unit>)
+                                constDef.Add(pi.Name, (None, o,
+                                                    LeafExpressionConverter.EvaluateQuotation(
+                                                        Expr.Lambda(placeholder, Expr.PropertyGet(pi)))))
+                | Patterns.FieldGet(o, fi) ->
+                    // Check if this is a constant define
+                    let attr = fi.GetCustomAttribute<ConstantDefineAttribute>()
+                    if attr = null then
+                        let item = outVals |> Seq.tryFind(fun (v) -> e.Equals(o))
+                        if item.IsNone && o.IsNone && (typeof<WorkItemInfo>.IsAssignableFrom(fi.FieldType) |> not) then
+                           outVals.Add(e)
+                    else
+                        // Constant define
+                        if not (constDef.ContainsKey(fi.Name) || (typeof<WorkItemInfo>.IsAssignableFrom(fi.FieldType))) then
+                            if o.IsSome then
+                                let placeholder = Quotations.Var("ph", o.Value.Type)
+                                constDef.Add(fi.Name, (Some(placeholder), o,
+                                                    LeafExpressionConverter.EvaluateQuotation(
+                                                        Expr.Lambda(placeholder, Expr.FieldGet(Expr.Var(placeholder), fi)))))
+                            else
+                                let placeholder = Quotations.Var("ph", typeof<unit>)
+                                constDef.Add(fi.Name, (None, o,
+                                                    LeafExpressionConverter.EvaluateQuotation(
+                                                        Expr.Lambda(placeholder, Expr.FieldGet(fi)))))
+                | ExprShape.ShapeVar(v) ->
+                    if (localState.Contains(v) |> not) && (typeof<WorkItemInfo>.IsAssignableFrom(v.Type) |> not) && (envVars.Contains(v) |> not) then
+                        envVars.Add(v) 
+                | ExprShape.ShapeLambda(v, b) -> 
+                    localState.Add(v) |> ignore
+                    DiscoverInner(b, localState, envVars, outVals, constDef, utilityFunctions)
+                    localState.Remove(v) |> ignore
+                | ExprShape.ShapeCombination(o, a) -> 
+                    a |> List.iter(fun e -> DiscoverInner(e, localState, envVars, outVals, constDef, utilityFunctions))
+            
+            let foundFunctions = Dictionary<FunctionInfoID, IFunctionInfo>()
+            let envVars = new List<Var>() 
+            let outVals = new List<Expr>()
+            let local = new HashSet<Var>()
+            let constDef = new Dictionary<string, Var option * Expr option * obj>()
+            DiscoverInner(body, local, envVars, outVals, constDef, foundFunctions)
+            (envVars, outVals, constDef, foundFunctions)
                 
                 
 

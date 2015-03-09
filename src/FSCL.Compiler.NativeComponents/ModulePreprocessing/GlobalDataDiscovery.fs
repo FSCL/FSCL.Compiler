@@ -17,7 +17,8 @@ open System
 // B) A #define otherwise
 [<StepProcessor("FSCL_GLOBAL_DATA_DISCOVERY_PROCESSOR", 
                 "FSCL_MODULE_PREPROCESSING_STEP",
-                Dependencies = [| "FSCL_FUNCTIONS_DISCOVERY_PROCESSOR" |])>] 
+                Dependencies = [| //"FSCL_FUNCTIONS_DISCOVERY_PROCESSOR"
+                               |])>] 
 type GlobalDataDiscovery() = 
     inherit ModulePreprocessingProcessor()
     let rec FindGlobalDataAccess(e: Expr, dynDef: Dictionary<string, Var option * Expr option * obj>) =

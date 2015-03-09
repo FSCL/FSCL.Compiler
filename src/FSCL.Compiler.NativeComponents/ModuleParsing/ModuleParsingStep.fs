@@ -12,7 +12,7 @@ type MetadataVerifier = ReadOnlyMetaCollection * ReadOnlyMetaCollection -> bool
 [<Step("FSCL_MODULE_PARSING_STEP")>] 
 type ModuleParsingStep(tm: TypeManager,
                        procs: ICompilerStepProcessor list) = 
-    inherit CompilerStep<obj * IKernelCache, KernelExpression>(tm, procs)
+    inherit CompilerStep<obj * KernelCache, KernelExpression>(tm, procs)
     
     let parsingProcessors = List.map(fun (p:ICompilerStepProcessor) ->
                                         p :?> ModuleParsingProcessor) (List.filter (fun (p:ICompilerStepProcessor) -> 
@@ -73,7 +73,7 @@ type ModuleParsingStep(tm: TypeManager,
                     for km in expr.KernelModules do
                         match cache.TryGet(km.Kernel.ID, km.Kernel.Meta) with
                         | Some(entry) ->
-                            entry.KernelInfo.CloneTo(km.Kernel)
+                            (entry.Module :?> KernelModule).CloneTo(km)
                         | None ->
                             // This must be fully compiled
                             expr.KernelModulesRequiringCompilation.Add(km :?> KernelModule)

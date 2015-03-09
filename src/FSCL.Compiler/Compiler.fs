@@ -116,7 +116,7 @@ type Compiler =
                 opts.Add(key, value)
             else
                 opts.[key] <- value
-        this.Run((box input, cache), opts)
+        this.Run((box input, cache), opts) 
         
     member this.Compile(input, cache) =
         this.Compile(input, cache, new Dictionary<string, obj>())

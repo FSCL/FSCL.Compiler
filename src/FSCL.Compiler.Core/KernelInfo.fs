@@ -26,7 +26,7 @@ type IFunctionInfo =
     abstract OriginalParameters: IReadOnlyList<IOriginalFunctionParameter> with get
     abstract GeneratedParameters: IReadOnlyList<IFunctionParameter> with get
     abstract Parameters: IReadOnlyList<IFunctionParameter> with get
-    abstract EnvVars: Var list with get
+    //abstract EnvVars: Var list with get
     abstract EnvVarsUsed: IReadOnlyList<Var> with get
     abstract OutValsUsed: IReadOnlyList<Expr> with get
     abstract ReturnType: Type with get
@@ -57,18 +57,18 @@ type FunctionInfo(objectInstanceVar: Var option,
                   parsedSignature: MethodInfo, 
                   paramInfos: ParameterInfo list,
                   paramVars: Quotations.Var list,
-                  envVars: Var list,
+                  envVarsUsed: IReadOnlyList<Var>,
+                  outValsUsed: IReadOnlyList<Expr>,
                   workSize: Expr option,
                   body: Expr, 
+                  calledFunctions: IReadOnlyList<FunctionInfoID>,
                   isLambda: bool) =   
                   
     let parameters =
         paramInfos |> 
         List.mapi(fun i (p:ParameterInfo) ->
                     OriginalFunctionParameter(p, paramVars.[i], None) :> FunctionParameter) 
-
-    let envVarsUsed = new List<Var>()
-    let outValsUsed = new List<Expr>()                           
+                      
 
     interface IFunctionInfo with
         member this.ID 
@@ -103,18 +103,18 @@ type FunctionInfo(objectInstanceVar: Var option,
                 for item in this.GeneratedParameters do
                     roList.Add(item)
                 roList :> IReadOnlyList<IFunctionParameter>
-        member this.EnvVars
-            with get() =
-                this.EnvVars
+//        member this.EnvVars
+//            with get() =
+//                this.EnvVars
         member this.EnvVarsUsed
             with get() =
-                this.EnvVarsUsed :> IReadOnlyList<Var>
+                this.EnvVarsUsed
         member this.OutValsUsed
             with get() =
-                this.OutValsUsed :> IReadOnlyList<Expr>
+                this.OutValsUsed
         member this.CalledFunctions 
             with get() =
-                this.CalledFunctions :> IReadOnlyList<FunctionInfoID>
+                this.CalledFunctions 
         member this.ReturnType
             with get() =
                 this.ReturnType
@@ -177,8 +177,7 @@ type FunctionInfo(objectInstanceVar: Var option,
         new List<FunctionParameter>() 
         with get
     
-    member val CalledFunctions = 
-        new List<FunctionInfoID>() 
+    member val CalledFunctions = calledFunctions
         with get
 
     ///
@@ -190,9 +189,9 @@ type FunctionInfo(objectInstanceVar: Var option,
         with get() =
             this.OriginalParameters @ List.ofSeq(this.GeneratedParameters)
 
-    member this.EnvVars 
-        with get() =
-            envVars
+//    member this.EnvVars 
+//        with get() =
+//            envVars
             
     member this.EnvVarsUsed 
         with get() =
@@ -295,12 +294,14 @@ type KernelInfo(objectInstanceVar: Var option,
                 originalSignature: MethodInfo, 
                 paramInfos: ParameterInfo list,
                 paramVars: Quotations.Var list,
-                envVars: Var list,
+                envVarsUsed: IReadOnlyList<Var>,
+                outValsUsed: IReadOnlyList<Expr>,
                 workSize: Expr option,
                 body: Expr, 
+                calledFunctions: IReadOnlyList<FunctionInfoID>,
                 meta: ReadOnlyMetaCollection, 
                 isLambda: bool) =
-    inherit FunctionInfo(objectInstanceVar, objectInstance, originalSignature, paramInfos, paramVars, envVars, workSize, body, isLambda)
+    inherit FunctionInfo(objectInstanceVar, objectInstance, originalSignature, paramInfos, paramVars, envVarsUsed, outValsUsed, workSize, body, calledFunctions, isLambda)
     
     let parameters =
         paramInfos |>
@@ -355,8 +356,8 @@ type KernelInfo(objectInstanceVar: Var option,
             for item in this.CustomInfo do
                 if not (f.CustomInfo.ContainsKey(item.Key)) then
                     f.CustomInfo.Add(item.Key, item.Value)
-            for item in this.CalledFunctions do
-                f.CalledFunctions.Add(item)
+//            for item in this.CalledFunctions do
+//                f.CalledFunctions.Add(item)
             
             for i = 0 to this.OriginalParameters.Length - 1 do
                 this.Parameters.[i].CloneTo(f.Parameters.[i])

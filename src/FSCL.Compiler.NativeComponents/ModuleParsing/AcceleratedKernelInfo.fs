@@ -14,12 +14,14 @@ open FSCL.Compiler.Util
 type AcceleratedKernelInfo(signature: MethodInfo, 
                            paramInfo: ParameterInfo list,
                            paramVars: Quotations.Var list,
-                           envVars: Var list,
-                           body: Expr,
+                           envVarsUsed: IReadOnlyList<Var>,
+                           outValsUsed: IReadOnlyList<Expr>,
+                           body: Expr, 
+                           calledFunctions: IReadOnlyList<FunctionInfoID>,
                            meta, 
                            collectionFunction: String, 
                            appliedFunction: Expr option) =
-    inherit KernelInfo(None, None, signature, paramInfo, paramVars, envVars, None, body, meta, false)
+    inherit KernelInfo(None, None, signature, paramInfo, paramVars, envVarsUsed, outValsUsed, None, body, calledFunctions, meta, false)
             
     member val CollectionFunctionName = collectionFunction with get
 

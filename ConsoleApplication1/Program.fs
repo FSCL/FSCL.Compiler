@@ -134,7 +134,7 @@ module KernelModule =
         c.[gid] <- a.[gid] + b.[gid] * DataFieldModule
         
     let Compile(compiler: Compiler, size, a, b, c) =        
-        let r = compiler.Compile(VectorAddModule(size, a, b, c)) :?> IKernelModule
+        let r = compiler.Compile(VectorAddModule(size, a, b, c)) :?> IKernelExpression
         r
 
 

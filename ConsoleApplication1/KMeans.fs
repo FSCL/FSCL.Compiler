@@ -30,9 +30,14 @@ module KMeans
         let points = Array.init 1024 (fun i -> new Point(rnd.NextDouble() * 5.0, rnd.NextDouble() * 3.0))
 
         let kmeans = 
+(*
             <@ 
-                points |>
-                Array.groupBy(fun a -> nearestCenter centers a) |>
+                (points, centers) ||>
+                (fun p c -> Array.groupBy(fun a -> nearestCenter c a) p) |>
+ *)
+            <@ 
+                fun points centers ->
+                Array.groupBy(fun a -> nearestCenter centers a) points |>
                 Array.map (fun (key, data) -> 
                             data |> 
                             Array.reduce(fun (cp) (p) -> 

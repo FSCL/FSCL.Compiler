@@ -12,8 +12,9 @@ open System
     
 [<StepProcessor("FSCL_STRUCT_DISCOVERY_PROCESSOR", 
                 "FSCL_MODULE_PREPROCESSING_STEP",
-                Dependencies = [| "FSCL_FUNCTIONS_DISCOVERY_PROCESSOR";
-                                  "FSCL_ENV_REFS_DISCOVERY_PROCESSOR" |])>] 
+                Dependencies = [| //"FSCL_FUNCTIONS_DISCOVERY_PROCESSOR";
+                                  //"FSCL_ENV_REFS_DISCOVERY_PROCESSOR" 
+                               |])>] 
 type StructDiscover() = 
     inherit ModulePreprocessingProcessor()
     let rec CollectStructsTypes(types: Type[], structs: Dictionary<Type, unit>) =
