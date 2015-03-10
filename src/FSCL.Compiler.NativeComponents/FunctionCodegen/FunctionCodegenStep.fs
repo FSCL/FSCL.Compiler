@@ -101,10 +101,10 @@ type FunctionCodegenStep(tm: TypeManager,
             opts <- opt           
             for km in cem.KernelModulesRequiringCompilation do 
                 // Process functions
-                for f in km.Module.Functions do
+                for f in km.Functions do
                     this.Process(f.Value :?> FunctionInfo)
                 // Process kernel
-                this.Process(km.Module.Kernel)
+                this.Process(km.Kernel)
             // Process defines
             //for d in km.StaticConstantDefines do
               //  km.StaticConstantDefinesCode.Add(d.Key, this.Process(d.Value))

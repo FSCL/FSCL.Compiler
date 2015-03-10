@@ -65,7 +65,8 @@ type Compiler =
            typeof<FunctionPostprocessingStep>;
            typeof<AcceleratedArrayParser>;
            typeof<DefaultTypeHandler> |]
-     
+    
+    val mutable cache: KernelCache 
     //val cache: KernelCache
     ///
     ///<summary>
@@ -80,8 +81,14 @@ type Compiler =
     ///In addition of the 0 or more components found, the native components are always loaded (if no configuration file is found in the first step)
     ///</remarks>
     ///
+    new(entryCreator) as this = 
+        { inherit Pipeline(Compiler.DefaultConfigurationRoot, Compiler.DefaultConfigurationComponentsFolder, Compiler.defComponentsAssemply)
+          cache = null
+        }
+        then
+            this.cache <- new KernelCache(this.IsInvariantToMetaCollection, entryCreator)
     new() = 
-        { inherit Pipeline(Compiler.DefaultConfigurationRoot, Compiler.DefaultConfigurationComponentsFolder, Compiler.defComponentsAssemply) }
+        new Compiler(fun m -> new KernelCacheEntry(m))
     
     ///
     ///<summary>
@@ -92,8 +99,14 @@ type Compiler =
     ///An instance of the compiler configured with the input file
     ///</returns>
     ///
+    new(file: string, entryCreator) as this = 
+        { inherit Pipeline(Compiler.DefaultConfigurationRoot, Compiler.DefaultConfigurationComponentsFolder, Compiler.defComponentsAssemply, file)
+          cache = null
+        }
+        then
+            this.cache <- new KernelCache(this.IsInvariantToMetaCollection, entryCreator)
     new(file: string) = 
-        { inherit Pipeline(Compiler.DefaultConfigurationRoot, Compiler.DefaultConfigurationComponentsFolder, Compiler.defComponentsAssemply, file) }
+        new Compiler(file, fun m -> new KernelCacheEntry(m))
     ///
     ///<summary>
     ///The constructor to instantiate a compiler with an object-based configuration
@@ -103,16 +116,20 @@ type Compiler =
     ///An instance of the compiler configured with the input configuration object
     ///</returns>
     ///
+    new(conf: PipelineConfiguration, entryCreator) as this =
+        { inherit Pipeline(Compiler.DefaultConfigurationRoot, Compiler.DefaultConfigurationComponentsFolder, Compiler.defComponentsAssemply, conf)
+          cache = null
+        }
+        then
+            this.cache <- new KernelCache(this.IsInvariantToMetaCollection, entryCreator)
     new(conf: PipelineConfiguration) =
-        { inherit Pipeline(Compiler.DefaultConfigurationRoot, Compiler.DefaultConfigurationComponentsFolder, Compiler.defComponentsAssemply, conf) }
+        new Compiler(conf, fun m -> new KernelCacheEntry(m))
         
     member this.Compile(input, 
-                        cache:KernelCache * (IKernelModule -> KernelCacheEntry), 
-                        opts:IReadOnlyDictionary<string,obj>) =
-        this.Run((box input, cache), opts)
+                        opts:IReadOnlyDictionary<string,obj>) =                        
+        this.Run((box input, this.cache), opts)
         
     member this.Compile(input, 
-                        cache:KernelCache * (IKernelModule -> KernelCacheEntry), 
                         [<ParamArray>] args: (string * obj)[]) =
         let opts = new Dictionary<string, obj>()
         for key, value in args do
@@ -120,18 +137,9 @@ type Compiler =
                 opts.Add(key, value)
             else
                 opts.[key] <- value
-        this.Run((box input, cache), opts) 
-        
-    member this.Compile(input, cache) =
-        this.Compile(input, cache, new Dictionary<string, obj>())
-
-    member this.Compile(input, opts:IReadOnlyDictionary<string,obj>) =
-        this.Compile(input, KernelCache.NullCache(), opts)
-        
-    member this.Compile(input, [<ParamArray>] args: (string * obj)[]) =
-        this.Compile(input, KernelCache.NullCache(), args)
+        this.Run((box input, this.cache), opts) 
         
     member this.Compile(input) =
-        this.Compile(input, KernelCache.NullCache())
+        this.Compile(input, new Dictionary<string, obj>())
 
     

@@ -9,7 +9,8 @@ open System.Collections.ObjectModel
 [<AllowNullLiteral>]
 type KernelCacheEntry(m:IKernelModule) = 
     member val Module = m with get
-
+    
+[<AllowNullLiteral>]
 type KernelCache(verifier, entryCreator: IKernelModule -> KernelCacheEntry) =
     let entries = new Dictionary<FunctionInfoID, List<ReadOnlyMetaCollection * KernelCacheEntry>>()
     member val EntryCreator = entryCreator

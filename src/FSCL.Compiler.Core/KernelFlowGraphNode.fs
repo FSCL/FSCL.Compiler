@@ -176,7 +176,6 @@ type IKernelExpression(root: IKFGNode) =
     member val OutputType = root.OutputType 
         with get
     abstract member KernelNodes: IReadOnlyList<IKFGKernelNode>
-    abstract member KernelModulesCompiled: IReadOnlyList<IKernelModule>
     
 [<AllowNullLiteral>]
 type KernelExpression(root: IKFGNode) =
@@ -184,7 +183,7 @@ type KernelExpression(root: IKFGNode) =
     inherit IKernelExpression(root)
 
     //let kmods = new Dictionary<FunctionInfoID, List<ReadOnlyMetaCollection * KernelModule>>()
-    let compileKmList = new List<IKernelModule>()
+    let compileKmList = new List<KernelModule>()
     //let copyKmList = new List<KernelModule>()
     let fullKmList = new List<IKFGKernelNode>()
     let rec graphSearch(r: IKFGNode) =
@@ -202,9 +201,6 @@ type KernelExpression(root: IKFGNode) =
                  
     override val KernelNodes = fullKmList :> IReadOnlyList<IKFGKernelNode>
         with get   
-    override this.KernelModulesCompiled 
-        with get() =
-            this.KernelModulesRequiringCompilation :> IReadOnlyList<IKernelModule>
     member val KernelModulesRequiringCompilation = compileKmList 
         with get   
 //    member val KernelModulesCopiedFromCache = copyKmList 

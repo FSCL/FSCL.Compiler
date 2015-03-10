@@ -138,7 +138,7 @@ let GetData() =
     compiler, a, b, c, size, wrapper    
 
 let FirstConstDefineValue(m: IKernelExpression, inst:KernelWrapper option) =
-    let thisVar, _, f = (m.KFGRoot :?> KFGKernelNode).Module.DynamicConstantDefines.Values |> List.ofSeq |> List.head
+    let thisVar, _, f = (m.KFGRoot :?> KFGKernelNode).Module.ConstantDefines.Values |> List.ofSeq |> List.head
     if thisVar.IsSome then
         f.GetType().GetMethod("Invoke").Invoke(f, [| inst.Value |]) :?> float32
     else
@@ -150,11 +150,11 @@ let ``Can compile module kernel using module field from inside and outside modul
 
     let insideResult = KernelModule.Compile(compiler, size, a, b, c)
     Assert.NotNull(insideResult)
-    Assert.IsNotEmpty((insideResult.KFGRoot :?> KFGKernelNode).Module.DynamicConstantDefines)
+    Assert.IsNotEmpty((insideResult.KFGRoot :?> KFGKernelNode).Module.ConstantDefines)
     Assert.AreEqual(FirstConstDefineValue(insideResult, None), 10.0f)
     let outsideResult = compiler.Compile(<@ KernelModule.VectorAddModule(size, a, b, c) @>) :?> IKernelExpression
     Assert.NotNull(outsideResult)
-    Assert.IsNotEmpty((outsideResult.KFGRoot :?> KFGKernelNode).Module.DynamicConstantDefines)
+    Assert.IsNotEmpty((outsideResult.KFGRoot :?> KFGKernelNode).Module.ConstantDefines)
     Assert.AreEqual(FirstConstDefineValue(outsideResult, None), 10.0f)
     
 [<Test>]
@@ -162,10 +162,10 @@ let ``Can compile kernel using instance field from inside and outside instance``
     let compiler, a, b, c, size, wrapper = GetData()
 
     let insideResult = wrapper.CompileVectorAddUsingField(compiler, size, a, b, c)
-    Assert.IsNotEmpty((insideResult.KFGRoot :?> KFGKernelNode).Module.DynamicConstantDefines)
+    Assert.IsNotEmpty((insideResult.KFGRoot :?> KFGKernelNode).Module.ConstantDefines)
     Assert.AreEqual(FirstConstDefineValue(insideResult, Some(wrapper)), 10.0f)
     let outsideResult = compiler.Compile(<@ wrapper.VectorAddUsingField(size, a, b, c) @>) :?> IKernelExpression
-    Assert.IsNotEmpty((outsideResult.KFGRoot :?> KFGKernelNode).Module.DynamicConstantDefines)
+    Assert.IsNotEmpty((outsideResult.KFGRoot :?> KFGKernelNode).Module.ConstantDefines)
     Assert.AreEqual(FirstConstDefineValue(outsideResult, Some(wrapper)), 10.0f)
     
 [<Test>]
@@ -173,20 +173,20 @@ let ``Can compile kernel using mutable instance field from inside and outside in
     let compiler, a, b, c, size, wrapper = GetData()
 
     let insideResult = wrapper.CompileVectorAddUsingMutableField(compiler, size, a, b, c)
-    Assert.IsNotEmpty((insideResult.KFGRoot :?> KFGKernelNode).Module.DynamicConstantDefines)
+    Assert.IsNotEmpty((insideResult.KFGRoot :?> KFGKernelNode).Module.ConstantDefines)
     Assert.AreEqual(FirstConstDefineValue(insideResult, Some(wrapper)), 10.0f)
     wrapper.DataPropertyWithGetSet <- 5.0f    
     let insideResult2 = wrapper.CompileVectorAddUsingMutableField(compiler, size, a, b, c)
-    Assert.IsNotEmpty((insideResult2.KFGRoot :?> KFGKernelNode).Module.DynamicConstantDefines)
+    Assert.IsNotEmpty((insideResult2.KFGRoot :?> KFGKernelNode).Module.ConstantDefines)
     Assert.AreEqual(FirstConstDefineValue(insideResult2, Some(wrapper)), 5.0f)
     
     wrapper.DataPropertyWithGetSet <- 10.0f    
     let outsideResult = compiler.Compile(<@ wrapper.VectorAddUsingMutableField(size, a, b, c) @>) :?> IKernelExpression
-    Assert.IsNotEmpty((outsideResult.KFGRoot :?> KFGKernelNode).Module.DynamicConstantDefines)
+    Assert.IsNotEmpty((outsideResult.KFGRoot :?> KFGKernelNode).Module.ConstantDefines)
     Assert.AreEqual(FirstConstDefineValue(outsideResult, Some(wrapper)), 10.0f)
     wrapper.DataPropertyWithGetSet <- 5.0f    
     let outsideResult2 = compiler.Compile(<@ wrapper.VectorAddUsingMutableField(size, a, b, c) @>) :?> IKernelExpression
-    Assert.IsNotEmpty((outsideResult2.KFGRoot :?> KFGKernelNode).Module.DynamicConstantDefines)
+    Assert.IsNotEmpty((outsideResult2.KFGRoot :?> KFGKernelNode).Module.ConstantDefines)
     Assert.AreEqual(FirstConstDefineValue(outsideResult2, Some(wrapper)), 5.0f)
     
 [<Test>]
@@ -195,17 +195,17 @@ let ``Can compile kernel using field set from constructor from inside and outsid
     let wrapper2 = new KernelWrapper(2.0f)    
 
     let insideResult = wrapper.CompileVectorAddUsingFieldFromConstructor(compiler, size, a, b, c)
-    Assert.IsNotEmpty((insideResult.KFGRoot :?> KFGKernelNode).Module.DynamicConstantDefines)
+    Assert.IsNotEmpty((insideResult.KFGRoot :?> KFGKernelNode).Module.ConstantDefines)
     Assert.AreEqual(FirstConstDefineValue(insideResult, Some(wrapper)), 10.0f)
     let insideResult2 = wrapper2.CompileVectorAddUsingFieldFromConstructor(compiler, size, a, b, c)
-    Assert.IsNotEmpty((insideResult2.KFGRoot :?> KFGKernelNode).Module.DynamicConstantDefines)
+    Assert.IsNotEmpty((insideResult2.KFGRoot :?> KFGKernelNode).Module.ConstantDefines)
     Assert.AreEqual(FirstConstDefineValue(insideResult2, Some(wrapper2)), 2.0f)
         
     let outsideResult = compiler.Compile(<@ wrapper.VectorAddUsingFieldFromConstructor(size, a, b, c) @>) :?> IKernelExpression
-    Assert.IsNotEmpty((outsideResult.KFGRoot :?> KFGKernelNode).Module.DynamicConstantDefines)
+    Assert.IsNotEmpty((outsideResult.KFGRoot :?> KFGKernelNode).Module.ConstantDefines)
     Assert.AreEqual(FirstConstDefineValue(outsideResult, Some(wrapper)), 10.0f)
     let outsideResult2 = compiler.Compile(<@ wrapper2.VectorAddUsingFieldFromConstructor(size, a, b, c) @>) :?> IKernelExpression
-    Assert.IsNotEmpty((outsideResult2.KFGRoot :?> KFGKernelNode).Module.DynamicConstantDefines)
+    Assert.IsNotEmpty((outsideResult2.KFGRoot :?> KFGKernelNode).Module.ConstantDefines)
     Assert.AreEqual(FirstConstDefineValue(outsideResult2, Some(wrapper2)), 2.0f)
     
 [<Test>]
@@ -213,10 +213,10 @@ let ``Can compile kernel using getter property from inside and outside instance`
     let compiler, a, b, c, size, wrapper = GetData()
 
     let insideResult = wrapper.CompileVectorAddUsingPropertyWithGet(compiler, size, a, b, c)
-    Assert.IsNotEmpty((insideResult.KFGRoot :?> KFGKernelNode).Module.DynamicConstantDefines)
+    Assert.IsNotEmpty((insideResult.KFGRoot :?> KFGKernelNode).Module.ConstantDefines)
     Assert.AreEqual(FirstConstDefineValue(insideResult, Some(wrapper)), 10.0f)        
     let outsideResult = compiler.Compile(<@ wrapper.VectorAddUsingPropertyWithGet(size, a, b, c) @>) :?> IKernelExpression
-    Assert.IsNotEmpty((outsideResult.KFGRoot :?> KFGKernelNode).Module.DynamicConstantDefines)
+    Assert.IsNotEmpty((outsideResult.KFGRoot :?> KFGKernelNode).Module.ConstantDefines)
     Assert.AreEqual(FirstConstDefineValue(outsideResult, Some(wrapper)), 10.0f)
     
 [<Test>]
@@ -225,17 +225,17 @@ let ``Can compile kernel using getter property from constructor from inside and 
     let wrapper2 = new KernelWrapper(2.0f)    
 
     let insideResult = wrapper.CompileVectorAddUsingPropertyWithGetFromConstructor(compiler, size, a, b, c)
-    Assert.IsNotEmpty((insideResult.KFGRoot :?> KFGKernelNode).Module.DynamicConstantDefines)
+    Assert.IsNotEmpty((insideResult.KFGRoot :?> KFGKernelNode).Module.ConstantDefines)
     Assert.AreEqual(FirstConstDefineValue(insideResult, Some(wrapper)), 10.0f)
     let insideResult2 = wrapper2.CompileVectorAddUsingPropertyWithGetFromConstructor(compiler, size, a, b, c)
-    Assert.IsNotEmpty((insideResult2.KFGRoot :?> KFGKernelNode).Module.DynamicConstantDefines)
+    Assert.IsNotEmpty((insideResult2.KFGRoot :?> KFGKernelNode).Module.ConstantDefines)
     Assert.AreEqual(FirstConstDefineValue(insideResult2, Some(wrapper2)), 2.0f)
         
     let outsideResult = compiler.Compile(<@ wrapper.VectorAddUsingPropertyWithGetFromConstructor(size, a, b, c) @>) :?> IKernelExpression
-    Assert.IsNotEmpty((outsideResult.KFGRoot :?> KFGKernelNode).Module.DynamicConstantDefines)
+    Assert.IsNotEmpty((outsideResult.KFGRoot :?> KFGKernelNode).Module.ConstantDefines)
     Assert.AreEqual(FirstConstDefineValue(outsideResult, Some(wrapper)), 10.0f)
     let outsideResult2 = compiler.Compile(<@ wrapper2.VectorAddUsingPropertyWithGetFromConstructor(size, a, b, c) @>) :?> IKernelExpression
-    Assert.IsNotEmpty((outsideResult2.KFGRoot :?> KFGKernelNode).Module.DynamicConstantDefines)
+    Assert.IsNotEmpty((outsideResult2.KFGRoot :?> KFGKernelNode).Module.ConstantDefines)
     Assert.AreEqual(FirstConstDefineValue(outsideResult2, Some(wrapper2)), 2.0f)
     
 [<Test>]
@@ -243,20 +243,20 @@ let ``Can compile kernel using getter-setter property from inside and outside in
     let compiler, a, b, c, size, wrapper = GetData()
 
     let insideResult = wrapper.CompileVectorAddUsingPropertyWithGetSet(compiler, size, a, b, c)
-    Assert.IsNotEmpty((insideResult.KFGRoot :?> KFGKernelNode).Module.DynamicConstantDefines)
+    Assert.IsNotEmpty((insideResult.KFGRoot :?> KFGKernelNode).Module.ConstantDefines)
     Assert.AreEqual(FirstConstDefineValue(insideResult, Some(wrapper)), 10.0f)
     wrapper.DataPropertyWithGetSet <- 3.0f
     let insideResult2 = wrapper.CompileVectorAddUsingPropertyWithGetSet(compiler, size, a, b, c)
-    Assert.IsNotEmpty((insideResult2.KFGRoot :?> KFGKernelNode).Module.DynamicConstantDefines)
+    Assert.IsNotEmpty((insideResult2.KFGRoot :?> KFGKernelNode).Module.ConstantDefines)
     Assert.AreEqual(FirstConstDefineValue(insideResult2, Some(wrapper)), 3.0f)
         
     wrapper.DataPropertyWithGetSet <- 10.0f
     let outsideResult = compiler.Compile(<@ wrapper.VectorAddUsingPropertyWithGetSet(size, a, b, c) @>) :?> IKernelExpression
-    Assert.IsNotEmpty((outsideResult.KFGRoot :?> KFGKernelNode).Module.DynamicConstantDefines)
+    Assert.IsNotEmpty((outsideResult.KFGRoot :?> KFGKernelNode).Module.ConstantDefines)
     Assert.AreEqual(FirstConstDefineValue(outsideResult, Some(wrapper)), 10.0f)
     wrapper.DataPropertyWithGetSet <- 3.0f
     let outsideResult2 = compiler.Compile(<@ wrapper.VectorAddUsingPropertyWithGetSet(size, a, b, c) @>) :?> IKernelExpression
-    Assert.IsNotEmpty((outsideResult2.KFGRoot :?> KFGKernelNode).Module.DynamicConstantDefines)
+    Assert.IsNotEmpty((outsideResult2.KFGRoot :?> KFGKernelNode).Module.ConstantDefines)
     Assert.AreEqual(FirstConstDefineValue(outsideResult2, Some(wrapper)), 3.0f)
     
 [<Test>]
@@ -264,10 +264,10 @@ let ``Can compile kernel using static field from inside and outside instance`` (
     let compiler, a, b, c, size, wrapper = GetData()
 
     let insideResult = wrapper.CompileVectorAddUsingStaticField(compiler, size, a, b, c)
-    Assert.IsNotEmpty((insideResult.KFGRoot :?> KFGKernelNode).Module.DynamicConstantDefines)
+    Assert.IsNotEmpty((insideResult.KFGRoot :?> KFGKernelNode).Module.ConstantDefines)
     Assert.AreEqual(FirstConstDefineValue(insideResult, Some(wrapper)), 10.0f)        
     let outsideResult = compiler.Compile(<@ wrapper.VectorAddUsingStaticField(size, a, b, c) @>) :?> IKernelExpression
-    Assert.IsNotEmpty((outsideResult.KFGRoot :?> KFGKernelNode).Module.DynamicConstantDefines)
+    Assert.IsNotEmpty((outsideResult.KFGRoot :?> KFGKernelNode).Module.ConstantDefines)
     Assert.AreEqual(FirstConstDefineValue(outsideResult, Some(wrapper)), 10.0f)
                 
 [<Test>]
@@ -275,9 +275,9 @@ let ``Can compile instance kernel using module field from inside and outside ins
     let compiler, a, b, c, size, wrapper = GetData()
     
     let insideResult = wrapper.CompileVectorAddUsingModuleField(compiler, size, a, b, c)
-    Assert.IsNotEmpty((insideResult.KFGRoot :?> KFGKernelNode).Module.DynamicConstantDefines)
+    Assert.IsNotEmpty((insideResult.KFGRoot :?> KFGKernelNode).Module.ConstantDefines)
     Assert.AreEqual(FirstConstDefineValue(insideResult, Some(wrapper)), 10.0f)
     let outsideResult = compiler.Compile(<@ wrapper.VectorAddUsingModuleField(size, a, b, c) @>) :?> IKernelExpression
-    Assert.IsNotEmpty((outsideResult.KFGRoot :?> KFGKernelNode).Module.DynamicConstantDefines)
+    Assert.IsNotEmpty((outsideResult.KFGRoot :?> KFGKernelNode).Module.ConstantDefines)
     Assert.AreEqual(FirstConstDefineValue(outsideResult, Some(wrapper)), 10.0f)
     

@@ -82,7 +82,7 @@ type ModuleParsingStep(tm: TypeManager,
                             // Associate the new cache entry to the KFG node (used by the runtime)
                             (km :?> KFGKernelNode).CacheEntry <- entry
                             // This module must be fully compiled
-                            expr.KernelModulesRequiringCompilation.Add(km :?> KernelModule)
+                            expr.KernelModulesRequiringCompilation.Add(km.Module :?> KernelModule)
                      
                     if expr.KernelModulesRequiringCompilation.Count = 0 then
                         StopCompilation(expr)

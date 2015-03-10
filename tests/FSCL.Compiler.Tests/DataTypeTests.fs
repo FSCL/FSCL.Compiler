@@ -103,7 +103,7 @@ let ``Can compile int4 vector add`` () =
     // Work item info should be stored
     Assert.AreEqual(size, wInfo)
     // A struct type Int4 should NOT be added to the global types
-    Assert.AreEqual(None, (result.KFGRoot :?> KFGKernelNode).Module.GlobalTypes |> List.tryFind(fun t -> t = typeof<int4>))
+    Assert.AreEqual(None, (result.KFGRoot :?> KFGKernelNode).Module.GlobalTypes |> Seq.tryFind(fun t -> t = typeof<int4>))
 
 [<Test>]
 let ``Can compile custom struct vector add`` () =
@@ -117,7 +117,7 @@ let ``Can compile custom struct vector add`` () =
     // Work item info should be stored
     Assert.AreEqual(size, wInfo)
     // A struct type should be added to the global types
-    Assert.AreNotEqual(None, (result.KFGRoot :?> KFGKernelNode).Module.GlobalTypes |> List.tryFind(fun t -> t = typeof<MyStruct>))
+    Assert.AreNotEqual(None, (result.KFGRoot :?> KFGKernelNode).Module.GlobalTypes |> Seq.tryFind(fun t -> t = typeof<MyStruct>))
         
 [<Test>]
 let ``Can compile custom struct with custom constructor vector add`` () =
@@ -131,7 +131,7 @@ let ``Can compile custom struct with custom constructor vector add`` () =
     // Work item info should be stored
     Assert.AreEqual(size, wInfo)
     // A struct type should be added to the global types
-    Assert.AreNotEqual(None, (result.KFGRoot :?> KFGKernelNode).Module.GlobalTypes |> List.tryFind(fun t -> t = typeof<MyStruct>))
+    Assert.AreNotEqual(None, (result.KFGRoot :?> KFGKernelNode).Module.GlobalTypes |> Seq.tryFind(fun t -> t = typeof<MyStruct>))
     
 [<Test>]
 let ``Can compile custom record vector add`` () =
@@ -145,5 +145,5 @@ let ``Can compile custom record vector add`` () =
     // Work item info should be stored
     Assert.AreEqual(size, wInfo)
     // A struct type should be added to the global types
-    Assert.AreNotEqual(None, (result.KFGRoot :?> KFGKernelNode).Module.GlobalTypes |> List.tryFind(fun t -> t = typeof<MyRecord>))
+    Assert.AreNotEqual(None, (result.KFGRoot :?> KFGKernelNode).Module.GlobalTypes |> Seq.tryFind(fun t -> t = typeof<MyRecord>))
     

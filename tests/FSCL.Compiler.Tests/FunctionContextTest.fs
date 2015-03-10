@@ -169,132 +169,132 @@ let ``Can compile kernel with tupled module function from inside and outside mod
 
     let insideResult = KernelModule.CompileVectorAddTupled(compiler, size, a, b, c)
     Assert.NotNull(insideResult)
-    Assert.AreSame(None, (insideResult.KFGRoot :?> KFGKernelNode).Module.Kernel.InstanceExpr)
+    Assert.AreSame(None, (insideResult.KFGRoot :?> KFGKernelNode).Module.InstanceExpr)
     let outsideResult = compiler.Compile(<@ KernelModule.VectorAddWithModuleTupledFunction(size, a, b, c) @>) :?> IKernelExpression
     Assert.NotNull(outsideResult)
-    Assert.AreSame(None, (outsideResult.KFGRoot :?> KFGKernelNode).Module.Kernel.InstanceExpr)
+    Assert.AreSame(None, (outsideResult.KFGRoot :?> KFGKernelNode).Module.InstanceExpr)
     
 [<Test>]
 let ``Can compile kernel with curried module function from inside and outside module`` () =
     let compiler, a, b, c, size, wrapper = GetData()
     let insideResult = KernelModule.CompileVectorAddCurried(compiler, size, a, b, c)
     Assert.NotNull(insideResult)
-    Assert.AreSame(None, (insideResult.KFGRoot :?> KFGKernelNode).Module.Kernel.InstanceExpr)
+    Assert.AreSame(None, (insideResult.KFGRoot :?> KFGKernelNode).Module.InstanceExpr)
     let outsideResult = compiler.Compile(<@ KernelModule.VectorAddWithModuleCurriedFunction(size, a, b, c) @>) :?> IKernelExpression
     Assert.NotNull(outsideResult)
-    Assert.AreSame(None, (outsideResult.KFGRoot :?> KFGKernelNode).Module.Kernel.InstanceExpr)
+    Assert.AreSame(None, (outsideResult.KFGRoot :?> KFGKernelNode).Module.InstanceExpr)
     
 [<Test>]
 let ``Can compile kernel with tupled module function called from instance kernel from inside and outside instance`` () =
     let compiler, a, b, c, size, wrapper = GetData()
     let insideResult = wrapper.CompileVectorAddTupledModule(compiler, size, a, b, c)
     Assert.NotNull(insideResult)
-    Assert.AreNotSame(None, (insideResult.KFGRoot :?> KFGKernelNode).Module.Kernel.InstanceExpr)
+    Assert.AreNotSame(None, (insideResult.KFGRoot :?> KFGKernelNode).Module.InstanceExpr)
     let outsideResult = compiler.Compile(<@ wrapper.VectorAddModuleCurriedFunction(size, a, b, c) @>) :?> IKernelExpression
     Assert.NotNull(outsideResult)
-    Assert.AreNotSame(None, (outsideResult.KFGRoot :?> KFGKernelNode).Module.Kernel.InstanceExpr)
+    Assert.AreNotSame(None, (outsideResult.KFGRoot :?> KFGKernelNode).Module.InstanceExpr)
     
 [<Test>]
 let ``Can compile kernel with curried module function called from instance kernel from inside and outside instance`` () =
     let compiler, a, b, c, size, wrapper = GetData()
     let insideResult = wrapper.CompileVectorAddCurriedModule(compiler, size, a, b, c)
     Assert.NotNull(insideResult)
-    Assert.AreNotSame(None, (insideResult.KFGRoot :?> KFGKernelNode).Module.Kernel.InstanceExpr)
+    Assert.AreNotSame(None, (insideResult.KFGRoot :?> KFGKernelNode).Module.InstanceExpr)
     let outsideResult = compiler.Compile(<@ wrapper.VectorAddModuleCurriedFunction(size, a, b, c) @>) :?> IKernelExpression
     Assert.NotNull(outsideResult)
-    Assert.AreNotSame(None, (outsideResult.KFGRoot :?> KFGKernelNode).Module.Kernel.InstanceExpr)
+    Assert.AreNotSame(None, (outsideResult.KFGRoot :?> KFGKernelNode).Module.InstanceExpr)
 
 [<Test>]
 let ``Can compile kernel with tupled instance field function from inside instance`` () =
     let compiler, a, b, c, size, wrapper = GetData()
     let insideResult = wrapper.CompileVectorAddTupledField(compiler, size, a, b, c)
     Assert.NotNull(insideResult)
-    Assert.AreNotSame(None, (insideResult.KFGRoot :?> KFGKernelNode).Module.Kernel.InstanceExpr)
+    Assert.AreNotSame(None, (insideResult.KFGRoot :?> KFGKernelNode).Module.InstanceExpr)
     
 [<Test>]
 let ``Can compile kernel with curried instance field function from inside instance`` () =
     let compiler, a, b, c, size, wrapper = GetData()
     let insideResult = wrapper.CompileVectorAddCurriedField(compiler, size, a, b, c)
     Assert.NotNull(insideResult)
-    Assert.AreNotSame(None, (insideResult.KFGRoot :?> KFGKernelNode).Module.Kernel.InstanceExpr)
+    Assert.AreNotSame(None, (insideResult.KFGRoot :?> KFGKernelNode).Module.InstanceExpr)
     
 [<Test>]
 let ``Can compile kernel with tupled instance field function called from member kernel from inside and outside instance`` () =
     let compiler, a, b, c, size, wrapper = GetData()
     let insideResult = wrapper.CompileVectorAddTupledFieldFromMember(compiler, size, a, b, c)
     Assert.NotNull(insideResult)
-    Assert.AreNotSame(None, (insideResult.KFGRoot :?> KFGKernelNode).Module.Kernel.InstanceExpr)
+    Assert.AreNotSame(None, (insideResult.KFGRoot :?> KFGKernelNode).Module.InstanceExpr)
     let outsideResult = compiler.Compile(<@ wrapper.VectorAddFieldTupledFunctionFromMember(size, a, b, c) @>) :?> IKernelExpression
     Assert.NotNull(outsideResult)
-    Assert.AreNotSame(None, (outsideResult.KFGRoot :?> KFGKernelNode).Module.Kernel.InstanceExpr)
+    Assert.AreNotSame(None, (outsideResult.KFGRoot :?> KFGKernelNode).Module.InstanceExpr)
     
 [<Test>]
 let ``Can compile kernel with curried instance field function called from member kernel from inside and outside instance`` () =
     let compiler, a, b, c, size, wrapper = GetData()
     let insideResult = wrapper.CompileVectorAddCurriedFieldFromMember(compiler, size, a, b, c)
     Assert.NotNull(insideResult)
-    Assert.AreNotSame(None, (insideResult.KFGRoot :?> KFGKernelNode).Module.Kernel.InstanceExpr)
+    Assert.AreNotSame(None, (insideResult.KFGRoot :?> KFGKernelNode).Module.InstanceExpr)
     let outsideResult = compiler.Compile(<@ wrapper.VectorAddFieldCurriedFunctionFromMember(size, a, b, c) @>) :?> IKernelExpression
     Assert.NotNull(outsideResult)
-    Assert.AreNotSame(None, (outsideResult.KFGRoot :?> KFGKernelNode).Module.Kernel.InstanceExpr)
+    Assert.AreNotSame(None, (outsideResult.KFGRoot :?> KFGKernelNode).Module.InstanceExpr)
     
 [<Test>]
 let ``Can compile kernel with tupled instance member function from inside and outside instance`` () =
     let compiler, a, b, c, size, wrapper = GetData()
     let insideResult = wrapper.CompileVectorAddTupledMember(compiler, size, a, b, c)
     Assert.NotNull(insideResult)
-    Assert.AreNotSame(None, (insideResult.KFGRoot :?> KFGKernelNode).Module.Kernel.InstanceExpr)
+    Assert.AreNotSame(None, (insideResult.KFGRoot :?> KFGKernelNode).Module.InstanceExpr)
     let outsideResult = compiler.Compile(<@ wrapper.VectorAddMemberTupledFunction(size, a, b, c) @>) :?> IKernelExpression
     Assert.NotNull(outsideResult)
-    Assert.AreNotSame(None, (outsideResult.KFGRoot :?> KFGKernelNode).Module.Kernel.InstanceExpr)
+    Assert.AreNotSame(None, (outsideResult.KFGRoot :?> KFGKernelNode).Module.InstanceExpr)
     
 [<Test>]
 let ``Can compile kernel with curried instance member from inside and outside instance`` () =
     let compiler, a, b, c, size, wrapper = GetData()
     let insideResult = wrapper.CompileVectorAddCurriedMember(compiler, size, a, b, c)
     Assert.NotNull(insideResult)
-    Assert.AreNotSame(None, (insideResult.KFGRoot :?> KFGKernelNode).Module.Kernel.InstanceExpr)
+    Assert.AreNotSame(None, (insideResult.KFGRoot :?> KFGKernelNode).Module.InstanceExpr)
     let outsideResult = compiler.Compile(<@ wrapper.VectorAddMemberCurriedFunction(size, a, b, c) @>) :?> IKernelExpression
     Assert.NotNull(outsideResult)
-    Assert.AreNotSame(None, (outsideResult.KFGRoot :?> KFGKernelNode).Module.Kernel.InstanceExpr)
+    Assert.AreNotSame(None, (outsideResult.KFGRoot :?> KFGKernelNode).Module.InstanceExpr)
     
 [<Test>]
 let ``Can compile kernel with tupled static member function called from instance kernel from inside and outside instance`` () =
     let compiler, a, b, c, size, wrapper = GetData()
     let insideResult = wrapper.CompileVectorAddTupledMemberStatic(compiler, size, a, b, c)
     Assert.NotNull(insideResult)
-    Assert.AreNotSame(None, (insideResult.KFGRoot :?> KFGKernelNode).Module.Kernel.InstanceExpr)
+    Assert.AreNotSame(None, (insideResult.KFGRoot :?> KFGKernelNode).Module.InstanceExpr)
     let outsideResult = compiler.Compile(<@ wrapper.VectorAddStaticTupledFunction(size, a, b, c) @>) :?> IKernelExpression
     Assert.NotNull(outsideResult)
-    Assert.AreNotSame(None, (outsideResult.KFGRoot :?> KFGKernelNode).Module.Kernel.InstanceExpr)
+    Assert.AreNotSame(None, (outsideResult.KFGRoot :?> KFGKernelNode).Module.InstanceExpr)
     
 [<Test>]
 let ``Can compile kernel with curried static member function called from instance kernel from inside and outside instance`` () =
     let compiler, a, b, c, size, wrapper = GetData()
     let insideResult = wrapper.CompileVectorAddCurriedMemberStatic(compiler, size, a, b, c)
     Assert.NotNull(insideResult)
-    Assert.AreNotSame(None, (insideResult.KFGRoot :?> KFGKernelNode).Module.Kernel.InstanceExpr)
+    Assert.AreNotSame(None, (insideResult.KFGRoot :?> KFGKernelNode).Module.InstanceExpr)
     let outsideResult = compiler.Compile(<@ wrapper.VectorAddStaticCurriedFunction(size, a, b, c) @>) :?> IKernelExpression
     Assert.NotNull(outsideResult)
-    Assert.AreNotSame(None, (outsideResult.KFGRoot :?> KFGKernelNode).Module.Kernel.InstanceExpr)
+    Assert.AreNotSame(None, (outsideResult.KFGRoot :?> KFGKernelNode).Module.InstanceExpr)
     
 [<Test>]
 let ``Can compile kernel with tupled static member function called from static kernel from inside and outside instance`` () =
     let compiler, a, b, c, size, wrapper = GetData()
     let insideResult = wrapper.CompileVectorAddTupledMemberStaticFromStatic(compiler, size, a, b, c)
     Assert.NotNull(insideResult)
-    Assert.AreSame(None, (insideResult.KFGRoot :?> KFGKernelNode).Module.Kernel.InstanceExpr)
+    Assert.AreSame(None, (insideResult.KFGRoot :?> KFGKernelNode).Module.InstanceExpr)
     let outsideResult = compiler.Compile(<@ KernelWrapper.VectorAddStaticTupledFunctionFromStatic(size, a, b, c) @>) :?> IKernelExpression
     Assert.NotNull(outsideResult)
-    Assert.AreSame(None, (outsideResult.KFGRoot :?> KFGKernelNode).Module.Kernel.InstanceExpr)
+    Assert.AreSame(None, (outsideResult.KFGRoot :?> KFGKernelNode).Module.InstanceExpr)
     
 [<Test>]
 let ``Can compile kernel with curried static member function called from static kernel from inside and outside instance`` () =
     let compiler, a, b, c, size, wrapper = GetData()
     let insideResult = wrapper.CompileVectorAddCurriedMemberStaticFromStatic(compiler, size, a, b, c)
     Assert.NotNull(insideResult)
-    Assert.AreSame(None, (insideResult.KFGRoot :?> KFGKernelNode).Module.Kernel.InstanceExpr)
+    Assert.AreSame(None, (insideResult.KFGRoot :?> KFGKernelNode).Module.InstanceExpr)
     let outsideResult = compiler.Compile(<@ KernelWrapper.VectorAddStaticCurriedFunctionFromStatic(size, a, b, c) @>) :?> IKernelExpression
     Assert.NotNull(outsideResult)
-    Assert.AreSame(None, (outsideResult.KFGRoot :?> KFGKernelNode).Module.Kernel.InstanceExpr)
+    Assert.AreSame(None, (outsideResult.KFGRoot :?> KFGKernelNode).Module.InstanceExpr)
     

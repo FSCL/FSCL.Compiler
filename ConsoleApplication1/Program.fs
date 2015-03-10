@@ -179,6 +179,8 @@ let main argv =
     let c = Array.zeroCreate<float32> 64
     let size = new WorkSize(64L, 64L) :> WorkItemInfo
     
+    
+    let result = compiler.Compile(<@ VectorAddWithUtility(a, b, c, size) @>) :?> IKernelExpression
 
     //KMeans.Run()
     Test.Test1()

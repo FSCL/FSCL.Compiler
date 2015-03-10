@@ -145,7 +145,7 @@ let GetData() =
     compiler, a, b, c, size, wrapper    
     
 let FirstConstDefineValue(m: IKernelModule, inst:KernelWrapper option) =
-    let thisVar, _, f = m.DynamicConstantDefines.Values |> List.ofSeq |> List.head
+    let thisVar, _, f = m.ConstantDefines.Values |> List.ofSeq |> List.head
     if thisVar.IsSome then
         f.GetType().GetMethod("Invoke").Invoke(f, [| inst.Value |]) :?> float32
     else
