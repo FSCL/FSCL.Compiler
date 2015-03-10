@@ -114,23 +114,25 @@ type AcceleratedArrayMapHandler() =
                                                                 Expr.Var(outputHolder)))))))
 
                     let methodParams = signature.GetParameters()
+                    let envVars, outVals = QuotationAnalysis.KernelParsing.ExtractEnvRefs(functionBody)
                     let kInfo = new AcceleratedKernelInfo(signature, 
                                                             [ methodParams.[0]; methodParams.[1] ],
                                                             [ inputHolder; outputHolder ],     
-                                                            env,                                                 
+                                                            envVars,
+                                                            outVals,                                                 
                                                             kernelBody, 
                                                             meta, 
                                                             functionName, Some(functionBody))
-                    let kernelModule = new KernelModule(kInfo)
+                    let kernelModule = new KernelModule(thisVar, ob, kInfo)
                                 
                     // Add the computation function and connect it to the kernel
-                    let mapFunctionInfo = new FunctionInfo(thisVar, ob,
-                                                            functionInfo, 
-                                                            functionInfo.GetParameters() |> List.ofArray, 
-                                                            functionParamVars, 
-                                                            env,
-                                                            None,
-                                                            functionBody, isLambda)
+                    let mapFunctionInfo = new FunctionInfo(functionInfo, 
+                                                           functionInfo.GetParameters() |> List.ofArray, 
+                                                           functionParamVars,    
+                                                           envVars,
+                                                           outVals,      
+                                                           None,
+                                                           functionBody, isLambda)
                     kernelModule.Functions.Add(mapFunctionInfo.ID, mapFunctionInfo)
                     kInfo.CalledFunctions.Add(mapFunctionInfo.ID)
 

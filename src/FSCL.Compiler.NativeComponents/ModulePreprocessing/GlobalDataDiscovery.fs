@@ -70,14 +70,14 @@ type GlobalDataDiscovery() =
         FindGlobalDataAccess(km.Kernel.Body, dynDef)
 
         for t in dynDef do
-            km.DynamicConstantDefines.Add(t.Key, t.Value) |> ignore
+            km.ConstantDefines.Add(t.Key, t.Value) |> ignore
 
         // Collect defines in functions
         for f in km.Functions do
             let fdynDef = new Dictionary<string, Var option * Expr option * obj>()
             FindGlobalDataAccess(f.Value.Body, fdynDef)
             for t in fdynDef do
-                if not (km.DynamicConstantDefines.ContainsKey(t.Key)) then     
-                    km.DynamicConstantDefines.Add(t.Key, t.Value) |> ignore
+                if not (km.ConstantDefines.ContainsKey(t.Key)) then     
+                    km.ConstantDefines.Add(t.Key, t.Value) |> ignore
              
             

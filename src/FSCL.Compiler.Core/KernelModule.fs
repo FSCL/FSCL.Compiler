@@ -6,10 +6,6 @@ open System
 open System.Collections.Generic
 open System.Collections.ObjectModel
    
-type ConstantDefineValue =
-| StaticValue of Expr
-| DynamicValue of (Expr -> string)
-
 ///
 ///<summary>
 /// The main information built and returned by the compiler, represeting the result of the compilation process together with a set of meta-information generated during the compilation itself
@@ -17,27 +13,35 @@ type ConstantDefineValue =
 ///
 [<AllowNullLiteral>]
 type IKernelModule =
+    abstract InstanceVar: Var option with get
+    abstract InstanceExpr: Expr option with get
     abstract Kernel: IKernelInfo with get
     abstract Functions: IReadOnlyDictionary<FunctionInfoID, IFunctionInfo> with get
     abstract GlobalTypes: IReadOnlyList<Type> with get
     abstract Directives: IReadOnlyList<String> with get
-    abstract DynamicConstantDefines: IReadOnlyDictionary<String, Var option * Expr option * obj> with get
-
+    abstract ConstantDefines: IReadOnlyDictionary<String, Var option * Expr option * obj> with get
+// TODO: just a nice comment
 //    abstract CallArgs: Expr list with get
     abstract Code: string option with get
     abstract CustomInfo: IReadOnlyDictionary<string, obj> with get
 
 [<AllowNullLiteral>]
-type KernelModule(k: KernelInfo, 
-                  f: IReadOnlyDictionary<FunctionInfoID, IFunctionInfo>,
-                  constantDefines: IReadOnlyDictionary<String, Var option * Expr option * obj>) =  
+type KernelModule(objectInstanceVar: Var option,
+                  objectInstance: Expr option,
+                  k: KernelInfo) =  
     interface IKernelModule with
+        member this.InstanceVar 
+            with get() =
+                this.InstanceVar
+        member this.InstanceExpr  
+            with get() =
+                this.InstanceExpr
         member this.Kernel
             with get() =
                 this.Kernel :> IKernelInfo
         member this.Functions
             with get() =
-                this.Functions 
+                this.Functions :> IReadOnlyDictionary<FunctionInfoID, IFunctionInfo>
         member this.GlobalTypes
             with get() =
                 this.GlobalTypes :> IReadOnlyList<Type>
@@ -50,19 +54,20 @@ type KernelModule(k: KernelInfo,
         member this.CustomInfo
             with get() =
                 this.CustomInfo :> IReadOnlyDictionary<string, obj>
-        member this.DynamicConstantDefines 
+        member this.ConstantDefines 
             with get() =
-                this.ConstantDefines //:> IReadOnlyDictionary<String, Var option * Expr option * obj>      
-     //   member this.DynamicConstantDefinesEvaluator
-       //     with get() = 
-         //       this.DynamicConstantDefinesEvaluator
+                this.ConstantDefines :> IReadOnlyDictionary<String, Var option * Expr option * obj>
 
     // Get-Set properties
+    member val InstanceVar = objectInstanceVar with get
+    member val InstanceExpr = objectInstance with get
     member val Kernel = k with get
-    member val Functions = f with get
+    member val Functions = new Dictionary<FunctionInfoID, IFunctionInfo>()
+        with get
     member val GlobalTypes = new List<Type>() with get
     member val Directives = new List<String>() with get
-    member val ConstantDefines = constantDefines
+    member val ConstantDefines = new Dictionary<String, Var option * Expr option * obj>()
+        with get
     
     member val Code:string option = None with get, set
     member val CustomInfo = new Dictionary<String, Object>() with get
@@ -80,5 +85,11 @@ type KernelModule(k: KernelInfo,
         km.CustomInfo.Clear()
         for item in this.CustomInfo do
             km.CustomInfo.Add(item.Key, item.Value)
+        km.ConstantDefines.Clear()
+        for item in this.ConstantDefines do
+            km.ConstantDefines.Add(item.Key, item.Value)
+        km.Functions.Clear()
+        for item in this.Functions do
+            km.Functions.Add(item.Key, item.Value)
             
     

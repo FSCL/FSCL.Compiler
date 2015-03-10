@@ -160,7 +160,7 @@ type AcceleratedArrayGroupByHandler() =
             | _ ->
                 // This coll fun is a kernel
                 match computationFunction with
-                | Some(thisVar, ob, functionInfo, functionParamVars, functionBody) ->
+                | Some(_, _, functionInfo, functionParamVars, functionBody) ->
                               
                     // Create on-the-fly module to host the kernel                
                     // The dynamic module that hosts the generated kernels
@@ -226,25 +226,28 @@ type AcceleratedArrayGroupByHandler() =
                     
                         // Setup kernel module and return
                         let methodParams = signature.GetParameters()
+                        let envVars, outVals = 
+                            QuotationAnalysis.KernelParsing.ExtractEnvRefs(functionBody)
                         let kInfo = new AcceleratedKernelInfo(signature, 
                                                                 [ methodParams.[0]; methodParams.[1] ],
                                                                 [ inputHolder; outputHolder ],
-                                                                env,
+                                                                envVars,
+                                                                outVals,
                                                                 finalKernel, 
                                                                 meta, 
                                                                 name, appliedFunctionBody)
-                        let kernelModule = new KernelModule(kInfo)
+                        let kernelModule = new KernelModule(None, None, kInfo)
                         
                         kernelModule 
 
                     // Add applied function      
                     match computationFunction with
                     | Some(thisVar, ob, functionInfo, functionParamVars, body) ->
-                        let sortByFunctionInfo = new FunctionInfo(thisVar, ob, 
-                                                                  functionInfo, 
+                        let sortByFunctionInfo = new FunctionInfo(functionInfo, 
                                                                   functionInfo.GetParameters() |> List.ofArray,
                                                                   functionParamVars,
-                                                                  env,
+                                                                  kModule.Kernel.EnvVarsUsed,
+                                                                  kModule.Kernel.OutValsUsed,
                                                                   None,
                                                                   body, isLambda)
                 

@@ -124,21 +124,22 @@ type AcceleratedArrayMap2Handler() =
                                   
                     // Add current kernelbody
                     let methodParams = signature.GetParameters()
+                    let envVars, outVals = 
+                        QuotationAnalysis.KernelParsing.ExtractEnvRefs(functionBody)
                     let kInfo = new AcceleratedKernelInfo(signature, 
                                                           [ methodParams.[0]; methodParams.[1]; methodParams.[2] ],
                                                           [ input1Holder; input2Holder; outputHolder ],
-                                                          env,
+                                                          envVars, outVals,
                                                           kernelBody,
                                                           meta, 
                                                           "Array.map2", Some(functionBody))
-                    let kernelModule = new KernelModule(kInfo)
+                    let kernelModule = new KernelModule(thisVar, ob, kInfo)
                 
                     // Add the current kernel
-                    let mapFunctionInfo = new FunctionInfo(thisVar, ob,                                    
-                                                           functionInfo, 
+                    let mapFunctionInfo = new FunctionInfo(functionInfo, 
                                                            functionInfo.GetParameters() |> List.ofArray, 
                                                            functionParamVars,
-                                                           env,
+                                                           envVars, outVals,
                                                            None,
                                                            functionBody, isLambda)
                     kernelModule.Functions.Add(mapFunctionInfo.ID, mapFunctionInfo)

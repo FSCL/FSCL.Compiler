@@ -16,7 +16,7 @@ type FunctionPreprocessingStep(tm: TypeManager,
     inherit CompilerStep<KernelExpression, KernelExpression>(tm, processors)
     
     member val private currentFunction:FunctionInfo = null with get, set
-    member val private functions = new Dictionary<FunctionInfoID, IFunctionInfo>() with get, set
+    member val private functions = null with get, set
    
     member this.Functions 
         with get() =

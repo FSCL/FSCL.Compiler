@@ -20,8 +20,6 @@ type FunctionInfoID =
 type IFunctionInfo =
     abstract ID: FunctionInfoID with get
     abstract ParsedSignature: MethodInfo with get
-    abstract InstanceVar: Var option with get
-    abstract InstanceExpr: Expr option with get
 
     abstract OriginalParameters: IReadOnlyList<IOriginalFunctionParameter> with get
     abstract GeneratedParameters: IReadOnlyList<IFunctionParameter> with get
@@ -52,16 +50,13 @@ type IKernelInfo =
     abstract CloneTo: IKernelInfo -> unit
 
 [<AllowNullLiteral>]
-type FunctionInfo(objectInstanceVar: Var option,
-                  objectInstance: Expr option,
-                  parsedSignature: MethodInfo, 
+type FunctionInfo(parsedSignature: MethodInfo, 
                   paramInfos: ParameterInfo list,
                   paramVars: Quotations.Var list,
                   envVarsUsed: IReadOnlyList<Var>,
                   outValsUsed: IReadOnlyList<Expr>,
                   workSize: Expr option,
                   body: Expr, 
-                  calledFunctions: IReadOnlyList<FunctionInfoID>,
                   isLambda: bool) =   
                   
     let parameters =
@@ -77,12 +72,6 @@ type FunctionInfo(objectInstanceVar: Var option,
         member this.ParsedSignature 
             with get() =
                 this.ParsedSignature
-        member this.InstanceVar 
-            with get() =
-                this.InstanceVar
-        member this.InstanceExpr
-            with get() =
-                this.InstanceExpr
         member this.OriginalParameters
             with get() =
                 let roList = new List<IOriginalFunctionParameter>()
@@ -114,7 +103,7 @@ type FunctionInfo(objectInstanceVar: Var option,
                 this.OutValsUsed
         member this.CalledFunctions 
             with get() =
-                this.CalledFunctions 
+                this.CalledFunctions :> IReadOnlyList<FunctionInfoID>
         member this.ReturnType
             with get() =
                 this.ReturnType
@@ -177,7 +166,7 @@ type FunctionInfo(objectInstanceVar: Var option,
         new List<FunctionParameter>() 
         with get
     
-    member val CalledFunctions = calledFunctions
+    member val CalledFunctions = new List<FunctionInfoID>()
         with get
 
     ///
@@ -225,8 +214,6 @@ type FunctionInfo(objectInstanceVar: Var option,
     ///
     member val Code = "" with get, set   
 
-    member val InstanceVar = objectInstanceVar with get
-    member val InstanceExpr = objectInstance with get
     ///
     ///<summary>
     /// The generated target code for the signature
@@ -289,19 +276,16 @@ type FunctionInfo(objectInstanceVar: Var option,
 ///</remarks>
 ///     
 [<AllowNullLiteral>]
-type KernelInfo(objectInstanceVar: Var option,
-                objectInstance: Expr option,
-                originalSignature: MethodInfo, 
+type KernelInfo(originalSignature: MethodInfo, 
                 paramInfos: ParameterInfo list,
                 paramVars: Quotations.Var list,
                 envVarsUsed: IReadOnlyList<Var>,
                 outValsUsed: IReadOnlyList<Expr>,
                 workSize: Expr option,
                 body: Expr, 
-                calledFunctions: IReadOnlyList<FunctionInfoID>,
                 meta: ReadOnlyMetaCollection, 
                 isLambda: bool) =
-    inherit FunctionInfo(objectInstanceVar, objectInstance, originalSignature, paramInfos, paramVars, envVarsUsed, outValsUsed, workSize, body, calledFunctions, isLambda)
+    inherit FunctionInfo(originalSignature, paramInfos, paramVars, envVarsUsed, outValsUsed, workSize, body, isLambda)
     
     let parameters =
         paramInfos |>
@@ -328,7 +312,7 @@ type KernelInfo(objectInstanceVar: Var option,
     member this.WorkSize 
         with get() =
             workSize
-
+            
     member this.IsLocalVar(v: Quotations.Var) =
         localVars.ContainsKey(v)
 

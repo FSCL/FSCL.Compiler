@@ -55,11 +55,11 @@
     <Compile Include="KernelParameterInfo.fs" />
     <Compile Include="KernelInfo.fs" />
     <Compile Include="KernelModule.fs" />
+    <Compile Include="KernelCache.fs" />
     <Compile Include="KernelFlowGraphNode.fs" />
     <Compile Include="TypeManager.fs" />
     <Compile Include="CompilerAttributes.fs" />
     <Compile Include="CompilerStep.fs" />
-    <Compile Include="KernelCache.fs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="mscorlib" />

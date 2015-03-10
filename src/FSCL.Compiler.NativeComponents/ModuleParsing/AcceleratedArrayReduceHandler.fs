@@ -278,12 +278,12 @@ type AcceleratedArrayReduceHandler() =
 
                             // Replace functions and references to parameters
                             let functionMatching = new Dictionary<string, MethodInfo>()
-                            let fInfo, thisObj = 
+                            let fInfo, thisVar, thisObj = 
                                 match computationFunction with
-                                | Some(_, ob, functionInfo, functionParamVars, body) ->
-                                    Some(functionInfo), ob
+                                | Some(thisVar, ob, functionInfo, functionParamVars, body) ->
+                                    Some(functionInfo), thisVar, ob
                                 | _ ->
-                                    None, None
+                                    None, None, None
                                          
                             let newBody = SubstitutePlaceholders(templateBody, parameterMatching, accumulatorPlaceholder, fInfo, thisObj)  
                             let finalKernel = 
@@ -295,14 +295,19 @@ type AcceleratedArrayReduceHandler() =
                                                     newBody)))))
 
                             let methodParams = signature.GetParameters()
+                            let envVars, outVals = 
+                                if appliedFunctionBody.IsSome then
+                                    QuotationAnalysis.KernelParsing.ExtractEnvRefs(appliedFunctionBody.Value)
+                                else
+                                    new List<Var>(), new List<Expr>()
                             let kInfo = new AcceleratedKernelInfo(signature, 
                                                                   [ methodParams.[0]; methodParams.[1]; methodParams.[2] ],
                                                                   [ inputHolder; localHolder; outputHolder ],
-                                                                  env,
+                                                                  envVars, outVals,
                                                                   finalKernel, 
                                                                   meta, 
                                                                   name, appliedFunctionBody)
-                            let kernelModule = new KernelModule(kInfo)
+                            let kernelModule = new KernelModule(thisVar, thisObj, kInfo)
                         
                             kernelModule                
                         |_ ->
@@ -338,12 +343,12 @@ type AcceleratedArrayReduceHandler() =
 
                             // Replace functions and references to parameters
                             let functionMatching = new Dictionary<string, MethodInfo>()
-                            let fInfo, thisObj = 
+                            let fInfo, thisVar, thisObj = 
                                 match computationFunction with
                                 | Some(thisVar, ob, functionInfo, functionParamVars, body) ->
-                                    Some(functionInfo), ob
+                                    Some(functionInfo), thisVar, ob
                                 | _ ->
-                                    None, None
+                                    None, None, None
                             let newBody = SubstitutePlaceholders(templateBody, parameterMatching, accumulatorPlaceholder, fInfo, thisObj)  
                             let finalKernel = 
                                 Expr.Lambda(tupleHolder,
@@ -355,27 +360,31 @@ type AcceleratedArrayReduceHandler() =
                     
                             // Setup kernel module and return
                             let methodParams = signature.GetParameters()
+                            let envVars, outVals = 
+                                if appliedFunctionBody.IsSome then
+                                    QuotationAnalysis.KernelParsing.ExtractEnvRefs(appliedFunctionBody.Value)
+                                else
+                                    new List<Var>(), new List<Expr>()
                             let kInfo = new AcceleratedKernelInfo(signature, 
                                                                     [ methodParams.[0]; methodParams.[1]; methodParams.[2] ],
                                                                     [ inputHolder; outputHolder; blockHolder ],
-                                                                    env,
+                                                                    envVars, outVals,
                                                                     finalKernel, 
                                                                     meta, 
                                                                     name, appliedFunctionBody)
-                            let kernelModule = new KernelModule(kInfo)
+                            let kernelModule = new KernelModule(thisVar, thisObj, kInfo)
                         
                             kernelModule 
 
                     // Add applied function    
                     match computationFunction with
-                    | Some(thisVar, ob, functionInfo, functionParamVars, body) ->
-                        let reduceFunctionInfo = new FunctionInfo(thisVar, ob, 
-                                                                    functionInfo, 
-                                                                    functionInfo.GetParameters() |> List.ofArray,
-                                                                    functionParamVars,
-                                                                    env,
-                                                                    None,
-                                                                    body, isLambda)
+                    | Some(_, _, functionInfo, functionParamVars, body) ->
+                        let reduceFunctionInfo = new FunctionInfo(functionInfo, 
+                                                                  functionInfo.GetParameters() |> List.ofArray,
+                                                                  functionParamVars,
+                                                                  kModule.Kernel.EnvVarsUsed, kModule.Kernel.OutValsUsed,
+                                                                  None,
+                                                                  body, isLambda)
                 
                         // Store the called function (runtime execution will use it to perform latest iterations of reduction)
                         if isLambda then

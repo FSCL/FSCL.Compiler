@@ -35,6 +35,7 @@ type IKFGCollectionVarNode =
 type IKFGKernelNode =
     inherit IKFGNode
     abstract member Module: IKernelModule with get
+    abstract member CacheEntry: KernelCacheEntry with get
     
 [<AllowNullLiteral>]
 type IKFGSequentialFunctionNode =
@@ -121,7 +122,11 @@ type KFGKernelNode(m:IKernelModule) =
         override this.Module 
             with get() =
                 this.Module
+        override this.CacheEntry 
+            with get() =
+                this.CacheEntry
     member val Module = m with get
+    member val CacheEntry = null with get, set
                 
 [<AllowNullLiteral>]
 type KFGSequentialFunctionNode(o, mi:MethodInfo, e) =
@@ -170,8 +175,8 @@ type IKernelExpression(root: IKFGNode) =
         with get    
     member val OutputType = root.OutputType 
         with get
-    abstract member KernelModules: IReadOnlyList<IKernelModule>
-    abstract member KernelModulesCompiled: IReadOnlyList<KernelModule>
+    abstract member KernelNodes: IReadOnlyList<IKFGKernelNode>
+    abstract member KernelModulesCompiled: IReadOnlyList<IKernelModule>
     
 [<AllowNullLiteral>]
 type KernelExpression(root: IKFGNode) =
@@ -179,28 +184,13 @@ type KernelExpression(root: IKFGNode) =
     inherit IKernelExpression(root)
 
     //let kmods = new Dictionary<FunctionInfoID, List<ReadOnlyMetaCollection * KernelModule>>()
-    let compileKmList = new List<KernelModule>()
+    let compileKmList = new List<IKernelModule>()
     //let copyKmList = new List<KernelModule>()
-    let fullKmList = new List<IKernelModule>()
+    let fullKmList = new List<IKFGKernelNode>()
     let rec graphSearch(r: IKFGNode) =
         match r with
         | :? KFGKernelNode ->
-            let km = (r :?> IKFGKernelNode).Module :?> KernelModule
-//            if kmods.ContainsKey(km.Kernel.ID) then
-//                let potentialKernels = kmods.[km.Kernel.ID]
-//                let item = Seq.tryFind(fun (cachedMeta: ReadOnlyMetaCollection, cachedKernel: KernelModule) ->
-//                                            metadataVerifier(cachedMeta, km.Kernel.Meta)) potentialKernels
-//                match item with
-//                | Some(m, k) ->
-//                    copyKmList.Add(km)
-//                | _ ->
-//                    kmods.[km.Kernel.ID].Add(km.Kernel.Meta, km)
-//                    compileKmList.Add(km)
-//            else
-//                kmods.Add(km.Kernel.ID, new List<ReadOnlyMetaCollection * KernelModule>())
-//                kmods.[km.Kernel.ID].Add(km.Kernel.Meta, km)
-//                compileKmList.Add(km)
-            fullKmList.Add(km)
+            fullKmList.Add(r :?> IKFGKernelNode)
         | :? KFGCollectionCompositionNode ->
             (r :?> IKFGCollectionCompositionNode).SubGraph |> graphSearch 
         | _ ->
@@ -210,11 +200,11 @@ type KernelExpression(root: IKFGNode) =
     do
         graphSearch(root)
                  
-    override val KernelModules = fullKmList :> IReadOnlyList<IKernelModule>
+    override val KernelNodes = fullKmList :> IReadOnlyList<IKFGKernelNode>
         with get   
     override this.KernelModulesCompiled 
         with get() =
-            this.KernelModulesRequiringCompilation :> IReadOnlyList<KernelModule>
+            this.KernelModulesRequiringCompilation :> IReadOnlyList<IKernelModule>
     member val KernelModulesRequiringCompilation = compileKmList 
         with get   
 //    member val KernelModulesCopiedFromCache = copyKmList 

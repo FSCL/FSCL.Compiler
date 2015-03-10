@@ -411,7 +411,7 @@ module QuotationAnalysis =
               ExtractMethodInfo(<@ (||>) @>).Value.TryGetGenericMethodDefinition();
               ExtractMethodInfo(<@ (|||>) @>).Value.TryGetGenericMethodDefinition() ]
               
-        let ExtractEnvRefs(f:FunctionInfo) =
+        let ExtractEnvRefs(b:Expr) =
             let rec analyzeInternal(e: Expr,  
                                     localState: HashSet<Var>, 
                                     envVars: List<Var>,
@@ -464,7 +464,7 @@ module QuotationAnalysis =
             let envVars = new List<Var>() 
             let outVals = new List<Expr>()
             let local = new HashSet<Var>()
-            analyzeInternal(f.OriginalBody, local, envVars, outVals)
+            analyzeInternal(b, local, envVars, outVals)
             (envVars, outVals)
                     
 
@@ -868,6 +868,7 @@ module QuotationAnalysis =
             | _ ->
                 None
                 
+        (*
         let DiscoverUtilityFunctionsAndEnvRefs(body) =
             let rec DiscoverInner(e:Expr, 
                                   localState: HashSet<Var>, 
@@ -885,9 +886,7 @@ module QuotationAnalysis =
                         let subConstDef = new Dictionary<string, Var option * Expr option * obj>()
                         DiscoverInner(body, subLocal, subEnvVars, subOutVals, subConstDef, subFoundFunctions)
 
-                        let fi = new FunctionInfo(obv,
-                                                  ob,
-                                                  mi, 
+                        let fi = new FunctionInfo(mi, 
                                                   parameters |> List.ofArray,
                                                   paramVars,
                                                   subEnvVars,
@@ -993,6 +992,7 @@ module QuotationAnalysis =
             let constDef = new Dictionary<string, Var option * Expr option * obj>()
             DiscoverInner(body, local, envVars, outVals, constDef, foundFunctions)
             (envVars, outVals, constDef, foundFunctions)
+            *)
                 
                 
 

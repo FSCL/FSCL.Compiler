@@ -84,11 +84,12 @@ type AcceleratedArrayReverseHandler() =
             let kInfo = new AcceleratedKernelInfo(signature, 
                                                     [ methodParams.[0]; methodParams.[1] ],
                                                     [ inputHolder; outputHolder ],
-                                                    [],
+                                                    new List<Var>(),
+                                                    new List<Expr>(),
                                                     kernelBody,
                                                     meta, 
                                                     functionName, None)
-            let kernelModule = new KernelModule(kInfo)
+            let kernelModule = new KernelModule(None, None, kInfo)
                                
             // Create node
             let node = new KFGKernelNode(kernelModule)

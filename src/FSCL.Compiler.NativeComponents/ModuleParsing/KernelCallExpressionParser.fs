@@ -47,16 +47,15 @@ type KernelCallExpressionParser() =
                 let finalMeta = step.ProcessMeta(kMeta, rMeta, pMeta, new Dictionary<string, obj>())
 
                 // Analyze body
-                let envVars, outVals, constDef, utilityFunctions = QuotationAnalysis.KernelParsing.DiscoverUtilityFunctionsAndEnvRefs(body)
+                let envVars, outVals = QuotationAnalysis.KernelParsing.ExtractEnvRefs(body)
 
                 // Create module
-                let kernel = new KernelInfo(obv, ob, mi, 
+                let kernel = new KernelInfo(mi, 
                                             paramInfo |> List.ofArray, paramVars, 
                                             envVars, outVals,
                                             workItemInfo, body,
-                                            new List<FunctionInfoID>(utilityFunctions.Keys), 
                                             finalMeta, isLambdaFun)
-                let kernelModule = new KernelModule(kernel, utilityFunctions, constDef)
+                let kernelModule = new KernelModule(obv, ob, kernel)
 
                 // Create node
                 let node = new KFGKernelNode(kernelModule)

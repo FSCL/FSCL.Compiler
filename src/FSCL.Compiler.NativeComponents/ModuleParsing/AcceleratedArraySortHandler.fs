@@ -231,12 +231,12 @@ type AcceleratedArraySortHandler() =
             
                     let kModule = 
                         // CPU AND GPU CODE (TODO: OPTIMIZE FOR THE TWO KINDS OF DEVICE)                                                      
-                        let signature, name, appliedFunctionBody =    
+                        let thisVar, ob, signature, name, appliedFunctionBody =    
                             match computationFunction with
                             | Some(thisVar, ob, functionInfo, functionParamVars, body) ->
-                                (DynamicMethod("ArraySortBy_" + functionInfo.Name, outputArrayType, [| inputArrayType; outputArrayType; outputArrayType; typeof<WorkItemInfo> |]), "Array.reduce", Some(body))
+                                (thisVar, ob, DynamicMethod("ArraySortBy_" + functionInfo.Name, outputArrayType, [| inputArrayType; outputArrayType; outputArrayType; typeof<WorkItemInfo> |]), "Array.reduce", Some(body))
                             | _ ->
-                                (DynamicMethod("ArraySort", outputArrayType, [| inputArrayType; outputArrayType; outputArrayType; typeof<WorkItemInfo> |]), "Array.sum", None)
+                                (None, None, DynamicMethod("ArraySort", outputArrayType, [| inputArrayType; outputArrayType; outputArrayType; typeof<WorkItemInfo> |]), "Array.sum", None)
                                                  
                         // Now we can create the signature and define parameter name in the dynamic module                                        
                         signature.DefineParameter(1, ParameterAttributes.In, "input_array") |> ignore
@@ -274,25 +274,29 @@ type AcceleratedArraySortHandler() =
                     
                         // Setup kernel module and return
                         let methodParams = signature.GetParameters()
+                        let envVars, outVals = 
+                            if appliedFunctionBody.IsSome then
+                                QuotationAnalysis.KernelParsing.ExtractEnvRefs(appliedFunctionBody.Value)
+                            else
+                                new List<Var>(), new List<Expr>()
                         let kInfo = new AcceleratedKernelInfo(signature, 
                                                                 [ methodParams.[0]; methodParams.[1]; methodParams.[2] ],
                                                                 [ inputHolder; outputHolder ],
-                                                                env,
+                                                                envVars, outVals,
                                                                 finalKernel, 
                                                                 meta, 
                                                                 name, appliedFunctionBody)
-                        let kernelModule = new KernelModule(kInfo)
+                        let kernelModule = new KernelModule(thisVar, ob, kInfo)
                         
                         kernelModule 
 
                     // Add applied function      
                     match computationFunction with
-                    | Some(thisVar, ob, functionInfo, functionParamVars, body) ->
-                        let sortByFunctionInfo = new FunctionInfo(thisVar, ob, 
-                                                                  functionInfo, 
+                    | Some(_, _, functionInfo, functionParamVars, body) ->
+                        let sortByFunctionInfo = new FunctionInfo(functionInfo, 
                                                                   functionInfo.GetParameters() |> List.ofArray,
                                                                   functionParamVars,
-                                                                  env,
+                                                                  kModule.Kernel.EnvVarsUsed, kModule.Kernel.OutValsUsed,
                                                                   None,
                                                                   body, isLambda)
                 

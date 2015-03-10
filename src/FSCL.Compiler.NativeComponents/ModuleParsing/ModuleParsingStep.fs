@@ -70,12 +70,18 @@ type ModuleParsingStep(tm: TypeManager,
                 else
                     // Inspect cache to check which kernel modules have to be compiled 
                     // and which ones can be copied from cache
-                    for km in expr.KernelModules do
-                        match cache.TryGet(km.Kernel.ID, km.Kernel.Meta) with
+                    for km in expr.KernelNodes do
+                        match cache.TryGet(km.Module.Kernel.ID, km.Module.Kernel.Meta) with
                         | Some(entry) ->
-                            (entry.Module :?> KernelModule).CloneTo(km)
+                            (entry.Module :?> KernelModule).CloneTo(km.Module)
+                            // Associate the new cache entry to the KFG node (used by the runtime)
+                            (km :?> KFGKernelNode).CacheEntry <- entry
                         | None ->
-                            // This must be fully compiled
+                            // Add this module to the cache
+                            let entry = cache.Put(km.Module)
+                            // Associate the new cache entry to the KFG node (used by the runtime)
+                            (km :?> KFGKernelNode).CacheEntry <- entry
+                            // This module must be fully compiled
                             expr.KernelModulesRequiringCompilation.Add(km :?> KernelModule)
                      
                     if expr.KernelModulesRequiringCompilation.Count = 0 then

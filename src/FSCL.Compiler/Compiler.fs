@@ -106,10 +106,14 @@ type Compiler =
     new(conf: PipelineConfiguration) =
         { inherit Pipeline(Compiler.DefaultConfigurationRoot, Compiler.DefaultConfigurationComponentsFolder, Compiler.defComponentsAssemply, conf) }
         
-    member this.Compile(input, cache:IKernelCache, opts:IReadOnlyDictionary<string,obj>) =
+    member this.Compile(input, 
+                        cache:KernelCache * (IKernelModule -> KernelCacheEntry), 
+                        opts:IReadOnlyDictionary<string,obj>) =
         this.Run((box input, cache), opts)
         
-    member this.Compile(input, cache: IKernelCache, [<ParamArray>] args: (string * obj)[]) =
+    member this.Compile(input, 
+                        cache:KernelCache * (IKernelModule -> KernelCacheEntry), 
+                        [<ParamArray>] args: (string * obj)[]) =
         let opts = new Dictionary<string, obj>()
         for key, value in args do
             if not (opts.ContainsKey(key)) then
@@ -122,12 +126,12 @@ type Compiler =
         this.Compile(input, cache, new Dictionary<string, obj>())
 
     member this.Compile(input, opts:IReadOnlyDictionary<string,obj>) =
-        this.Compile(input, new NullCache() :> IKernelCache, opts)
+        this.Compile(input, KernelCache.NullCache(), opts)
         
     member this.Compile(input, [<ParamArray>] args: (string * obj)[]) =
-        this.Compile(input, new NullCache() :> IKernelCache, args)
+        this.Compile(input, KernelCache.NullCache(), args)
         
     member this.Compile(input) =
-        this.Compile(input, new NullCache() :> IKernelCache)
+        this.Compile(input, KernelCache.NullCache())
 
     
