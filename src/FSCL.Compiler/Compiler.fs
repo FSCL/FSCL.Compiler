@@ -67,6 +67,7 @@ type Compiler =
            typeof<DefaultTypeHandler> |]
     
     val mutable cache: KernelCache 
+    val cacheEntryCreator: IKernelModule -> KernelCacheEntry
     //val cache: KernelCache
     ///
     ///<summary>
@@ -84,6 +85,7 @@ type Compiler =
     new(entryCreator) as this = 
         { inherit Pipeline(Compiler.DefaultConfigurationRoot, Compiler.DefaultConfigurationComponentsFolder, Compiler.defComponentsAssemply)
           cache = null
+          cacheEntryCreator = entryCreator
         }
         then
             this.cache <- new KernelCache(this.IsInvariantToMetaCollection, entryCreator)
@@ -102,6 +104,7 @@ type Compiler =
     new(file: string, entryCreator) as this = 
         { inherit Pipeline(Compiler.DefaultConfigurationRoot, Compiler.DefaultConfigurationComponentsFolder, Compiler.defComponentsAssemply, file)
           cache = null
+          cacheEntryCreator = entryCreator
         }
         then
             this.cache <- new KernelCache(this.IsInvariantToMetaCollection, entryCreator)
@@ -119,6 +122,7 @@ type Compiler =
     new(conf: PipelineConfiguration, entryCreator) as this =
         { inherit Pipeline(Compiler.DefaultConfigurationRoot, Compiler.DefaultConfigurationComponentsFolder, Compiler.defComponentsAssemply, conf)
           cache = null
+          cacheEntryCreator = entryCreator
         }
         then
             this.cache <- new KernelCache(this.IsInvariantToMetaCollection, entryCreator)
@@ -142,4 +146,9 @@ type Compiler =
     member this.Compile(input) =
         this.Compile(input, new Dictionary<string, obj>())
 
+    member this.CacheEntryCreator 
+        with get() =
+            this.cacheEntryCreator
+        
+        
     

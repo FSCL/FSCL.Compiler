@@ -166,14 +166,14 @@ let FloatSum(a: float32) (b:float32) =
 
 [<ReflectedDefinition>] 
 let sum a = a *2.0f
+
+let entryCreator m =
+    new KernelCacheEntry(m)
 [<EntryPoint>]
 let main argv =     
-    let compiler = new Compiler()
-    let a = Array.create 64 1.0f
-    let b = Array.create 64 1.0f
     //let result = compiler.Compile(<@ Array.map2 FloatSum a b @>) :?> IKernelExpression
 
-    let compiler = new Compiler()
+    let compiler = new Compiler(entryCreator)
     let a = Array.create 64 1.0f
     let b = Array.create 64 2.0f
     let c = Array.zeroCreate<float32> 64
@@ -181,6 +181,7 @@ let main argv =
     
     
     let result = compiler.Compile(<@ VectorAddWithUtility(a, b, c, size) @>) :?> IKernelExpression
+    let result2 = compiler.Compile(<@ VectorAddWithUtility(a, b, c, size) @>) :?> IKernelExpression
 
     //KMeans.Run()
     Test.Test1()

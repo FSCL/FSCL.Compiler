@@ -37,6 +37,4 @@ type KernelCache(verifier, entryCreator: IKernelModule -> KernelCacheEntry) =
         entries.[m.Kernel.ID].Add(m.Kernel.Meta, entry)
         entry
 
-    static member NullCache() =
-        new KernelCache((fun (_,_) -> false), (fun a -> new KernelCacheEntry(a)))
      
