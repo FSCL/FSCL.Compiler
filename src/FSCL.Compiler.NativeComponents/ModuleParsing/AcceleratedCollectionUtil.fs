@@ -231,7 +231,10 @@ module AcceleratedCollectionUtil =
         let get = GetGenericMethodInfoFromExpr(<@@ arr.GetLength(0) @@>, ty)
         get
         
-        
+    let GetNewZeroArrayMethodInfo(ty) =
+        let get = GetGenericMethodInfoFromExpr(<@@ Array.zeroCreate<int> 2 @@>, ty)
+        get
+                
     let GetKernelFromCollectionFunctionTemplate(expr:Expr) = 
         let rec LiftTupledArgs(body: Expr, l:Var list) =
             match body with

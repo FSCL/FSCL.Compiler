@@ -191,6 +191,7 @@ let main argv =
     //Test.Test9()
     //Test.Test10()
     
+    let result0 = compiler.Compile(<@ Array.map2 (fun el1 el2 -> el1 + el2) a b @>) :?> IKernelExpression
     let result1 = compiler.Compile(<@ VectorMulCurried size (VectorAddCurried size a b c) b c @>) :?> IKernelModule
     let result2 = compiler.Compile(<@ VectorAddCurried size a b c |> VectorMulCurried size a b  @>) :?> IKernelModule    
     let result3 = compiler.Compile(<@ VectorAddCurried size a b c |> VectorNop  @>) :?> IKernelModule

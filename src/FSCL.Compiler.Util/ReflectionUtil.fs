@@ -13,6 +13,11 @@ module ReflectionUtil =
                 this.GetGenericMethodDefinition()
             else
                 this
+        member this.TrySpecializeGenericMethod(t: Type[]) =
+            if this.IsGenericMethod then
+                this.GetGenericMethodDefinition().MakeGenericMethod(t)
+            else
+                this
     type Type with
         member t.IsStruct() =
             if (FSharpType.IsRecord(t) || (t.IsValueType && (not t.IsPrimitive) && (not t.IsEnum) && (typeof<unit> <> t) && (typeof<System.Void> <> t))) then   
