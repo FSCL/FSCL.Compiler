@@ -26,7 +26,7 @@ module AcceleratedCollectionUtil =
             Expr.Call(ob.Value, mi, a)
         else
             Expr.Call(mi, a)
-
+                
     let GetDefaultValueExpr(t:Type) =
         if t.IsPrimitive then
             // Primitive type
@@ -235,6 +235,9 @@ module AcceleratedCollectionUtil =
         let get = GetGenericMethodInfoFromExpr(<@@ Array.zeroCreate<int> 2 @@>, ty)
         get
                 
+    let ZeroCreateMethod (t:Type) =
+        FilterCall(<@ Array.zeroCreate @>, fun(e, mi, a) -> GetNewZeroArrayMethodInfo(t)).Value
+
     let GetKernelFromCollectionFunctionTemplate(expr:Expr) = 
         let rec LiftTupledArgs(body: Expr, l:Var list) =
             match body with

@@ -14,9 +14,6 @@ open FSCL.Compiler.Util
 open Microsoft.FSharp.Linq.RuntimeHelpers
 
 type AcceleratedArrayMap2Handler() =    
-    let zeroCreateMethod (t:Type) =
-        FilterCall(<@ Array.zeroCreate @>, fun(e, mi, a) -> GetNewZeroArrayMethodInfo(t)).Value
-
     interface IAcceleratedCollectionHandler with
         member this.Process(methodInfo, cleanArgs, root, meta, step, env) =
             // Inspect operator
@@ -76,7 +73,7 @@ type AcceleratedArrayMap2Handler() =
                                 Expr.Let(input2Holder, Expr.TupleGet(Expr.Var(tupleHolder), 1),
                                     Expr.Let(wiHolder, Expr.TupleGet(Expr.Var(tupleHolder), 2),
                                         Expr.Let(outputHolder, Expr.Call(
-                                                            zeroCreateMethod(firstInputArrayType.GetElementType()), 
+                                                            ZeroCreateMethod(outputArrayType.GetElementType()), 
                                                                                 [ Expr.PropertyGet(Expr.Var(input1Holder), 
                                                                                                 firstInputArrayType.GetProperty("Length")) ]),
                                             Expr.Let(globalIdVar,
