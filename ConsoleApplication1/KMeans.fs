@@ -36,7 +36,6 @@ module KMeans
                 (fun p c -> Array.groupBy(fun a -> nearestCenter c a) p) |>
  *)
             <@ 
-                fun points centers ->
                 Array.groupBy(fun a -> nearestCenter centers a) points |>
                 Array.map (fun (key, data) -> 
                             data |> 

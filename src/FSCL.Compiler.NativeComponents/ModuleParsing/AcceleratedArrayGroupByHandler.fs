@@ -226,8 +226,8 @@ type AcceleratedArrayGroupByHandler() =
                     
                         // Setup kernel module and return
                         let methodParams = signature.GetParameters()
-                        let envVars, outVals = 
-                            QuotationAnalysis.KernelParsing.ExtractEnvRefs(functionBody)
+                        let funBody, envVars, outVals = 
+                            QuotationAnalysis.KernelParsing.ReplaceEnvRefsWithParamRefs(functionBody)
                         let kInfo = new AcceleratedKernelInfo(signature, 
                                                                 [ methodParams.[0]; methodParams.[1] ],
                                                                 [ inputHolder; outputHolder ],

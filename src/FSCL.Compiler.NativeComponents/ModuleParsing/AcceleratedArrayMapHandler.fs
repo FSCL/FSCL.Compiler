@@ -26,10 +26,6 @@ type AcceleratedArrayMapHandler() =
                 // This coll fun is a composition 
                 let node = new KFGCollectionCompositionNode(methodInfo, kfg, newEnv)
 
-                // Create data node for outsiders
-//                for o in outsiders do 
-//                    node.InputNodes.Add(new KFGOutsiderDataNode(o))
-
                 // Parse arguments
                 let subnode = step.Process(cleanArgs.[1], env)
                 node.InputNodes.Add(subnode)

@@ -183,7 +183,7 @@ let main argv =
     let result = compiler.Compile(<@ VectorAddWithUtility(a, b, c, size) @>) :?> IKernelExpression
     let result2 = compiler.Compile(<@ VectorAddWithUtility(a, b, c, size) @>) :?> IKernelExpression
 
-    //KMeans.Run()
+    KMeans.Run()
     Test.Test1()
     //Test.Test2()
     //Test.Test3()

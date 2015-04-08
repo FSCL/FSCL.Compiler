@@ -411,61 +411,96 @@ module QuotationAnalysis =
               ExtractMethodInfo(<@ (||>) @>).Value.TryGetGenericMethodDefinition();
               ExtractMethodInfo(<@ (|||>) @>).Value.TryGetGenericMethodDefinition() ]
               
-        let ExtractEnvRefs(b:Expr) =
+        let ReplaceEnvRefsWithParamRefs(b:Expr) =
+            let nameIndex = ref 0
             let rec analyzeInternal(e: Expr,  
                                     localState: HashSet<Var>, 
-                                    envVars: List<Var>,
-                                    outVals: List<Expr>) =
+                                    envVars: List<Var * Var>,
+                                    outVals: List<Expr * Var>) =
                 match e with
                 | Patterns.Let(v, va, b) ->
-                    analyzeInternal(va, localState, envVars, outVals)
+                    let va2 = analyzeInternal(va, localState, envVars, outVals)
                     localState.Add(v) |> ignore
-                    analyzeInternal(b, localState, envVars, outVals)
+                    let b2 = analyzeInternal(b, localState, envVars, outVals)
                     localState.Remove(v) |> ignore
-                | Patterns.Lambda(v, b) ->
-                    localState.Add(v) |> ignore
-                    analyzeInternal(b, localState, envVars, outVals)
-                    localState.Remove(v) |> ignore
+                    Expr.Let(v, va2, b2)
                 | Patterns.ForIntegerRangeLoop(v, st, en, b) ->                    
-                    analyzeInternal(st, localState, envVars, outVals)             
-                    analyzeInternal(en, localState, envVars, outVals)
+                    let st2 = analyzeInternal(st, localState, envVars, outVals)             
+                    let en2 = analyzeInternal(en, localState, envVars, outVals)
                     localState.Add(v) |> ignore            
-                    analyzeInternal(b, localState, envVars, outVals)
+                    let b2 = analyzeInternal(b, localState, envVars, outVals)
                     localState.Remove(v) |> ignore
+                    Expr.ForIntegerRangeLoop(v, st2, en2, b2)
                 | Patterns.Value(o, t) when t.IsArray ->
-                    let item = outVals |> Seq.tryFind(fun (v) -> e.Equals(o))
-                    if item.IsNone && (typeof<WorkItemInfo>.IsAssignableFrom(t) |> not) then
-                       outVals.Add(e)
+                    let item = outVals |> Seq.tryFind(fun (e, v) -> e.Equals(o))
+                    if item.IsNone then
+                       // Create holder for this val
+                       let newVar = Quotations.Var("outValParameter" + nameIndex.Value.ToString(), o.GetType())
+                       nameIndex := !nameIndex + 1
+                       outVals.Add(e, newVar)
+                       Expr.Var(newVar)
+                    else
+                       Expr.Var(item.Value |> snd) 
                 | Patterns.PropertyGet(o, pi, a) ->
                     // Check if this is a constant define
                     let attr = pi.GetCustomAttribute<ConstantDefineAttribute>()
-                    if attr = null then
-                        let item = outVals |> Seq.tryFind(fun (v) -> e.Equals(o))
-                        if item.IsNone && o.IsNone && (typeof<WorkItemInfo>.IsAssignableFrom(pi.PropertyType) |> not) then
-                           outVals.Add(e)
-                        a |> List.iter(fun e -> analyzeInternal(e, localState, envVars, outVals))
+                    let newExpr = 
+                        if attr <> null then
+                            e
+                        else
+                            let item = outVals |> Seq.tryFind(fun (v) -> e.Equals(o))
+                            if item.IsNone && o.IsNone then                           
+                               // Create holder for this val
+                               let newVar = Quotations.Var("outValParameter" + nameIndex.Value.ToString(), pi.PropertyType)
+                               nameIndex := !nameIndex + 1
+                               outVals.Add(e, newVar)
+                               Expr.Var(newVar)
+                            else
+                               Expr.Var(item.Value |> snd) 
+                    newExpr
                 | Patterns.FieldGet(o, fi) ->
                     // Check if this is a constant define
-                    let attr = fi.GetCustomAttribute<ConstantDefineAttribute>()
-                    if attr = null then
-                        let item = outVals |> Seq.tryFind(fun (v) -> e.Equals(o))
-                        if item.IsNone && o.IsNone && (typeof<WorkItemInfo>.IsAssignableFrom(fi.FieldType) |> not) then
-                           outVals.Add(e)
+                    let attr = fi.GetCustomAttribute<ConstantDefineAttribute>()                    
+                    let newExpr = 
+                        if attr <> null then
+                            e
+                        else
+                            let item = outVals |> Seq.tryFind(fun (v) -> e.Equals(o))
+                            if item.IsNone && o.IsNone then                           
+                               // Create holder for this val
+                               let newVar = Quotations.Var("outValParameter" + nameIndex.Value.ToString(), fi.FieldType)
+                               nameIndex := !nameIndex + 1
+                               outVals.Add(e, newVar)
+                               Expr.Var(newVar)
+                            else
+                               Expr.Var(item.Value |> snd) 
+                    newExpr
                 | ExprShape.ShapeVar(v) ->
-                    if (localState.Contains(v) |> not) && (typeof<WorkItemInfo>.IsAssignableFrom(v.Type) |> not) && (envVars.Contains(v) |> not) then
-                        envVars.Add(v) 
+                    if (localState.Contains(v) |> not) then
+                        let item = envVars |> Seq.tryFind(fun (it) -> it.Equals(v))
+                        if item.IsNone then                           
+                            // Create holder for this val
+                            let newVar = Quotations.Var("envVarParameter" + nameIndex.Value.ToString(), v.Type)
+                            nameIndex := !nameIndex + 1
+                            envVars.Add(v, newVar)
+                            Expr.Var(newVar)
+                        else
+                            Expr.Var(item.Value |> snd) 
+                    else
+                        e
                 | ExprShape.ShapeLambda(v, b) -> 
                     localState.Add(v) |> ignore
-                    analyzeInternal(b, localState, envVars, outVals)
+                    let b2 = analyzeInternal(b, localState, envVars, outVals)
                     localState.Remove(v) |> ignore
+                    Expr.Lambda(v, b2)
                 | ExprShape.ShapeCombination(o, a) -> 
-                    a |> List.iter(fun e -> analyzeInternal(e, localState, envVars, outVals))
+                    ExprShape.RebuildShapeCombination(o, a |> List.map(fun e -> analyzeInternal(e, localState, envVars, outVals)))
             
-            let envVars = new List<Var>() 
-            let outVals = new List<Expr>()
+            let envVars = new List<Var * Var>() 
+            let outVals = new List<Expr * Var>()
             let local = new HashSet<Var>()
-            analyzeInternal(b, local, envVars, outVals)
-            (envVars, outVals)
+            let newExpr = analyzeInternal(b, local, envVars, outVals)
+            newExpr, envVars, outVals
                     
 
         let LambdaToMethod(expr:Expr, checkIsKernel: bool) =
