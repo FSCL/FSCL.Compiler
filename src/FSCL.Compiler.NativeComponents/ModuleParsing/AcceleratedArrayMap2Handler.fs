@@ -110,30 +110,29 @@ type AcceleratedArrayMap2Handler() =
                                                                                 ]
                                                                 )]),
                                                                 Expr.Var(outputHolder))))))))
-
-                    // Add current kernelbody
-                    let methodParams = signature.GetParameters()
+                                                                                
+                    // Add the current kernel
                     let envVars, outVals = 
                         QuotationAnalysis.KernelParsing.ExtractEnvRefs(functionBody)
-                    let kInfo = new AcceleratedKernelInfo(signature, 
-                                                          [ methodParams.[0]; methodParams.[1] ],
-                                                          [ input1Holder; input2Holder ],
-                                                          envVars, outVals,
-                                                          kernelBody,
-                                                          meta, 
-                                                          (if methodInfo.Name = "Map2" then
-                                                            "Array.map2" 
-                                                           else 
-                                                            "Array.mapi2"), Some(functionBody))
-                    let kernelModule = new KernelModule(thisVar, ob, kInfo)
-                
-                    // Add the current kernel
                     let mapFunctionInfo = new FunctionInfo(functionInfo, 
                                                            functionInfo.GetParameters() |> List.ofArray, 
                                                            functionParamVars,
                                                            envVars, outVals,
                                                            None,
                                                            functionBody, isLambda)
+                                                           
+                    // Add current kernelbody
+                    let methodParams = signature.GetParameters()
+                    let kInfo = new AcceleratedKernelInfo(signature, 
+                                                          [ methodParams.[0]; methodParams.[1] ],
+                                                          [ input1Holder; input2Holder ],
+                                                          envVars, outVals,
+                                                          kernelBody,
+                                                          meta, 
+                                                          functionName, Some(mapFunctionInfo :> IFunctionInfo),
+                                                          Some(functionBody))
+                    let kernelModule = new KernelModule(thisVar, ob, kInfo)
+
                     kernelModule.Functions.Add(mapFunctionInfo.ID, mapFunctionInfo)
                     kInfo.CalledFunctions.Add(mapFunctionInfo.ID)
                 

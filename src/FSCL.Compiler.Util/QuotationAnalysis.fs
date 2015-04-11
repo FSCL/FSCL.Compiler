@@ -502,7 +502,64 @@ module QuotationAnalysis =
             let newExpr = analyzeInternal(b, local, envVars, outVals)
             newExpr, envVars, outVals
                     
-
+        let ExtractEnvRefs(b:Expr) =
+            let rec analyzeInternal(e: Expr,  
+                                    localState: HashSet<Var>, 
+                                    envVars: List<Var>,
+                                    outVals: List<Expr>) =
+                match e with
+                | Patterns.Let(v, va, b) ->
+                    analyzeInternal(va, localState, envVars, outVals)
+                    localState.Add(v) |> ignore
+                    analyzeInternal(b, localState, envVars, outVals)
+                    localState.Remove(v) |> ignore
+                | Patterns.ForIntegerRangeLoop(v, st, en, b) ->                    
+                    analyzeInternal(st, localState, envVars, outVals)             
+                    analyzeInternal(en, localState, envVars, outVals)
+                    localState.Add(v) |> ignore            
+                    analyzeInternal(b, localState, envVars, outVals)
+                    localState.Remove(v) |> ignore
+                | Patterns.Value(o, t) when t.IsArray ->
+                    let item = outVals |> Seq.tryFind(fun e -> e.Equals(o))
+                    if item.IsNone then
+                       // Create holder for this val
+                       outVals.Add(e)
+                | Patterns.PropertyGet(o, pi, a) ->
+                    // Check if this is a constant define
+                    let attr = pi.GetCustomAttribute<ConstantDefineAttribute>()
+                    if attr = null then
+                        let item = outVals |> Seq.tryFind(fun (v) -> e.Equals(o))
+                        if item.IsNone && o.IsNone then                           
+                            // Create holder for this val
+                            outVals.Add(e)
+                | Patterns.FieldGet(o, fi) ->
+                    // Check if this is a constant define
+                    let attr = fi.GetCustomAttribute<ConstantDefineAttribute>()                    
+                    if attr = null then
+                        let item = outVals |> Seq.tryFind(fun (v) -> e.Equals(o))
+                        if item.IsNone && o.IsNone then                           
+                            // Create holder for this val
+                            outVals.Add(e)
+                | ExprShape.ShapeVar(v) ->
+                    if (localState.Contains(v) |> not) then
+                        let item = envVars |> Seq.tryFind(fun (it) -> it.Equals(v))
+                        if item.IsNone then                           
+                            // Create holder for this val
+                            envVars.Add(v)
+                | ExprShape.ShapeLambda(v, b) -> 
+                    localState.Add(v) |> ignore
+                    analyzeInternal(b, localState, envVars, outVals)
+                    localState.Remove(v) |> ignore
+                | ExprShape.ShapeCombination(o, a) -> 
+                    a |> List.iter(fun e -> analyzeInternal(e, localState, envVars, outVals))
+            
+            let envVars = new List<Var>() 
+            let outVals = new List<Expr>()
+            let local = new HashSet<Var>()
+            analyzeInternal(b, local, envVars, outVals)
+            envVars, outVals
+                    
+        (*
         let LambdaToMethod(expr:Expr, checkIsKernel: bool) =
             let mutable parameters = []
         
@@ -542,7 +599,7 @@ module QuotationAnalysis =
                 Some(signature, signature.GetParameters(), parameters)
             else
                 None
-                    
+                  *)  
         // Active patterns                         
         let (|KernelMethodInfo|_|) (mi: MethodInfo) =
             match mi with

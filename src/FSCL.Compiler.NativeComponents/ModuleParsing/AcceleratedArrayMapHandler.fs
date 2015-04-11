@@ -98,15 +98,6 @@ type AcceleratedArrayMapHandler() =
 
                     let methodParams = signature.GetParameters()
                     let envVars, outVals = QuotationAnalysis.KernelParsing.ExtractEnvRefs(functionBody)
-                    let kInfo = new AcceleratedKernelInfo(signature, 
-                                                            [ methodParams.[0] ],
-                                                            [ inputHolder ],     
-                                                            envVars,
-                                                            outVals,                                                 
-                                                            kernelBody, 
-                                                            meta, 
-                                                            functionName, Some(functionBody))
-                    let kernelModule = new KernelModule(thisVar, ob, kInfo)
                                 
                     // Add the computation function and connect it to the kernel
                     let mapFunctionInfo = new FunctionInfo(functionInfo, 
@@ -116,6 +107,19 @@ type AcceleratedArrayMapHandler() =
                                                            outVals,      
                                                            None,
                                                            functionBody, isLambda)
+                                                           
+                    let kInfo = new AcceleratedKernelInfo(signature, 
+                                                            [ methodParams.[0] ],
+                                                            [ inputHolder ],     
+                                                            envVars,
+                                                            outVals,                                                 
+                                                            kernelBody, 
+                                                            meta, 
+                                                            functionName, Some(mapFunctionInfo :> IFunctionInfo),
+                                                            Some(functionBody))
+
+                    let kernelModule = new KernelModule(thisVar, ob, kInfo)
+
                     kernelModule.Functions.Add(mapFunctionInfo.ID, mapFunctionInfo)
                     kInfo.CalledFunctions.Add(mapFunctionInfo.ID)
 

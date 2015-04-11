@@ -25,8 +25,9 @@ type AcceleratedArrayGroupByHandler() =
     let cpu_template = 
         <@
             fun(input: int[], 
-                output: (int * int)[],
                 wi: WorkItemInfo) ->
+                    let output = Array.zeroCreate<int * int> (input.Length)
+
                     let i = wi.GlobalID(0)
                     let n = wi.GlobalSize(0)
                     let iKey = placeholderComp(input.[i])
@@ -37,18 +38,24 @@ type AcceleratedArrayGroupByHandler() =
                         let smaller = (jKey < iKey) || (jKey = iKey && j < i)  // in[j] < in[i] ?
                         pos <- if smaller then pos + 1 else pos + 0
                     output.[pos] <- (iKey, input.[i])
+
+                    output
         @>
 
     let gpu_template = 
         cpu_template
 
-    let rec SubstitutePlaceholders(e:Expr, parameters:Dictionary<Var, Var>, actualFunction: MethodInfo, actualFunctionInstance: Expr option) =  
+    let rec SubstitutePlaceholders(e:Expr, 
+                                   parameters:Dictionary<Var, Var>,
+                                   returnType: Type, 
+                                   actualFunction: MethodInfo, 
+                                   actualFunctionInstance: Expr option) =  
         // Build a call expr
         let RebuildCall(o:Expr option, m: MethodInfo, args:Expr list) =
             if o.IsSome && (not m.IsStatic) then
-                Expr.Call(o.Value, m, List.map(fun (e:Expr) -> SubstitutePlaceholders(e, parameters, actualFunction, actualFunctionInstance)) args)
+                Expr.Call(o.Value, m, List.map(fun (e:Expr) -> SubstitutePlaceholders(e, parameters, returnType, actualFunction, actualFunctionInstance)) args)
             else
-                Expr.Call(m, List.map(fun (e:Expr) -> SubstitutePlaceholders(e, parameters, actualFunction, actualFunctionInstance)) args)  
+                Expr.Call(m, List.map(fun (e:Expr) -> SubstitutePlaceholders(e, parameters, returnType, actualFunction, actualFunctionInstance)) args)  
             
         match e with
         | Patterns.Var(v) ->
@@ -56,10 +63,21 @@ type AcceleratedArrayGroupByHandler() =
                 Expr.Var(parameters.[v])
             else
                 e
+        // Return expression
+        | Patterns.Let(var, Patterns.Call(o, methodInfo, args), body) when
+                    (methodInfo.DeclaringType.Name = "ArrayModule" && methodInfo.Name = "ZeroCreate") ||
+                    (methodInfo.DeclaringType.Name = "Array2DModule" && methodInfo.Name = "ZeroCreate") ||
+                    (methodInfo.DeclaringType.Name = "Array3DModule" && methodInfo.Name = "ZeroCreate") ->    
+            // Only zero create allocation is permitted and it must be assigned to a non mutable variable
+            let na = args |> List.map(fun a -> SubstitutePlaceholders(a, parameters, returnType, actualFunction, actualFunctionInstance))
+            let nv = Quotations.Var(var.Name, returnType)
+            parameters.Add(var, nv)
+            let nb = SubstitutePlaceholders(body, parameters, returnType, actualFunction, actualFunctionInstance)
+            Expr.Let(nv, Expr.Call(ZeroCreateMethod(returnType.GetElementType()), na), nb)                    
         | Patterns.Call(o, m, args) ->   
             // If this is the placeholder for the utility function (to be applied to each pari of elements)         
             if m.Name = "placeholderComp" then
-                RebuildCall(actualFunctionInstance, actualFunction, List.map(fun (e:Expr) -> SubstitutePlaceholders(e, parameters, actualFunction, actualFunctionInstance)) args)
+                RebuildCall(actualFunctionInstance, actualFunction, List.map(fun (e:Expr) -> SubstitutePlaceholders(e, parameters, returnType, actualFunction, actualFunctionInstance)) args)
             // If this is an access to array (a parameter)
             else if m.DeclaringType.Name = "IntrinsicFunctions" then
                 match args.[0] with
@@ -69,7 +87,7 @@ type AcceleratedArrayGroupByHandler() =
                         if (parameters.ContainsKey(v)) then
                             // Recursively process the arguments, except the array reference
                             let arrayGet, _ = AcceleratedCollectionUtil.GetArrayAccessMethodInfo(parameters.[v].Type.GetElementType())
-                            Expr.Call(arrayGet, [ Expr.Var(parameters.[v]); SubstitutePlaceholders(args.[1], parameters, actualFunction, actualFunctionInstance) ])
+                            Expr.Call(arrayGet, [ Expr.Var(parameters.[v]); SubstitutePlaceholders(args.[1], parameters, returnType, actualFunction, actualFunctionInstance) ])
                         else
                             RebuildCall(o, m, args)
                     else if m.Name = "SetArray" then
@@ -84,18 +102,18 @@ type AcceleratedArrayGroupByHandler() =
                                                 // Conversion method (ToDouble, ToSingle, ToInt, ...)
                                                 Expr.Value(Activator.CreateInstance(outputParameterType), outputParameterType)
                                             | _ ->
-                                                SubstitutePlaceholders(args.[2], parameters, actualFunction, actualFunctionInstance)
-                            Expr.Call(arraySet, [ Expr.Var(parameters.[v]); SubstitutePlaceholders(args.[1], parameters, actualFunction, actualFunctionInstance); newValue ])
+                                                SubstitutePlaceholders(args.[2], parameters, returnType, actualFunction, actualFunctionInstance)
+                            Expr.Call(arraySet, [ Expr.Var(parameters.[v]); SubstitutePlaceholders(args.[1], parameters, returnType, actualFunction, actualFunctionInstance); newValue ])
                                                            
                         else
                             RebuildCall(o, m, args)
                     else
                          RebuildCall(o, m,args)
                 | _ ->
-                    RebuildCall(o, m, List.map(fun (e:Expr) -> SubstitutePlaceholders(e, parameters, actualFunction, actualFunctionInstance)) args)                  
+                    RebuildCall(o, m, List.map(fun (e:Expr) -> SubstitutePlaceholders(e, parameters, returnType, actualFunction, actualFunctionInstance)) args)                  
             // Otherwise process children and return the same call
             else
-                RebuildCall(o, m, List.map(fun (e:Expr) -> SubstitutePlaceholders(e, parameters, actualFunction, actualFunctionInstance)) args)
+                RebuildCall(o, m, List.map(fun (e:Expr) -> SubstitutePlaceholders(e, parameters, returnType, actualFunction, actualFunctionInstance)) args)
         | Patterns.Let(v, value, body) ->
             // a and b are "special" vars that hold the params of the reduce function
             if v.Name = "a" then
@@ -103,36 +121,36 @@ type AcceleratedArrayGroupByHandler() =
                     actualFunction.GetParameters().[0].ParameterType
                 let a = Quotations.Var("a", newVarType, false)
                 parameters.Add(v, a)
-                Expr.Let(a, SubstitutePlaceholders(value, parameters, actualFunction, actualFunctionInstance), 
-                            SubstitutePlaceholders(body, parameters, actualFunction, actualFunctionInstance))
+                Expr.Let(a, SubstitutePlaceholders(value, parameters, returnType, actualFunction, actualFunctionInstance), 
+                            SubstitutePlaceholders(body, parameters, returnType, actualFunction, actualFunctionInstance))
             else if v.Name = "b" then
                 let newVarType = 
                     actualFunction.GetParameters().[0].ParameterType
                 let b = Quotations.Var("b", newVarType, false)
                 // Remember for successive references to a and b
                 parameters.Add(v, b)
-                Expr.Let(b, SubstitutePlaceholders(value, parameters, actualFunction, actualFunctionInstance), SubstitutePlaceholders(body, parameters, actualFunction, actualFunctionInstance))        
+                Expr.Let(b, SubstitutePlaceholders(value, parameters, returnType, actualFunction, actualFunctionInstance), SubstitutePlaceholders(body, parameters, returnType, actualFunction, actualFunctionInstance))        
             else
-                Expr.Let(v, SubstitutePlaceholders(value, parameters, actualFunction, actualFunctionInstance), SubstitutePlaceholders(body, parameters, actualFunction, actualFunctionInstance))
+                Expr.Let(v, SubstitutePlaceholders(value, parameters, returnType, actualFunction, actualFunctionInstance), SubstitutePlaceholders(body, parameters, returnType, actualFunction, actualFunctionInstance))
         
         | ExprShape.ShapeLambda(v, b) ->
-            Expr.Lambda(v, SubstitutePlaceholders(b, parameters, actualFunction, actualFunctionInstance))                    
+            Expr.Lambda(v, SubstitutePlaceholders(b, parameters, returnType, actualFunction, actualFunctionInstance))                    
         | ExprShape.ShapeCombination(o, l) ->
             match e with
             | Patterns.IfThenElse(cond, ifb, elseb) ->
                 let nl = new List<Expr>();
                 for e in l do 
-                    let ne = SubstitutePlaceholders(e, parameters, actualFunction, actualFunctionInstance) 
+                    let ne = SubstitutePlaceholders(e, parameters, returnType, actualFunction, actualFunctionInstance) 
                     // Trick to adapt "0" in (sdata.[tid] <- if(i < n) then g_idata.[i] else 0) in case of other type of values (double: 0.0)
                     nl.Add(ne)
                 ExprShape.RebuildShapeCombination(o, List.ofSeq(nl))
             | Patterns.NewTuple(args) ->
-                let nl = args |> List.map(fun e -> SubstitutePlaceholders(e, parameters, actualFunction, actualFunctionInstance)) 
+                let nl = args |> List.map(fun e -> SubstitutePlaceholders(e, parameters, returnType, actualFunction, actualFunctionInstance)) 
                 Expr.NewTuple(nl)
             | _ ->
                 let nl = new List<Expr>();
                 for e in l do 
-                    let ne = SubstitutePlaceholders(e, parameters, actualFunction, actualFunctionInstance) 
+                    let ne = SubstitutePlaceholders(e, parameters, returnType, actualFunction, actualFunctionInstance) 
                     nl.Add(ne)
                 ExprShape.RebuildShapeCombination(o, List.ofSeq(nl))
         | _ ->
@@ -160,7 +178,7 @@ type AcceleratedArrayGroupByHandler() =
             | _ ->
                 // This coll fun is a kernel
                 match computationFunction with
-                | Some(_, _, functionInfo, functionParamVars, functionBody) ->
+                | Some(thisVar, ob, functionInfo, functionParamVars, functionBody) ->
                               
                     // Create on-the-fly module to host the kernel                
                     // The dynamic module that hosts the generated kernels
@@ -181,92 +199,75 @@ type AcceleratedArrayGroupByHandler() =
                     // Check device target
                     let targetType = meta.KernelMeta.Get<DeviceTypeAttribute>()
             
-                    let kModule = 
-                        // CPU AND GPU CODE (TODO: OPTIMIZE FOR THE TWO KINDS OF DEVICE)                                                      
-                        let signature, name, appliedFunctionBody =    
-                            match computationFunction with
-                            | Some(thisVar, ob, functionInfo, functionParamVars, body) ->
-                                (DynamicMethod("ArrayGroupBy_" + functionInfo.Name, outputArrayType, [| inputArrayType; outputArrayType; outputArrayType; typeof<WorkItemInfo> |]), "Array.reduce", Some(body))
-                            | _ ->
-                                failwith "Error in extracting computation function for accelerated collection function Array.groupBy"
+                    // CPU AND GPU CODE (TODO: OPTIMIZE FOR THE TWO KINDS OF DEVICE)                                                      
+                    let signature, name, appliedFunctionBody =    
+                        match computationFunction with
+                        | Some(thisVar, ob, functionInfo, functionParamVars, body) ->
+                            (DynamicMethod("ArrayGroupBy_" + functionInfo.Name, outputArrayType, [| inputArrayType; typeof<WorkItemInfo> |]), "Array.groupBy", Some(body))
+                        | _ ->
+                            failwith "Error in extracting computation function for accelerated collection function Array.groupBy"
                                   
-                        // Now we can create the signature and define parameter name in the dynamic module                                        
-                        signature.DefineParameter(1, ParameterAttributes.In, "input_array") |> ignore
-                        signature.DefineParameter(2, ParameterAttributes.In, "output_array") |> ignore
-                        signature.DefineParameter(3, ParameterAttributes.In, "wi") |> ignore
+                    // Now we can create the signature and define parameter name in the dynamic module                                        
+                    signature.DefineParameter(1, ParameterAttributes.In, "input_array") |> ignore
+                    signature.DefineParameter(2, ParameterAttributes.In, "wi") |> ignore
                     
-                        // Create parameters placeholders
-                        let inputHolder = Quotations.Var("input_array", inputArrayType)
-                        let outputHolder = Quotations.Var("output_array", outputArrayType)
-                        let wiHolder = Quotations.Var("wi", typeof<WorkItemInfo>)
-                        let tupleHolder = Quotations.Var("tupledArg", FSharpType.MakeTupleType([| inputHolder.Type; outputHolder.Type; wiHolder.Type |]))
+                    // Create parameters placeholders
+                    let inputHolder = Quotations.Var("input_array", inputArrayType)
+                    let outputHolder = Quotations.Var("output_array", outputArrayType)
+                    let wiHolder = Quotations.Var("wi", typeof<WorkItemInfo>)
+                    let tupleHolder = Quotations.Var("tupledArg", FSharpType.MakeTupleType([| inputHolder.Type; wiHolder.Type |]))
 
-                        // Finally, create the body of the kernel
-                        let templateBody, templateParameters = AcceleratedCollectionUtil.GetKernelFromCollectionFunctionTemplate(cpu_template)   
-                        let parameterMatching = new Dictionary<Var, Var>()
-                        parameterMatching.Add(templateParameters.[0], inputHolder)
-                        parameterMatching.Add(templateParameters.[1], outputHolder)
-                        parameterMatching.Add(templateParameters.[2], wiHolder)
+                    // Finally, create the body of the kernel
+                    let templateBody, templateParameters = AcceleratedCollectionUtil.GetKernelFromCollectionFunctionTemplate(cpu_template)   
+                    let parameterMatching = new Dictionary<Var, Var>()
+                    parameterMatching.Add(templateParameters.[0], inputHolder)
+                    parameterMatching.Add(templateParameters.[1], wiHolder)
 
-                        // Replace functions and references to parameters
-                        let functionMatching = new Dictionary<string, MethodInfo>()
-                        let fInfo, thisObj = 
-                            match computationFunction with
-                            | Some(thisVar, ob, functionInfo, functionParamVars, body) ->
-                                Some(functionInfo), ob
-                            | _ ->
-                                None, None
-                        let newBody = SubstitutePlaceholders(templateBody, parameterMatching, fInfo.Value, thisObj)  
-                        let finalKernel = 
-                            Expr.Lambda(tupleHolder,
-                                Expr.Let(inputHolder, Expr.TupleGet(Expr.Var(tupleHolder), 0),
-                                    Expr.Let(outputHolder, Expr.TupleGet(Expr.Var(tupleHolder), 1),
-                                        Expr.Let(wiHolder, Expr.TupleGet(Expr.Var(tupleHolder), 2),
-                                            newBody))))
+                    // Replace functions and references to parameters
+                    let functionMatching = new Dictionary<string, MethodInfo>()
+                    let fInfo, thisObj = 
+                        match computationFunction with
+                        | Some(thisVar, ob, functionInfo, functionParamVars, body) ->
+                            Some(functionInfo), ob
+                        | _ ->
+                            None, None
+                    let newBody = SubstitutePlaceholders(templateBody, parameterMatching, outputArrayType, fInfo.Value, thisObj)  
+                    let finalKernel = 
+                        Expr.Lambda(tupleHolder,
+                            Expr.Let(inputHolder, Expr.TupleGet(Expr.Var(tupleHolder), 0),
+                                Expr.Let(wiHolder, Expr.TupleGet(Expr.Var(tupleHolder), 1),
+                                    newBody)))
                     
-                        // Setup kernel module and return
-                        let methodParams = signature.GetParameters()
-                        let funBody, envVars, outVals = 
-                            QuotationAnalysis.KernelParsing.ReplaceEnvRefsWithParamRefs(functionBody)
-                        let kInfo = new AcceleratedKernelInfo(signature, 
-                                                                [ methodParams.[0]; methodParams.[1] ],
-                                                                [ inputHolder; outputHolder ],
+                    // Setup kernel module and return
+                    let methodParams = signature.GetParameters()
+                    let envVars, outVals = 
+                        QuotationAnalysis.KernelParsing.ExtractEnvRefs(functionBody)
+                        
+                    // Add applied function      
+                    let sortByFunctionInfo = new FunctionInfo(functionInfo, 
+                                                                functionInfo.GetParameters() |> List.ofArray,
+                                                                functionParamVars,
                                                                 envVars,
                                                                 outVals,
-                                                                finalKernel, 
-                                                                meta, 
-                                                                name, appliedFunctionBody)
-                        let kernelModule = new KernelModule(None, None, kInfo)
-                        
-                        kernelModule 
-
-                    // Add applied function      
-                    match computationFunction with
-                    | Some(thisVar, ob, functionInfo, functionParamVars, body) ->
-                        let sortByFunctionInfo = new FunctionInfo(functionInfo, 
-                                                                  functionInfo.GetParameters() |> List.ofArray,
-                                                                  functionParamVars,
-                                                                  kModule.Kernel.EnvVarsUsed,
-                                                                  kModule.Kernel.OutValsUsed,
-                                                                  None,
-                                                                  body, isLambda)
-                
-                        // Store the called function (runtime execution will use it to perform latest iterations of reduction)
-                        if isLambda then
-                            kModule.Kernel.CustomInfo.Add("GroupByFunction", isLambda)
-                        else
-                            // ExtractComputationFunction may have lifted some paramters that are referencing stuff outside the quotation, so 
-                            // a new methodinfo is generated with no body. So we can't invoke it, and therefore we add as ReduceFunction the body instead of the methodinfo
-                            kModule.Kernel.CustomInfo.Add("GroupByFunction", body)
-                                    
-                        // Store the called function (runtime execution will use it to perform latest iterations of reduction)
-                        kModule.Functions.Add(sortByFunctionInfo.ID, sortByFunctionInfo)
-                        kModule.Kernel.CalledFunctions.Add(sortByFunctionInfo.ID)
-                    | _ ->
-                        ()
+                                                                None,
+                                                                functionBody, isLambda)
                     
+                    let kInfo = new AcceleratedKernelInfo(signature, 
+                                                            [ methodParams.[0] ],
+                                                            [ inputHolder ],
+                                                            envVars,
+                                                            outVals,
+                                                            finalKernel, 
+                                                            meta, 
+                                                            name, Some(sortByFunctionInfo :> IFunctionInfo), appliedFunctionBody)
+                    let kernelModule = new KernelModule(None, None, kInfo)
+                
+                    // Store the called function (runtime execution will use it to perform latest iterations of reduction)
+                    kernelModule.Functions.Add(sortByFunctionInfo.ID, sortByFunctionInfo)
+                    kernelModule.Kernel.CalledFunctions.Add(sortByFunctionInfo.ID)
+                                        
                     // Create node
-                    let node = new KFGKernelNode(kModule)
+                    let node = new KFGKernelNode(kernelModule)
                     
                     // Create data node for outsiders
 //                    for o in outsiders do 

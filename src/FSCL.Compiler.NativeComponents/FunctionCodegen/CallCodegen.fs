@@ -71,6 +71,8 @@ type CallCodegen() =
         populateAlternativeFunctions(<@ Microsoft.FSharp.Core.Operators.floor @>, "floor")
         populateAlternativeFunctions(<@ Math.Sqrt 0.0 @>, "sqrt")
         populateAlternativeFunctions(<@ Microsoft.FSharp.Core.Operators.sqrt @>, "sqrt")
+        populateAlternativeFunctions(<@ Math.Pow(0.0, 0.0) @>, "pow")
+        populateAlternativeFunctions(<@ Microsoft.FSharp.Core.Operators.pown @>, "pown")
 
         populateAlternativeFunctions(<@ Math.Min(0m, 0m) @>, "min")
         populateAlternativeFunctions(<@ Math.Min(0, 0) @>, "min")
@@ -235,7 +237,7 @@ type CallCodegen() =
             else 
                 if alternativeFunctions.ContainsKey(mi.TryGetGenericMethodDefinition()) then
                     let definition = alternativeFunctions.[mi.TryGetGenericMethodDefinition()]
-                    Some(returnPrefix + definition + "(" + args + ");" + returnPostfix)
+                    Some(returnPrefix + definition + "(" + args + ")" + returnPostfix)
                 else
                     Some(returnPrefix + mi.Name + "(" + args + ")" + returnPostfix)
         | _ ->

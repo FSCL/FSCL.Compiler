@@ -23,15 +23,17 @@ type FunctionReferenceDiscover() =
         let rec DiscoverFunctionRefInner(expr) =
             match expr with
             | UtilityFunctionCall(obv, ob, mi, parameters, paramVars, body, args, workItemInfo) ->
-                let envVars, outVals = QuotationAnalysis.KernelParsing.ExtractEnvRefs(body)
-                let fi = new FunctionInfo(mi, 
-                                          parameters |> List.ofArray, 
-                                          paramVars,
-                                          envVars, outVals,
-                                          workItemInfo,
-                                          body, false)
-                foundFunctions.Add(mi, fi)
-                k.CalledFunctions.Add(fi.ID)
+                if (foundFunctions.ContainsKey(mi) |> not) then
+                    //let envVars, outVals = QuotationAnalysis.KernelParsing.ExtractEnvRefs(body)
+                    // Right now utility functions cannot refer env vars or out vals
+                    let fi = new FunctionInfo(mi, 
+                                              parameters |> List.ofArray, 
+                                              paramVars,
+                                              new List<Var>(), new List<Expr>(),
+                                              workItemInfo,
+                                              body, false)
+                    foundFunctions.Add(mi, fi)
+                    k.CalledFunctions.Add(fi.ID)
             | _ ->
                 match expr with 
                 | ExprShape.ShapeLambda(v, a) ->
@@ -66,6 +68,7 @@ type FunctionReferenceDiscover() =
                     if not (functionsToAnalyse.ContainsKey(it.Key)) && not (newFunctionsFound.ContainsKey(it.Key)) then
                         newFunctionsFound.Add(it.Key, it.Value)
                         foundSomethingNew <- true
+
             for item in functionsToAnalyse do
                 m.Functions.Add(item.Value.ID, item.Value)
             functionsToAnalyse <- newFunctionsFound

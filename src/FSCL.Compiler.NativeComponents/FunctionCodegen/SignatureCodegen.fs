@@ -54,40 +54,58 @@ type SignatureCodegen() =
     ///The target code for the signature
     ///</returns>
     ///       
-    override this.Run((name, parameters), en, opts) =
-        let engine = en :?> FunctionCodegenStep
-        // Convert params and produce additional params
-        if engine.FunctionInfo :? KernelInfo then
-            let kernelInfo = engine.FunctionInfo :?> KernelInfo
-            let paramsPrint = List.map(fun (p:FunctionParameter) ->
-                if p.DataType.IsArray then
-                    // If the parameters is tagged with Contant attribute, prepend constant keyword, else global
-                    let addressSpace = p.Meta.Get<AddressSpaceAttribute>().AddressSpace
-                    if addressSpace = AddressSpace.Local then
-                        "local " + engine.TypeManager.Print(p.DataType) + p.Name
-                    elif addressSpace = AddressSpace.Constant then
-                        "constant " + engine.TypeManager.Print(p.DataType) + p.Name
-                    elif addressSpace = AddressSpace.Global then
-                        "global " + engine.TypeManager.Print(p.DataType) + p.Name
-                    else
-                        "global " + engine.TypeManager.Print(p.DataType) + p.Name
+    
+    let paramsPrint(f:FunctionInfo, step:FunctionCodegenStep) = 
+        List.map(fun (p:FunctionParameter) ->
+            let forcedAddressSpace = 
+                if p.ForcedGlobalAddressSpace then
+                    "global "
+                else if p.ForcedConstantAddressSpace then
+                    "constant "
+                else if p.ForcedLocalAddressSpace then
+                    "local "                        
+                else if p.ForcedPrivateAddressSpace then
+                    "private "
                 else
-                    engine.TypeManager.Print(p.DataType) + " " + p.Name) parameters
+                    null
+            if forcedAddressSpace <> null then
+                forcedAddressSpace + step.TypeManager.Print(p.DataType) + " " + p.Name
+            else
+                let defaultAddressSpace =
+                    if p.DataType.IsArray then
+                        "global "
+                    else
+                        "private " 
+                // If the parameters is tagged with Contant attribute, prepend constant keyword, else global
+                let addressSpace = p.Meta.Get<AddressSpaceAttribute>().AddressSpace
+                if addressSpace = AddressSpace.Local then
+                    "local " + step.TypeManager.Print(p.DataType) + " " + p.Name
+                elif addressSpace = AddressSpace.Constant then
+                    "constant " + step.TypeManager.Print(p.DataType) + " " + p.Name
+                elif addressSpace = AddressSpace.Global then
+                    "global " + step.TypeManager.Print(p.DataType) + " " + p.Name
+                elif addressSpace = AddressSpace.Private then
+                    "private " + step.TypeManager.Print(p.DataType) + " " + p.Name
+                else
+                    defaultAddressSpace + step.TypeManager.Print(p.DataType) + " " + p.Name) f.Parameters
             
-            let signature = Some("kernel void " + name + "(" + (String.concat ", " paramsPrint) + ")")
+    override this.Run((name, parameters), st, opts) =
+        let step = st :?> FunctionCodegenStep
+        // Convert params and produce additional params
+        if step.FunctionInfo :? KernelInfo then
+            let kernelInfo = step.FunctionInfo :?> KernelInfo
+            let signature = Some("kernel void " + name + "(" + (String.concat ", " (paramsPrint(kernelInfo, step))) + ")")
             signature
         else
-            let kernelInfo = engine.FunctionInfo
+            let kernelInfo = step.FunctionInfo
             // Check if inline
             let inlinePrefix =
-                if engine.FunctionInfo.IsLambda || engine.FunctionInfo.ParsedSignature.GetCustomAttribute(typeof<InlineAttribute>) <> null then
+                if step.FunctionInfo.IsLambda || step.FunctionInfo.ParsedSignature.GetCustomAttribute(typeof<InlineAttribute>) <> null then
                     "inline "
                 else
                     ""
             // Print signature    
-            let paramsPrint = List.map(fun (p:FunctionParameter) ->
-                engine.TypeManager.Print(p.DataType) + " " + p.Name) parameters
-            let signature = Some(inlinePrefix + engine.TypeManager.Print(kernelInfo.ReturnType) + " " + name + "(" + (String.concat ", " paramsPrint) + ")")
+            let signature = Some(inlinePrefix + step.TypeManager.Print(kernelInfo.ReturnType) + " " + name + "(" + (String.concat ", " (paramsPrint(kernelInfo, step))) + ")")
             signature
 
            

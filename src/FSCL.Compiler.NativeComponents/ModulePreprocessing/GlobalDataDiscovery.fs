@@ -10,11 +10,6 @@ open Microsoft.FSharp.Reflection
 open Microsoft.FSharp.Linq.RuntimeHelpers
 open System
     
-// This processor looks for FieldGet and PropertyGet of instances declared outside the 
-// kernel.
-// Accessing a field or a property can turn into
-// A) A new parameter if the field or property can be modified (array, struct with modifiable fields, ref cell, mutable primitive or struct)
-// B) A #define otherwise
 [<StepProcessor("FSCL_GLOBAL_DATA_DISCOVERY_PROCESSOR", 
                 "FSCL_MODULE_PREPROCESSING_STEP",
                 Dependencies = [| "FSCL_FUNCTIONS_DISCOVERY_PROCESSOR" |])>] 

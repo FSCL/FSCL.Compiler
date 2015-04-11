@@ -248,12 +248,12 @@ type AcceleratedArrayReduceHandler() =
                         match targetType.Type with
                         | DeviceType.Gpu ->                    
                             // Now we can create the signature and define parameter name in the dynamic module                                                                        
-                            let signature, name, appliedFunctionBody =    
+                            let signature, name =    
                                 match computationFunction with
                                 | Some(thisVar, ob, functionInfo, functionParamVars, body) ->
-                                   (DynamicMethod("ArrayReduce_" + functionInfo.Name, outputArrayType, [| inputArrayType; outputArrayType; outputArrayType; typeof<WorkItemInfo> |]), "Array.reduce", Some(body))
+                                   (DynamicMethod("ArrayReduce_" + functionInfo.Name, outputArrayType, [| inputArrayType; outputArrayType; outputArrayType; typeof<WorkItemInfo> |]), "Array.reduce")
                                 | _ ->
-                                   (DynamicMethod("ArraySum", outputArrayType, [| inputArrayType; outputArrayType; outputArrayType; typeof<WorkItemInfo> |]), "Array.sum", None)
+                                   (DynamicMethod("ArraySum", outputArrayType, [| inputArrayType; outputArrayType; outputArrayType; typeof<WorkItemInfo> |]), "Array.sum")
                                 
                             signature.DefineParameter(1, ParameterAttributes.In, "input_array") |> ignore
                             signature.DefineParameter(2, ParameterAttributes.In, "local_array") |> ignore
@@ -295,29 +295,62 @@ type AcceleratedArrayReduceHandler() =
                                                     newBody)))))
 
                             let methodParams = signature.GetParameters()
-                            let envVars, outVals = 
-                                if appliedFunctionBody.IsSome then
-                                    QuotationAnalysis.KernelParsing.ExtractEnvRefs(appliedFunctionBody.Value)
+                                    
+                            // Add applied function    
+                            match computationFunction with
+                            | Some(_, _, functionInfo, functionParamVars, body) ->
+                                let envVars, outVals = QuotationAnalysis.KernelParsing.ExtractEnvRefs(body)                            
+                                let reduceFunctionInfo = new FunctionInfo(functionInfo, 
+                                                                          functionInfo.GetParameters() |> List.ofArray,
+                                                                          functionParamVars,
+                                                                          envVars, outVals,
+                                                                          None,
+                                                                          body, isLambda)
+                                                                          
+                                let kInfo = new AcceleratedKernelInfo(signature, 
+                                                                      [ methodParams.[0]; methodParams.[1]; methodParams.[2] ],
+                                                                      [ inputHolder; localHolder; outputHolder ],
+                                                                      envVars, outVals,
+                                                                      finalKernel, 
+                                                                      meta, 
+                                                                      name, Some(reduceFunctionInfo :> IFunctionInfo), Some(body))
+                                let kernelModule = new KernelModule(thisVar, thisObj, kInfo)
+                
+                                // Store the called function (runtime execution will use it to perform latest iterations of reduction)
+                                if isLambda then
+                                    kernelModule.Kernel.CustomInfo.Add("ReduceFunction", cleanArgs.[0])
                                 else
-                                    new List<Var>(), new List<Expr>()
-                            let kInfo = new AcceleratedKernelInfo(signature, 
-                                                                  [ methodParams.[0]; methodParams.[1]; methodParams.[2] ],
-                                                                  [ inputHolder; localHolder; outputHolder ],
-                                                                  envVars, outVals,
-                                                                  finalKernel, 
-                                                                  meta, 
-                                                                  name, appliedFunctionBody)
-                            let kernelModule = new KernelModule(thisVar, thisObj, kInfo)
-                        
-                            kernelModule                
-                        |_ ->
+                                    // ExtractComputationFunction may have lifted some paramters that are referencing stuff outside the quotation, so 
+                                    // a new methodinfo is generated with no body. So we can't invoke it, and therefore we add as ReduceFunction the body instead of the methodinfo
+                                    kernelModule.Kernel.CustomInfo.Add("ReduceFunction", body)
+                                    
+                                // Store the called function (runtime execution will use it to perform latest iterations of reduction)
+                                kernelModule.Functions.Add(reduceFunctionInfo.ID, reduceFunctionInfo)
+                                kernelModule.Kernel.CalledFunctions.Add(reduceFunctionInfo.ID)
+                                kernelModule
+                            | _ ->
+                                // Array.sum: reduce function in (+)
+                                let kInfo = new AcceleratedKernelInfo(signature, 
+                                                                      [ methodParams.[0]; methodParams.[1]; methodParams.[2] ],
+                                                                      [ inputHolder; localHolder; outputHolder ],
+                                                                      new List<Var>(), new List<Expr>(),
+                                                                      finalKernel, 
+                                                                      meta, 
+                                                                      name, None, None)
+                                let kernelModule = new KernelModule(thisVar, thisObj, kInfo)                
+                                kernelModule.Kernel.CustomInfo.Add("ReduceFunction", 
+                                                                ExtractMethodInfo(<@ (+) @>).Value.GetGenericMethodDefinition().MakeGenericMethod([| inputArrayType.GetElementType(); inputArrayType.GetElementType();  outputArrayType.GetElementType() |]))
+                                kernelModule  
+                                
+                                              
+                        | _ ->
                             // CPU CODE                                                              
-                            let signature, name, appliedFunctionBody =    
+                            let signature, name =    
                                 match computationFunction with
                                 | Some(thisVar, ob, functionInfo, functionParamVars, body) ->
-                                   (DynamicMethod("ArrayReduce_" + functionInfo.Name, outputArrayType, [| inputArrayType; outputArrayType; outputArrayType; typeof<WorkItemInfo> |]), "Array.reduce", Some(body))
+                                   (DynamicMethod("ArrayReduce_" + functionInfo.Name, outputArrayType, [| inputArrayType; outputArrayType; outputArrayType; typeof<WorkItemInfo> |]), "Array.reduce")
                                 | _ ->
-                                   (DynamicMethod("ArraySum", outputArrayType, [| inputArrayType; outputArrayType; outputArrayType; typeof<WorkItemInfo> |]), "Array.sum", None)
+                                   (DynamicMethod("ArraySum", outputArrayType, [| inputArrayType; outputArrayType; outputArrayType; typeof<WorkItemInfo> |]), "Array.sum")
                                                  
                             // Now we can create the signature and define parameter name in the dynamic module                                        
                             signature.DefineParameter(1, ParameterAttributes.In, "input_array") |> ignore
@@ -360,55 +393,57 @@ type AcceleratedArrayReduceHandler() =
                     
                             // Setup kernel module and return
                             let methodParams = signature.GetParameters()
-                            let envVars, outVals = 
-                                if appliedFunctionBody.IsSome then
-                                    QuotationAnalysis.KernelParsing.ExtractEnvRefs(appliedFunctionBody.Value)
+                            
+                            // Add applied function    
+                            match computationFunction with
+                            | Some(_, _, functionInfo, functionParamVars, body) ->
+                                let envVars, outVals = QuotationAnalysis.KernelParsing.ExtractEnvRefs(body)                            
+                                let reduceFunctionInfo = new FunctionInfo(functionInfo, 
+                                                                          functionInfo.GetParameters() |> List.ofArray,
+                                                                          functionParamVars,
+                                                                          envVars, outVals,
+                                                                          None,
+                                                                          body, isLambda)
+                                                                          
+                                let kInfo = new AcceleratedKernelInfo(signature, 
+                                                                        [ methodParams.[0]; methodParams.[1]; methodParams.[2] ],
+                                                                        [ inputHolder; outputHolder; blockHolder ],
+                                                                        envVars, outVals,
+                                                                        finalKernel, 
+                                                                        meta, 
+                                                                        name, Some(reduceFunctionInfo :> IFunctionInfo), Some(body))
+                                let kernelModule = new KernelModule(thisVar, thisObj, kInfo)
+                                        
+                                // Store the called function (runtime execution will use it to perform latest iterations of reduction)
+                                if isLambda then
+                                    kernelModule.Kernel.CustomInfo.Add("ReduceFunction", cleanArgs.[0])
                                 else
-                                    new List<Var>(), new List<Expr>()
-                            let kInfo = new AcceleratedKernelInfo(signature, 
-                                                                    [ methodParams.[0]; methodParams.[1]; methodParams.[2] ],
-                                                                    [ inputHolder; outputHolder; blockHolder ],
-                                                                    envVars, outVals,
-                                                                    finalKernel, 
-                                                                    meta, 
-                                                                    name, appliedFunctionBody)
-                            let kernelModule = new KernelModule(thisVar, thisObj, kInfo)
-                        
-                            kernelModule 
-
-                    // Add applied function    
-                    match computationFunction with
-                    | Some(_, _, functionInfo, functionParamVars, body) ->
-                        let reduceFunctionInfo = new FunctionInfo(functionInfo, 
-                                                                  functionInfo.GetParameters() |> List.ofArray,
-                                                                  functionParamVars,
-                                                                  kModule.Kernel.EnvVarsUsed, kModule.Kernel.OutValsUsed,
-                                                                  None,
-                                                                  body, isLambda)
-                
-                        // Store the called function (runtime execution will use it to perform latest iterations of reduction)
-                        if isLambda then
-                            kModule.Kernel.CustomInfo.Add("ReduceFunction", cleanArgs.[0])
-                        else
-                            // ExtractComputationFunction may have lifted some paramters that are referencing stuff outside the quotation, so 
-                            // a new methodinfo is generated with no body. So we can't invoke it, and therefore we add as ReduceFunction the body instead of the methodinfo
-                            kModule.Kernel.CustomInfo.Add("ReduceFunction", body)
+                                    // ExtractComputationFunction may have lifted some paramters that are referencing stuff outside the quotation, so 
+                                    // a new methodinfo is generated with no body. So we can't invoke it, and therefore we add as ReduceFunction the body instead of the methodinfo
+                                    kernelModule.Kernel.CustomInfo.Add("ReduceFunction", body)
                                     
-                        // Store the called function (runtime execution will use it to perform latest iterations of reduction)
-                        kModule.Functions.Add(reduceFunctionInfo.ID, reduceFunctionInfo)
-                        kModule.Kernel.CalledFunctions.Add(reduceFunctionInfo.ID)
-                    | _ ->
-                        // Array.sum: reduce function in (+)
-                        kModule.Kernel.CustomInfo.Add("ReduceFunction", 
-                                                        ExtractMethodInfo(<@ (+) @>).Value.GetGenericMethodDefinition().MakeGenericMethod([| inputArrayType.GetElementType(); inputArrayType.GetElementType();  outputArrayType.GetElementType() |]))
-                                                                   
+                                // Store the called function (runtime execution will use it to perform latest iterations of reduction)
+                                kernelModule.Functions.Add(reduceFunctionInfo.ID, reduceFunctionInfo)
+                                kernelModule.Kernel.CalledFunctions.Add(reduceFunctionInfo.ID)
+                                kernelModule
+                            | _ ->
+                                // Array.sum: reduce function in (+)
+                                let kInfo = new AcceleratedKernelInfo(signature, 
+                                                                        [ methodParams.[0]; methodParams.[1]; methodParams.[2] ],
+                                                                        [ inputHolder; outputHolder; blockHolder ],
+                                                                        new List<Var>(), new List<Expr>(),
+                                                                        finalKernel, 
+                                                                        meta, 
+                                                                        name, None, None)
+                                let kernelModule = new KernelModule(thisVar, thisObj, kInfo)                
+                                kernelModule.Kernel.CustomInfo.Add("ReduceFunction", 
+                                                                ExtractMethodInfo(<@ (+) @>).Value.GetGenericMethodDefinition().MakeGenericMethod([| inputArrayType.GetElementType(); inputArrayType.GetElementType();  outputArrayType.GetElementType() |]))
+                                kernelModule  
+
+                                   
                     // Create node
                     let node = new KFGKernelNode(kModule)
                     
-                    // Create data node for outsiders
-//                    for o in outsiders do 
-//                        node.InputNodes.Add(new KFGOutsiderDataNode(o))
-
                     // Parse arguments
                     let subnode =
                         if isArraySum then

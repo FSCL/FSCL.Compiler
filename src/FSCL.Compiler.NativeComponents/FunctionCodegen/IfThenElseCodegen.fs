@@ -15,7 +15,7 @@ type IfThenElseCodegen() =
             | Patterns.Value(o, t) ->
                 if(t = typeof<bool>) then
                     if (o :?> bool) then
-                        Some(engine.Continue(condinner) + " || " + engine.Continue(elsebinner))
+                        Some("(" + engine.Continue(condinner) + ") || (" + engine.Continue(elsebinner) + ")")
                     else
                         None
                 else
@@ -25,7 +25,7 @@ type IfThenElseCodegen() =
                 | Patterns.Value(o, t) ->
                     if(t = typeof<bool>) then   
                         if (not (o :?> bool)) then
-                            Some(engine.Continue(condinner) + " && " + engine.Continue(ifbinner))
+                            Some("(" + engine.Continue(condinner) + ") && (" + engine.Continue(ifbinner) + ")")
                         else
                             None
                     else

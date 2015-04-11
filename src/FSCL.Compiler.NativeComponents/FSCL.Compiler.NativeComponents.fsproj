@@ -65,10 +65,10 @@
     <Compile Include="ModuleParsing\KernelMethodInfoParser.fs" />
     <Compile Include="ModuleParsing\SequentialCallExpressionParser.fs" />
     <Compile Include="ModulePreprocessing\ModulePreprocessingStep.fs" />
-    <Compile Include="ModulePreprocessing\GlobalDataDiscovery.fs" />
     <Compile Include="ModulePreprocessing\FunctionReferenceDiscover.fs" />
+    <Compile Include="ModulePreprocessing\GlobalDataDiscovery.fs" />
     <Compile Include="ModulePreprocessing\StructDiscover.fs" />
-    <Compile Include="ModulePreprocessing\EnvRefsDiscover.fs" />
+    <Compile Include="ModulePreprocessing\EnvRefToParameter.fs" />
     <Compile Include="FunctionPreprocessing\FunctionPreprocessingStep.fs" />
     <Compile Include="FunctionPreprocessing\ArgsPreparationLifting.fs" />
     <Compile Include="FunctionPreprocessing\LocalVarsDiscovery.fs" />
@@ -77,7 +77,6 @@
     <Compile Include="FunctionPreprocessing\RefTypeToArrayReplacing.fs" />
     <Compile Include="FunctionPreprocessing\DynamicArrayArgumentsParamRefLifting.fs" />
     <Compile Include="FunctionPreprocessing\AddLengthArgsProcessor.fs" />
-    <Compile Include="FunctionPreprocessing\CallFix.fs" />
     <Compile Include="ModuleCodegen\ModuleCodegenStep.fs" />
     <Compile Include="ModuleCodegen\ModuleCodegen.fs" />
     <Compile Include="ModulePostprocessing\ModulePostprocessingStep.fs" />

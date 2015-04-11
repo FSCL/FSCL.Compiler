@@ -19,7 +19,8 @@ type AcceleratedKernelInfo(signature: MethodInfo,
                            body: Expr, 
                            meta, 
                            collectionFunction: String, 
-                           appliedFunction: Expr option) =
+                           appliedFunction: IFunctionInfo option,
+                           appliedFunctionExpr: Expr option) =
     inherit KernelInfo(signature, paramInfo, paramVars, envVarsUsed, outValsUsed, None, body, meta, false)
             
     member val CollectionFunctionName = collectionFunction with get
@@ -27,8 +28,11 @@ type AcceleratedKernelInfo(signature: MethodInfo,
     override this.ID
         with get() =     
             // An accelerated collections kernel like Array.map f a is identified by both "Array.map" and the body of f
-            if appliedFunction.IsSome then
-                LambdaID(collectionFunction + "_" + appliedFunction.ToString())
+            if appliedFunctionExpr.IsSome then
+                LambdaID(collectionFunction + "_" + appliedFunctionExpr.ToString())
             else
                 LambdaID(collectionFunction)
+
+    member val AppliedFunction = appliedFunction with get
+
                 

@@ -229,98 +229,102 @@ type AcceleratedArraySortHandler() =
                     // Check device target
                     let targetType = meta.KernelMeta.Get<DeviceTypeAttribute>()
             
-                    let kModule = 
-                        // CPU AND GPU CODE (TODO: OPTIMIZE FOR THE TWO KINDS OF DEVICE)                                                      
-                        let thisVar, ob, signature, name, appliedFunctionBody =    
-                            match computationFunction with
-                            | Some(thisVar, ob, functionInfo, functionParamVars, body) ->
-                                (thisVar, ob, DynamicMethod("ArraySortBy_" + functionInfo.Name, outputArrayType, [| inputArrayType; outputArrayType; outputArrayType; typeof<WorkItemInfo> |]), "Array.reduce", Some(body))
-                            | _ ->
-                                (None, None, DynamicMethod("ArraySort", outputArrayType, [| inputArrayType; outputArrayType; outputArrayType; typeof<WorkItemInfo> |]), "Array.sum", None)
+                    // CPU AND GPU CODE (TODO: OPTIMIZE FOR THE TWO KINDS OF DEVICE)                                                      
+                    let thisVar, ob, signature, name =    
+                        match computationFunction with
+                        | Some(thisVar, ob, functionInfo, functionParamVars, body) ->
+                            (thisVar, ob, DynamicMethod("ArraySortBy_" + functionInfo.Name, outputArrayType, [| inputArrayType; outputArrayType; outputArrayType; typeof<WorkItemInfo> |]), "Array.sortBy")
+                        | _ ->
+                            (None, None, DynamicMethod("ArraySort", outputArrayType, [| inputArrayType; outputArrayType; outputArrayType; typeof<WorkItemInfo> |]), "Array.sort")
                                                  
-                        // Now we can create the signature and define parameter name in the dynamic module                                        
-                        signature.DefineParameter(1, ParameterAttributes.In, "input_array") |> ignore
-                        signature.DefineParameter(2, ParameterAttributes.In, "output_array") |> ignore
-                        signature.DefineParameter(3, ParameterAttributes.In, "wi") |> ignore
+                    // Now we can create the signature and define parameter name in the dynamic module                                        
+                    signature.DefineParameter(1, ParameterAttributes.In, "input_array") |> ignore
+                    signature.DefineParameter(2, ParameterAttributes.In, "output_array") |> ignore
+                    signature.DefineParameter(3, ParameterAttributes.In, "wi") |> ignore
                     
-                        // Create parameters placeholders
-                        let inputHolder = Quotations.Var("input_array", inputArrayType)
-                        let outputHolder = Quotations.Var("output_array", outputArrayType)
-                        let wiHolder = Quotations.Var("wi", typeof<WorkItemInfo>)
-                        let tupleHolder = Quotations.Var("tupledArg", FSharpType.MakeTupleType([| wiHolder.Type; inputHolder.Type; outputHolder.Type |]))
+                    // Create parameters placeholders
+                    let inputHolder = Quotations.Var("input_array", inputArrayType)
+                    let outputHolder = Quotations.Var("output_array", outputArrayType)
+                    let wiHolder = Quotations.Var("wi", typeof<WorkItemInfo>)
+                    let tupleHolder = Quotations.Var("tupledArg", FSharpType.MakeTupleType([| wiHolder.Type; inputHolder.Type; outputHolder.Type |]))
 
-                        // Finally, create the body of the kernel
-                        let templateBody, templateParameters = AcceleratedCollectionUtil.GetKernelFromCollectionFunctionTemplate(cpu_template)   
-                        let parameterMatching = new Dictionary<Var, Var>()
-                        parameterMatching.Add(templateParameters.[0], inputHolder)
-                        parameterMatching.Add(templateParameters.[1], outputHolder)
-                        parameterMatching.Add(templateParameters.[2], wiHolder)
+                    // Finally, create the body of the kernel
+                    let templateBody, templateParameters = AcceleratedCollectionUtil.GetKernelFromCollectionFunctionTemplate(cpu_template)   
+                    let parameterMatching = new Dictionary<Var, Var>()
+                    parameterMatching.Add(templateParameters.[0], inputHolder)
+                    parameterMatching.Add(templateParameters.[1], outputHolder)
+                    parameterMatching.Add(templateParameters.[2], wiHolder)
 
-                        // Replace functions and references to parameters
-                        let functionMatching = new Dictionary<string, MethodInfo>()
-                        let fInfo, thisObj = 
-                            match computationFunction with
-                            | Some(thisVar, ob, functionInfo, functionParamVars, body) ->
-                                Some(functionInfo), ob
-                            | _ ->
-                                None, None
-                        let newBody = SubstitutePlaceholders(templateBody, parameterMatching, fInfo, thisObj)  
-                        let finalKernel = 
-                            Expr.Lambda(tupleHolder,
-                                Expr.Let(inputHolder, Expr.TupleGet(Expr.Var(tupleHolder), 0),
-                                    Expr.Let(outputHolder, Expr.TupleGet(Expr.Var(tupleHolder), 1),
-                                        Expr.Let(wiHolder, Expr.TupleGet(Expr.Var(tupleHolder), 2),
-                                            newBody))))
+                    // Replace functions and references to parameters
+                    let functionMatching = new Dictionary<string, MethodInfo>()
+                    let fInfo, thisObj = 
+                        match computationFunction with
+                        | Some(thisVar, ob, functionInfo, functionParamVars, body) ->
+                            Some(functionInfo), ob
+                        | _ ->
+                            None, None
+                    let newBody = SubstitutePlaceholders(templateBody, parameterMatching, fInfo, thisObj)  
+                    let finalKernel = 
+                        Expr.Lambda(tupleHolder,
+                            Expr.Let(inputHolder, Expr.TupleGet(Expr.Var(tupleHolder), 0),
+                                Expr.Let(outputHolder, Expr.TupleGet(Expr.Var(tupleHolder), 1),
+                                    Expr.Let(wiHolder, Expr.TupleGet(Expr.Var(tupleHolder), 2),
+                                        newBody))))
                     
-                        // Setup kernel module and return
-                        let methodParams = signature.GetParameters()
-                        let envVars, outVals = 
-                            if appliedFunctionBody.IsSome then
-                                QuotationAnalysis.KernelParsing.ExtractEnvRefs(appliedFunctionBody.Value)
-                            else
-                                new List<Var>(), new List<Expr>()
-                        let kInfo = new AcceleratedKernelInfo(signature, 
-                                                                [ methodParams.[0]; methodParams.[1]; methodParams.[2] ],
-                                                                [ inputHolder; outputHolder ],
-                                                                envVars, outVals,
-                                                                finalKernel, 
-                                                                meta, 
-                                                                name, appliedFunctionBody)
-                        let kernelModule = new KernelModule(thisVar, ob, kInfo)
-                        
-                        kernelModule 
+                    // Setup kernel module and return
+                    let methodParams = signature.GetParameters()
 
                     // Add applied function      
-                    match computationFunction with
-                    | Some(_, _, functionInfo, functionParamVars, body) ->
-                        let sortByFunctionInfo = new FunctionInfo(functionInfo, 
-                                                                  functionInfo.GetParameters() |> List.ofArray,
-                                                                  functionParamVars,
-                                                                  kModule.Kernel.EnvVarsUsed, kModule.Kernel.OutValsUsed,
-                                                                  None,
-                                                                  body, isLambda)
-                
-                        // Store the called function (runtime execution will use it to perform latest iterations of reduction)
-                        if isLambda then
-                            kModule.Kernel.CustomInfo.Add("SortFunction", cleanArgs.[0])
-                        else
-                            // ExtractComputationFunction may have lifted some paramters that are referencing stuff outside the quotation, so 
-                            // a new methodinfo is generated with no body. So we can't invoke it, and therefore we add as ReduceFunction the body instead of the methodinfo
-                            kModule.Kernel.CustomInfo.Add("SortFunction", body)
-                                    
-                        // Store the called function (runtime execution will use it to perform latest iterations of reduction)
-                        kModule.Functions.Add(sortByFunctionInfo.ID, sortByFunctionInfo)
-                        kModule.Kernel.CalledFunctions.Add(sortByFunctionInfo.ID)
-                    | _ ->
-                        ()
-                    
-                    // Create node
-                    let node = new KFGKernelNode(kModule)
-                    
-                    // Create data node for outsiders
-//                    for o in outsiders do 
-//                        node.InputNodes.Add(new KFGOutsiderDataNode(o))
+                    let kernelModule =
+                        match computationFunction with
+                        | Some(_, _, functionInfo, functionParamVars, body) ->
+                            let envVars, outVals = QuotationAnalysis.KernelParsing.ExtractEnvRefs(body)
+                            let sortByFunctionInfo = new FunctionInfo(functionInfo, 
+                                                                      functionInfo.GetParameters() |> List.ofArray,
+                                                                      functionParamVars,
+                                                                      envVars, outVals,
+                                                                      None,
+                                                                      body, isLambda)
+                           
+                            let kInfo = new AcceleratedKernelInfo(signature, 
+                                                                    [ methodParams.[0]; methodParams.[1]; methodParams.[2] ],
+                                                                    [ inputHolder; outputHolder ],
+                                                                    envVars, outVals,
+                                                                    finalKernel, 
+                                                                    meta, 
+                                                                    name, Some(sortByFunctionInfo :> IFunctionInfo), 
+                                                                    Some(body))
 
+                            let kernelModule = new KernelModule(thisVar, ob, kInfo)
+                
+                            // Store the called function (runtime execution will use it to perform latest iterations of reduction)
+                            if isLambda then
+                                kernelModule.Kernel.CustomInfo.Add("SortFunction", cleanArgs.[0])
+                            else
+                                // ExtractComputationFunction may have lifted some paramters that are referencing stuff outside the quotation, so 
+                                // a new methodinfo is generated with no body. So we can't invoke it, and therefore we add as ReduceFunction the body instead of the methodinfo
+                                kernelModule.Kernel.CustomInfo.Add("SortFunction", body)
+                                    
+                            // Store the called function (runtime execution will use it to perform latest iterations of reduction)
+                            kernelModule.Functions.Add(sortByFunctionInfo.ID, sortByFunctionInfo)
+                            kernelModule.Kernel.CalledFunctions.Add(sortByFunctionInfo.ID)
+                            kernelModule
+                        | _ ->                            
+                            let kInfo = new AcceleratedKernelInfo(signature, 
+                                                                    [ methodParams.[0]; methodParams.[1]; methodParams.[2] ],
+                                                                    [ inputHolder; outputHolder ],
+                                                                    new List<Var>(), new List<Expr>(),
+                                                                    finalKernel, 
+                                                                    meta, 
+                                                                    name, None, 
+                                                                    None)
+
+                            let kernelModule = new KernelModule(thisVar, ob, kInfo)
+                            kernelModule
+                                        
+                    // Create node
+                    let node = new KFGKernelNode(kernelModule)
+                    
                     // Parse arguments
                     let subnode =
                         if isSort then

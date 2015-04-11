@@ -13,7 +13,7 @@ open System
 [<StepProcessor("FSCL_STRUCT_DISCOVERY_PROCESSOR", 
                 "FSCL_MODULE_PREPROCESSING_STEP",
                 Dependencies = [| "FSCL_FUNCTIONS_DISCOVERY_PROCESSOR";
-                                  //"FSCL_ENV_REFS_DISCOVERY_PROCESSOR" 
+                                  "FSCL_GLOBAL_DATA_DISCOVERY_PROCESSOR" 
                                |])>] 
 type StructDiscover() = 
     inherit ModulePreprocessingProcessor()
@@ -78,14 +78,12 @@ type StructDiscover() =
         // Collect structs in kernel
         let structsDict = new Dictionary<Type, unit>()
         CollectStructs(km.Kernel.Body, structsDict)
-        for t in structsDict.Keys do
-            km.GlobalTypes.Add(t) |> ignore
         // Collect structs in functions
         for f in km.Functions do
-            let structsDict = new Dictionary<Type, unit>()
             CollectStructs(f.Value.Body, structsDict)
-            for t in structsDict.Keys do
-                km.GlobalTypes.Add(t) |> ignore
+        // Add to global types
+        for t in structsDict.Keys do
+            km.GlobalTypes.Add(t) |> ignore
             
              
             

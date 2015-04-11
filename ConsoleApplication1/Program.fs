@@ -31,10 +31,16 @@ type MyStruct =
 let sumElements(a: float32, b:float32) =    
     a + b
 
+let outsider = [| 0.0f |]
+
+[<ReflectedDefinition>]
+let FloatSum(a: float32) (b:float32) =
+    a + b
+
 [<ReflectedDefinition>]
 let sumElementsArrays(a: float32[], b:float32[], wi:WorkItemInfo) =    
-    let gid = wi.GlobalID(0)
-    a.[gid] + b.[gid]
+    let gid = wi.GlobalID(0) 
+    FloatSum a.[gid] b.[gid]
 
 [<ReflectedDefinition>]
 let setElement(c: float32[], value: float32, index: int) =    
@@ -157,12 +163,9 @@ let VectorAddInt4(a: int4[], b:int4[], c:int4[], wi:WorkItemInfo) =
     
 [<ReflectedDefinition; Kernel>]
 let VectorAddWithUtility(a: float32[], b:float32[], c:float32[], wi:WorkItemInfo) =
-    let s = sumElementsArrays(a, b, wi)
+    let s = sumElementsArrays(a, b, wi) + outsider.[0]
     setElement(c, s, wi.GlobalID(0))
     
-[<ReflectedDefinition>]
-let FloatSum(a: float32) (b:float32) =
-    a + b
 
 [<ReflectedDefinition>] 
 let sum a = a *2.0f
@@ -180,8 +183,9 @@ let main argv =
     let size = new WorkSize(64L, 64L) :> WorkItemInfo
     
     
-    let result = compiler.Compile(<@ VectorAddWithUtility(a, b, c, size) @>) :?> IKernelExpression
-    let result2 = compiler.Compile(<@ VectorAddWithUtility(a, b, c, size) @>) :?> IKernelExpression
+    //let result = compiler.Compile(<@ VectorAddWithUtility(a, b, c, size) @>) :?> IKernelExpression
+    //let result2 = compiler.Compile(<@ VectorAddWithUtility(a, b, c, size) @>) :?> IKernelExpression
+   // let result3 = compiler.Compile(<@ Array.mapi(fun index item -> item + b.[index]) a @>) :?> IKernelExpression
 
     KMeans.Run()
     Test.Test1()

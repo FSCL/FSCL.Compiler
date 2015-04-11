@@ -54,7 +54,21 @@ type ValueCodegen() =
                         Some(returnPrefix + "1" + returnPostfix)
                     else
                         Some(returnPrefix + "0" + returnPostfix)
-                else  
+                // MAX/MIN const
+                else if v.GetType() = typeof<int> && (v :?> int) = System.Int32.MaxValue then
+                    Some("INT_MAX")
+                else if v.GetType() = typeof<int> && (v :?> int) = System.Int32.MinValue then
+                    Some("INT_MIN")
+                else if v.GetType() = typeof<float32> && (v :?> float32) = System.Single.MaxValue then
+                    Some("FLT_MAX")
+                else if v.GetType() = typeof<float32> && (v :?> float32) = System.Single.MinValue then
+                    Some("FLT_MIN")
+                else if v.GetType() = typeof<double> && (v :?> double) = System.Double.MaxValue then
+                    Some("DBL_MAX")
+                else if v.GetType() = typeof<double> && (v :?> double) = System.Double.MinValue then
+                    Some("DBL_MIN")
+                // Default
+                else
                     Some(returnPrefix + v.ToString() + returnPostfix)
         | Patterns.DefaultValue(t) ->
             // We handle DefaultValue by evaluating the expr (getting a const value) and then processing the constant node

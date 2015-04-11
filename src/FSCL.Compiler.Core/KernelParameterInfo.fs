@@ -50,8 +50,12 @@ type IFunctionParameter =
     abstract IsOutValParameter: bool with get
     abstract IsEnvVarParameter: bool with get
     abstract IsImplicitParameter: bool with get
-    //abstract IsAutoArrayParameter: bool with get
-    //abstract DynamicAllocationArguments: Expr array option with get
+
+    // These are for utility functions to which kernels/other functions pass global/constant/local parameters
+    abstract ForcedGlobalAddressSpace: bool with get
+    abstract ForcedLocalAddressSpace: bool with get
+    abstract ForcedConstantAddressSpace: bool with get
+    abstract ForcedPrivateAddressSpace: bool with get
 
 type FunctionParameter(name:string, 
                        originalPlaceholder: Var, 
@@ -105,6 +109,22 @@ type FunctionParameter(name:string,
         member this.Meta 
             with get() =
                 this.Meta
+
+        member this.ForcedGlobalAddressSpace
+            with get() =
+                this.ForcedGlobalAddressSpace
+                
+        member this.ForcedLocalAddressSpace
+            with get() =
+                this.ForcedLocalAddressSpace
+                
+        member this.ForcedConstantAddressSpace
+            with get() =
+                this.ForcedConstantAddressSpace
+                
+        member this.ForcedPrivateAddressSpace
+            with get() =
+                this.ForcedPrivateAddressSpace
 
         member this.IsSizeParameter
             with get() = 
@@ -226,12 +246,24 @@ type FunctionParameter(name:string,
         | _ ->
             false  
         with get
+        
+    member val ForcedGlobalAddressSpace = false 
+        with get, set    
+    member val ForcedLocalAddressSpace = false 
+        with get, set    
+    member val ForcedConstantAddressSpace = false 
+        with get, set
+    member val ForcedPrivateAddressSpace = false 
+        with get, set
 
     member this.CloneTo(f:FunctionParameter) =
         f.AccessAnalysis <- this.AccessAnalysis
         f.IsReturned <- this.IsReturned
         f.Placeholder <- this.Placeholder
         f.ReturnExpr <- this.ReturnExpr
+        f.ForcedGlobalAddressSpace <- this.ForcedGlobalAddressSpace
+        f.ForcedConstantAddressSpace <- this.ForcedConstantAddressSpace
+        f.ForcedLocalAddressSpace <- this.ForcedLocalAddressSpace
         f.SizeParameters.Clear()
         for item in this.SizeParameters do
             let p = new FunctionParameter(item.Name, item.Placeholder, item.ParameterType, None)
