@@ -20,13 +20,7 @@ open QuotationAnalysis.MetadataExtraction
 module AcceleratedCollectionUtil =
     let GenKernelName (prefix: string, parameterTypes: Type list, utilityFunction: string) =
         String.concat "_" ([prefix] @ (List.map (fun (t:Type) -> t.Name.Replace(".", "")) parameterTypes) @ [utilityFunction])
-    
-    let BuildCallExpr(ob: Expr option, mi: MethodInfo, a: Expr list) =
-        if ob.IsSome then
-            Expr.Call(ob.Value, mi, a)
-        else
-            Expr.Call(mi, a)
-                
+                    
     let GetDefaultValueExpr(t:Type) =
         if t.IsPrimitive then
             // Primitive type
@@ -84,13 +78,52 @@ module AcceleratedCollectionUtil =
             Some(f(e, mi, a))
         | _ ->
             None 
-            
+      
+    let BuildApplication(l:Expr, a:Expr list) =
+        (l, a) ||> List.fold(fun expr arg -> Expr.Application(expr, arg))
+        
+    let AddArgsToLambda(l:Expr, v:Var list) =
+        let rec addArgsInternal(e:Expr) =
+            match e with
+            | Patterns.Lambda(l, a) ->
+                let newExpr = addArgsInternal(a)
+                Expr.Lambda(l, newExpr)
+            | _ ->
+                let newExpr = (l, v) ||> List.fold(fun expr nv -> Expr.Lambda(nv, expr))
+                newExpr
+        addArgsInternal(l)
+        
+    let RebuildLambda(l:Expr, v:Var list) =
+        let rec addArgsInternal(e:Expr) =
+            match e with
+            | Patterns.Lambda(l, a) ->
+                addArgsInternal(a)
+            | _ ->
+                let newExpr = (v, e) ||> List.foldBack(fun nv expr -> Expr.Lambda(nv, expr))
+                newExpr
+        addArgsInternal(l)
+
+    let LiftLambdaDeclarationAhead(expr:Expr) =
+        // Check if we have Let(var, lambdaFun, CallOfSomething(var))
+        match expr with
+        | Patterns.Let(v, Patterns.Lambda(lv, lbody), body) ->
+            // Replace ref to v in body with the value
+            let fixedBody = 
+                body.Substitute(fun myV -> 
+                                if myV = v then
+                                    Some(Expr.Lambda(lv, lbody))
+                                else
+                                    None)
+            fixedBody
+        | _ ->
+            expr
+
     // Important function of new language
     // Should be able to determine in CollectionFun(op) if op is
     // 1) A lambda preparing a call to an utility function
     // 2) A lambda that should be turned into an utility function
     // 3) A sub-expression (CollectionFun is not a kernel)
-    let ParseOperatorLambda(fr: Expr, step: ModuleParsingStep, currEnv: Var list) =  
+    let ParseOperatorLambda(fr: Expr, step: ModuleParsingStep, currEnv: Var list, opts) =  
         let rec isSubExpr(k: KFGNode) =
             match k with
             | :? KFGKernelNode ->
@@ -153,25 +186,25 @@ module AcceleratedCollectionUtil =
                     
         match fr with
         | Patterns.Lambda(v, e) -> 
-            match checkIfPreparationToUtilityFunction(fr, []) with
-            | Some(e, mi, a, b, lambdaParams) ->
+            //match checkIfPreparationToUtilityFunction(fr, []) with
+            //| Some(e, mi, a, b, lambdaParams) ->
                 // Simple preparation for an utility function call: CollectionFun(myUtilityFun)
-                let thisVar = GetThisVariable(b)
-                Some(thisVar, e, mi, lambdaParams, b), None, true
-            | _ ->         
+                //let thisVar = GetThisVariable(b)
+                //Some(thisVar, e, mi.Name, Some(mi), lambdaParams, mi.ReturnType, b), None, true
+            //| _ ->         
                 // Try parse sub-expression
                 // Get the params of the operator lambda
                 // These are the (additional) env vars for what's inside the operator
                 let newEnv, lambdaBody = GetLambdaEnvironment(fr) 
 
                 // Process lambdaBody
-                let subExpr = step.Process(lambdaBody, newEnv)
+                let subExpr = step.Process(lambdaBody, newEnv, opts)
 
                 // Check if any kernel call in the graph rooted in subExpr
                 if isSubExpr(subExpr :?> KFGNode) then
                     //collectOutsiders(subExpr, outsiders)
                     // Now check which outsider is in the evn of this collection function
-                    None, Some(subExpr, newEnv), false
+                    None, Some(subExpr, newEnv)
                 else
                     // Otherwise, this is a computing lambda (must turn into method)
 //                    // Now check which outsider is in the evn of this collection function
@@ -184,13 +217,13 @@ module AcceleratedCollectionUtil =
 //                        | o ->
 //                            thisOutsiders.Add(o)
 
-                    match QuotationAnalysis.KernelParsing.LambdaToMethod(fr, false) with
-                    | Some(mi, paramInfo, parameters) ->
-                        Some(None, None, mi, parameters, fr), None, true
+                    match fr with
+                    | UtilityFunctionLambda(name, l, parameters, returnType) ->
+                        Some(None, None, name, None, parameters, returnType, fr), None
                     | _ ->
-                        None, None, false
+                        None, None
         | _ ->
-            None, None, false
+            None, None
 
     (* 
      * Replace the arguments of a call
@@ -221,22 +254,33 @@ module AcceleratedCollectionUtil =
         gminfo.MakeGenericMethod [| ty |]
 
     // Get the appropriate get and set MethodInfo to read and write an array
-    let GetArrayAccessMethodInfo(ty) =
-        let get = GetGenericMethodInfoFromExpr(<@@ LanguagePrimitives.IntrinsicFunctions.GetArray<int> null 0 @@>, ty)
-        let set = GetGenericMethodInfoFromExpr(<@@ LanguagePrimitives.IntrinsicFunctions.SetArray<int> null 0 0 @@>, ty)
-        (get, set)
+    let inline GetArrayAccessMethodInfo(ty, rank) =
+        match rank with
+        | 1 ->
+            let get = GetGenericMethodInfoFromExpr(<@@ LanguagePrimitives.IntrinsicFunctions.GetArray<int> null 0 @@>, ty)
+            let set = GetGenericMethodInfoFromExpr(<@@ LanguagePrimitives.IntrinsicFunctions.SetArray<int> null 0 0 @@>, ty)
+            (get, set)
+        | 2 ->            
+            let get = GetGenericMethodInfoFromExpr(<@@ LanguagePrimitives.IntrinsicFunctions.GetArray2D<int> null 0 0 @@>, ty)
+            let set = GetGenericMethodInfoFromExpr(<@@ LanguagePrimitives.IntrinsicFunctions.SetArray2D<int> null 0 0 0 @@>, ty)
+            (get, set)            
+        | _ ->            
+            let get = GetGenericMethodInfoFromExpr(<@@ LanguagePrimitives.IntrinsicFunctions.GetArray3D<int> null 0 0 0 @@>, ty)
+            let set = GetGenericMethodInfoFromExpr(<@@ LanguagePrimitives.IntrinsicFunctions.SetArray3D<int> null 0 0 0 0 @@>, ty)
+            (get, set)
         
-    let GetArrayLengthMethodInfo(ty) =
-        let arr = [| 0 |]
-        let get = GetGenericMethodInfoFromExpr(<@@ arr.GetLength(0) @@>, ty)
-        get
-        
-    let GetNewZeroArrayMethodInfo(ty) =
-        let get = GetGenericMethodInfoFromExpr(<@@ Array.zeroCreate<int> 2 @@>, ty)
-        get
+    // ty is array type
+    let inline GetArrayLengthMethodInfo(ty:Type) =
+        ty.GetMethod("GetLength")               
                 
-    let ZeroCreateMethod (t:Type) =
-        FilterCall(<@ Array.zeroCreate @>, fun(e, mi, a) -> GetNewZeroArrayMethodInfo(t)).Value
+    let inline GetZeroCreateMethod (t:Type, rank:int) =
+        match rank with
+        | 1 ->
+            GetGenericMethodInfoFromExpr(<@@ Array.zeroCreate<int> 0 @@>, t)
+        | 2 ->
+            GetGenericMethodInfoFromExpr(<@@ Array2D.zeroCreate<int> 0 0 @@>, t)            
+        | _ ->
+            GetGenericMethodInfoFromExpr(<@@ Array3D.zeroCreate<int> 0 0 0 @@>, t)    
 
     let GetKernelFromCollectionFunctionTemplate(expr:Expr) = 
         let rec LiftTupledArgs(body: Expr, l:Var list) =

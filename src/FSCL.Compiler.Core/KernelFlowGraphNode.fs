@@ -184,6 +184,7 @@ type KernelExpression(root: IKFGNode) =
 
     //let kmods = new Dictionary<FunctionInfoID, List<ReadOnlyMetaCollection * KernelModule>>()
     let compileKmList = new List<KernelModule>()
+    let lazyCloningKmList = new List<IKFGKernelNode>()
     //let copyKmList = new List<KernelModule>()
     let fullKmList = new List<IKFGKernelNode>()
     let rec graphSearch(r: IKFGNode) =
@@ -202,6 +203,8 @@ type KernelExpression(root: IKFGNode) =
     override val KernelNodes = fullKmList :> IReadOnlyList<IKFGKernelNode>
         with get   
     member val KernelModulesRequiringCompilation = compileKmList 
+        with get   
+    member val KernelModulesRequiringLazyCloning = lazyCloningKmList 
         with get   
 //    member val KernelModulesCopiedFromCache = copyKmList 
 //        with get   

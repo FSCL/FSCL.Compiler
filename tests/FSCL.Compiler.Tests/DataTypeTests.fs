@@ -75,9 +75,12 @@ let ``Can compile char vector add`` () =
     let size = new WorkSize(64L, 64L)
     let result = compiler.Compile(<@ VectorAddChar(a, b, c, size) @>) :?> IKernelExpression
     //printf "%s\n" (result.Code.Value.ToString())
-    let wInfo = LeafExpressionConverter.EvaluateQuotation((result.KFGRoot :?> KFGKernelNode).Module.Kernel.WorkSize.Value)
+    let wInfo = (result.KFGRoot :?> KFGKernelNode).Module.Kernel.WorkSize.Value
     // Work item info should be stored
     Assert.AreEqual(size, wInfo)
+    let log, success = TestUtil.TryCompileOpenCL((result.KFGRoot :?> KFGKernelNode).Module.Code.Value)
+    if not success then
+        Assert.Fail(log)
     
 [<Test>]
 let ``Can compile uchar vector add`` () =
@@ -87,9 +90,12 @@ let ``Can compile uchar vector add`` () =
     let c = Array.zeroCreate<byte> 64
     let size = new WorkSize(64L, 64L)
     let result = compiler.Compile(<@ VectorAddUchar(a, b, c, size) @>) :?> IKernelExpression
-    let wInfo = LeafExpressionConverter.EvaluateQuotation((result.KFGRoot :?> KFGKernelNode).Module.Kernel.WorkSize.Value)
+    let wInfo = (result.KFGRoot :?> KFGKernelNode).Module.Kernel.WorkSize.Value
     // Work item info should be stored
     Assert.AreEqual(size, wInfo)
+    let log, success = TestUtil.TryCompileOpenCL((result.KFGRoot :?> KFGKernelNode).Module.Code.Value)
+    if not success then
+        Assert.Fail(log)
     
 [<Test>]
 let ``Can compile int4 vector add`` () =
@@ -99,11 +105,14 @@ let ``Can compile int4 vector add`` () =
     let c = Array.zeroCreate<int4> 64
     let size = new WorkSize(64L, 64L)
     let result = compiler.Compile(<@ VectorAddInt4(a, b, c, size) @>) :?> IKernelExpression
-    let wInfo = LeafExpressionConverter.EvaluateQuotation((result.KFGRoot :?> KFGKernelNode).Module.Kernel.WorkSize.Value)
+    let wInfo = (result.KFGRoot :?> KFGKernelNode).Module.Kernel.WorkSize.Value
     // Work item info should be stored
     Assert.AreEqual(size, wInfo)
     // A struct type Int4 should NOT be added to the global types
     Assert.AreEqual(None, (result.KFGRoot :?> KFGKernelNode).Module.GlobalTypes |> Seq.tryFind(fun t -> t = typeof<int4>))
+    let log, success = TestUtil.TryCompileOpenCL((result.KFGRoot :?> KFGKernelNode).Module.Code.Value)
+    if not success then
+        Assert.Fail(log)
 
 [<Test>]
 let ``Can compile custom struct vector add`` () =
@@ -113,11 +122,14 @@ let ``Can compile custom struct vector add`` () =
     let c = Array.zeroCreate<MyStruct> 64
     let size = new WorkSize(64L, 64L)
     let result = compiler.Compile(<@ VectorAddStruct(a, b, c, size) @>) :?> IKernelExpression
-    let wInfo = LeafExpressionConverter.EvaluateQuotation((result.KFGRoot :?> KFGKernelNode).Module.Kernel.WorkSize.Value)
+    let wInfo = (result.KFGRoot :?> KFGKernelNode).Module.Kernel.WorkSize.Value
     // Work item info should be stored
     Assert.AreEqual(size, wInfo)
     // A struct type should be added to the global types
     Assert.AreNotEqual(None, (result.KFGRoot :?> KFGKernelNode).Module.GlobalTypes |> Seq.tryFind(fun t -> t = typeof<MyStruct>))
+    let log, success = TestUtil.TryCompileOpenCL((result.KFGRoot :?> KFGKernelNode).Module.Code.Value)
+    if not success then
+        Assert.Fail(log)
         
 [<Test>]
 let ``Can compile custom struct with custom constructor vector add`` () =
@@ -127,11 +139,14 @@ let ``Can compile custom struct with custom constructor vector add`` () =
     let c = Array.zeroCreate<MyStruct> 64
     let size = new WorkSize(64L, 64L)
     let result = compiler.Compile(<@ VectorAddStructWithConstructor(a, b, c, size) @>) :?> IKernelExpression
-    let wInfo = LeafExpressionConverter.EvaluateQuotation((result.KFGRoot :?> KFGKernelNode).Module.Kernel.WorkSize.Value)
+    let wInfo = (result.KFGRoot :?> KFGKernelNode).Module.Kernel.WorkSize.Value
     // Work item info should be stored
     Assert.AreEqual(size, wInfo)
     // A struct type should be added to the global types
     Assert.AreNotEqual(None, (result.KFGRoot :?> KFGKernelNode).Module.GlobalTypes |> Seq.tryFind(fun t -> t = typeof<MyStruct>))
+    let log, success = TestUtil.TryCompileOpenCL((result.KFGRoot :?> KFGKernelNode).Module.Code.Value)
+    if not success then
+        Assert.Fail(log)
     
 [<Test>]
 let ``Can compile custom record vector add`` () =
@@ -141,9 +156,12 @@ let ``Can compile custom record vector add`` () =
     let c = Array.zeroCreate<MyRecord> 64
     let size = new WorkSize(64L, 64L)
     let result = compiler.Compile(<@ VectorAddRecord(a, b, c, size) @>) :?> IKernelExpression
-    let wInfo = LeafExpressionConverter.EvaluateQuotation((result.KFGRoot :?> KFGKernelNode).Module.Kernel.WorkSize.Value)
+    let wInfo = (result.KFGRoot :?> KFGKernelNode).Module.Kernel.WorkSize.Value
     // Work item info should be stored
     Assert.AreEqual(size, wInfo)
     // A struct type should be added to the global types
     Assert.AreNotEqual(None, (result.KFGRoot :?> KFGKernelNode).Module.GlobalTypes |> Seq.tryFind(fun t -> t = typeof<MyRecord>))
+    let log, success = TestUtil.TryCompileOpenCL((result.KFGRoot :?> KFGKernelNode).Module.Code.Value)
+    if not success then
+        Assert.Fail(log)
     

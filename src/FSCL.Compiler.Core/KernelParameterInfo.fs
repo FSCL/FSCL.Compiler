@@ -20,7 +20,7 @@ type AccessAnalysisResult =
 type FunctionParameterType =
 | NormalParameter
 | SizeParameter
-| DynamicArrayParameter of Expr array
+| DynamicReturnArrayParameter of (Expr * (obj * (obj list) * obj -> int))[]
 //| AutoArrayParameter
 | OutValParameter of Expr
 | EnvVarParameter of Var
@@ -46,7 +46,7 @@ type IFunctionParameter =
             
     abstract IsSizeParameter: bool with get
     abstract IsNormalParameter: bool with get
-    abstract IsDynamicArrayParameter: bool with get
+    abstract IsDynamicReturnArrayParameter: bool with get
     abstract IsOutValParameter: bool with get
     abstract IsEnvVarParameter: bool with get
     abstract IsImplicitParameter: bool with get
@@ -134,9 +134,9 @@ type FunctionParameter(name:string,
             with get() = 
                 this.IsNormalParameter     
 
-        member this.IsDynamicArrayParameter 
+        member this.IsDynamicReturnArrayParameter 
             with get() = 
-                this.IsDynamicArrayParameter
+                this.IsDynamicReturnArrayParameter
                  
         member this.IsImplicitParameter 
             with get() = 
@@ -215,9 +215,9 @@ type FunctionParameter(name:string,
             false     
         with get
            
-    member val IsDynamicArrayParameter =
+    member val IsDynamicReturnArrayParameter =
         match parameterType with
-        | DynamicArrayParameter(_) ->
+        | DynamicReturnArrayParameter(_) ->
             true
         | _ ->
             false     
@@ -287,7 +287,7 @@ type FunctionParameter(name:string,
 //        with get
     
                     
-
+                    (*
 type IOriginalFunctionParameter =
     inherit IFunctionParameter
     abstract OriginalParamterInfo: ParameterInfo with get
@@ -298,6 +298,7 @@ type OriginalFunctionParameter(p: ParameterInfo, placeholder: Quotations.Var, me
         member this.OriginalParamterInfo 
             with get() =
                 p
+                *)
 
 
      

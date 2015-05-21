@@ -13,7 +13,7 @@ open System.Reflection
 type DynamicAllocationLiftingProcessor() =
     inherit FunctionTransformationProcessor()
             
-    override this.Run(expr, en, opts) =
+    override this.Run((expr, cont, def), en, opts) =
         let engine = en :?> FunctionTransformationStep
         match expr with
         | Patterns.Let(var, value, body) ->
@@ -26,14 +26,14 @@ type DynamicAllocationLiftingProcessor() =
                     (*if engine.FunctionInfo.CustomInfo.ContainsKey("RETURN_TYPE") then
                         let returnedVars = engine.FunctionInfo.CustomInfo.["RETURN_TYPE"] :?> (Var * Expr list) list                        
                         if (List.tryFind(fun (v:Var, args:Expr list) -> v = var) returnedVars).IsSome then*)
-                            engine.Continue(body)
+                            cont(body)
                         //else
-                            //engine.Default(expr)
+                            //def(expr)
                     //else
-                        //engine.Default(expr)
+                        //def(expr)
                 else
-                    engine.Default(expr)
+                    def(expr)
             | _ ->           
-                engine.Default(expr)
+                def(expr)
         | _ ->
-            engine.Default(expr)
+            def(expr)

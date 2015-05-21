@@ -28,8 +28,6 @@ type FunctionCodegenStep(tm: TypeManager,
                                 processors: ICompilerStepProcessor list) = 
     inherit CompilerStep<KernelExpression, KernelExpression>(tm, processors)
     
-    let mutable opts = null
-
     let signatureProcessors = List.map(fun (p:ICompilerStepProcessor) ->
                                         p :?> FunctionSignatureCodegenProcessor) (List.filter (fun (p:ICompilerStepProcessor) -> 
                                                                                  typeof<FunctionSignatureCodegenProcessor>.IsAssignableFrom(p.GetType())) processors)
@@ -48,21 +46,23 @@ type FunctionCodegenStep(tm: TypeManager,
             this.currentFunction
         and private set(v) =
             this.currentFunction <- v
-            
+                        
+    member this.GetFunctionInfo (id:FunctionInfoID) =
+        0//km.Functions.[id]            
 
-    member private this.Process(expression: Expr) =
+    member private this.Process(expression: Expr, opts) =
         // At first, check generic processors (for complex constructs)
         let mutable index = 0
         let mutable output = None        
         while (output.IsNone) && (index < bodyProcessors.Length) do
-            output <- bodyProcessors.[index].Run(expression, this, opts)
+            output <- bodyProcessors.[index].Run((expression, fun e -> this.Process(e, opts)), this, opts)
             index <- index + 1
         // If no suitable generic processor, use specific ones
         if (output.IsNone) then
             raise (CompilerException("Unrecognized construct in kernel body " + expression.ToString()))
         output.Value
         
-    member private this.Process(name: string, parameters: FunctionParameter list) =
+    member private this.Process(name: string, parameters: FunctionParameter list, opts) =
         // At first, check generic processors (for complex constructs)
         let mutable index = 0
         let mutable output = None        
@@ -78,13 +78,11 @@ type FunctionCodegenStep(tm: TypeManager,
     ///The method that processors should call to recursively apply the step (the entire set of processors) to an AST (sub)node
     ///</summary>
     ///
-    member this.Continue(expression: Expr) =
-        this.Process(expression)
         
-    member private this.Process(f:FunctionInfo) =
+    member private this.Process (f:FunctionInfo, opts:Map<string, obj>) =
         this.FunctionInfo <- f
-        let processedSignature = this.Process(this.FunctionInfo.ParsedSignature.Name, this.FunctionInfo.Parameters)
-        let processedBody = this.Process(this.FunctionInfo.Body)
+        let processedSignature = this.Process(this.FunctionInfo.Name, this.FunctionInfo.Parameters, opts)
+        let processedBody = this.Process(this.FunctionInfo.Body, opts)
         this.FunctionInfo.SignatureCode <- processedSignature
         this.FunctionInfo.Code <- processedSignature + "{\n" + processedBody + "\n}"
     ///
@@ -96,15 +94,14 @@ type FunctionCodegenStep(tm: TypeManager,
     ///The modified kernel module
     ///</returns>
     ///       
-    override this.Run(cem, opt) =    
-        if not (opt.ContainsKey(CompilerOptions.NoCodegen)) then
-            opts <- opt           
+    override this.Run(cem, opts) =    
+        if not (opts.ContainsKey(CompilerOptions.NoCodegen)) then
             for km in cem.KernelModulesRequiringCompilation do 
                 // Process functions
                 for f in km.Functions do
-                    this.Process(f.Value :?> FunctionInfo)
+                    this.Process (f.Value :?> FunctionInfo, opts)
                 // Process kernel
-                this.Process(km.Kernel)
+                this.Process (km.Kernel, opts)
             // Process defines
             //for d in km.StaticConstantDefines do
               //  km.StaticConstantDefinesCode.Add(d.Key, this.Process(d.Value))

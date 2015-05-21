@@ -31,8 +31,8 @@ type CallCodegen() =
     inherit FunctionBodyCodegenProcessor()
 
     // Set of calls to cast values
-    let castMethods = new Dictionary<MethodInfo, string>()
-    do
+    static let castMethods = new Dictionary<MethodInfo, string>()
+    static do
         castMethods.Add(ExtractMethodInfo(<@ int @>).Value.TryGetGenericMethodDefinition(), "int")
         castMethods.Add(ExtractMethodInfo(<@ uint32 @>).Value.TryGetGenericMethodDefinition(), "unsigned int")
         castMethods.Add(ExtractMethodInfo(<@ char @>).Value.TryGetGenericMethodDefinition(), "char")
@@ -44,11 +44,11 @@ type CallCodegen() =
         castMethods.Add(ExtractMethodInfo(<@ uint64 @>).Value.TryGetGenericMethodDefinition(), "ulong")
 
     // Set of .NET Math functions that can be used in place of the OpenCL matching ones
-    let alternativeFunctions = new Dictionary<MethodInfo, string>()
-    let populateAlternativeFunctions(quotedMeth: Expr, mathingFunction: string) =
+    static let alternativeFunctions = new Dictionary<MethodInfo, string>()
+    static let populateAlternativeFunctions = fun(quotedMeth: Expr, mathingFunction: string) ->
         alternativeFunctions.Add(ExtractMethodInfo(quotedMeth).Value.TryGetGenericMethodDefinition(), mathingFunction)
 
-    do
+    static do
         populateAlternativeFunctions(<@ Math.Acos @>, "acos")
         populateAlternativeFunctions(<@ Microsoft.FSharp.Core.Operators.acos @>, "acos")
         populateAlternativeFunctions(<@ Math.Asin @>, "asin")
@@ -111,7 +111,7 @@ type CallCodegen() =
     ///The target code for the method call (a function call in the target)if the AST node can be processed (i.e. if the source node is a method call)
     ///</returns>
     ///  
-    override this.Run(expr, en, opts) =
+    override this.Run((expr, cont), en, opts) =
         let step = en :?> FunctionCodegenStep
         match expr with
         | DerivedPatterns.SpecificCall <@ local @> (o, mi, a) ->
@@ -132,58 +132,32 @@ type CallCodegen() =
                     ""
             let returnPostfix = if returnPrefix.Length > 0 then ";\n" else ""
             
-            // Get args filtering out WorkItemInfo(s)
-            let mutable args = a |> 
-                               List.filter(fun (e:Expr) -> e.Type <> typeof<WorkItemInfo>) |> 
-                               List.map (fun (e:Expr) -> step.Continue(e)) |>  
-                               String.concat ", "
-                               
-            // Check if call to an utility function
-            // In such case codegen outsiders (and possibly length args)
-           (* let utilityFunction = step.FunctionInfo.CalledFunctions |> Seq.tryFind(fun id -> id = MethodID(mi))
-            if utilityFunction.IsSome then
-                let funInfo = step.Functions.[utilityFunction.Value]
-                let genPars = new List<string>()
-                // Pass the length of the array arguments
-                for i = 0 to a.Length - 1 do
-                    let argument = a.[i]
-                    if argument.Type.IsArray then
-                        for r = 0 to FSCL.Compiler.Util.ArrayUtil.GetArrayDimensions(argument.Type) - 1 do
-                            genPars.Add(step.FunctionInfo.Parameters.[i])
-                    ()
-                    
-                // Check outsiders
-                for genP in funInfo.GeneratedParameters do
-                    match genP.ParameterType with
-                    | OutsiderParameter ->
-                        genPars.Add(genP.Name)
-                    | _ ->
-                        ()
-                for genP in funInfo.GeneratedParameters do
-                    match genP.ParameterType with
-                    | SizeParameter ->
-                        genPars.Add(genP.Name)
-                    | _ ->
-                        ()
+            // Check if any additional argument to pass
+            let theArgs = 
+                if step.FunctionInfo.CallMapping.ContainsKey(expr) then
+                    step.FunctionInfo.CallMapping.[expr]
+                else
+                    a
+            
+            // Get args filtering out WorkItemInfo(s)                               
+            let args = theArgs |> 
+                       List.filter(fun (e:Expr) -> e.Type <> typeof<WorkItemInfo>) |> 
+                       List.map (fun (e:Expr) -> cont(e)) |>  
+                       String.concat ", "
 
-                args <- a |> 
-                        List.filter(fun (e:Expr) -> e.Type <> typeof<WorkItemInfo>) |> 
-                        List.map (fun (e:Expr) -> step.Continue(e)) |>  
-                        String.concat ","
-*)
             // Check if this is a cast
             if mi.IsGenericMethod && castMethods.ContainsKey(mi.GetGenericMethodDefinition()) then
-                Some(returnPrefix + "(" + step.TypeManager.Print(mi.ReturnType) + ")(" + step.Continue(a.[0]) + ")" + returnPostfix)
+                Some(returnPrefix + "(" + step.TypeManager.Print(mi.ReturnType) + ")(" + cont(a.[0]) + ")" + returnPostfix)
 
             // Check if this is a call to IsSome or IsNone for option types            
             else if o.IsNone && mi.IsStatic && mi.Name = "get_IsSome" && a.[0].Type.IsOption then 
-                Some(returnPrefix + "(" + step.Continue(a.[0]) + ").IsSome")  
+                Some(returnPrefix + "(" + cont(a.[0]) + ").IsSome")  
                  
             // Check if this is a call to fst or snd for tuple types         
             else if o.IsNone && mi.IsStatic && mi.Name = "Fst" && a.Length > 0 && FSharpType.IsTuple(a.[0].Type) then 
-                Some(returnPrefix + "(" + step.Continue(a.[0]) + ").Item0")     
+                Some(returnPrefix + "(" + cont(a.[0]) + ").Item0")     
             else if o.IsNone && mi.IsStatic && mi.Name = "Snd" && a.Length > 0 && FSharpType.IsTuple(a.[0].Type) then 
-                Some(returnPrefix + "(" + step.Continue(a.[0]) + ").Item1")     
+                Some(returnPrefix + "(" + cont(a.[0]) + ").Item1")     
 
             // Check Vector operators
             else if (mi.DeclaringType <> null && mi.DeclaringType.GetCustomAttribute<VectorTypeAttribute>() <> null && mi.Name = "vload") then
@@ -202,16 +176,16 @@ type CallCodegen() =
                 let sat = mi.Name.EndsWith("Sat")
                 let rounding = LeafExpressionConverter.EvaluateQuotation(a.[1]) :?> VectorTypeConversionRoundingMode option
                 if rounding.IsSome then
-                    Some(returnPrefix + "convert_" + step.TypeManager.Print(mi.ReturnType) + (if sat then "_sat" else "") + "_" + rounding.Value.ToString() + "(" + step.Continue(a.[0]) + ")" + returnPostfix)
+                    Some(returnPrefix + "convert_" + step.TypeManager.Print(mi.ReturnType) + (if sat then "_sat" else "") + "_" + rounding.Value.ToString() + "(" + cont(a.[0]) + ")" + returnPostfix)
                 else
-                    Some(returnPrefix + "convert_" + step.TypeManager.Print(mi.ReturnType) + (if sat then "_sat" else "") + "(" + step.Continue(a.[0]) + ")" + returnPostfix)
+                    Some(returnPrefix + "convert_" + step.TypeManager.Print(mi.ReturnType) + (if sat then "_sat" else "") + "(" + cont(a.[0]) + ")" + returnPostfix)
             // Pointer arithmetic
             else if (mi.Name = "[]`1.pasum") then
                 // Pointer arithmetic sum
-                Some(returnPrefix + "(" + step.Continue(a.[0]) + ") + (" + step.Continue(a.[1]) + ")" + returnPostfix)
+                Some(returnPrefix + "(" + cont(a.[0]) + ") + (" + cont(a.[1]) + ")" + returnPostfix)
             else if (mi.Name = "[]`1.pasub") then
                 // Pointer arithmetic subtraction
-                Some(returnPrefix + "(" + step.Continue(a.[0]) + ") - (" + step.Continue(a.[1]) + ")" + returnPostfix)
+                Some(returnPrefix + "(" + cont(a.[0]) + ") - (" + cont(a.[1]) + ")" + returnPostfix)
             // Check work item info functions
             else if mi.DeclaringType <> null && mi.DeclaringType = typeof<WorkItemInfo> then
                 match mi.Name with
@@ -231,8 +205,10 @@ type CallCodegen() =
                     Some(returnPrefix + "get_num_groups(" + args + ")" + returnPostfix)
                 | "WorkDim" ->
                     Some(returnPrefix + "get_work_dim()" + returnPostfix)
+                | "LocalBarrier" ->
+                    Some(returnPrefix + "barrier(CLK_LOCAL_MEM_FENCE);")
                 | _ ->
-                    Some(returnPrefix + "barrier(" + args + ");")
+                    Some(returnPrefix + "barrier(CLK_GLOBAL_MEM_FENCE);")
             // Check alternative function
             else 
                 if alternativeFunctions.ContainsKey(mi.TryGetGenericMethodDefinition()) then

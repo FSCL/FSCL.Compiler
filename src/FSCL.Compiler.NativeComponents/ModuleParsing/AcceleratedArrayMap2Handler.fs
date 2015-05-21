@@ -15,10 +15,10 @@ open Microsoft.FSharp.Linq.RuntimeHelpers
 
 type AcceleratedArrayMap2Handler() =    
     interface IAcceleratedCollectionHandler with
-        member this.Process(methodInfo, cleanArgs, root, meta, step, env) =
+        member this.Process(methodInfo, cleanArgs, root, meta, step, env, opts) =
             // Inspect operator
-            let computationFunction, subExpr, isLambda =                
-                AcceleratedCollectionUtil.ParseOperatorLambda(cleanArgs.[0], step, env)
+            let computationFunction, subExpr =                
+                AcceleratedCollectionUtil.ParseOperatorLambda(cleanArgs.[0], step, env, opts)
                                 
             match subExpr with
             | Some(kfg, newEnv) ->
@@ -26,34 +26,27 @@ type AcceleratedArrayMap2Handler() =
                 let node = new KFGCollectionCompositionNode(methodInfo, kfg, newEnv)
                 
                 // Parse arguments
-                let subnode1 = step.Process(cleanArgs.[1], env)
-                let subnode2 = step.Process(cleanArgs.[2], env)
+                let subnode1 = step.Process(cleanArgs.[1], env, opts)
+                let subnode2 = step.Process(cleanArgs.[2], env, opts)
                 node.InputNodes.Add(subnode1)
                 node.InputNodes.Add(subnode2)
                 Some(node :> IKFGNode)   
             | _ ->
                 // This coll fun is a kernel
                 match computationFunction with
-                | Some(thisVar, ob, functionInfo, functionParamVars, functionBody) ->
+                | Some(thisVar, ob, functionName, functionInfo, functionParamVars, functionReturnType, functionBody) ->
                     // We need to get the type of a array whose elements type is the same of the functionInfo parameter
                     let firstInputArrayType, secondInputArrayType = 
                         if methodInfo.Name = "Map2" then
-                            (functionInfo.GetParameters().[0].ParameterType.MakeArrayType(), functionInfo.GetParameters().[1].ParameterType.MakeArrayType())
+                            (functionParamVars.[0].Type.MakeArrayType(), functionParamVars.[1].Type.MakeArrayType())
                         else
-                            (functionInfo.GetParameters().[1].ParameterType.MakeArrayType(), functionInfo.GetParameters().[2].ParameterType.MakeArrayType())
-                    let outputArrayType = functionInfo.ReturnType.MakeArrayType()
-                    let kernelPrefix, functionName = 
+                            (functionParamVars.[1].Type.MakeArrayType(), functionParamVars.[2].Type.MakeArrayType())
+                    let outputArrayType = functionReturnType.MakeArrayType()
+                    let kernelName, runtimeName = 
                         if methodInfo.Name = "Map2" then
-                            "ArrayMap2_", "Array.map2"
+                            "ArrayMap2_" + functionName, "Array.map2"
                         else
-                            "ArrayMapi2_", "Array.mapi2"     
-                                    
-                    // Now we can create the signature and define parameter name
-                    let signature = DynamicMethod(kernelPrefix + "_" + functionInfo.Name, outputArrayType, [| firstInputArrayType; secondInputArrayType; typeof<WorkItemInfo> |])
-                    signature.DefineParameter(1, ParameterAttributes.In, "input_array_1") |> ignore
-                    signature.DefineParameter(2, ParameterAttributes.In, "input_array_2") |> ignore
-                    //signature.DefineParameter(3, ParameterAttributes.In, "output_array") |> ignore
-                    signature.DefineParameter(3, ParameterAttributes.In, "workItemInfo") |> ignore
+                            "ArrayMapi2_" + functionName, "Array.mapi2"     
                     
                     // Create parameters placeholders
                     let input1Holder = Quotations.Var("input_array_1", firstInputArrayType)
@@ -64,16 +57,16 @@ type AcceleratedArrayMap2Handler() =
 
                     // Finally, create the body of the kernel
                     let globalIdVar = Quotations.Var("global_id", typeof<int>)
-                    let firstGetElementMethodInfo, _ = AcceleratedCollectionUtil.GetArrayAccessMethodInfo(firstInputArrayType.GetElementType())
-                    let secondGetElementMethodInfo, _ = AcceleratedCollectionUtil.GetArrayAccessMethodInfo(secondInputArrayType.GetElementType())
-                    let _, setElementMethodInfo = AcceleratedCollectionUtil.GetArrayAccessMethodInfo(outputArrayType.GetElementType())
+                    let firstGetElementMethodInfo, _ = AcceleratedCollectionUtil.GetArrayAccessMethodInfo(firstInputArrayType.GetElementType(), 1)
+                    let secondGetElementMethodInfo, _ = AcceleratedCollectionUtil.GetArrayAccessMethodInfo(secondInputArrayType.GetElementType(), 1)
+                    let _, setElementMethodInfo = AcceleratedCollectionUtil.GetArrayAccessMethodInfo(outputArrayType.GetElementType(), 1)
                     let kernelBody = 
                         Expr.Lambda(tupleHolder,
                             Expr.Let(input1Holder, Expr.TupleGet(Expr.Var(tupleHolder), 0),
                                 Expr.Let(input2Holder, Expr.TupleGet(Expr.Var(tupleHolder), 1),
                                     Expr.Let(wiHolder, Expr.TupleGet(Expr.Var(tupleHolder), 2),
                                         Expr.Let(outputHolder, Expr.Call(
-                                                            ZeroCreateMethod(outputArrayType.GetElementType()), 
+                                                            GetZeroCreateMethod(outputArrayType.GetElementType(), 1), 
                                                                                 [ Expr.PropertyGet(Expr.Var(input1Holder), 
                                                                                                 firstInputArrayType.GetProperty("Length")) ]),
                                             Expr.Let(globalIdVar,
@@ -82,9 +75,8 @@ type AcceleratedArrayMap2Handler() =
                                                             Expr.Call(setElementMethodInfo,
                                                                 [ Expr.Var(outputHolder);
                                                                     Expr.Var(globalIdVar);
-                                                                    AcceleratedCollectionUtil.BuildCallExpr(
-                                                                            ob, 
-                                                                            functionInfo,
+                                                                    AcceleratedCollectionUtil.BuildApplication(
+                                                                            functionBody,
                                                                             
                                                                             if methodInfo.Name = "Map2" then
                                                                                 [ Expr.Call(firstGetElementMethodInfo,
@@ -114,22 +106,22 @@ type AcceleratedArrayMap2Handler() =
                     // Add the current kernel
                     let envVars, outVals = 
                         QuotationAnalysis.KernelParsing.ExtractEnvRefs(functionBody)
-                    let mapFunctionInfo = new FunctionInfo(functionInfo, 
-                                                           functionInfo.GetParameters() |> List.ofArray, 
-                                                           functionParamVars,
-                                                           envVars, outVals,
+                    let mapFunctionInfo = new FunctionInfo(functionName, 
                                                            None,
-                                                           functionBody, isLambda)
+                                                           functionParamVars,
+                                                           functionReturnType,
+                                                           envVars, outVals,
+                                                           functionBody)
                                                            
                     // Add current kernelbody
-                    let methodParams = signature.GetParameters()
-                    let kInfo = new AcceleratedKernelInfo(signature, 
-                                                          [ methodParams.[0]; methodParams.[1] ],
+                    let kInfo = new AcceleratedKernelInfo(kernelName, 
+                                                          methodInfo,
                                                           [ input1Holder; input2Holder ],
+                                                          outputArrayType,
                                                           envVars, outVals,
                                                           kernelBody,
-                                                          meta, 
-                                                          functionName, Some(mapFunctionInfo :> IFunctionInfo),
+                                                          meta,
+                                                          runtimeName, Some(mapFunctionInfo :> IFunctionInfo),
                                                           Some(functionBody))
                     let kernelModule = new KernelModule(thisVar, ob, kInfo)
 
@@ -144,9 +136,9 @@ type AcceleratedArrayMap2Handler() =
 //                        node.InputNodes.Add(new KFGOutsiderDataNode(o))
 
                     // Parse arguments
-                    let subnode1 = step.Process(cleanArgs.[1], env)
+                    let subnode1 = step.Process(cleanArgs.[1], env, opts)
                     node.InputNodes.Add(subnode1)
-                    let subnode2 = step.Process(cleanArgs.[2], env)
+                    let subnode2 = step.Process(cleanArgs.[2], env, opts)
                     node.InputNodes.Add(subnode2)
 
                     Some(node :> IKFGNode)  

@@ -25,36 +25,39 @@ let RecordSum(a: MyRecord) (b: MyRecord) =
     
 [<Test>]
 let ``Can compile array.map2 collection function`` () =
-    let compiler = new Compiler()
-    let a = Array.create 64 1.0f
-    let b = Array.create 64 1.0f
+    let compiler, a, b, _, _ = TestUtil.GetVectorSampleData()
     let result = compiler.Compile(<@ Array.map2 FloatSum a b @>) :?> IKernelExpression
     //printf "%s\n" (result.Code.Value.ToString())
     // No work item info should be stored
     Assert.AreEqual((result.KFGRoot :?> KFGKernelNode).Module.Kernel.WorkSize, None)
-    Assert.AreEqual(1, (result.KFGRoot :?> KFGKernelNode).Module.Functions.Count)
+    Assert.AreEqual(2, (result.KFGRoot :?> KFGKernelNode).Module.Functions.Count)
+    let log, success = TestUtil.TryCompileOpenCL((result.KFGRoot :?> KFGKernelNode).Module.Code.Value)
+    if not success then
+        Assert.Fail(log)
     
 [<Test>]
 let ``Can compile array.map2 collection function with lambda`` () =
-    let compiler = new Compiler()
-    let a = Array.create 64 1.0f
-    let b = Array.create 64 1.0f
+    let compiler, a, b, _, _ = TestUtil.GetVectorSampleData()
     let result = compiler.Compile(<@ Array.map2 (fun e1 e2 -> e1 + e2) a b @>) :?> IKernelExpression
     //printf "%s\n" (result.Code.Value.ToString())
     // No work item info should be stored
     Assert.AreEqual(None, (result.KFGRoot :?> KFGKernelNode).Module.Kernel.WorkSize)
     Assert.AreEqual(1, (result.KFGRoot :?> KFGKernelNode).Module.Functions.Count)
+    let log, success = TestUtil.TryCompileOpenCL((result.KFGRoot :?> KFGKernelNode).Module.Code.Value)
+    if not success then
+        Assert.Fail(log)
     
 [<Test>]
 let ``Can compile array.reduce lambda`` () =
-    let compiler = new Compiler()
-    let a = Array.create 64 1.0f
-    let b = Array.create 64 1.0f
+    let compiler, a, b, _, _ = TestUtil.GetVectorSampleData()
     let result = compiler.Compile(<@ Array.reduce (fun e1 e2 -> e1 + e2) a @>) :?> IKernelExpression
     //printf "%s\n" (result.Code.Value.ToString())
     // No work item info should be stored
     Assert.AreEqual(None, (result.KFGRoot :?> KFGKernelNode).Module.Kernel.WorkSize)
     Assert.AreEqual(1, (result.KFGRoot :?> KFGKernelNode).Module.Functions.Count)
+    let log, success = TestUtil.TryCompileOpenCL((result.KFGRoot :?> KFGKernelNode).Module.Code.Value)
+    if not success then
+        Assert.Fail(log)
     
 [<Test>]
 let ``Can compile array.reduce with record data-type`` () =
@@ -64,7 +67,10 @@ let ``Can compile array.reduce with record data-type`` () =
     //printf "%s\n" (result.Code.Value.ToString())
     // No work item info should be stored
     Assert.AreEqual(None, (result.KFGRoot :?> KFGKernelNode).Module.Kernel.WorkSize)
-    Assert.AreEqual(1, (result.KFGRoot :?> KFGKernelNode).Module.Functions.Count)
+    Assert.AreEqual(2, (result.KFGRoot :?> KFGKernelNode).Module.Functions.Count)
+    let log, success = TestUtil.TryCompileOpenCL((result.KFGRoot :?> KFGKernelNode).Module.Code.Value)
+    if not success then
+        Assert.Fail(log)
     
 [<Test>]
 let ``Can compile array.reduce lambda with record data-type`` () =
@@ -77,4 +83,7 @@ let ``Can compile array.reduce lambda with record data-type`` () =
     //printf "%s\n" (result.Code.Value.ToString())
     Assert.AreEqual(None, (result.KFGRoot :?> KFGKernelNode).Module.Kernel.WorkSize)
     Assert.AreEqual(1, (result.KFGRoot :?> KFGKernelNode).Module.Functions.Count)
+    let log, success = TestUtil.TryCompileOpenCL((result.KFGRoot :?> KFGKernelNode).Module.Code.Value)
+    if not success then
+        Assert.Fail(log)
     

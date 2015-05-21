@@ -44,7 +44,7 @@ type RightHandlLetInliner() =
         | ExprShape.ShapeCombination(o, args) ->
             ExprShape.RebuildShapeCombination(o, List.map (fun (e:Expr) -> InlineLet(e)) args)
 
-    override this.Run(expr, en, opts) =
+    override this.Run((expr, cont, def), en, opts) =
         let engine = en :?> FunctionTransformationStep
         match expr with
         | Patterns.Call(o, methodInfo, args) ->
@@ -57,6 +57,6 @@ type RightHandlLetInliner() =
         | ExprShape.ShapeVar(va) ->
             expr           
         | ExprShape.ShapeLambda(lv, lb) ->
-            Expr.Lambda(lv, engine.Continue(lb))
+            Expr.Lambda(lv, cont(lb))
         | ExprShape.ShapeCombination(o, args) ->
-            ExprShape.RebuildShapeCombination(o, List.map (fun (e:Expr) -> engine.Continue(e)) args)
+            ExprShape.RebuildShapeCombination(o, List.map (fun (e:Expr) -> cont(e)) args)

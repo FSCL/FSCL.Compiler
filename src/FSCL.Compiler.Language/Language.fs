@@ -3,6 +3,7 @@
 open System 
 open System.Runtime.InteropServices
 open System.Threading
+open FSCL.Compiler
 
 module Language = 
     open FSCL.Compiler
@@ -91,10 +92,7 @@ module Language =
     ///<summary>
     ///Memory fance modes
     ///</summary>
-    ///
-    type MemFenceMode =
-    | CLK_LOCAL_MEM_FENCE
-    | CLK_GLOBAL_MEM_FENCE  
+    /// 
 
     type MetadataFunctionTarget =
     | KernelFunction = 0
@@ -1660,19 +1658,7 @@ component of x equals mantissa returned * 2exp *)
     ///debuggable multithrad implementation that programmers can use to test their kernels
     ///</remarks>
     ///
-    type WorkItemInfo = 
-        interface
-            abstract member GlobalID: int -> int
-            abstract member LocalID: int -> int
-            abstract member GlobalSize: int -> int
-            abstract member LocalSize: int -> int
-            abstract member NumGroups: int -> int
-            abstract member GroupID: int -> int
-            abstract member GlobalOffset: int -> int
-            abstract member WorkDim: unit -> int
-            abstract member Barrier: MemFenceMode -> unit
-        end
-        
+    
     type WorkSize(global_size: int64[], local_size: int64[], global_offset: int64[]) = 
         new (globalSize: int64[]) =
             WorkSize(globalSize, null, null)
@@ -1769,8 +1755,12 @@ component of x equals mantissa returned * 2exp *)
         default this.WorkDim() =
             global_size.Length
             
-        abstract member Barrier: MemFenceMode -> unit
-        default this.Barrier(fenceMode:MemFenceMode) =
+        abstract member LocalBarrier: unit -> unit
+        default this.LocalBarrier() =
+            ()
+            
+        abstract member GlobalBarrier: unit -> unit
+        default this.GlobalBarrier() =
             ()
 
         interface WorkItemInfo with
@@ -1790,8 +1780,10 @@ component of x equals mantissa returned * 2exp *)
                 this.GlobalOffset(dim)
             member this.WorkDim() =
                 this.WorkDim()
-            member this.Barrier(mfm) =
-                this.Barrier(mfm)
+            member this.LocalBarrier() =
+                this.LocalBarrier()
+            member this.GlobalBarrier() =
+                this.GlobalBarrier()
 
     // Datatype mapping      
     ///

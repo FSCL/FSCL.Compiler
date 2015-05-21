@@ -32,29 +32,35 @@ type KernelCallExpressionParser() =
         let step = s :?> ModuleParsingStep
         if (e :? Expr) then
             let norm = e :?> Expr
-            let data, isLambdaFun = 
+            let data = 
                 match norm with
                 | KernelCall(obv, ob, mi, paramInfo, paramVars, body, cleanArgs, workItemInfo, kMeta, rMeta, pMeta) -> 
-                    Some(obv, ob, mi, paramInfo, paramVars, body, cleanArgs, workItemInfo, kMeta, rMeta, pMeta), false
-                | KernelLambdaApplication(obv, ob, mi, paramInfo, paramVars, body, cleanArgs, workItemInfo, kMeta, rMeta, pMeta) -> 
-                    Some(obv, ob, mi, paramInfo, paramVars, body, cleanArgs, workItemInfo, kMeta, rMeta, pMeta), true
+                    Some(obv, ob, mi.Name, Some(mi), mi.ReturnType, Some(paramInfo), paramVars, body, cleanArgs, workItemInfo, kMeta, rMeta, pMeta)
+                | KernelLambdaApplication(obv, ob, lambdaName, returnType, paramVars, body, cleanArgs, workItemInfo, kMeta, rMeta, pMeta) -> 
+                    Some(obv, ob, lambdaName, None, returnType, None, paramVars, body, cleanArgs, workItemInfo, kMeta, rMeta, pMeta)
                 | _ ->
-                    None, false
+                    None
 
             match data with
-            | Some(obv, ob, mi, paramInfo, paramVars, body, cleanArgs, workItemInfo, kMeta, rMeta, pMeta) ->
+            | Some(obv, ob, miName, mi, returnType, paramInfo, paramVars, body, cleanArgs, workItemInfo, kMeta, rMeta, pMeta) ->
                 // Filter and finalize metadata
-                let finalMeta = step.ProcessMeta(kMeta, rMeta, pMeta, new Dictionary<string, obj>())
+                let finalMeta = step.ProcessMeta(kMeta, rMeta, pMeta, new Dictionary<string, obj>(), opts)
 
                 // Analyze body
                 let envVars, outVals = QuotationAnalysis.KernelParsing.ExtractEnvRefs(body)
 
                 // Create module
-                let kernel = new KernelInfo(mi, 
-                                            paramInfo |> List.ofArray, paramVars, 
+                let kernel = new KernelInfo(miName,
+                                            mi, 
+                                            paramVars,
+                                            returnType,
                                             envVars, outVals,
-                                            workItemInfo, body,
-                                            finalMeta, isLambdaFun)
+                                            (if workItemInfo.IsSome then
+                                                Some(LeafExpressionConverter.EvaluateQuotation(workItemInfo.Value) :?> WorkItemInfo)
+                                             else
+                                                None),
+                                            body,
+                                            finalMeta)
                 let kernelModule = new KernelModule(obv, ob, kernel)
 
                 // Create node
@@ -62,7 +68,7 @@ type KernelCallExpressionParser() =
 
                 // Parse arguments
                 for i = 0 to paramVars.Length - 1 do
-                    let subnode = step.Process(cleanArgs.[i], env)
+                    let subnode = step.Process(cleanArgs.[i], env, opts)
                     node.InputNodes.Add(subnode)
                 Some(node :> IKFGNode)   
             | _ ->     

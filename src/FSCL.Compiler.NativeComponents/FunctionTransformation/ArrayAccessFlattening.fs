@@ -59,7 +59,7 @@ type ArrayAccessTransformation() =
             raise (CompilerException("Cannot determine the parameter referred by the kernel body " + var.Name))
         placeholder.Value
 
-    override this.Run(expr, en, opts) =
+    override this.Run((expr, cont, def), en, opts) =
         let engine = en :?> FunctionTransformationStep
         match expr with
         | Patterns.Call(o, methodInfo, args) ->
@@ -69,9 +69,9 @@ type ArrayAccessTransformation() =
                 | Patterns.Var(v) ->
                     UpdateArrayAccessMode(v.Name, AccessAnalysisResult.ReadAccess, engine)
                     UpdateArrayAccessMode(v.Name, AccessAnalysisResult.WriteAccess, engine)
-                    engine.Default(expr)        
+                    def(expr)        
                 | _ ->
-                    engine.Default(expr)     *)     
+                    def(expr)     *)     
             // If regular access 
             if methodInfo.DeclaringType <> null && methodInfo.DeclaringType.Name = "IntrinsicFunctions" then
                 match args.[0] with
@@ -85,7 +85,7 @@ type ArrayAccessTransformation() =
                             // Update the access mode of this array
                             //UpdateArrayAccessMode(v.Name, AccessAnalysisResult.ReadAccess, engine)
                             // Recursively process the arguments, except the array reference
-                            let processedArgs = args |> List.tail |> List.map (fun (a:Expr) -> engine.Continue(a))
+                            let processedArgs = args |> List.tail |> List.map (fun (a:Expr) -> cont(a))
                             Expr.Call(methodInfo, [Expr.Var(placeholder)] @ processedArgs)
                         elif methodInfo.Name = "GetArray2D" then
                             // Find the placeholder holding the variable of the flattened array
@@ -95,7 +95,7 @@ type ArrayAccessTransformation() =
                             // Update the access mode of this array
                             //UpdateArrayAccessMode(v.Name, AccessAnalysisResult.ReadAccess, engine)
                             // Recursively process the arguments, except the array reference
-                            let processedArgs = args |> List.tail |> List.map (fun (a:Expr) -> engine.Continue(a))
+                            let processedArgs = args |> List.tail |> List.map (fun (a:Expr) -> cont(a))
                             let accessIndex = <@@ ((%%(processedArgs.[0]):int) * (%%(sizePlaceHolders.[1]):int)) + %%(processedArgs.[1]):int @@>
                             // Create a new call for the flattened array
                             let (get,set) = GetArrayAccessMethodInfo(v.Type.GetElementType())
@@ -108,7 +108,7 @@ type ArrayAccessTransformation() =
                             // Update the access mode of this array
                             //UpdateArrayAccessMode(v.Name, AccessAnalysisResult.ReadAccess, engine)
                             // Recursively process the arguments, except the array reference                   
-                            let processedArgs = args |> List.tail |> List.map (fun (a:Expr) -> engine.Continue(a))
+                            let processedArgs = args |> List.tail |> List.map (fun (a:Expr) -> cont(a))
                             let accessIndex = <@@ ((%%(processedArgs.[0]):int) * (%%(sizePlaceHolders.[1]):int) * (%%(sizePlaceHolders.[2]):int)) + (%%(sizePlaceHolders.[2]):int) * (%%(processedArgs.[1]):int) + (%%(processedArgs.[2]):int) @@>
                             // Create a new call for the flattened array
                             let (get,set) = GetArrayAccessMethodInfo(v.Type.GetElementType())
@@ -119,7 +119,7 @@ type ArrayAccessTransformation() =
                             // Update the access mode of this array
                             //UpdateArrayAccessMode(v.Name, AccessAnalysisResult.WriteAccess, engine)
                             // Recursively process the arguments, except the array reference
-                            let processedArgs = args |> List.tail |> List.map (fun (a:Expr) -> engine.Continue(a))
+                            let processedArgs = args |> List.tail |> List.map (fun (a:Expr) -> cont(a))
                             // Create a new call for the flattened array
                             Expr.Call(methodInfo, [Expr.Var(placeholder)] @ processedArgs)
                         elif methodInfo.Name = "SetArray2D" then
@@ -130,7 +130,7 @@ type ArrayAccessTransformation() =
                             // Update the access mode of this array
                             //UpdateArrayAccessMode(v.Name, AccessAnalysisResult.WriteAccess, engine)
                             // Recursively process the arguments, except the array reference
-                            let processedArgs = args |> List.tail |> List.map (fun (a:Expr) -> engine.Continue(a))
+                            let processedArgs = args |> List.tail |> List.map (fun (a:Expr) -> cont(a))
                             let accessIndex = <@@ ((%%(processedArgs.[0]):int) * (%%(sizePlaceHolders.[1]):int)) + %%(processedArgs.[1]):int @@>
                             // Create a new call for the flattened array
                             let (get,set) = GetArrayAccessMethodInfo(v.Type.GetElementType())
@@ -143,17 +143,17 @@ type ArrayAccessTransformation() =
                             // Update the access mode of this array
                             //UpdateArrayAccessMode(v.Name, AccessAnalysisResult.WriteAccess, engine)
                             // Recursively process the arguments, except the array reference
-                            let processedArgs = args |> List.tail |> List.map (fun (a:Expr) -> engine.Continue(a))
+                            let processedArgs = args |> List.tail |> List.map (fun (a:Expr) -> cont(a))
                             let accessIndex = <@@ ((%%(processedArgs.[0]):int) * (%%(sizePlaceHolders.[1]):int) * (%%(sizePlaceHolders.[2]):int)) + (%%(sizePlaceHolders.[2]):int) * (%%(processedArgs.[1]):int) + (%%(processedArgs.[2]):int) @@>
                             // Create a new call for the flattened array
                             let (get,set) = GetArrayAccessMethodInfo(v.Type.GetElementType())
                             Expr.Call(set, [Expr.Var(placeholder); accessIndex; processedArgs.[3]])
                         else
-                            engine.Default(expr)
+                            def(expr)
                     else
-                        engine.Default(expr)
+                        def(expr)
                 | _ ->
-                    engine.Default(expr)
+                    def(expr)
 
             // Get length replaced with appropriate size parameter
             elif methodInfo.DeclaringType <> null && methodInfo.DeclaringType.Name = "Array" && (methodInfo.Name = "GetLength" || methodInfo.Name = "GetLongLength") then
@@ -168,9 +168,9 @@ type ArrayAccessTransformation() =
                             | _, Some(allocArgs) ->
                                 allocArgs.[value :?> int]
                             | _ ->
-                                engine.Default(expr)
+                                def(expr)
                         | _ ->
-                            engine.Default(expr)
+                            def(expr)
                     else
                         // Else
                         let arraySizeParameters = GetSizeParameters(v, engine)
@@ -179,11 +179,11 @@ type ArrayAccessTransformation() =
                             let sizePlaceholder = arraySizeParameters.[v :?> int].Placeholder
                             Expr.Var(sizePlaceholder)
                         | _ -> 
-                            engine.Default(expr)
+                            def(expr)
                 | _ ->
-                    engine.Default(expr)
+                    def(expr)
             else
-                engine.Default(expr)
+                def(expr)
                     
         | Patterns.PropertyGet(eOpt, pInfo, args) ->
             if eOpt.IsSome && eOpt.Value.Type.IsArray then
@@ -207,18 +207,18 @@ type ArrayAccessTransformation() =
                                         else
                                             Expr.Call(mi, [ allocArgs.[0]; Expr.Call(mi, allocArgs.Tail) ])
                                     | _ ->
-                                        engine.Default(expr)                                            
+                                        def(expr)                                            
                             | _ ->
-                                engine.Default(expr)
+                                def(expr)
                         else
                             let arraySizeParameters = GetSizeParameters(v, engine)
                             let sizePlaceholder = arraySizeParameters.[0].Placeholder
                             Expr.Var(sizePlaceholder)
                     else
-                        engine.Default(expr)
+                        def(expr)
                 | _ ->
-                    engine.Default(expr)
+                    def(expr)
             else
-                engine.Default(expr)
+                def(expr)
         | _ ->
-            engine.Default(expr)
+            def(expr)

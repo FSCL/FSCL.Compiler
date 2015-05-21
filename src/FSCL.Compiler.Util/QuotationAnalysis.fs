@@ -292,6 +292,19 @@ module QuotationAnalysis =
                     None
             | _ ->
                 None
+                
+        let rec SearchThisVariable(expr) =
+            match expr with
+            | ExprShape.ShapeVar(v) when v.Name = "this" ->
+                Some(v)
+            | ExprShape.ShapeVar(v) ->
+                None
+            | ExprShape.ShapeLambda(v, l) when v.Name = "this" ->
+                Some(v)
+            | ExprShape.ShapeLambda(v, l) ->
+                SearchThisVariable(l)
+            | ExprShape.ShapeCombination(o, l) ->
+                l |> List.tryPick(SearchThisVariable)
         
         let rec ExtractCall(expr: Expr) =   
             let rec ExtractCallInternal(expr, boundVarExprs: Expr list, unboundVars: Var list) =
@@ -329,6 +342,19 @@ module QuotationAnalysis =
                 Some(mi)
             | _ ->
                 None 
+                
+        // In some closures we get let V = V in b, where V = V (same type and name)
+        let rec ClearLambdaBodyFromLetLet(e:Expr) =
+            match e with
+            | Patterns.Let(v1, Patterns.Var(v2), body) when v1.Name = v2.Name && v1.Type = v2.Type ->
+                let b = body
+                body.Substitute(fun v ->
+                                    if v = v2 then
+                                        Some(Expr.Var(v1))
+                                    else
+                                        None) |> ClearLambdaBodyFromLetLet
+            | _ ->
+                e
 
         // Environment stuff
         let GetLambdaEnvironment(e:Expr) =
@@ -341,9 +367,11 @@ module QuotationAnalysis =
                 | Patterns.Let(v, Patterns.TupleGet(tv, i), body) ->
                     SetLambdaBody(body, l @ [v])
                 | e ->
-                    l, e          
+                    l, ClearLambdaBodyFromLetLet(e)          
                 
             SetLambdaBody(e, [])
+
+
                 
         let ApplyLambdaEnvironment(env:Var list, e:Expr) =
             let rec SetLambdaBody(e:Expr, l:Var list) =
@@ -400,7 +428,6 @@ module QuotationAnalysis =
             | ExprShape.ShapeCombination(o, l) ->
                 ExprShape.RebuildShapeCombination(o, l |> List.map(fun el -> ReplaceVarsWithValues(el, matching)))
         
-
     module KernelParsing =
         open MetadataExtraction
         open FunctionsManipulation
@@ -642,37 +669,71 @@ module QuotationAnalysis =
                     None
             | _ ->
                 None
+                                
+        let (|UtilityFunctionLambda|_|) (l: Expr) =         
+            let expr, kernelAttrs, returnAttrs = ParseKernelMetadata(l)
+         
+            // Check if this lambda encodes a kernel
+            let shouldProcess, parameters, returnType =
+                match LiftCurriedOrTupledArgs(l) with
+                | Some(b, ps) ->
+                    let filteredParams = ps |> List.filter(fun p -> typeof<WorkItemInfo>.IsAssignableFrom(p.Type) |> not)
+                    true, ps, b.Type
+                | None ->
+                    false, [], typeof<int>
 
-                                  
+            if shouldProcess then
+                let name = 
+                    ("lambda_" + (parameters |> List.map(fun p -> p.Type.ToString()) |> String.concat "_") + "_" + returnType.ToString()).Replace(".","_").Replace("+","_")
+                                            
+                // We have everything to build the module, we must clean and set the args only   
+                // Extract parameters vars                
+                Some(name, l, parameters, returnType)                                   
+            else
+                None
+                              
         let (|KernelLambdaApplication|_|) (e: Expr) =         
             let expr, kernelAttrs, returnAttrs = ParseKernelMetadata(e)
          
             match LiftLambdaApplication(e) with
             | Some(l, a) ->
-                match LambdaToMethod(l, true) with
-                | Some(signature, paramInfo, parameters) ->
-                    // We have everything to build the module, we must clean and set the args only   
-                    // Extract parameters vars                    
-                    let arguments = new List<Expr>()
-                    let mutable workItemInfoArg = None
-                    for i = 0 to a.Length - 1 do
-                        if not (typeof<WorkItemInfo>.IsAssignableFrom(a.[i].Type)) then
-                            arguments.Add(a.[i])
-                        else
-                            workItemInfoArg <- Some(a.[i])
+                //match LambdaToMethod(l, true) with
+                //| Some(signature, paramInfo, parameters) ->
+                
+                    // Check if this lambda encodes a kernel
+                    let shouldProcess, parameters, returnType =
+                        match LiftCurriedOrTupledArgs(l) with
+                        | Some(b, ps) ->
+                            let filteredParams = ps |> List.filter(fun p -> typeof<WorkItemInfo>.IsAssignableFrom(p.Type) |> not)
+                            let shouldProcess = filteredParams.Length < ps.Length
+                            shouldProcess, ps, b.Type
+                        | None ->
+                            false, [], typeof<int>
 
-                    let attrs = new List<ParamMetaCollection>()
-                    let args = new List<Expr>()
-                    let paramInfo = signature.GetParameters()
-                    for i = 0 to arguments.Count - 1 do
-                        let paramAttrs = new ParamMetaCollection()
-                        let cleanArg, paramAttrs = ParseParameterMetadata(arguments.[i])
-                        MergeWithStaticParameterMeta(paramAttrs, paramInfo.[i])
-                        attrs.Add(paramAttrs)
-                        args.Add(cleanArg)
-                    Some(None, None, signature, paramInfo, parameters, l, args |> List.ofSeq, workItemInfoArg, kernelAttrs, returnAttrs, attrs)                                   
-                | _ ->
-                    None
+                    if shouldProcess then
+                        let name = 
+                            "lambda_" + (parameters |> List.map(fun p -> p.Type.ToString()) |> String.concat "_") + "_" + returnType.ToString()
+                        
+                        // We have everything to build the module, we must clean and set the args only   
+                        // Extract parameters vars                    
+                        let arguments = new List<Expr>()
+                        let mutable workItemInfoArg = None
+                        for i = 0 to a.Length - 1 do
+                            if not (typeof<WorkItemInfo>.IsAssignableFrom(a.[i].Type)) then
+                                arguments.Add(a.[i])
+                            else
+                                workItemInfoArg <- Some(a.[i])
+
+                        let attrs = new List<ParamMetaCollection>()
+                        let args = new List<Expr>()
+                        for i = 0 to arguments.Count - 1 do
+                            let paramAttrs = new ParamMetaCollection()
+                            let cleanArg, paramAttrs = ParseParameterMetadata(arguments.[i])
+                            attrs.Add(paramAttrs)
+                            args.Add(cleanArg)
+                        Some(None, None, name, returnType, parameters, l, args |> List.ofSeq, workItemInfoArg, kernelAttrs, returnAttrs, attrs)                                   
+                    else
+                        None
             | _ ->
                 None
                         
@@ -855,7 +916,7 @@ module QuotationAnalysis =
                     Some(obv, ob, mi, parameters |> Seq.toArray, parameterVars |> List.ofSeq, b, arguments |> List.ofSeq, workItemInfoArg)
                 | _ ->
                     None
-                                   
+                                  
                 
         let rec CompositionToCallOrApplication(e: Expr) =    
             match e with
@@ -927,7 +988,12 @@ module QuotationAnalysis =
                     | _ ->
                         failwith "error"
                 else
-                    e
+                    let compositionArgs = a |> List.map(fun i -> CompositionToCallOrApplication(i))
+                    if o.IsSome then
+                        Expr.Call(o.Value, mi, compositionArgs)
+                    else
+                        Expr.Call(mi, compositionArgs)
+                        
             | ExprShape.ShapeVar(v) ->
                 e
             | ExprShape.ShapeLambda(l, b) ->

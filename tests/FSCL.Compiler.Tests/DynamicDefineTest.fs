@@ -156,6 +156,14 @@ let ``Can compile module kernel using module field from inside and outside modul
     Assert.NotNull(outsideResult)
     Assert.IsNotEmpty((outsideResult.KFGRoot :?> KFGKernelNode).Module.ConstantDefines)
     Assert.AreEqual(FirstConstDefineValue(outsideResult, None), 10.0f)
+
+    let log, success = TestUtil.TryCompileOpenCL((insideResult.KFGRoot :?> KFGKernelNode).Module.Code.Value)
+    if not success then
+        Assert.Fail(log)
+        
+    let log, success = TestUtil.TryCompileOpenCL((outsideResult.KFGRoot :?> KFGKernelNode).Module.Code.Value)
+    if not success then
+        Assert.Fail(log)
     
 [<Test>]
 let ``Can compile kernel using instance field from inside and outside instance`` () =
@@ -167,6 +175,14 @@ let ``Can compile kernel using instance field from inside and outside instance``
     let outsideResult = compiler.Compile(<@ wrapper.VectorAddUsingField(size, a, b, c) @>) :?> IKernelExpression
     Assert.IsNotEmpty((outsideResult.KFGRoot :?> KFGKernelNode).Module.ConstantDefines)
     Assert.AreEqual(FirstConstDefineValue(outsideResult, Some(wrapper)), 10.0f)
+
+    let log, success = TestUtil.TryCompileOpenCL((insideResult.KFGRoot :?> KFGKernelNode).Module.Code.Value)
+    if not success then
+        Assert.Fail(log)
+        
+    let log, success = TestUtil.TryCompileOpenCL((outsideResult.KFGRoot :?> KFGKernelNode).Module.Code.Value)
+    if not success then
+        Assert.Fail(log)
     
 [<Test>]
 let ``Can compile kernel using mutable instance field from inside and outside instance`` () =
@@ -189,6 +205,19 @@ let ``Can compile kernel using mutable instance field from inside and outside in
     Assert.IsNotEmpty((outsideResult2.KFGRoot :?> KFGKernelNode).Module.ConstantDefines)
     Assert.AreEqual(FirstConstDefineValue(outsideResult2, Some(wrapper)), 5.0f)
     
+    let log, success = TestUtil.TryCompileOpenCL((insideResult.KFGRoot :?> KFGKernelNode).Module.Code.Value)
+    if not success then
+        Assert.Fail(log)        
+    let log, success = TestUtil.TryCompileOpenCL((outsideResult.KFGRoot :?> KFGKernelNode).Module.Code.Value)
+    if not success then
+        Assert.Fail(log)
+    let log, success = TestUtil.TryCompileOpenCL((insideResult2.KFGRoot :?> KFGKernelNode).Module.Code.Value)
+    if not success then
+        Assert.Fail(log)        
+    let log, success = TestUtil.TryCompileOpenCL((outsideResult2.KFGRoot :?> KFGKernelNode).Module.Code.Value)
+    if not success then
+        Assert.Fail(log)
+    
 [<Test>]
 let ``Can compile kernel using field set from constructor from inside and outside instance`` () =
     let compiler, a, b, c, size, wrapper = GetData()
@@ -208,6 +237,19 @@ let ``Can compile kernel using field set from constructor from inside and outsid
     Assert.IsNotEmpty((outsideResult2.KFGRoot :?> KFGKernelNode).Module.ConstantDefines)
     Assert.AreEqual(FirstConstDefineValue(outsideResult2, Some(wrapper2)), 2.0f)
     
+    let log, success = TestUtil.TryCompileOpenCL((insideResult.KFGRoot :?> KFGKernelNode).Module.Code.Value)
+    if not success then
+        Assert.Fail(log)        
+    let log, success = TestUtil.TryCompileOpenCL((outsideResult.KFGRoot :?> KFGKernelNode).Module.Code.Value)
+    if not success then
+        Assert.Fail(log)
+    let log, success = TestUtil.TryCompileOpenCL((insideResult2.KFGRoot :?> KFGKernelNode).Module.Code.Value)
+    if not success then
+        Assert.Fail(log)        
+    let log, success = TestUtil.TryCompileOpenCL((outsideResult2.KFGRoot :?> KFGKernelNode).Module.Code.Value)
+    if not success then
+        Assert.Fail(log)
+    
 [<Test>]
 let ``Can compile kernel using getter property from inside and outside instance`` () =
     let compiler, a, b, c, size, wrapper = GetData()
@@ -219,6 +261,13 @@ let ``Can compile kernel using getter property from inside and outside instance`
     Assert.IsNotEmpty((outsideResult.KFGRoot :?> KFGKernelNode).Module.ConstantDefines)
     Assert.AreEqual(FirstConstDefineValue(outsideResult, Some(wrapper)), 10.0f)
     
+    let log, success = TestUtil.TryCompileOpenCL((insideResult.KFGRoot :?> KFGKernelNode).Module.Code.Value)
+    if not success then
+        Assert.Fail(log)        
+    let log, success = TestUtil.TryCompileOpenCL((outsideResult.KFGRoot :?> KFGKernelNode).Module.Code.Value)
+    if not success then
+        Assert.Fail(log)
+            
 [<Test>]
 let ``Can compile kernel using getter property from constructor from inside and outside instance`` () =
     let compiler, a, b, c, size, wrapper = GetData()
@@ -237,6 +286,19 @@ let ``Can compile kernel using getter property from constructor from inside and 
     let outsideResult2 = compiler.Compile(<@ wrapper2.VectorAddUsingPropertyWithGetFromConstructor(size, a, b, c) @>) :?> IKernelExpression
     Assert.IsNotEmpty((outsideResult2.KFGRoot :?> KFGKernelNode).Module.ConstantDefines)
     Assert.AreEqual(FirstConstDefineValue(outsideResult2, Some(wrapper2)), 2.0f)
+    
+    let log, success = TestUtil.TryCompileOpenCL((insideResult.KFGRoot :?> KFGKernelNode).Module.Code.Value)
+    if not success then
+        Assert.Fail(log)        
+    let log, success = TestUtil.TryCompileOpenCL((outsideResult.KFGRoot :?> KFGKernelNode).Module.Code.Value)
+    if not success then
+        Assert.Fail(log)
+    let log, success = TestUtil.TryCompileOpenCL((insideResult2.KFGRoot :?> KFGKernelNode).Module.Code.Value)
+    if not success then
+        Assert.Fail(log)        
+    let log, success = TestUtil.TryCompileOpenCL((outsideResult2.KFGRoot :?> KFGKernelNode).Module.Code.Value)
+    if not success then
+        Assert.Fail(log)
     
 [<Test>]
 let ``Can compile kernel using getter-setter property from inside and outside instance`` () =
@@ -259,6 +321,19 @@ let ``Can compile kernel using getter-setter property from inside and outside in
     Assert.IsNotEmpty((outsideResult2.KFGRoot :?> KFGKernelNode).Module.ConstantDefines)
     Assert.AreEqual(FirstConstDefineValue(outsideResult2, Some(wrapper)), 3.0f)
     
+    let log, success = TestUtil.TryCompileOpenCL((insideResult.KFGRoot :?> KFGKernelNode).Module.Code.Value)
+    if not success then
+        Assert.Fail(log)        
+    let log, success = TestUtil.TryCompileOpenCL((outsideResult.KFGRoot :?> KFGKernelNode).Module.Code.Value)
+    if not success then
+        Assert.Fail(log)
+    let log, success = TestUtil.TryCompileOpenCL((insideResult2.KFGRoot :?> KFGKernelNode).Module.Code.Value)
+    if not success then
+        Assert.Fail(log)        
+    let log, success = TestUtil.TryCompileOpenCL((outsideResult2.KFGRoot :?> KFGKernelNode).Module.Code.Value)
+    if not success then
+        Assert.Fail(log)
+    
 [<Test>]
 let ``Can compile kernel using static field from inside and outside instance`` () =
     let compiler, a, b, c, size, wrapper = GetData()
@@ -269,6 +344,13 @@ let ``Can compile kernel using static field from inside and outside instance`` (
     let outsideResult = compiler.Compile(<@ wrapper.VectorAddUsingStaticField(size, a, b, c) @>) :?> IKernelExpression
     Assert.IsNotEmpty((outsideResult.KFGRoot :?> KFGKernelNode).Module.ConstantDefines)
     Assert.AreEqual(FirstConstDefineValue(outsideResult, Some(wrapper)), 10.0f)
+    
+    let log, success = TestUtil.TryCompileOpenCL((insideResult.KFGRoot :?> KFGKernelNode).Module.Code.Value)
+    if not success then
+        Assert.Fail(log)        
+    let log, success = TestUtil.TryCompileOpenCL((outsideResult.KFGRoot :?> KFGKernelNode).Module.Code.Value)
+    if not success then
+        Assert.Fail(log)
                 
 [<Test>]
 let ``Can compile instance kernel using module field from inside and outside instance`` () =
@@ -280,4 +362,11 @@ let ``Can compile instance kernel using module field from inside and outside ins
     let outsideResult = compiler.Compile(<@ wrapper.VectorAddUsingModuleField(size, a, b, c) @>) :?> IKernelExpression
     Assert.IsNotEmpty((outsideResult.KFGRoot :?> KFGKernelNode).Module.ConstantDefines)
     Assert.AreEqual(FirstConstDefineValue(outsideResult, Some(wrapper)), 10.0f)
+    
+    let log, success = TestUtil.TryCompileOpenCL((insideResult.KFGRoot :?> KFGKernelNode).Module.Code.Value)
+    if not success then
+        Assert.Fail(log)        
+    let log, success = TestUtil.TryCompileOpenCL((outsideResult.KFGRoot :?> KFGKernelNode).Module.Code.Value)
+    if not success then
+        Assert.Fail(log)
     

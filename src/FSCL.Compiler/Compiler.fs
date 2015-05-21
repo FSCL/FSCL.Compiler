@@ -130,21 +130,11 @@ type Compiler =
         new Compiler(conf, fun m -> new KernelCacheEntry(m))
         
     member this.Compile(input, 
-                        opts:IReadOnlyDictionary<string,obj>) =                        
+                        opts:Map<string,obj>) =                        
         this.Run((box input, this.cache), opts)
-        
-    member this.Compile(input, 
-                        [<ParamArray>] args: (string * obj)[]) =
-        let opts = new Dictionary<string, obj>()
-        for key, value in args do
-            if not (opts.ContainsKey(key)) then
-                opts.Add(key, value)
-            else
-                opts.[key] <- value
-        this.Run((box input, this.cache), opts) 
-        
+                
     member this.Compile(input) =
-        this.Compile(input, new Dictionary<string, obj>())
+        this.Compile(input, Map.empty)
 
     member this.CacheEntryCreator 
         with get() =

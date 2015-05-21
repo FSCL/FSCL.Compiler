@@ -11,6 +11,7 @@ open FSCL.Compiler.AcceleratedCollections
 open QuotationAnalysis.FunctionsManipulation
 open QuotationAnalysis.KernelParsing
 open QuotationAnalysis.MetadataExtraction
+open Microsoft.FSharp.Linq.RuntimeHelpers
 
 [<StepProcessor("FSCL_FUNCTIONS_DISCOVERY_PROCESSOR", 
                 "FSCL_MODULE_PREPROCESSING_STEP")>] 
@@ -26,12 +27,11 @@ type FunctionReferenceDiscover() =
                 if (foundFunctions.ContainsKey(mi) |> not) then
                     //let envVars, outVals = QuotationAnalysis.KernelParsing.ExtractEnvRefs(body)
                     // Right now utility functions cannot refer env vars or out vals
-                    let fi = new FunctionInfo(mi, 
-                                              parameters |> List.ofArray, 
+                    let fi = new FunctionInfo(mi.Name, Some(mi), 
                                               paramVars,
+                                              mi.ReturnType,
                                               new List<Var>(), new List<Expr>(),
-                                              workItemInfo,
-                                              body, false)
+                                              body)
                     foundFunctions.Add(mi, fi)
                     k.CalledFunctions.Add(fi.ID)
             | _ ->
@@ -52,10 +52,11 @@ type FunctionReferenceDiscover() =
         
         // Discover functions referenced from kernel
         let mutable functionsToAnalyse = 
-            if not (m.Kernel :? AcceleratedKernelInfo) then        
+            match m.Kernel with
+            | :? AcceleratedKernelInfo as aki when aki.AppliedFunction.IsSome -> 
+                DiscoverFunctionRef(aki.AppliedFunction.Value :?> FunctionInfo)    
+            | _ ->
                 DiscoverFunctionRef(m.Kernel)
-            else
-                DiscoverFunctionRef(m.Functions.Values |> Seq.toList |> List.head :?> FunctionInfo)
            
         let mutable newFunctionsFound = new Dictionary<MethodInfo, FunctionInfo>()
         let mutable foundSomethingNew = true

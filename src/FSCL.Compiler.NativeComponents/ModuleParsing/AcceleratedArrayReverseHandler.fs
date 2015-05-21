@@ -18,19 +18,19 @@ open QuotationAnalysis.MetadataExtraction
 
 type AcceleratedArrayReverseHandler() =
     interface IAcceleratedCollectionHandler with
-        member this.Process(methodInfo, cleanArgs, root, meta, step, env) =
+        member this.Process(methodInfo, cleanArgs, root, meta, step, env, opts) =
             // We need to get the type of a array whose elements type is the same of the functionInfo parameter
             let inputArrayType = 
                     methodInfo.GetParameters().[0].ParameterType
             let outputArrayType = inputArrayType
-            let kernelPrefix, functionName = 
+            let kernelName, runtimeName = 
                     "ArrayRev", "Array.rev"                    
 
             // Now we can create the signature and define parameter name
-            let signature = DynamicMethod(kernelPrefix, outputArrayType, [| inputArrayType; outputArrayType; typeof<WorkItemInfo> |])
-            signature.DefineParameter(1, ParameterAttributes.In, "input_array") |> ignore
-            signature.DefineParameter(2, ParameterAttributes.In, "output_array") |> ignore
-            signature.DefineParameter(3, ParameterAttributes.In, "workItemInfo") |> ignore
+            //let signature = DynamicMethod(kernelPrefix, outputArrayType, [| inputArrayType; outputArrayType; typeof<WorkItemInfo> |])
+            //signature.DefineParameter(1, ParameterAttributes.In, "input_array") |> ignore
+            //signature.DefineParameter(2, ParameterAttributes.In, "output_array") |> ignore
+            //signature.DefineParameter(3, ParameterAttributes.In, "workItemInfo") |> ignore
                                 
             // Create parameters placeholders
             let inputHolder = Quotations.Var("input_array", inputArrayType)
@@ -41,8 +41,8 @@ type AcceleratedArrayReverseHandler() =
                     
             // Finally, create the body of the kernel
             let globalIdVar = Quotations.Var("global_id", typeof<int>)
-            let getElementMethodInfo, _ = AcceleratedCollectionUtil.GetArrayAccessMethodInfo(inputArrayType.GetElementType())
-            let _, setElementMethodInfo = AcceleratedCollectionUtil.GetArrayAccessMethodInfo(outputArrayType.GetElementType())
+            let getElementMethodInfo, _ = AcceleratedCollectionUtil.GetArrayAccessMethodInfo(inputArrayType.GetElementType(), 1)
+            let _, setElementMethodInfo = AcceleratedCollectionUtil.GetArrayAccessMethodInfo(outputArrayType.GetElementType(), 1)
             let subMethod = 
                 match ExtractCall(<@ 0 - 0 @>) with
                 | Some(_, mi, _, _, _) ->
@@ -80,22 +80,23 @@ type AcceleratedArrayReverseHandler() =
                                                             ]),
                                                     Expr.Var(outputHolder)))))))
 
-            let methodParams = signature.GetParameters()
-            let kInfo = new AcceleratedKernelInfo(signature, 
-                                                    [ methodParams.[0]; methodParams.[1] ],
+            //let methodParams = signature.GetParameters()
+            let kInfo = new AcceleratedKernelInfo(kernelName, 
+                                                    methodInfo,
                                                     [ inputHolder; outputHolder ],
+                                                    outputArrayType,
                                                     new List<Var>(),
                                                     new List<Expr>(),
                                                     kernelBody,
                                                     meta, 
-                                                    functionName, None, None)
+                                                    runtimeName, None, None)
             let kernelModule = new KernelModule(None, None, kInfo)
                                
             // Create node
             let node = new KFGKernelNode(kernelModule)
 
             // Parse arguments
-            let subnode = step.Process(cleanArgs.[0], env)
+            let subnode = step.Process(cleanArgs.[0], env, opts)
             node.InputNodes.Add(subnode)
 
             Some(node :> IKFGNode)  

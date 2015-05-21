@@ -22,9 +22,8 @@ type ModuleParsingStep(tm: TypeManager,
                                                                             typeof<MetadataFinalizerProcessor>.IsAssignableFrom(p.GetType())) procs)
 
     //let kernelModules = new List<IKernelModule>() 
-    let mutable opts = null
                        
-    member this.Process(e:obj, env: Var list) =
+    member this.Process(e:obj, env: Var list, opts) =
         let mutable index = 0
         let mutable output = None
         while (output.IsNone) && (index < parsingProcessors.Length) do
@@ -43,13 +42,13 @@ type ModuleParsingStep(tm: TypeManager,
                // kernelModules.Add((output.Value :?> KFGKernelNode).Module)
             output.Value
             
-    member this.ProcessMeta(kmeta: KernelMetaCollection, rmeta: ParamMetaCollection, pmeta: List<ParamMetaCollection>, parsingInfo: Dictionary<string, obj>) =
+    member this.ProcessMeta(kmeta: KernelMetaCollection, rmeta: ParamMetaCollection, pmeta: List<ParamMetaCollection>, parsingInfo: Dictionary<string, obj>, opts:Map<string, obj>) =
         let mutable output = (kmeta, rmeta, pmeta)
         for p in metadataProcessors do
             output <- p.Execute((kmeta, rmeta, pmeta, parsingInfo), this, opts) :?> KernelMetaCollection * ParamMetaCollection * List<ParamMetaCollection>
         ReadOnlyMetaCollection(kmeta, rmeta, pmeta)
 
-    override this.Run((e, cache), opt) =
+    override this.Run((e, cache), opts) =
         // Normalize expressione first    
         let norm = 
             if e :? Expr then
@@ -57,9 +56,8 @@ type ModuleParsingStep(tm: TypeManager,
                 e1 |> box 
             else
                 e
-        opts <- opt
         let r =
-            let procResult = this.Process(norm, [])
+            let procResult = this.Process(norm, [], opts)
             let expr = new KernelExpression(procResult)
 
             if opts.ContainsKey(CompilerOptions.ParseOnly) then
@@ -73,9 +71,15 @@ type ModuleParsingStep(tm: TypeManager,
                     for km in expr.KernelNodes do
                         match cache.TryGet(km.Module.Kernel.ID, km.Module.Kernel.Meta) with
                         | Some(entry) ->
-                            (entry.Module :?> KernelModule).CloneTo(km.Module)
-                            // Associate the new cache entry to the KFG node (used by the runtime)
-                            (km :?> KFGKernelNode).CacheEntry <- entry
+                            if (entry.Module :?> KernelModule).Code.IsNone then                        
+                                // If entry has no Code, then there's a kernel occurring twice or more
+                                // in the input program
+                                (km :?> KFGKernelNode).CacheEntry <- entry                            
+                                expr.KernelModulesRequiringLazyCloning.Add(km)
+                            else
+                                (entry.Module :?> KernelModule).CloneTo(km.Module)
+                                // Associate the new cache entry to the KFG node (used by the runtime)
+                                (km :?> KFGKernelNode).CacheEntry <- entry    
                         | None ->
                             // Add this module to the cache
                             let entry = cache.Put(km.Module)

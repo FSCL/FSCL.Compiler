@@ -14,32 +14,33 @@ open FSCL.Compiler.Util.ReflectionUtil
 type DeclarationCodegen() =   
     inherit FunctionBodyCodegenProcessor()
 
-    member private this.PrintArray(engine: FunctionCodegenStep,
+    member private this.PrintArray(step: FunctionCodegenStep,
+                                   cont,
                                    methodInfo: MethodInfo, 
                                    v: Var, 
                                    args: Expr list, 
                                    isLocal: bool) =
         let prefix = if isLocal then "local " else ""
         if (methodInfo.DeclaringType <> null && methodInfo.DeclaringType.Name = "ArrayModule" && methodInfo.Name = "ZeroCreate") then
-            let mutable code = prefix + engine.TypeManager.Print(v.Type.GetElementType()) + " " + v.Name + "[" + engine.Continue(args.[0]) + "];\n"
+            let mutable code = prefix + step.TypeManager.Print(v.Type.GetElementType()) + " " + v.Name + "[" + cont(args.[0]) + "];\n"
             Some(code)
         else if (methodInfo.DeclaringType <> null && methodInfo.DeclaringType.Name = "Array2DModule" && methodInfo.Name = "ZeroCreate") then
-            let mutable code = prefix + engine.TypeManager.Print(v.Type.GetElementType()) + " " + v.Name + "[" + engine.Continue(args.[0]) + "][" + engine.Continue(args.[1]) + "];\n"
+            let mutable code = prefix + step.TypeManager.Print(v.Type.GetElementType()) + " " + v.Name + "[" + cont(args.[0]) + "][" + cont(args.[1]) + "];\n"
             Some(code)
         else if (methodInfo.DeclaringType <> null && methodInfo.DeclaringType.Name = "Array3DModule" && methodInfo.Name = "ZeroCreate") then
-            let mutable code = prefix + engine.TypeManager.Print(v.Type.GetElementType()) + " " + v.Name + "[" + engine.Continue(args.[0]) + "][" + engine.Continue(args.[1]) + "][" + engine.Continue(args.[2]) + "];\n"
+            let mutable code = prefix + step.TypeManager.Print(v.Type.GetElementType()) + " " + v.Name + "[" + cont(args.[0]) + "][" + cont(args.[1]) + "][" + cont(args.[2]) + "];\n"
             Some(code)
         else
             None
 
-    member private this.TryPrintStructOrOptionOrRecordDecl(v: Var, value: Expr, body: Expr, step: FunctionCodegenStep) =
+    member private this.TryPrintStructOrOptionOrRecordDecl(v: Var, value: Expr, body: Expr, step: FunctionCodegenStep, cont) =
         // Check this is not a vector type (it's handled differently)
         if v.Type.GetCustomAttribute<VectorTypeAttribute>() = null then
             match value with
             // Default struct init
             | Patterns.DefaultValue(t) ->
                 if t.IsStruct() then
-                    Some(step.TypeManager.Print(v.Type) + " " + v.Name + ";\n" + step.Continue(body))
+                    Some(step.TypeManager.Print(v.Type) + " " + v.Name + ";\n" + cont(body))
                 else
                     None   
             // Check if tuple type                        
@@ -48,10 +49,10 @@ type DeclarationCodegen() =
                 // Gen fields init
                 let fields = args
                 for i = 0 to fields.Length - 1 do
-                    gencode <- gencode + ".Item" + i.ToString() + " = " + step.Continue(args.[i])
+                    gencode <- gencode + ".Item" + i.ToString() + " = " + cont(args.[i])
                     if i < fields.Length - 1 then
                         gencode <- gencode + ", "
-                Some(gencode + " };\n" + step.Continue(body))                  
+                Some(gencode + " };\n" + cont(body))                  
             | Patterns.NewUnionCase(ui, args) ->
                 // Check if option type
                 if ui.DeclaringType.IsOption then
@@ -60,15 +61,15 @@ type DeclarationCodegen() =
                         let gencode = 
                             Some(
                                 step.TypeManager.Print(ui.DeclaringType) + " " + 
-                                v.Name + " = { .Value = " + step.Continue(args.[0]) + ", .IsSome = 1 };\n" + 
-                                step.Continue(body))
+                                v.Name + " = { .Value = " + cont(args.[0]) + ", .IsSome = 1 };\n" + 
+                                cont(body))
                         gencode                          
                     else
                         let gencode = 
                             Some(
                                 step.TypeManager.Print(ui.DeclaringType) + " " + 
                                 v.Name + " = { .IsSome = 0 };\n" + 
-                                step.Continue(body))
+                                cont(body))
                         gencode  
                 else
                     None   
@@ -79,10 +80,10 @@ type DeclarationCodegen() =
                     // Gen fields init
                     let fields = v.Type.GetFields()
                     for i = 0 to fields.Length - 1 do
-                        gencode <- gencode + "." + fields.[i].Name + " = " + step.Continue(args.[i])
+                        gencode <- gencode + "." + fields.[i].Name + " = " + cont(args.[i])
                         if i < fields.Length - 1 then
                             gencode <- gencode + ", "
-                    Some(gencode + " };\n" + step.Continue(body))                   
+                    Some(gencode + " };\n" + cont(body))                   
                 else
                     None
             // Record init
@@ -91,21 +92,21 @@ type DeclarationCodegen() =
                 // Gen fields init
                 let fields = FSharpType.GetRecordFields(t)
                 for i = 0 to fields.Length - 1 do
-                    gencode <- gencode + "." + fields.[i].Name + " = " + step.Continue(args.[i])
+                    gencode <- gencode + "." + fields.[i].Name + " = " + cont(args.[i])
                     if i < fields.Length - 1 then
                         gencode <- gencode + ", "
-                Some(gencode + " };\n" + step.Continue(body))  
+                Some(gencode + " };\n" + cont(body))  
             | _ ->
                 None
         else
             None
 
-    override this.Run(expr, s, opts) =
+    override this.Run((expr, cont), s, opts) =
         let step = s :?> FunctionCodegenStep
         match expr with
         | Patterns.Let(v, value, body) ->
             // Try print struct
-            let structCode = this.TryPrintStructOrOptionOrRecordDecl(v, value, body, step)
+            let structCode = this.TryPrintStructOrOptionOrRecordDecl(v, value, body, step, cont)
             if structCode.IsSome then
                 structCode
             else
@@ -116,29 +117,29 @@ type DeclarationCodegen() =
                         // Local array
                         match a.[0] with 
                         | Patterns.Call(_, methodInfo, args) ->
-                            Some(this.PrintArray(step, methodInfo, v, args, true).Value + step.Continue(body))                        
+                            Some(this.PrintArray(step, cont, methodInfo, v, args, true).Value + cont(body))                        
                         | _ ->
                             None
                     else
-                        let structCode = this.TryPrintStructOrOptionOrRecordDecl(v, a.[0], body, step)
+                        let structCode = this.TryPrintStructOrOptionOrRecordDecl(v, a.[0], body, step, cont)
                         if structCode.IsSome then
                             Some("local " + structCode.Value)
                         else
                             // Local primitive type
-                            Some("local " + step.TypeManager.Print(v.Type) + " " + v.Name + ";\n" + step.Continue(body))
+                            Some("local " + step.TypeManager.Print(v.Type) + " " + v.Name + ";\n" + cont(body))
                 | _ ->
                     // Private array maybe
                     match value with
                     | Patterns.Call(_, methodInfo, args) ->
-                        match this.PrintArray(step, methodInfo, v, args, false) with
+                        match this.PrintArray(step, cont, methodInfo, v, args, false) with
                         | Some(c) ->
                             // Private array alloc, return
-                            Some(c + step.Continue(body))
+                            Some(c + cont(body))
                         | None ->
                             // Not array alloc call
-                            Some(step.TypeManager.Print(v.Type) + " " + v.Name + " = " + step.Continue(value) + ";\n" + step.Continue(body))
+                            Some(step.TypeManager.Print(v.Type) + " " + v.Name + " = " + cont(value) + ";\n" + cont(body))
                     | _ ->
                         // Normal declaration
-                        Some(step.TypeManager.Print(v.Type) + " " + v.Name + " = " + step.Continue(value) + ";\n" + step.Continue(body))
+                        Some(step.TypeManager.Print(v.Type) + " " + v.Name + " = " + cont(value) + ";\n" + cont(body))
         | _ ->
             None

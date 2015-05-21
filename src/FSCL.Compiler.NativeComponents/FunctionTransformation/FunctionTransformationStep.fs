@@ -17,10 +17,12 @@ type FunctionTransformationStep(tm: TypeManager,
                                 processors:ICompilerStepProcessor list) = 
     inherit CompilerStep<KernelExpression, KernelExpression>(tm, processors)
     
-    let mutable opts = null
+    member this.Continue (proc: ICompilerStepProcessor) (opts:Map<string, obj>) (expression: Expr) =
+        proc.Execute((expression, 
+                      (this.Continue proc opts),
+                      (this.Default proc opts)), this, opts) :?> Expr
 
     member val private currentFunction = null with get, set
-    member val private currentProcessor = processors.[0] with get, set
 
     member this.FunctionInfo 
         with get() =
@@ -28,34 +30,36 @@ type FunctionTransformationStep(tm: TypeManager,
         and private set(v) =
             this.currentFunction <- v
         
-    member this.Default(expression: Expr) =
+    member this.Default (proc: ICompilerStepProcessor) (opts:Map<string, obj>) (expression: Expr) =
         match expression with                 
         | ExprShape.ShapeVar(v) ->
             Expr.Var(v)
         | ExprShape.ShapeLambda(v, e) ->
-            let r = this.currentProcessor.Execute(e, this, opts) :?> Expr 
+            let r = proc.Execute((e, 
+                                  (this.Continue proc opts),
+                                  (this.Default proc opts)), this, opts) :?> Expr 
             Expr.Lambda(v, r)
         | ExprShape.ShapeCombination(o, args) ->
-            let filtered = List.map (fun el -> this.currentProcessor.Execute(el, this, opts) :?> Expr) args
+            let filtered = List.map (fun el -> proc.Execute((el, 
+                                                             (this.Continue proc opts),
+                                                             (this.Default proc opts)), this, opts) :?> Expr) args
             // Process the expression
             let newExpr = ExprShape.RebuildShapeCombination(o, filtered)
             newExpr
-
-    member this.Continue(expression: Expr) =
-        this.currentProcessor.Execute(expression, this, opts) :?> Expr 
+ 
          
-    member private this.Process(f:FunctionInfo) =
+    member private this.Process(f:FunctionInfo, opts) =
         this.FunctionInfo <- f
         for p in processors do
-            this.currentProcessor <- p
-            this.FunctionInfo.Body <- p.Execute(this.FunctionInfo.Body, this, opts) :?> Expr 
+            this.FunctionInfo.Body <- p.Execute((this.FunctionInfo.Body, 
+                                                 (this.Continue p opts),
+                                                 (this.Default p opts)), this, opts) :?> Expr 
                                   
-    override this.Run(cem, opt) =
-        opts <- opt        
+    override this.Run(cem, opts) =
         for km in cem.KernelModulesRequiringCompilation do
             for f in km.Functions do
-                this.Process(f.Value :?> FunctionInfo)
-            this.Process(km.Kernel)
+                this.Process(f.Value :?> FunctionInfo, opts)
+            this.Process(km.Kernel, opts)
         ContinueCompilation(cem)
         
 

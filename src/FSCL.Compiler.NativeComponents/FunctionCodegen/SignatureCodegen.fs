@@ -100,7 +100,7 @@ type SignatureCodegen() =
             let kernelInfo = step.FunctionInfo
             // Check if inline
             let inlinePrefix =
-                if step.FunctionInfo.IsLambda || step.FunctionInfo.ParsedSignature.GetCustomAttribute(typeof<InlineAttribute>) <> null then
+                if step.FunctionInfo.IsLambda || step.FunctionInfo.ParsedSignature.Value.GetCustomAttribute(typeof<InlineAttribute>) <> null then
                     "inline "
                 else
                     ""

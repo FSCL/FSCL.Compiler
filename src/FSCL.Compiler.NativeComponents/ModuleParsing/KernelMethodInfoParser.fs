@@ -22,13 +22,13 @@ type KernelMethodInfoParser() =
             match GetKernelFromMethodInfo(mi :?> MethodInfo) with
             | Some(obv, ob, mi, paramInfo, paramVars, b, kMeta, rMeta, pMeta) -> 
                 // Filter and finalize metadata
-                let finalMeta = step.ProcessMeta(kMeta, rMeta, pMeta, null)
+                let finalMeta = step.ProcessMeta(kMeta, rMeta, pMeta, null, opts)
 
                 // Create singleton kernel call graph
                 let kernelModule = new KernelModule(obv, None, 
-                                                    new KernelInfo(mi, paramInfo, paramVars, 
+                                                    new KernelInfo(mi.Name, Some(mi), paramVars, mi.ReturnType,
                                                                    new List<Var>(), new List<Expr>(), 
-                                                                   None, b, finalMeta, false))
+                                                                   None, b, finalMeta))
                 
                 // Create node
                 let node = new KFGKernelNode(kernelModule)                

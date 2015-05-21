@@ -30,7 +30,7 @@ type [<AbstractClass>] ICompilerStepProcessor() =
     ///<param name="owner">The owner step</param>
     ///<returns>The output produced by this processor</returns>
     /// 
-    abstract member Execute: obj * ICompilerStep * IReadOnlyDictionary<string, obj> -> obj
+    abstract member Execute: obj * ICompilerStep * Map<string, obj> -> obj
 
 ///
 ///<summary>
@@ -63,7 +63,7 @@ and [<AbstractClass>] ICompilerStep(tm: TypeManager, processors:ICompilerStepPro
     ///<param name="obj">The input of the step</param>
     ///<returns>The output produced by this step</returns>
     /// 
-    abstract member Execute: obj * IReadOnlyDictionary<string, obj> -> CompilerStepResult
+    abstract member Execute: obj * Map<string, obj> -> CompilerStepResult
         
         
 ///
@@ -83,7 +83,7 @@ type CompilerStep<'T,'U>(tm, processors) =
     ///<param name="param0">An instance of type 'T</param>
     ///<returns>An instance of type 'U</returns>
     /// 
-    abstract member Run: 'T * IReadOnlyDictionary<string, obj> -> CompilerStepResult
+    abstract member Run: 'T * Map<string, obj> -> CompilerStepResult
     
     override this.Execute(obj, opts) =        
         this.Run(obj :?> 'T, opts)
@@ -106,7 +106,7 @@ type [<AbstractClass>] CompilerStepProcessor<'T,'U>() =
     ///<param name="param1">The owner step</param>
     ///<returns>An instance of type 'U</returns>
     /// 
-    abstract member Run: 'T * ICompilerStep * IReadOnlyDictionary<string, obj> -> 'U
+    abstract member Run: 'T * ICompilerStep * Map<string, obj> -> 'U
     
 ///
 ///<summary>
@@ -125,7 +125,7 @@ type [<AbstractClass>] CompilerStepProcessor<'T>() =
     ///<param name="param0">An instance of type 'T</param>
     ///<param name="param1">The owner step</param>
     /// 
-    abstract member Run: 'T * ICompilerStep * IReadOnlyDictionary<string, obj> -> unit
+    abstract member Run: 'T * ICompilerStep * Map<string, obj> -> unit
        
     
 ///
@@ -175,7 +175,7 @@ type FunctionPostprocessingProcessor = CompilerStepProcessor<FunctionInfo>
 ///The type of the processors of the function transformation step. Alias of CompilerStepProcessor&lt;Expr, Expr&gt;
 ///</summary>
 /// 
-type FunctionTransformationProcessor = CompilerStepProcessor<Expr, Expr>
+type FunctionTransformationProcessor = CompilerStepProcessor<Expr * (Expr -> Expr) * (Expr -> Expr), Expr>
 ///
 ///<summary>
 ///The type of the (signature) processors of the function codegen step. Alias of CompilerStepProcessor&lt;MethodInfo, String option&gt;
@@ -187,7 +187,7 @@ type FunctionSignatureCodegenProcessor = CompilerStepProcessor<String * Function
 ///The type of the (body) processors of the function codegen step. Alias of CompilerStepProcessor&lt;Expr, String option&gt;
 ///</summary>
 /// 
-type FunctionBodyCodegenProcessor = CompilerStepProcessor<Expr, String option>
+type FunctionBodyCodegenProcessor = CompilerStepProcessor<Expr * (Expr -> String), String option>
 ///
 ///<summary>
 ///The type of the processors of the module codegen step. Alias of CompilerStepProcessor&lt;KernelModule * String, String&gt;

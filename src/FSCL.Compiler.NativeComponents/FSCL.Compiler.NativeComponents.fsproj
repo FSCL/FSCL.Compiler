@@ -60,6 +60,8 @@
     <Compile Include="ModuleParsing\AcceleratedArrayScanHandler.fs" />
     <Compile Include="ModuleParsing\AcceleratedArraySortHandler.fs" />
     <Compile Include="ModuleParsing\AcceleratedArrayGroupByHandler.fs" />
+    <Compile Include="ModuleParsing\AcceleratedArrayFoldHandler.fs" />
+    <Compile Include="ModuleParsing\AcceleratedArray2DMapHandler.fs" />
     <Compile Include="ModuleParsing\AcceleratedArrayParser.fs" />
     <Compile Include="ModuleParsing\KernelCallExpressionParser.fs" />
     <Compile Include="ModuleParsing\KernelMethodInfoParser.fs" />
@@ -75,8 +77,8 @@
     <Compile Include="FunctionPreprocessing\KernelReturnVarDiscovery.fs" />
     <Compile Include="FunctionPreprocessing\DynamicArrayToParameter.fs" />
     <Compile Include="FunctionPreprocessing\RefTypeToArrayReplacing.fs" />
-    <Compile Include="FunctionPreprocessing\DynamicArrayArgumentsParamRefLifting.fs" />
     <Compile Include="FunctionPreprocessing\AddLengthArgsProcessor.fs" />
+    <Compile Include="FunctionPreprocessing\PrecomputeDynamicReturnArraySize.fs" />
     <Compile Include="ModuleCodegen\ModuleCodegenStep.fs" />
     <Compile Include="ModuleCodegen\ModuleCodegen.fs" />
     <Compile Include="ModulePostprocessing\ModulePostprocessingStep.fs" />
@@ -85,6 +87,7 @@
     <Compile Include="FunctionCodegen\ArithmeticOperationCodegen.fs" />
     <Compile Include="FunctionCodegen\ArrayAccessCodegen.fs" />
     <Compile Include="FunctionCodegen\CallCodegen.fs" />
+    <Compile Include="FunctionCodegen\ApplicationCodegen.fs" />
     <Compile Include="FunctionCodegen\CastCodegen.fs" />
     <Compile Include="FunctionCodegen\DeclarationCodegen.fs" />
     <Compile Include="FunctionCodegen\ForInCodegen.fs" />

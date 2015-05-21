@@ -9,7 +9,7 @@
     <OutputType>Library</OutputType>
     <RootNamespace>FSCL.Compiler.Tests</RootNamespace>
     <AssemblyName>FSCL.Compiler.Tests</AssemblyName>
-    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.5.1</TargetFrameworkVersion>
     <TargetFSharpCoreVersion>4.3.0.0</TargetFSharpCoreVersion>
     <Name>FSCL.Compiler.Tests</Name>
     <TargetFrameworkProfile />
@@ -58,6 +58,7 @@
   <Import Project="$(FSharpTargetsPath)" />
   <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />
   <ItemGroup>
+    <Compile Include="TestUtil.fs" />
     <Compile Include="ConfigurationTests.fs" />
     <Compile Include="KernelCompilationTests.fs" />
     <Compile Include="DataTypeTests.fs" />
@@ -65,6 +66,7 @@
     <Compile Include="DynamicDefineTest.fs" />
     <Compile Include="KernelContextTest.fs" />
     <Compile Include="FunctionContextTest.fs" />
+    <Compile Include="CompositionTest.fs" />
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
@@ -75,6 +77,9 @@
     <Reference Include="nunit.framework">
       <HintPath>..\..\packages\NUnit.2.6.3\lib\nunit.framework.dll</HintPath>
       <Private>True</Private>
+    </Reference>
+    <Reference Include="OpenCLManagedWrapper">
+      <HintPath>..\..\lib\OpenCLManagedWrapper.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />

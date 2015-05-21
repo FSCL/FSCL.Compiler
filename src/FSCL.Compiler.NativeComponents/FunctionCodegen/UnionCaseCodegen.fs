@@ -10,7 +10,7 @@ open Microsoft.FSharp.Reflection
 [<StepProcessor("FSCL_UNION_CASE_CODEGEN_PROCESSOR", "FSCL_FUNCTION_CODEGEN_STEP")>]
 type UnionCaseCodegen() =   
     inherit FunctionBodyCodegenProcessor()
-    override this.Run(expr, st, opts) =
+    override this.Run((expr, cont), st, opts) =
         let step = st :?> FunctionCodegenStep
         match expr with
         | Patterns.NewUnionCase(ui, args) ->
@@ -32,13 +32,13 @@ type UnionCaseCodegen() =
                     let gencode = 
                         Some(
                             returnPrefix + "(" + step.TypeManager.Print(ui.DeclaringType) + ") " + 
-                            " { .Value = " + step.Continue(args.[0]) + ", .IsSome = 1 }" + returnPostfix) 
+                            " { .Value = " + cont(args.[0]) + ", .IsSome = 1 }" + returnPostfix) 
                     gencode                          
                 else
                     let gencode = 
                         Some(
                             returnPrefix + "(" + step.TypeManager.Print(ui.DeclaringType) + ") " + 
-                            " { .Value = " + step.Continue(args.[0]) + ", .IsSome = 1 }" + returnPostfix)
+                            " { .Value = " + cont(args.[0]) + ", .IsSome = 1 }" + returnPostfix)
                     gencode  
             else
                 Some(returnPrefix + ui.Name + returnPostfix)

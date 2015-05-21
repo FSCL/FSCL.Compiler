@@ -23,15 +23,15 @@ type ArrayAccessCodegen() =
     ///The target code for the array access if the AST node can be processed (i.e. if the source node is an array access expression)
     ///</returns>
     ///  
-    override this.Run(expr, en, opts) =        
-        let engine = en :?> FunctionCodegenStep
+    override this.Run((expr, cont), st, opts) =        
+        let step = st :?> FunctionCodegenStep
         match expr with
         | Patterns.Call(o, methodInfo, args) ->
             if methodInfo.DeclaringType <> null && methodInfo.DeclaringType.Name = "IntrinsicFunctions" then
                 let returnPrefix = 
-                    if(engine.FunctionInfo.CustomInfo.ContainsKey("FUNCTION_RETURN_EXPRESSIONS")) then
+                    if(step.FunctionInfo.CustomInfo.ContainsKey("FUNCTION_RETURN_EXPRESSIONS")) then
                         let returnTags = 
-                            engine.FunctionInfo.CustomInfo.["FUNCTION_RETURN_EXPRESSIONS"] :?> Expr list
+                            step.FunctionInfo.CustomInfo.["FUNCTION_RETURN_EXPRESSIONS"] :?> Expr list
                         if (List.tryFind(fun (e:Expr) -> e = expr) returnTags).IsSome then
                             "return "
                         else
@@ -40,19 +40,19 @@ type ArrayAccessCodegen() =
                         ""
                 let returnPostfix = if returnPrefix.Length > 0 then ";\n" else ""
 
-                let arrayName = engine.Continue(args.[0])
+                let arrayName = cont(args.[0])
                 if methodInfo.Name = "GetArray" then
-                    Some(returnPrefix  + arrayName + "[" + engine.Continue(args.[1]) + "]" + returnPostfix)
+                    Some(returnPrefix  + arrayName + "[" + cont(args.[1]) + "]" + returnPostfix)
                 elif methodInfo.Name = "SetArray" then
-                    Some(arrayName + "[" + engine.Continue(args.[1]) + "] = " + engine.Continue(args.[2]) + ";\n")
+                    Some(arrayName + "[" + cont(args.[1]) + "] = " + cont(args.[2]) + ";\n")
                 elif methodInfo.Name = "GetArray2D" then
-                    Some(returnPrefix  + arrayName + "[" + engine.Continue(args.[1]) + "]" + "[" + engine.Continue(args.[2]) + "]" + returnPostfix)
+                    Some(returnPrefix  + arrayName + "[" + cont(args.[1]) + "]" + "[" + cont(args.[2]) + "]" + returnPostfix)
                 elif methodInfo.Name = "SetArray2D" then
-                    Some(arrayName + "[" + engine.Continue(args.[1]) + "]" + "[" + engine.Continue(args.[2]) + "] = " + engine.Continue(args.[3]) + ";\n")
+                    Some(arrayName + "[" + cont(args.[1]) + "]" + "[" + cont(args.[2]) + "] = " + cont(args.[3]) + ";\n")
                 elif methodInfo.Name = "GetArray3D" then
-                    Some(returnPrefix  + arrayName + "[" + engine.Continue(args.[1]) + "]" + "[" + engine.Continue(args.[2]) + "]" + "[" + engine.Continue(args.[3]) + "]" + returnPostfix)
+                    Some(returnPrefix  + arrayName + "[" + cont(args.[1]) + "]" + "[" + cont(args.[2]) + "]" + "[" + cont(args.[3]) + "]" + returnPostfix)
                 elif methodInfo.Name = "SetArray3D" then
-                    Some(arrayName + "[" + engine.Continue(args.[1]) + "]" + "[" + engine.Continue(args.[2]) + "]" + "[" + engine.Continue(args.[3]) + "] = " + engine.Continue(args.[4]) + ";\n")
+                    Some(arrayName + "[" + cont(args.[1]) + "]" + "[" + cont(args.[2]) + "]" + "[" + cont(args.[3]) + "] = " + cont(args.[4]) + ";\n")
                 else
                     None
             else

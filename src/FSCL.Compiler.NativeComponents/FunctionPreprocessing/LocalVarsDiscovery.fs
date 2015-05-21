@@ -16,19 +16,6 @@ open System.Runtime.InteropServices
     
 type LocalVarsDictionaryProcessor() =
     inherit FunctionPreprocessingProcessor()
-    member private this.AddDynamicArrayParameter(step: FunctionPreprocessingStep, kernel:FunctionInfo, var:Var, allocationArgs:Expr array) =
-        if (var.IsMutable) then
-            raise (new CompilerException("A kernel dynamic array must be immutable"))
-                   
-        // Fix signature and kernel parameters
-        let kernelInfo = kernel :?> KernelInfo
-
-        // Add parameter
-        let pInfo = new FunctionParameter(var.Name, 
-                                          var, 
-                                          DynamicArrayParameter(allocationArgs),
-                                          None)
-        kernelInfo.GeneratedParameters.Add(pInfo)
        
     member private this.FindLocalVars(expr:Expr, step:FunctionPreprocessingStep, kernel:KernelInfo) =
         match expr with

@@ -13,6 +13,7 @@ open FSCL.Compiler.Util
 open QuotationAnalysis.FunctionsManipulation
 open QuotationAnalysis.KernelParsing
 open QuotationAnalysis.MetadataExtraction
+open FSCL.Compiler.AcceleratedCollections
 
 //RETURN_TYPE_TO_OUTPUT_ARG_REPLACING
 [<StepProcessor("FSCL_ARGS_PREP_LIFTING_PREPROCESSING_PROCESSOR", 
@@ -50,25 +51,29 @@ type ArgsPreparationLiftingProcessor() =
         | ExprShape.ShapeCombination(o, l) ->
             ExprShape.RebuildShapeCombination(o, l |> List.map (fun i -> LiftTuplePreparationWithCall(i)))
 
-    let rec LiftApplicationWithCall(e: Expr) =
+    let rec LiftApplicationWithCall(e: Expr, utilityFunction: Expr option) =
         let rec liftApplicationInternal(e:Expr, applicationArgs: Expr list) =            
             match e with
-            | Patterns.Application(l, a) ->
-                liftApplicationInternal(l, [ a ] @ applicationArgs)                
+            | Patterns.Application(l, a)  ->
+                let lambda, args = Util.QuotationAnalysis.FunctionsManipulation.LiftLambdaApplication(e).Value
+                if utilityFunction.IsSome && utilityFunction.Value = lambda then
+                    e
+                else
+                    liftApplicationInternal(l, [ a ] @ applicationArgs)                
             | Patterns.Lambda(v, b) ->
                 liftApplicationInternal(b, applicationArgs)
             | Patterns.Call(ob, mi, a) ->
                 match mi with 
                 | DerivedPatterns.MethodWithReflectedDefinition(body) ->
                     if ob.IsSome then
-                        Expr.Call(ob.Value, mi, applicationArgs |> List.map (fun i -> LiftApplicationWithCall(i)))
+                        Expr.Call(ob.Value, mi, applicationArgs |> List.map (fun i -> LiftApplicationWithCall(i, utilityFunction)))
                     else
-                        Expr.Call(mi, applicationArgs |> List.map (fun i -> LiftApplicationWithCall(i)))
+                        Expr.Call(mi, applicationArgs |> List.map (fun i -> LiftApplicationWithCall(i, utilityFunction)))
                 | _ ->
                     if ob.IsSome then
-                        Expr.Call(ob.Value, mi, a |> List.map (fun i -> LiftApplicationWithCall(i)))
+                        Expr.Call(ob.Value, mi, a |> List.map (fun i -> LiftApplicationWithCall(i, utilityFunction)))
                     else
-                        Expr.Call(mi, a |> List.map (fun i -> LiftApplicationWithCall(i)))
+                        Expr.Call(mi, a |> List.map (fun i -> LiftApplicationWithCall(i, utilityFunction)))
             | _ ->
                 e                
                         
@@ -78,15 +83,20 @@ type ArgsPreparationLiftingProcessor() =
         | ExprShape.ShapeVar(v) ->
             e
         | ExprShape.ShapeLambda(v, l) ->
-            Expr.Lambda(v, LiftApplicationWithCall(l))
+            Expr.Lambda(v, LiftApplicationWithCall(l, utilityFunction))
         | ExprShape.ShapeCombination(o, l) ->
-            ExprShape.RebuildShapeCombination(o, l |> List.map (fun i -> LiftApplicationWithCall(i)))
+            ExprShape.RebuildShapeCombination(o, l |> List.map (fun i -> LiftApplicationWithCall(i, utilityFunction)))
             
-    override this.Run(fInfo, en, opts) =
-        let engine = en :?> FunctionPreprocessingStep
+    override this.Run(fInfo, st, opts) =
+        let step = st :?> FunctionPreprocessingStep
         // Remove preamble of calls and args binding
+        // But do not remove Application of the AcceleratedCollection utility function
         fInfo.Body <- 
             LiftTuplePreparationWithCall(
                 LiftApplicationWithCall(
-                    (LiftCurriedOrTupledArgs(fInfo.Body)).Value  |> fst))
+                    LiftCurriedOrTupledArgs(fInfo.Body).Value |> fst, 
+                    if step.FunctionInfo :? AcceleratedKernelInfo then
+                        (step.FunctionInfo :?> AcceleratedKernelInfo).AppliedFunctionLambda
+                    else
+                        None))
         ()

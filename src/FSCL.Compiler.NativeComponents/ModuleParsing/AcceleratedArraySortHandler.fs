@@ -70,13 +70,18 @@ type AcceleratedArraySortHandler() =
                     g_odata.[wi.GroupID(0)] <- sdata.[0]
         @>
         *)
-    let rec SubstitutePlaceholders(e:Expr, parameters:Dictionary<Var, Var>, actualFunction: MethodInfo option, actualFunctionInstance: Expr option) =  
+    let rec SubstitutePlaceholders(e:Expr, 
+                                   parameters:Dictionary<Var, Var>, 
+                                   returnType: Type,
+                                   utilityFunction: Expr option,
+                                   utilityFunctionInputType: Type,
+                                   utilityFunctionReturnType: Type) =
         // Build a call expr
         let RebuildCall(o:Expr option, m: MethodInfo, args:Expr list) =
             if o.IsSome && (not m.IsStatic) then
-                Expr.Call(o.Value, m, List.map(fun (e:Expr) -> SubstitutePlaceholders(e, parameters, actualFunction, actualFunctionInstance)) args)
+                Expr.Call(o.Value, m, List.map(fun (e:Expr) -> SubstitutePlaceholders(e, parameters, returnType, utilityFunction, utilityFunctionInputType, utilityFunctionReturnType)) args)
             else
-                Expr.Call(m, List.map(fun (e:Expr) -> SubstitutePlaceholders(e, parameters, actualFunction, actualFunctionInstance)) args)  
+                Expr.Call(m, List.map(fun (e:Expr) -> SubstitutePlaceholders(e, parameters, returnType, utilityFunction, utilityFunctionInputType, utilityFunctionReturnType)) args)  
             
         match e with
         | Patterns.Var(v) ->
@@ -87,8 +92,8 @@ type AcceleratedArraySortHandler() =
         | Patterns.Call(o, m, args) ->   
             // If this is the placeholder for the utility function (to be applied to each pari of elements)         
             if m.Name = "placeholderComp" then
-                if actualFunction.IsSome then
-                    RebuildCall(actualFunctionInstance, actualFunction.Value, List.map(fun (e:Expr) -> SubstitutePlaceholders(e, parameters, actualFunction, actualFunctionInstance)) args)
+                if utilityFunction.IsSome then
+                    AcceleratedCollectionUtil.BuildApplication(utilityFunction.Value, List.map(fun (e:Expr) -> SubstitutePlaceholders(e, parameters, returnType, utilityFunction, utilityFunctionInputType, utilityFunctionReturnType)) args)
                 else
                     // The key is the value
                     args.[0]
@@ -100,77 +105,77 @@ type AcceleratedArraySortHandler() =
                         // Find the placeholder holding the variable
                         if (parameters.ContainsKey(v)) then
                             // Recursively process the arguments, except the array reference
-                            let arrayGet, _ = AcceleratedCollectionUtil.GetArrayAccessMethodInfo(parameters.[v].Type.GetElementType())
-                            Expr.Call(arrayGet, [ Expr.Var(parameters.[v]); SubstitutePlaceholders(args.[1], parameters, actualFunction, actualFunctionInstance) ])
+                            let arrayGet, _ = AcceleratedCollectionUtil.GetArrayAccessMethodInfo(parameters.[v].Type.GetElementType(), 1)
+                            Expr.Call(arrayGet, [ Expr.Var(parameters.[v]); SubstitutePlaceholders(args.[1], parameters, returnType, utilityFunction, utilityFunctionInputType, utilityFunctionReturnType) ])
                         else
                             RebuildCall(o, m, args)
                     else if m.Name = "SetArray" then
                         // Find the placeholder holding the variable
                         if (parameters.ContainsKey(v)) then
                             // Recursively process the arguments, except the array reference)
-                            let _, arraySet = AcceleratedCollectionUtil.GetArrayAccessMethodInfo(parameters.[v].Type.GetElementType())
+                            let _, arraySet = AcceleratedCollectionUtil.GetArrayAccessMethodInfo(parameters.[v].Type.GetElementType(), 1)
                             // If the value is const (e.g. 0) then it must be converted to the new array element type
                             let newValue = match args.[2] with
                                             | Patterns.Value(o, t) ->
-                                                if actualFunction.IsSome then
-                                                    let outputParameterType = actualFunction.Value.GetParameters().[1].ParameterType
+                                                if utilityFunction.IsSome then
+                                                    let outputParameterType = utilityFunctionReturnType
                                                     // Conversion method (ToDouble, ToSingle, ToInt, ...)
                                                     Expr.Value(Activator.CreateInstance(outputParameterType), outputParameterType)
                                                 else
                                                     args.[2]
                                             | _ ->
-                                                SubstitutePlaceholders(args.[2], parameters, actualFunction, actualFunctionInstance)
-                            Expr.Call(arraySet, [ Expr.Var(parameters.[v]); SubstitutePlaceholders(args.[1], parameters, actualFunction, actualFunctionInstance); newValue ])
+                                                SubstitutePlaceholders(args.[2], parameters, returnType, utilityFunction, utilityFunctionInputType, utilityFunctionReturnType)
+                            Expr.Call(arraySet, [ Expr.Var(parameters.[v]); SubstitutePlaceholders(args.[1], parameters, returnType, utilityFunction, utilityFunctionInputType, utilityFunctionReturnType); newValue ])
                                                            
                         else
                             RebuildCall(o, m, args)
                     else
                          RebuildCall(o, m,args)
                 | _ ->
-                    RebuildCall(o, m, List.map(fun (e:Expr) -> SubstitutePlaceholders(e, parameters, actualFunction, actualFunctionInstance)) args)                  
+                    RebuildCall(o, m, List.map(fun (e:Expr) -> SubstitutePlaceholders(e, parameters, returnType, utilityFunction, utilityFunctionInputType, utilityFunctionReturnType)) args)                  
             // Otherwise process children and return the same call
             else
-                RebuildCall(o, m, List.map(fun (e:Expr) -> SubstitutePlaceholders(e, parameters, actualFunction, actualFunctionInstance)) args)
+                RebuildCall(o, m, List.map(fun (e:Expr) -> SubstitutePlaceholders(e, parameters, returnType, utilityFunction, utilityFunctionInputType, utilityFunctionReturnType)) args)
         | Patterns.Let(v, value, body) ->
             // a and b are "special" vars that hold the params of the reduce function
             if v.Name = "a" then
                 let newVarType = 
-                    if actualFunction.IsSome then
-                        actualFunction.Value.GetParameters().[0].ParameterType
+                    if utilityFunction.IsSome then
+                        utilityFunctionInputType
                     else
                         failwith "Error"
                 let a = Quotations.Var("a", newVarType, false)
                 parameters.Add(v, a)
-                Expr.Let(a, SubstitutePlaceholders(value, parameters, actualFunction, actualFunctionInstance), 
-                            SubstitutePlaceholders(body, parameters, actualFunction, actualFunctionInstance))
+                Expr.Let(a, SubstitutePlaceholders(value, parameters, returnType, utilityFunction, utilityFunctionInputType, utilityFunctionReturnType), 
+                            SubstitutePlaceholders(body, parameters, returnType, utilityFunction, utilityFunctionInputType, utilityFunctionReturnType))
             else if v.Name = "b" then
                 let newVarType = 
-                    if actualFunction.IsSome then
-                        actualFunction.Value.GetParameters().[0].ParameterType
+                    if utilityFunction.IsSome then
+                        utilityFunctionInputType
                     else
                         failwith "Error"
                 let b = Quotations.Var("b", newVarType, false)
                 // Remember for successive references to a and b
                 parameters.Add(v, b)
-                Expr.Let(b, SubstitutePlaceholders(value, parameters, actualFunction, actualFunctionInstance), SubstitutePlaceholders(body, parameters, actualFunction, actualFunctionInstance))        
+                Expr.Let(b, SubstitutePlaceholders(value, parameters, returnType, utilityFunction, utilityFunctionInputType, utilityFunctionReturnType), SubstitutePlaceholders(body, parameters, returnType, utilityFunction, utilityFunctionInputType, utilityFunctionReturnType))        
             else
-                Expr.Let(v, SubstitutePlaceholders(value, parameters, actualFunction, actualFunctionInstance), SubstitutePlaceholders(body, parameters, actualFunction, actualFunctionInstance))
+                Expr.Let(v, SubstitutePlaceholders(value, parameters, returnType, utilityFunction, utilityFunctionInputType, utilityFunctionReturnType), SubstitutePlaceholders(body, parameters, returnType, utilityFunction, utilityFunctionInputType, utilityFunctionReturnType))
         
         | ExprShape.ShapeLambda(v, b) ->
-            Expr.Lambda(v, SubstitutePlaceholders(b, parameters, actualFunction, actualFunctionInstance))                    
+            Expr.Lambda(v, SubstitutePlaceholders(b, parameters, returnType, utilityFunction, utilityFunctionInputType, utilityFunctionReturnType))                    
         | ExprShape.ShapeCombination(o, l) ->
             match e with
             | Patterns.IfThenElse(cond, ifb, elseb) ->
                 let nl = new List<Expr>();
                 for e in l do 
-                    let ne = SubstitutePlaceholders(e, parameters, actualFunction, actualFunctionInstance) 
+                    let ne = SubstitutePlaceholders(e, parameters, returnType, utilityFunction, utilityFunctionInputType, utilityFunctionReturnType) 
                     // Trick to adapt "0" in (sdata.[tid] <- if(i < n) then g_idata.[i] else 0) in case of other type of values (double: 0.0)
                     nl.Add(ne)
                 ExprShape.RebuildShapeCombination(o, List.ofSeq(nl))
             | _ ->
                 let nl = new List<Expr>();
                 for e in l do 
-                    let ne = SubstitutePlaceholders(e, parameters, actualFunction, actualFunctionInstance) 
+                    let ne = SubstitutePlaceholders(e, parameters, returnType, utilityFunction, utilityFunctionInputType, utilityFunctionReturnType) 
                     nl.Add(ne)
                 ExprShape.RebuildShapeCombination(o, List.ofSeq(nl))
         | _ ->
@@ -185,14 +190,14 @@ type AcceleratedArraySortHandler() =
         r2
 
     interface IAcceleratedCollectionHandler with
-        member this.Process(methodInfo, cleanArgs, root, meta, step, env) =      
+        member this.Process(methodInfo, cleanArgs, root, meta, step, env, opts) =      
             let isSort = methodInfo.Name = "Sort"
-            let computationFunction, subExpr, isLambda =                
+            let computationFunction, subExpr =                
                 if isSort then
-                    None, None, false
+                    None, None
                 else
                     // Inspect operator
-                    AcceleratedCollectionUtil.ParseOperatorLambda(cleanArgs.[0], step, env)
+                    AcceleratedCollectionUtil.ParseOperatorLambda(cleanArgs.[0], step, env, opts)
                                 
             match subExpr with
             | Some(kfg, newEnv) ->
@@ -204,25 +209,19 @@ type AcceleratedArraySortHandler() =
 //                    node.InputNodes.Add(new KFGOutsiderDataNode(o))
 
                 // Parse arguments
-                let subnode = step.Process(cleanArgs.[1], env)
+                let subnode = step.Process(cleanArgs.[1], env, opts)
                 node.InputNodes.Add(subnode)
                 Some(node :> IKFGNode)   
             | _ ->                          
                 // Extract the reduce function 
                 if isSort || computationFunction.IsSome then
                 
-                    // Create on-the-fly module to host the kernel                
-                    // The dynamic module that hosts the generated kernels
-                    let assemblyName = IDGenerator.GenerateUniqueID("FSCL.Compiler.Plugins.AcceleratedCollections.AcceleratedArray");
-                    let assemblyBuilder = AppDomain.CurrentDomain.DefineDynamicAssembly(new AssemblyName(assemblyName), AssemblyBuilderAccess.Run);
-                    let moduleBuilder = assemblyBuilder.DefineDynamicModule("AcceleratedArrayModule");
-
                     // Now create the kernel
                     // We need to get the type of a array whose elements type is the same of the functionInfo parameter
                     let inputArrayType, outputArrayType =                     
                         match computationFunction with
-                        | Some(thisVar, ob, functionInfo, functionParamVars, body) ->
-                            (Array.CreateInstance(functionInfo.GetParameters().[0].ParameterType, 0).GetType(),  Array.CreateInstance(functionInfo.ReturnType, 0).GetType())
+                        |  Some(thisVar, ob, functionName, functionInfo, functionParamVars, functionReturnType, functionBody) ->
+                            functionParamVars.[0].Type.MakeArrayType(), functionReturnType.MakeArrayType()
                         | _ ->
                             (methodInfo.GetParameters().[0].ParameterType, methodInfo.GetParameters().[0].ParameterType)
                 
@@ -230,17 +229,12 @@ type AcceleratedArraySortHandler() =
                     let targetType = meta.KernelMeta.Get<DeviceTypeAttribute>()
             
                     // CPU AND GPU CODE (TODO: OPTIMIZE FOR THE TWO KINDS OF DEVICE)                                                      
-                    let thisVar, ob, signature, name =    
+                    let thisVar, ob, utilityFunction, functionReturnType, kernelName, runtimeName =    
                         match computationFunction with
-                        | Some(thisVar, ob, functionInfo, functionParamVars, body) ->
-                            (thisVar, ob, DynamicMethod("ArraySortBy_" + functionInfo.Name, outputArrayType, [| inputArrayType; outputArrayType; outputArrayType; typeof<WorkItemInfo> |]), "Array.sortBy")
+                        |  Some(thisVar, ob, functionName, functionInfo, functionParamVars, functionReturnType, functionBody) ->
+                            (thisVar, ob, Some(functionBody), functionReturnType, "ArraySortBy_" + functionName, "Array.sortBy")
                         | _ ->
-                            (None, None, DynamicMethod("ArraySort", outputArrayType, [| inputArrayType; outputArrayType; outputArrayType; typeof<WorkItemInfo> |]), "Array.sort")
-                                                 
-                    // Now we can create the signature and define parameter name in the dynamic module                                        
-                    signature.DefineParameter(1, ParameterAttributes.In, "input_array") |> ignore
-                    signature.DefineParameter(2, ParameterAttributes.In, "output_array") |> ignore
-                    signature.DefineParameter(3, ParameterAttributes.In, "wi") |> ignore
+                            (None, None, None, methodInfo.GetParameters().[0].ParameterType, "ArraySort", "Array.sort")
                     
                     // Create parameters placeholders
                     let inputHolder = Quotations.Var("input_array", inputArrayType)
@@ -257,13 +251,7 @@ type AcceleratedArraySortHandler() =
 
                     // Replace functions and references to parameters
                     let functionMatching = new Dictionary<string, MethodInfo>()
-                    let fInfo, thisObj = 
-                        match computationFunction with
-                        | Some(thisVar, ob, functionInfo, functionParamVars, body) ->
-                            Some(functionInfo), ob
-                        | _ ->
-                            None, None
-                    let newBody = SubstitutePlaceholders(templateBody, parameterMatching, fInfo, thisObj)  
+                    let newBody = SubstitutePlaceholders(templateBody, parameterMatching, outputArrayType, utilityFunction, functionReturnType, functionReturnType)  
                     let finalKernel = 
                         Expr.Lambda(tupleHolder,
                             Expr.Let(inputHolder, Expr.TupleGet(Expr.Var(tupleHolder), 0),
@@ -271,52 +259,49 @@ type AcceleratedArraySortHandler() =
                                     Expr.Let(wiHolder, Expr.TupleGet(Expr.Var(tupleHolder), 2),
                                         newBody))))
                     
-                    // Setup kernel module and return
-                    let methodParams = signature.GetParameters()
-
+                   
                     // Add applied function      
                     let kernelModule =
                         match computationFunction with
-                        | Some(_, _, functionInfo, functionParamVars, body) ->
-                            let envVars, outVals = QuotationAnalysis.KernelParsing.ExtractEnvRefs(body)
-                            let sortByFunctionInfo = new FunctionInfo(functionInfo, 
-                                                                      functionInfo.GetParameters() |> List.ofArray,
+                        | Some(thisVar, ob, functionName, functionInfo, functionParamVars, functionReturnType, functionBody) ->
+                            let envVars, outVals = QuotationAnalysis.KernelParsing.ExtractEnvRefs(functionBody)
+                            let sortByFunctionInfo = new FunctionInfo(functionName,
+                                                                      functionInfo,
                                                                       functionParamVars,
+                                                                      functionReturnType,
                                                                       envVars, outVals,
-                                                                      None,
-                                                                      body, isLambda)
+                                                                      functionBody)
                            
-                            let kInfo = new AcceleratedKernelInfo(signature, 
-                                                                    [ methodParams.[0]; methodParams.[1]; methodParams.[2] ],
+                            let kInfo = new AcceleratedKernelInfo(kernelName, 
+                                                                  methodInfo,
+                                                                    //[ methodParams.[0]; methodParams.[1]; methodParams.[2] ],
                                                                     [ inputHolder; outputHolder ],
+                                                                    outputArrayType,
                                                                     envVars, outVals,
                                                                     finalKernel, 
                                                                     meta, 
-                                                                    name, Some(sortByFunctionInfo :> IFunctionInfo), 
-                                                                    Some(body))
+                                                                    runtimeName, Some(sortByFunctionInfo :> IFunctionInfo), 
+                                                                    Some(finalKernel))
 
                             let kernelModule = new KernelModule(thisVar, ob, kInfo)
                 
                             // Store the called function (runtime execution will use it to perform latest iterations of reduction)
-                            if isLambda then
-                                kernelModule.Kernel.CustomInfo.Add("SortFunction", cleanArgs.[0])
-                            else
-                                // ExtractComputationFunction may have lifted some paramters that are referencing stuff outside the quotation, so 
-                                // a new methodinfo is generated with no body. So we can't invoke it, and therefore we add as ReduceFunction the body instead of the methodinfo
-                                kernelModule.Kernel.CustomInfo.Add("SortFunction", body)
+                            kernelModule.Kernel.CustomInfo.Add("SortFunction", cleanArgs.[0])
                                     
                             // Store the called function (runtime execution will use it to perform latest iterations of reduction)
                             kernelModule.Functions.Add(sortByFunctionInfo.ID, sortByFunctionInfo)
                             kernelModule.Kernel.CalledFunctions.Add(sortByFunctionInfo.ID)
                             kernelModule
                         | _ ->                            
-                            let kInfo = new AcceleratedKernelInfo(signature, 
-                                                                    [ methodParams.[0]; methodParams.[1]; methodParams.[2] ],
+                            let kInfo = new AcceleratedKernelInfo(kernelName, 
+                                                                  methodInfo,
+                                                                    //[ methodParams.[0]; methodParams.[1]; methodParams.[2] ],
                                                                     [ inputHolder; outputHolder ],
+                                                                    outputArrayType,
                                                                     new List<Var>(), new List<Expr>(),
                                                                     finalKernel, 
                                                                     meta, 
-                                                                    name, None, 
+                                                                    runtimeName, None, 
                                                                     None)
 
                             let kernelModule = new KernelModule(thisVar, ob, kInfo)
@@ -328,9 +313,9 @@ type AcceleratedArraySortHandler() =
                     // Parse arguments
                     let subnode =
                         if isSort then
-                            step.Process(cleanArgs.[0], env)
+                            step.Process(cleanArgs.[0], env, opts)
                         else
-                            step.Process(cleanArgs.[1], env)
+                            step.Process(cleanArgs.[1], env, opts)
                     node.InputNodes.Add(subnode)
 
                     Some(node :> IKFGNode)  

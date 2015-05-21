@@ -23,12 +23,12 @@ open System.Reflection
 type TuplePatternInputProcessor() =
     inherit FunctionTransformationProcessor()
             
-    override this.Run(expr, en, opts) =
+    override this.Run((expr, cont, def), en, opts) =
         let engine = en :?> FunctionTransformationStep
         match expr with
         | Patterns.Let (patternInput, 
                         Patterns.Let(v, 
                             Patterns.TupleGet(Patterns.Var(tv), _), _), body) when patternInput.Name = "patternInput" && tv = patternInput ->
-            engine.Default(expr)
+            def(expr)
         | _ ->
-            engine.Default(expr)
+            def(expr)

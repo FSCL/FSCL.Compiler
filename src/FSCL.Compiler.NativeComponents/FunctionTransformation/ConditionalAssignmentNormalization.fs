@@ -73,7 +73,7 @@ type ConditionalAssignmentTransformation() =
         | _ ->
             raise (CompilerException("Cannot determine variable assignment in if-then-else construct. Try to transform v = if .. else ..; into v; if .. v <- .. else .. v <- .."))
                                                  
-    override this.Run(expr, en, opts) =
+    override this.Run((expr, cont, def), en, opts) =
         let engine = en :?> FunctionTransformationStep
         match expr with
         // Check let-let
@@ -83,9 +83,9 @@ type ConditionalAssignmentTransformation() =
                 let norm = Expr.Let(v, Expr.DefaultValue(v.Type), 
                                 Expr.Sequential(Expr.Let(v2, e2, ReplaceReturnExpressionWithVarSet(body2, v, engine)),
                                                 body))
-                engine.Continue(norm)
+                cont(norm)
             | _ ->
-                engine.Default(expr)
+                def(expr)
         // Check branches
         | Patterns.Let(v, e, body) ->
             match e with
@@ -93,16 +93,16 @@ type ConditionalAssignmentTransformation() =
                 let fixedExpr = MoveAssignmentIntoBody(v, e, engine)
                 Expr.Sequential(
                     Expr.Let(v, e, Expr.Value(0)),
-                    engine.Continue(fixedExpr))
+                    cont(fixedExpr))
             | _ ->
-                engine.Default(expr)
+                def(expr)
         | Patterns.VarSet (v, e) ->
             match e with
             | Patterns.IfThenElse(cond, ib, eb) ->                    
                 let fixedExpr = MoveAssignmentIntoBody(v, e, engine)
-                engine.Continue(fixedExpr)
+                cont(fixedExpr)
             | _ ->
-                engine.Default(expr)                 
+                def(expr)                 
         | Patterns.Call (e, mi, a) ->
             if mi.DeclaringType <> null then
                 if mi.DeclaringType.Name = "IntrinsicFunctions" then                    
@@ -112,14 +112,14 @@ type ConditionalAssignmentTransformation() =
                         match a.[substituteIndex] with
                         | Patterns.IfThenElse(cond, ib, eb) ->                    
                             let fixedExpr = MoveArraySetIntoBody(e, mi, a, substituteIndex, a.[substituteIndex], engine)
-                            engine.Continue(fixedExpr)
+                            cont(fixedExpr)
                         | _ ->
-                            engine.Default(expr)
+                            def(expr)
                     else
-                        engine.Default(expr)
+                        def(expr)
                 else
-                    engine.Default(expr)
+                    def(expr)
             else
-                engine.Default(expr)
+                def(expr)
         | _ ->
-            engine.Default(expr)                   
+            def(expr)                   

@@ -46,7 +46,7 @@ type RefVariableTransformationProcessor() =
             raise (CompilerException("Cannot determine the parameter referred by the kernel body " + var))
         placeholder.Value
 
-    override this.Run(expr, en, opts) =
+    override this.Run((expr, cont, def), en, opts) =
         let engine = en :?> FunctionTransformationStep
         match expr with
         | DerivedPatterns.SpecificCall (<@ (!) @>) (e, tl, args) ->
@@ -58,7 +58,7 @@ type RefVariableTransformationProcessor() =
                 let (readArr, _) = GetArrayAccessMethodInfo (placeholder.Type.GetElementType())
                 Expr.Call(readArr, [Expr.Var(placeholder); Expr.Value(0)])
             | _ ->
-                engine.Default(expr)
+                def(expr)
         | DerivedPatterns.SpecificCall (<@ (:=) @>) (e, tl, args) -> 
             match args.[0] with
             | Patterns.Var(v) ->
@@ -66,8 +66,8 @@ type RefVariableTransformationProcessor() =
                 let placeholder = GetPlaceholderVar(v.Name, engine)
                 // Create new array access expression
                 let (_, writeArr) = GetArrayAccessMethodInfo (placeholder.Type.GetElementType())
-                Expr.Call(writeArr, [Expr.Var(placeholder); Expr.Value(0); engine.Continue(args.[1])])
+                Expr.Call(writeArr, [Expr.Var(placeholder); Expr.Value(0); cont(args.[1])])
             | _ ->
-                engine.Default(expr)
+                def(expr)
         | _ ->
-            engine.Default(expr)
+            def(expr)

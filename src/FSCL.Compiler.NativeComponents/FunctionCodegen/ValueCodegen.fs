@@ -11,7 +11,7 @@ open Microsoft.FSharp.Linq.RuntimeHelpers
 [<StepProcessor("FSCL_VALUE_CODEGEN_PROCESSOR", "FSCL_FUNCTION_CODEGEN_STEP")>]
 type ValueCodegen() =   
     inherit FunctionBodyCodegenProcessor()
-    override this.Run(expr, en, opts) =
+    override this.Run((expr, cont), en, opts) =
         let step = en :?> FunctionCodegenStep
         let returnPrefix = 
             if(step.FunctionInfo.CustomInfo.ContainsKey("FUNCTION_RETURN_EXPRESSIONS")) then
@@ -31,7 +31,7 @@ type ValueCodegen() =
             // Gen fields init
             let fields = args
             for i = 0 to fields.Length - 1 do
-                gencode <- gencode + ".Item" + i.ToString() + " = " + step.Continue(args.[i])
+                gencode <- gencode + ".Item" + i.ToString() + " = " + cont(args.[i])
                 if i < fields.Length - 1 then
                     gencode <- gencode + ", "
             Some(gencode + " }" + returnPostfix)  
@@ -72,6 +72,6 @@ type ValueCodegen() =
                     Some(returnPrefix + v.ToString() + returnPostfix)
         | Patterns.DefaultValue(t) ->
             // We handle DefaultValue by evaluating the expr (getting a const value) and then processing the constant node
-            Some(step.Continue(Expr.Value(LeafExpressionConverter.EvaluateQuotation(expr), expr.Type)))
+            Some(cont(Expr.Value(LeafExpressionConverter.EvaluateQuotation(expr), expr.Type)))
         | _ ->
             None

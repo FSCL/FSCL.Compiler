@@ -9,14 +9,14 @@ open System.Reflection
 [<StepProcessor("FSCL_VECTOR_ELEMENT_ACCESS_CODEGEN_PROCESSOR", "FSCL_FUNCTION_CODEGEN_STEP")>] 
 type VectorElementAccessCodegen() =                 
     inherit FunctionBodyCodegenProcessor()
-    override this.Run(expr, en, opts) =
+    override this.Run((expr, cont), en, opts) =
         let engine = en :?> FunctionCodegenStep
         match expr with    
         | Patterns.PropertyGet(e, propertyInfo, args) ->
             if e.IsSome then
                 let t = e.Value.Type
                 if (t.Assembly.GetName().Name = "FSCL.Compiler.Core.Language") then
-                    Some(engine.Continue(e.Value) + "." + propertyInfo.Name)
+                    Some(cont(e.Value) + "." + propertyInfo.Name)
                 else
                     None
             else 
@@ -25,7 +25,7 @@ type VectorElementAccessCodegen() =
             if e.IsSome then
                 let t = e.Value.Type
                 if (t.Assembly.GetName().Name = "FSCL.Compiler.Core.Language") then
-                    Some(engine.Continue(e.Value) + "." + propertyInfo.Name + " = " + engine.Continue(body) + ";\n")
+                    Some(cont(e.Value) + "." + propertyInfo.Name + " = " + cont(body) + ";\n")
                 else
                     None
             else 

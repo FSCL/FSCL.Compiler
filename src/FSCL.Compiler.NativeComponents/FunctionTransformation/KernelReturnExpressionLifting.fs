@@ -41,7 +41,7 @@ type KernelReturnLifting() =
                 result <- false
         result && (temp.Count = 0)
 
-    let LiftReturnArrayRef (expr:Expr, retV:Quotations.Var, engine:FunctionTransformationStep) =
+    let LiftReturnArrayRef (expr:Expr, retV:Quotations.Var, engine:FunctionTransformationStep, cont, def) =
         if isPotentialReturnExpression then
             match expr with
             | Patterns.Let(v, value, body) ->                
@@ -52,24 +52,24 @@ type KernelReturnLifting() =
                     else
                         Expr.Let(v, value, Expr.Var(var))
                 | _ ->                                        
-                    Expr.Let(v, value, engine.Continue(body))
+                    Expr.Let(v, value, cont(body))
             | Patterns.Sequential(e1, e2) ->
                 isPotentialReturnExpression <- false
-                let pe1 = engine.Continue(e1)
+                let pe1 = cont(e1)
                 isPotentialReturnExpression <- true
-                let pe2 = engine.Continue(e2)
+                let pe2 = cont(e2)
                 Expr.Sequential(pe1, pe2)
                 
             | Patterns.IfThenElse(cond, ifexp, elsexp) ->
-                let pe1 = engine.Continue(ifexp)
-                let pe2 = engine.Continue(elsexp)
+                let pe1 = cont(ifexp)
+                let pe2 = cont(elsexp)
                 Expr.IfThenElse(cond, pe1, pe2)
                         
             | Patterns.NewTuple(args) -> 
-                Expr.NewTuple(List.map(fun (e:Expr) -> engine.Continue(e)) args)    
+                Expr.NewTuple(List.map(fun (e:Expr) -> cont(e)) args)    
 
             | ExprShape.ShapeLambda(v, e) ->
-                let e1 = engine.Continue(e)
+                let e1 = cont(e)
                 match e1 with
                 | Patterns.Var(var) ->
                     if var.Name = retV.Name then
@@ -85,12 +85,12 @@ type KernelReturnLifting() =
                     expr
 
             | ExprShape.ShapeCombination(o, args) ->
-                let processed = List.map (fun e -> engine.Continue(e)) args
+                let processed = List.map (fun e -> cont(e)) args
                 ExprShape.RebuildShapeCombination(o, processed)
         else
-            engine.Default(expr)
+            def(expr)
               
-    override this.Run(expr, en, opts) =
+    override this.Run((expr, cont, def), en, opts) =
         let engine = en :?> FunctionTransformationStep
         if (engine.FunctionInfo :? KernelInfo)  then
             // Check if there is a parameter returned
@@ -98,7 +98,7 @@ type KernelReturnLifting() =
             if p.IsSome then
                 //if not p.Value.IsAutoArrayParameter then
                     let rv = p.Value.OriginalPlaceholder
-                    LiftReturnArrayRef(expr, rv, engine)
+                    LiftReturnArrayRef(expr, rv, engine, cont, def)
                 //else
                     //expr
             else

@@ -176,7 +176,7 @@ type Pipeline =
     ///The method to be invoke to compile a managed kernel
     ///</summary>
     ///  
-    member this.Run(input, opts: IReadOnlyDictionary<string, obj>) =
+    member this.Run(input, opts: Map<string, obj>) =
         let mutable state = input
         let mutable stopCompilation = false
         let mutable i = 0
@@ -191,4 +191,4 @@ type Pipeline =
         state
         
     member this.Run(input) =
-        this.Run(input, new Dictionary<string, obj>() :> IReadOnlyDictionary<string, obj>)
+        this.Run(input, Map.empty)

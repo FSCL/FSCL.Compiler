@@ -28,5 +28,8 @@ type ModuleCodegenStep(tm: TypeManager,
                 for p in processors do
                     state := p.Execute((km, !state), this, opts) :?> string
                 km.Code <- Some(!state)
+            // Handle lazy cloning
+            for km in cem.KernelModulesRequiringLazyCloning do
+                ((km :?> KFGKernelNode).CacheEntry.Module :?> KernelModule).CloneTo((km :?> KFGKernelNode).Module)
 
         ContinueCompilation(cem)

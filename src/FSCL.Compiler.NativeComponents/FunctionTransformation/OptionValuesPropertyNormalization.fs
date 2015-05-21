@@ -28,14 +28,14 @@ type OptionValuesPropertyNormalization() =
     let IsSomeMethod(t:Type) =
         t.GetMethod("get_IsSome")
 
-    let rec ChangeIsNonePropertyWithIsSome (expr:Expr, engine:FunctionTransformationStep) =
+    let rec ChangeIsNonePropertyWithIsSome (expr:Expr, engine:FunctionTransformationStep, cont, def) =
         match expr with
         | Patterns.Call(o, mi, a) when o.IsNone && mi.IsStatic && mi.Name = "get_IsNone" && a.[0].Type.IsOption ->
-            Expr.Call(NotMethod().Value, [ Expr.Call(IsSomeMethod(o.Value.Type), a |> List.map(fun i -> engine.Continue(i)))])
+            Expr.Call(NotMethod().Value, [ Expr.Call(IsSomeMethod(o.Value.Type), a |> List.map(fun i -> cont(i)))])
         | _ ->
-            engine.Default(expr)
+            def(expr)
               
-    override this.Run(expr, en, opts) =
+    override this.Run((expr, cont, def), en, opts) =
         let engine = en :?> FunctionTransformationStep
-        ChangeIsNonePropertyWithIsSome(expr, engine)
+        ChangeIsNonePropertyWithIsSome(expr, engine, cont, def)
 

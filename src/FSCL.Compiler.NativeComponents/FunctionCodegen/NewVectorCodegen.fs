@@ -17,14 +17,14 @@ open FSCL
 type NewVectorCodegen() =
     inherit FunctionBodyCodegenProcessor()
 
-    override this.Run(expr, en, opts) =
+    override this.Run((expr, cont), en, opts) =
         let engine = en :?> FunctionCodegenStep
         match expr with
         | Patterns.NewObject(constr, args) ->
             let attrs = expr.Type.GetCustomAttributes(typeof<VectorTypeAttribute>, true)
             if attrs.Length > 0 then
                 // This is a vector type
-                let args = String.concat ", " (List.map (fun (e:Expr) -> engine.Continue(e)) args)
+                let args = String.concat ", " (List.map (fun (e:Expr) -> cont(e)) args)
                 Some("(" + engine.TypeManager.Print(expr.Type) + ")(" + args + ")")
             else
                 None

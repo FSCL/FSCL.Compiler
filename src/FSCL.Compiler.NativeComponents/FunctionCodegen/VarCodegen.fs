@@ -8,7 +8,7 @@ open Microsoft.FSharp.Quotations
 [<StepProcessor("FSCL_VAR_CODEGEN_PROCESSOR", "FSCL_FUNCTION_CODEGEN_STEP")>]
 type VarCodegen() =   
     inherit FunctionBodyCodegenProcessor()
-    override this.Run(expr, en, opts) =
+    override this.Run((expr, cont), en, opts) =
         let engine = en :?> FunctionCodegenStep
         match expr with
         | Patterns.Var(v) ->

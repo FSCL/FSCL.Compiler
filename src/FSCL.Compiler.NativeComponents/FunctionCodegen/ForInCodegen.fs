@@ -23,7 +23,7 @@ type ForInCodegen() =
     ///The target code for the for-in-range expression if the AST node can be processed
     ///</returns>
     ///  
-    override this.Run(expr, en, opts) =
+    override this.Run((expr, cont), en, opts) =
         let engine = en :?> FunctionCodegenStep
         match expr with
         | Patterns.Let (inputSequence, value, body) ->
@@ -43,7 +43,7 @@ type ForInCodegen() =
                                         match value with
                                         | Patterns.PropertyGet(e, pi, a) ->
                                             // Ok, that's an input sequence!
-                                            Some("for(" + engine.TypeManager.Print(v.Type) + " " + v.Name + " = " + engine.Continue(starte) + "; " + v.Name + " <= " + engine.Continue(ende) + "; " + v.Name + "+=" + engine.Continue(stepe) + ") {\n" + engine.Continue(body) + "\n}\n")                                                
+                                            Some("for(" + engine.TypeManager.Print(v.Type) + " " + v.Name + " = " + cont(starte) + "; " + v.Name + " <= " + cont(ende) + "; " + v.Name + "+=" + cont(stepe) + ") {\n" + cont(body) + "\n}\n")                                                
                                         | _ -> None
                                     | _ -> None
                                 | _ -> None

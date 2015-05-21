@@ -79,6 +79,9 @@ let ``Can compile tupled kernel reference`` () =
     Assert.AreEqual((result.KFGRoot :?> KFGKernelNode).Module.Kernel.WorkSize, None)
     // Work item info parameter should be lifted
     Assert.AreEqual((result.KFGRoot :?> KFGKernelNode).Module.Kernel.OriginalParameters.Count, 3)
+    let log, success = TestUtil.TryCompileOpenCL((result.KFGRoot :?> KFGKernelNode).Module.Code.Value)
+    if not success then
+        Assert.Fail(log)
     
 //[<Test>]
 let ``Can compile curried kernel reference`` () =
@@ -89,51 +92,47 @@ let ``Can compile curried kernel reference`` () =
     Assert.AreEqual(None, (result.KFGRoot :?> KFGKernelNode).Module.Kernel.WorkSize)
     // Work item info parameter should be lifted
     Assert.AreEqual(3, (result.KFGRoot :?> KFGKernelNode).Module.Kernel.OriginalParameters.Count)
+    let log, success = TestUtil.TryCompileOpenCL((result.KFGRoot :?> KFGKernelNode).Module.Code.Value)
+    if not success then
+        Assert.Fail(log)
     
 [<Test>]
 let ``Can compile tupled kernel call`` () =
-    let compiler = new Compiler()
-    let a = Array.create 64 1.0f
-    let b = Array.create 64 1.0f
-    let c = Array.zeroCreate<float32> 64
-    let size = new WorkSize(64L, 64L)
+    let compiler, a, b, c, size = TestUtil.GetVectorSampleData()
     let result = compiler.Compile(<@ VectorAdd(a, b, c, size) @>) :?> IKernelExpression
     //printf "%s\n" (result.Code.Value.ToString())
-    let wInfo = LeafExpressionConverter.EvaluateQuotation((result.KFGRoot :?> KFGKernelNode).Module.Kernel.WorkSize.Value)
+    let wInfo = (result.KFGRoot :?> KFGKernelNode).Module.Kernel.WorkSize.Value
     // Work item info should be stored
     Assert.AreEqual(size, wInfo)
     // Work item info parameter should be lifted
     Assert.AreEqual(3, (result.KFGRoot :?> KFGKernelNode).Module.Kernel.OriginalParameters.Count)
+    let log, success = TestUtil.TryCompileOpenCL((result.KFGRoot :?> KFGKernelNode).Module.Code.Value)
+    if not success then
+        Assert.Fail(log)
     
 [<Test>]
 let ``Can compile curried kernel call`` () =
-    let compiler = new Compiler()
-    let a = Array.create 64 1.0f
-    let b = Array.create 64 1.0f
-    let c = Array.zeroCreate<float32> 64
-    let size = new WorkSize(64L, 64L)
+    let compiler, a, b, c, size = TestUtil.GetVectorSampleData()
     let result = compiler.Compile(<@ VectorAddCurried a b c size @>) :?> IKernelExpression
-    let wInfo = LeafExpressionConverter.EvaluateQuotation((result.KFGRoot :?> KFGKernelNode).Module.Kernel.WorkSize.Value)
+    let wInfo = (result.KFGRoot :?> KFGKernelNode).Module.Kernel.WorkSize.Value
     // Work item info should be stored
-    Assert.AreEqual(size, wInfo)
+    let log, success = TestUtil.TryCompileOpenCL((result.KFGRoot :?> KFGKernelNode).Module.Code.Value)
+    if not success then
+        Assert.Fail(log)
     
 [<Test>]
 let ``Can compile kernel with utility functions`` () =
-    let compiler = new Compiler()
-    let a = Array.create 64 1.0f
-    let b = Array.create 64 1.0f
-    let c = Array.zeroCreate<float32> 64
-    let size = new WorkSize(64L, 64L)
+    let compiler, a, b, c, size = TestUtil.GetVectorSampleData()
     let result = compiler.Compile(<@ VectorAddWithUtility(a, b, c, size) @>) :?> IKernelExpression
     //printf "%s\n" (result.Code.Value.ToString())
-    let wInfo = LeafExpressionConverter.EvaluateQuotation((result.KFGRoot :?> KFGKernelNode).Module.Kernel.WorkSize.Value)
+    let wInfo = (result.KFGRoot :?> KFGKernelNode).Module.Kernel.WorkSize.Value
     // Work item info should be stored
     Assert.AreEqual(size, wInfo)
     // We should have two functions
     Assert.AreEqual(2, (result.KFGRoot :?> KFGKernelNode).Module.Functions.Count)
     // Work item info parameter should be lifted from first function
     for f in (result.KFGRoot :?> KFGKernelNode).Module.Functions do
-        if (f.Value.ParsedSignature.Name = "sumElementsArrays") then
+        if (f.Value.Name = "sumElementsArrays") then
             Assert.AreEqual(4, f.Value.Parameters.Count)
         else
             Assert.AreEqual(4, f.Value.Parameters.Count)
@@ -142,53 +141,51 @@ let ``Can compile kernel with utility functions`` () =
     let secondCut = firstCut.Substring(0, firstCut.IndexOf(")"))
     let split = secondCut.Split(',')
     Assert.AreEqual(4, split.Length)
+    let log, success = TestUtil.TryCompileOpenCL((result.KFGRoot :?> KFGKernelNode).Module.Code.Value)
+    if not success then
+        Assert.Fail(log)
     
 [<Test>]
 let ``Can compile kernel with inline and nested utility functions`` () =
-    let compiler = new Compiler()
-    let a = Array.create 64 1.0f
-    let b = Array.create 64 1.0f
-    let c = Array.zeroCreate<float32> 64
-    let size = new WorkSize(64L, 64L)
+    let compiler, a, b, c, size = TestUtil.GetVectorSampleData()
     let result = compiler.Compile(<@ VectorAddWithNestedUtility(a, b, c, size) @>) :?> IKernelExpression
     //printf "%s\n" (result.Code.Value.ToString())
-    let wInfo = LeafExpressionConverter.EvaluateQuotation((result.KFGRoot :?> KFGKernelNode).Module.Kernel.WorkSize.Value)
+    let wInfo = (result.KFGRoot :?> KFGKernelNode).Module.Kernel.WorkSize.Value
     // Work item info should be stored
     Assert.AreEqual(size, wInfo)
     // We should have two functions
     Assert.AreEqual(2, (result.KFGRoot :?> KFGKernelNode).Module.Functions.Count)
     // Work item info parameter should be lifted from first function
     for f in (result.KFGRoot :?> KFGKernelNode).Module.Functions do
-        if (f.Value.ParsedSignature.Name = "sumElementsNested") then
+        if (f.Value.Name = "sumElementsNested") then
             Assert.AreEqual(5, f.Value.Parameters.Count)
             Assert.IsTrue(f.Value.Code.StartsWith("inline "))
         else
             Assert.AreEqual(2, f.Value.Parameters.Count)
+    let log, success = TestUtil.TryCompileOpenCL((result.KFGRoot :?> KFGKernelNode).Module.Code.Value)
+    if not success then
+        Assert.Fail(log)
             
 [<Test>]
 let ``Can compile kernel returning a parameter`` () =
-    let compiler = new Compiler()
-    let a = Array.create 64 1.0f
-    let b = Array.create 64 1.0f
-    let c = Array.zeroCreate<float32> 64
-    let size = new WorkSize(64L, 64L)
+    let compiler, a, b, c, size = TestUtil.GetVectorSampleData()
     let result = compiler.Compile(<@ VectorAddWithReturnParameter(a, b, c, size) @>) :?> IKernelExpression
     //printf "%s\n" (result.Code.Value.ToString())
-    let wInfo = LeafExpressionConverter.EvaluateQuotation((result.KFGRoot :?> KFGKernelNode).Module.Kernel.WorkSize.Value)
+    let wInfo = (result.KFGRoot :?> KFGKernelNode).Module.Kernel.WorkSize.Value
     // Work item info should be stored
     Assert.AreEqual(size, wInfo)
+    let log, success = TestUtil.TryCompileOpenCL((result.KFGRoot :?> KFGKernelNode).Module.Code.Value)
+    if not success then
+        Assert.Fail(log)
     
 [<Test>]
-let ``Can compile kernel with reference cells`` () =
-    let compiler = new Compiler()
-    let a = Array.create 64 1.0f
-    let b = Array.create 64 1.0f
-    let c = Array.zeroCreate<float32> 64
+let ``Can compile kernel with reference cells`` () =    
+    let compiler, a, b, c, size = TestUtil.GetVectorSampleData()
     let r = ref 2.0f
-    let size = new WorkSize(64L, 64L)
+
     let result = compiler.Compile(<@ VectorAddWithRefCell(a, b, c, r, size) @>) :?> IKernelExpression
     //printf "%s\n" (result.Code.Value.ToString())
-    let wInfo = LeafExpressionConverter.EvaluateQuotation((result.KFGRoot :?> KFGKernelNode).Module.Kernel.WorkSize.Value)
+    let wInfo = (result.KFGRoot :?> KFGKernelNode).Module.Kernel.WorkSize.Value
     // Work item info should be stored
     Assert.AreEqual(size, wInfo)
     // 4th paramter should be an array 
@@ -199,4 +196,7 @@ let ``Can compile kernel with reference cells`` () =
     Assert.Greater(firstIndex, 0)
     Assert.Greater(lastIndex, 0)
     Assert.AreNotEqual(firstIndex, lastIndex)
+    let log, success = TestUtil.TryCompileOpenCL((result.KFGRoot :?> KFGKernelNode).Module.Code.Value)
+    if not success then
+        Assert.Fail(log)
    

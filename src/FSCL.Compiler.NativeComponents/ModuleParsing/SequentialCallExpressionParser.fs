@@ -41,7 +41,7 @@ type SequentialCallExpressionParser() =
 
                 // Parse arguments
                 for i = 0 to args.Length - 1 do
-                    let subnode = step.Process(args.[i], env)
+                    let subnode = step.Process(args.[i], env, opts)
                     node.InputNodes.Add(subnode)
 
                 Some(node :> IKFGNode)   

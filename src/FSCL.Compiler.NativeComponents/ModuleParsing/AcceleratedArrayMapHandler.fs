@@ -15,11 +15,11 @@ open Microsoft.FSharp.Linq.RuntimeHelpers
 
 type AcceleratedArrayMapHandler() =
     interface IAcceleratedCollectionHandler with
-        member this.Process(methodInfo, cleanArgs, root, meta, step, env) =
+        member this.Process(methodInfo, cleanArgs, root, meta, step, env, opts) =
                 
             // Inspect operator
-            let computationFunction, subExpr, isLambda =                
-                AcceleratedCollectionUtil.ParseOperatorLambda(cleanArgs.[0], step, env)
+            let computationFunction, subExpr =                
+                AcceleratedCollectionUtil.ParseOperatorLambda(cleanArgs.[0], step, env, opts)
                                 
             match subExpr with
             | Some(kfg, newEnv) ->
@@ -27,30 +27,27 @@ type AcceleratedArrayMapHandler() =
                 let node = new KFGCollectionCompositionNode(methodInfo, kfg, newEnv)
 
                 // Parse arguments
-                let subnode = step.Process(cleanArgs.[1], env)
+                let subnode = step.Process(cleanArgs.[1], env, opts)
                 node.InputNodes.Add(subnode)
                 Some(node :> IKFGNode)   
             | _ ->
                 // This coll fun is a kernel
                 match computationFunction with
-                | Some(thisVar, ob, functionInfo, functionParamVars, functionBody) ->
+                | Some(thisVar, ob, functionName, functionInfo, functionParamVars, functionReturnType, functionBody) ->
                     // We need to get the type of a array whose elements type is the same of the functionInfo parameter
                     let inputArrayType = 
                         if methodInfo.Name = "Map" then
-                            functionInfo.GetParameters().[0].ParameterType.MakeArrayType()
+                            functionParamVars.[0].Type.MakeArrayType()
                         else
-                            functionInfo.GetParameters().[1].ParameterType.MakeArrayType()
-                    let outputArrayType = functionInfo.ReturnType.MakeArrayType()
-                    let kernelPrefix, functionName = 
+                            functionParamVars.[1].Type.MakeArrayType()
+                    let outputArrayType = functionReturnType.MakeArrayType()
+                    let kernelName, runtimeName = 
                         if methodInfo.Name = "Map" then
-                            "ArrayMap_", "Array.map"
+                            "ArrayMap_" + functionName, "Array.map"
                         else
-                            "ArrayMapi_", "Array.mapi"                    
+                            "ArrayMapi_" + functionName, "Array.mapi"                    
 
                     // Now we can create the signature and define parameter name
-                    let signature = DynamicMethod(kernelPrefix + "_" + functionInfo.Name, outputArrayType, [| inputArrayType; typeof<WorkItemInfo> |])
-                    signature.DefineParameter(1, ParameterAttributes.In, "input_array") |> ignore
-                    signature.DefineParameter(2, ParameterAttributes.In, "workItemInfo") |> ignore
                     let wiHolder = Quotations.Var("workItemInfo", typeof<WorkItemInfo>)                                
 
                     // Create parameters placeholders
@@ -61,14 +58,14 @@ type AcceleratedArrayMapHandler() =
                     
                     // Finally, create the body of the kernel
                     let globalIdVar = Quotations.Var("global_id", typeof<int>)
-                    let getElementMethodInfo, _ = AcceleratedCollectionUtil.GetArrayAccessMethodInfo(inputArrayType.GetElementType())
-                    let _, setElementMethodInfo = AcceleratedCollectionUtil.GetArrayAccessMethodInfo(outputArrayType.GetElementType())
+                    let getElementMethodInfo, _ = AcceleratedCollectionUtil.GetArrayAccessMethodInfo(inputArrayType.GetElementType(), 1)
+                    let _, setElementMethodInfo = AcceleratedCollectionUtil.GetArrayAccessMethodInfo(outputArrayType.GetElementType(), 1)
                     let kernelBody = 
                         Expr.Lambda(tupleHolder,
                             Expr.Let(inputHolder, Expr.TupleGet(Expr.Var(tupleHolder), 0),
                                 Expr.Let(wiHolder, Expr.TupleGet(Expr.Var(tupleHolder), 1),                                                
                                     Expr.Let(outputHolder, Expr.Call(
-                                                        ZeroCreateMethod(outputArrayType.GetElementType()), 
+                                                        GetZeroCreateMethod(outputArrayType.GetElementType(), 1), 
                                                                             [ Expr.PropertyGet(Expr.Var(inputHolder), 
                                                                                             outputArrayType.GetProperty("Length")) ]),
                                         Expr.Let(globalIdVar,
@@ -77,9 +74,8 @@ type AcceleratedArrayMapHandler() =
                                                         Expr.Call(setElementMethodInfo,
                                                                 [ Expr.Var(outputHolder);
                                                                     Expr.Var(globalIdVar);
-                                                                    AcceleratedCollectionUtil.BuildCallExpr(
-                                                                            ob, 
-                                                                            functionInfo,
+                                                                    AcceleratedCollectionUtil.BuildApplication(
+                                                                            functionBody,
 
                                                                             if methodInfo.Name = "Map" then
                                                                                 [ Expr.Call(getElementMethodInfo,
@@ -96,26 +92,26 @@ type AcceleratedArrayMapHandler() =
                                                                 )]),
                                                                 Expr.Var(outputHolder)))))))
 
-                    let methodParams = signature.GetParameters()
                     let envVars, outVals = QuotationAnalysis.KernelParsing.ExtractEnvRefs(functionBody)
                                 
                     // Add the computation function and connect it to the kernel
-                    let mapFunctionInfo = new FunctionInfo(functionInfo, 
-                                                           functionInfo.GetParameters() |> List.ofArray, 
-                                                           functionParamVars,    
+                    let mapFunctionInfo = new FunctionInfo(functionName,    
+                                                           functionInfo, 
+                                                           functionParamVars,   
+                                                           functionReturnType, 
                                                            envVars,
-                                                           outVals,      
-                                                           None,
-                                                           functionBody, isLambda)
+                                                           outVals,     
+                                                           functionBody)
                                                            
-                    let kInfo = new AcceleratedKernelInfo(signature, 
-                                                            [ methodParams.[0] ],
-                                                            [ inputHolder ],     
+                    let kInfo = new AcceleratedKernelInfo(kernelName,
+                                                          methodInfo,
+                                                            [ inputHolder ], 
+                                                            outputArrayType,    
                                                             envVars,
                                                             outVals,                                                 
                                                             kernelBody, 
                                                             meta, 
-                                                            functionName, Some(mapFunctionInfo :> IFunctionInfo),
+                                                            runtimeName, Some(mapFunctionInfo :> IFunctionInfo),
                                                             Some(functionBody))
 
                     let kernelModule = new KernelModule(thisVar, ob, kInfo)
@@ -131,7 +127,7 @@ type AcceleratedArrayMapHandler() =
 //                            node.InputNodes.Add(new KFGOutsiderDataNode(o))
 
                     // Parse arguments
-                    let subnode = step.Process(cleanArgs.[1], env)
+                    let subnode = step.Process(cleanArgs.[1], env, opts)
                     node.InputNodes.Add(subnode)
                     Some(node :> IKFGNode)   
                 | _ ->
