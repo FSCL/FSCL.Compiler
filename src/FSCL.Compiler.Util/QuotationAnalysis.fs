@@ -347,10 +347,11 @@ module QuotationAnalysis =
         let rec ClearLambdaBodyFromLetLet(e:Expr) =
             match e with
             | Patterns.Let(v1, Patterns.Var(v2), body) when v1.Name = v2.Name && v1.Type = v2.Type ->
+                let eq = v1 = v2
                 let b = body
                 body.Substitute(fun v ->
-                                    if v = v2 then
-                                        Some(Expr.Var(v1))
+                                    if v = v1 then
+                                        Some(Expr.Var(v2))
                                     else
                                         None) |> ClearLambdaBodyFromLetLet
             | _ ->
