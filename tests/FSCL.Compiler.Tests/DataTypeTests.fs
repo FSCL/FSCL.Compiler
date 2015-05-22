@@ -78,7 +78,7 @@ let ``Can compile char vector add`` () =
     let wInfo = (result.KFGRoot :?> KFGKernelNode).Module.Kernel.WorkSize.Value
     // Work item info should be stored
     Assert.AreEqual(size, wInfo)
-    let log, success = TestUtil.TryCompileOpenCL((result.KFGRoot :?> KFGKernelNode).Module.Code.Value)
+    let log, success = TestUtil.TryCompileOpenCL((result.KFGRoot :?> KFGKernelNode).Module)
     if not success then
         Assert.Fail(log)
     
@@ -93,7 +93,7 @@ let ``Can compile uchar vector add`` () =
     let wInfo = (result.KFGRoot :?> KFGKernelNode).Module.Kernel.WorkSize.Value
     // Work item info should be stored
     Assert.AreEqual(size, wInfo)
-    let log, success = TestUtil.TryCompileOpenCL((result.KFGRoot :?> KFGKernelNode).Module.Code.Value)
+    let log, success = TestUtil.TryCompileOpenCL((result.KFGRoot :?> KFGKernelNode).Module)
     if not success then
         Assert.Fail(log)
     
@@ -110,7 +110,7 @@ let ``Can compile int4 vector add`` () =
     Assert.AreEqual(size, wInfo)
     // A struct type Int4 should NOT be added to the global types
     Assert.AreEqual(None, (result.KFGRoot :?> KFGKernelNode).Module.GlobalTypes |> Seq.tryFind(fun t -> t = typeof<int4>))
-    let log, success = TestUtil.TryCompileOpenCL((result.KFGRoot :?> KFGKernelNode).Module.Code.Value)
+    let log, success = TestUtil.TryCompileOpenCL((result.KFGRoot :?> KFGKernelNode).Module)
     if not success then
         Assert.Fail(log)
 
@@ -127,7 +127,7 @@ let ``Can compile custom struct vector add`` () =
     Assert.AreEqual(size, wInfo)
     // A struct type should be added to the global types
     Assert.AreNotEqual(None, (result.KFGRoot :?> KFGKernelNode).Module.GlobalTypes |> Seq.tryFind(fun t -> t = typeof<MyStruct>))
-    let log, success = TestUtil.TryCompileOpenCL((result.KFGRoot :?> KFGKernelNode).Module.Code.Value)
+    let log, success = TestUtil.TryCompileOpenCL((result.KFGRoot :?> KFGKernelNode).Module)
     if not success then
         Assert.Fail(log)
         
@@ -144,7 +144,7 @@ let ``Can compile custom struct with custom constructor vector add`` () =
     Assert.AreEqual(size, wInfo)
     // A struct type should be added to the global types
     Assert.AreNotEqual(None, (result.KFGRoot :?> KFGKernelNode).Module.GlobalTypes |> Seq.tryFind(fun t -> t = typeof<MyStruct>))
-    let log, success = TestUtil.TryCompileOpenCL((result.KFGRoot :?> KFGKernelNode).Module.Code.Value)
+    let log, success = TestUtil.TryCompileOpenCL((result.KFGRoot :?> KFGKernelNode).Module)
     if not success then
         Assert.Fail(log)
     
@@ -161,7 +161,7 @@ let ``Can compile custom record vector add`` () =
     Assert.AreEqual(size, wInfo)
     // A struct type should be added to the global types
     Assert.AreNotEqual(None, (result.KFGRoot :?> KFGKernelNode).Module.GlobalTypes |> Seq.tryFind(fun t -> t = typeof<MyRecord>))
-    let log, success = TestUtil.TryCompileOpenCL((result.KFGRoot :?> KFGKernelNode).Module.Code.Value)
+    let log, success = TestUtil.TryCompileOpenCL((result.KFGRoot :?> KFGKernelNode).Module)
     if not success then
         Assert.Fail(log)
     

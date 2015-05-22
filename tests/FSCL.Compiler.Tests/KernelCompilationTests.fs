@@ -79,7 +79,7 @@ let ``Can compile tupled kernel reference`` () =
     Assert.AreEqual((result.KFGRoot :?> KFGKernelNode).Module.Kernel.WorkSize, None)
     // Work item info parameter should be lifted
     Assert.AreEqual((result.KFGRoot :?> KFGKernelNode).Module.Kernel.OriginalParameters.Count, 3)
-    let log, success = TestUtil.TryCompileOpenCL((result.KFGRoot :?> KFGKernelNode).Module.Code.Value)
+    let log, success = TestUtil.TryCompileOpenCL((result.KFGRoot :?> KFGKernelNode).Module)
     if not success then
         Assert.Fail(log)
     
@@ -92,7 +92,7 @@ let ``Can compile curried kernel reference`` () =
     Assert.AreEqual(None, (result.KFGRoot :?> KFGKernelNode).Module.Kernel.WorkSize)
     // Work item info parameter should be lifted
     Assert.AreEqual(3, (result.KFGRoot :?> KFGKernelNode).Module.Kernel.OriginalParameters.Count)
-    let log, success = TestUtil.TryCompileOpenCL((result.KFGRoot :?> KFGKernelNode).Module.Code.Value)
+    let log, success = TestUtil.TryCompileOpenCL((result.KFGRoot :?> KFGKernelNode).Module)
     if not success then
         Assert.Fail(log)
     
@@ -106,7 +106,7 @@ let ``Can compile tupled kernel call`` () =
     Assert.AreEqual(size, wInfo)
     // Work item info parameter should be lifted
     Assert.AreEqual(3, (result.KFGRoot :?> KFGKernelNode).Module.Kernel.OriginalParameters.Count)
-    let log, success = TestUtil.TryCompileOpenCL((result.KFGRoot :?> KFGKernelNode).Module.Code.Value)
+    let log, success = TestUtil.TryCompileOpenCL((result.KFGRoot :?> KFGKernelNode).Module)
     if not success then
         Assert.Fail(log)
     
@@ -116,7 +116,7 @@ let ``Can compile curried kernel call`` () =
     let result = compiler.Compile(<@ VectorAddCurried a b c size @>) :?> IKernelExpression
     let wInfo = (result.KFGRoot :?> KFGKernelNode).Module.Kernel.WorkSize.Value
     // Work item info should be stored
-    let log, success = TestUtil.TryCompileOpenCL((result.KFGRoot :?> KFGKernelNode).Module.Code.Value)
+    let log, success = TestUtil.TryCompileOpenCL((result.KFGRoot :?> KFGKernelNode).Module)
     if not success then
         Assert.Fail(log)
     
@@ -141,7 +141,7 @@ let ``Can compile kernel with utility functions`` () =
     let secondCut = firstCut.Substring(0, firstCut.IndexOf(")"))
     let split = secondCut.Split(',')
     Assert.AreEqual(4, split.Length)
-    let log, success = TestUtil.TryCompileOpenCL((result.KFGRoot :?> KFGKernelNode).Module.Code.Value)
+    let log, success = TestUtil.TryCompileOpenCL((result.KFGRoot :?> KFGKernelNode).Module)
     if not success then
         Assert.Fail(log)
     
@@ -162,7 +162,7 @@ let ``Can compile kernel with inline and nested utility functions`` () =
             Assert.IsTrue(f.Value.Code.StartsWith("inline "))
         else
             Assert.AreEqual(2, f.Value.Parameters.Count)
-    let log, success = TestUtil.TryCompileOpenCL((result.KFGRoot :?> KFGKernelNode).Module.Code.Value)
+    let log, success = TestUtil.TryCompileOpenCL((result.KFGRoot :?> KFGKernelNode).Module)
     if not success then
         Assert.Fail(log)
             
@@ -174,7 +174,7 @@ let ``Can compile kernel returning a parameter`` () =
     let wInfo = (result.KFGRoot :?> KFGKernelNode).Module.Kernel.WorkSize.Value
     // Work item info should be stored
     Assert.AreEqual(size, wInfo)
-    let log, success = TestUtil.TryCompileOpenCL((result.KFGRoot :?> KFGKernelNode).Module.Code.Value)
+    let log, success = TestUtil.TryCompileOpenCL((result.KFGRoot :?> KFGKernelNode).Module)
     if not success then
         Assert.Fail(log)
     
@@ -196,7 +196,7 @@ let ``Can compile kernel with reference cells`` () =
     Assert.Greater(firstIndex, 0)
     Assert.Greater(lastIndex, 0)
     Assert.AreNotEqual(firstIndex, lastIndex)
-    let log, success = TestUtil.TryCompileOpenCL((result.KFGRoot :?> KFGKernelNode).Module.Code.Value)
+    let log, success = TestUtil.TryCompileOpenCL((result.KFGRoot :?> KFGKernelNode).Module)
     if not success then
         Assert.Fail(log)
    

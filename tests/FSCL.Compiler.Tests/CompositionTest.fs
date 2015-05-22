@@ -91,7 +91,7 @@ let ``Can compile kernel composition for Newton's approximation of matrix invers
     let mutable ok = true
     let mutable i = 0
     while ok && i < result.KernelNodes.Count do
-        let log, success = TestUtil.TryCompileOpenCL((result.KernelNodes.[i] :?> KFGKernelNode).Module.Code.Value)
+        let log, success = TestUtil.TryCompileOpenCL((result.KernelNodes.[i] :?> KFGKernelNode).Module)
         if not success then
             Assert.Fail(log)
             ok <- false

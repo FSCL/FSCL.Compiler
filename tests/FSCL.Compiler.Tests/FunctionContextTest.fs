@@ -174,10 +174,10 @@ let ``Can compile kernel with tupled module function from inside and outside mod
     Assert.NotNull(outsideResult)
     Assert.AreSame(None, (outsideResult.KFGRoot :?> KFGKernelNode).Module.InstanceExpr)
     
-    let log, success = TestUtil.TryCompileOpenCL((insideResult.KFGRoot :?> KFGKernelNode).Module.Code.Value)
+    let log, success = TestUtil.TryCompileOpenCL((insideResult.KFGRoot :?> KFGKernelNode).Module)
     if not success then
         Assert.Fail(log)  
-    let log, success = TestUtil.TryCompileOpenCL((outsideResult.KFGRoot :?> KFGKernelNode).Module.Code.Value)
+    let log, success = TestUtil.TryCompileOpenCL((outsideResult.KFGRoot :?> KFGKernelNode).Module)
     if not success then
         Assert.Fail(log)  
     
@@ -191,10 +191,10 @@ let ``Can compile kernel with curried module function from inside and outside mo
     Assert.NotNull(outsideResult)
     Assert.AreSame(None, (outsideResult.KFGRoot :?> KFGKernelNode).Module.InstanceExpr)
     
-    let log, success = TestUtil.TryCompileOpenCL((insideResult.KFGRoot :?> KFGKernelNode).Module.Code.Value)
+    let log, success = TestUtil.TryCompileOpenCL((insideResult.KFGRoot :?> KFGKernelNode).Module)
     if not success then
         Assert.Fail(log)  
-    let log, success = TestUtil.TryCompileOpenCL((outsideResult.KFGRoot :?> KFGKernelNode).Module.Code.Value)
+    let log, success = TestUtil.TryCompileOpenCL((outsideResult.KFGRoot :?> KFGKernelNode).Module)
     if not success then
         Assert.Fail(log)  
     
@@ -208,10 +208,10 @@ let ``Can compile kernel with tupled module function called from instance kernel
     Assert.NotNull(outsideResult)
     Assert.AreNotSame(None, (outsideResult.KFGRoot :?> KFGKernelNode).Module.InstanceExpr)
     
-    let log, success = TestUtil.TryCompileOpenCL((insideResult.KFGRoot :?> KFGKernelNode).Module.Code.Value)
+    let log, success = TestUtil.TryCompileOpenCL((insideResult.KFGRoot :?> KFGKernelNode).Module)
     if not success then
         Assert.Fail(log)  
-    let log, success = TestUtil.TryCompileOpenCL((outsideResult.KFGRoot :?> KFGKernelNode).Module.Code.Value)
+    let log, success = TestUtil.TryCompileOpenCL((outsideResult.KFGRoot :?> KFGKernelNode).Module)
     if not success then
         Assert.Fail(log)  
     
@@ -225,10 +225,10 @@ let ``Can compile kernel with curried module function called from instance kerne
     Assert.NotNull(outsideResult)
     Assert.AreNotSame(None, (outsideResult.KFGRoot :?> KFGKernelNode).Module.InstanceExpr)
     
-    let log, success = TestUtil.TryCompileOpenCL((insideResult.KFGRoot :?> KFGKernelNode).Module.Code.Value)
+    let log, success = TestUtil.TryCompileOpenCL((insideResult.KFGRoot :?> KFGKernelNode).Module)
     if not success then
         Assert.Fail(log)  
-    let log, success = TestUtil.TryCompileOpenCL((outsideResult.KFGRoot :?> KFGKernelNode).Module.Code.Value)
+    let log, success = TestUtil.TryCompileOpenCL((outsideResult.KFGRoot :?> KFGKernelNode).Module)
     if not success then
         Assert.Fail(log)  
 
@@ -239,7 +239,7 @@ let ``Can compile kernel with tupled instance field function from inside instanc
     Assert.NotNull(insideResult)
     Assert.AreNotSame(None, (insideResult.KFGRoot :?> KFGKernelNode).Module.InstanceExpr)
     
-    let log, success = TestUtil.TryCompileOpenCL((insideResult.KFGRoot :?> KFGKernelNode).Module.Code.Value)
+    let log, success = TestUtil.TryCompileOpenCL((insideResult.KFGRoot :?> KFGKernelNode).Module)
     if not success then
         Assert.Fail(log)  
     
@@ -250,7 +250,7 @@ let ``Can compile kernel with curried instance field function from inside instan
     Assert.NotNull(insideResult)
     Assert.AreNotSame(None, (insideResult.KFGRoot :?> KFGKernelNode).Module.InstanceExpr)
     
-    let log, success = TestUtil.TryCompileOpenCL((insideResult.KFGRoot :?> KFGKernelNode).Module.Code.Value)
+    let log, success = TestUtil.TryCompileOpenCL((insideResult.KFGRoot :?> KFGKernelNode).Module)
     if not success then
         Assert.Fail(log)  
     
@@ -264,10 +264,10 @@ let ``Can compile kernel with tupled instance field function called from member 
     Assert.NotNull(outsideResult)
     Assert.AreNotSame(None, (outsideResult.KFGRoot :?> KFGKernelNode).Module.InstanceExpr)
     
-    let log, success = TestUtil.TryCompileOpenCL((insideResult.KFGRoot :?> KFGKernelNode).Module.Code.Value)
+    let log, success = TestUtil.TryCompileOpenCL((insideResult.KFGRoot :?> KFGKernelNode).Module)
     if not success then
         Assert.Fail(log)  
-    let log, success = TestUtil.TryCompileOpenCL((outsideResult.KFGRoot :?> KFGKernelNode).Module.Code.Value)
+    let log, success = TestUtil.TryCompileOpenCL((outsideResult.KFGRoot :?> KFGKernelNode).Module)
     if not success then
         Assert.Fail(log)  
     
@@ -281,10 +281,10 @@ let ``Can compile kernel with curried instance field function called from member
     Assert.NotNull(outsideResult)
     Assert.AreNotSame(None, (outsideResult.KFGRoot :?> KFGKernelNode).Module.InstanceExpr)
     
-    let log, success = TestUtil.TryCompileOpenCL((insideResult.KFGRoot :?> KFGKernelNode).Module.Code.Value)
+    let log, success = TestUtil.TryCompileOpenCL((insideResult.KFGRoot :?> KFGKernelNode).Module)
     if not success then
         Assert.Fail(log)  
-    let log, success = TestUtil.TryCompileOpenCL((outsideResult.KFGRoot :?> KFGKernelNode).Module.Code.Value)
+    let log, success = TestUtil.TryCompileOpenCL((outsideResult.KFGRoot :?> KFGKernelNode).Module)
     if not success then
         Assert.Fail(log)  
     
@@ -298,10 +298,10 @@ let ``Can compile kernel with tupled instance member function from inside and ou
     Assert.NotNull(outsideResult)
     Assert.AreNotSame(None, (outsideResult.KFGRoot :?> KFGKernelNode).Module.InstanceExpr)
     
-    let log, success = TestUtil.TryCompileOpenCL((insideResult.KFGRoot :?> KFGKernelNode).Module.Code.Value)
+    let log, success = TestUtil.TryCompileOpenCL((insideResult.KFGRoot :?> KFGKernelNode).Module)
     if not success then
         Assert.Fail(log)  
-    let log, success = TestUtil.TryCompileOpenCL((outsideResult.KFGRoot :?> KFGKernelNode).Module.Code.Value)
+    let log, success = TestUtil.TryCompileOpenCL((outsideResult.KFGRoot :?> KFGKernelNode).Module)
     if not success then
         Assert.Fail(log)  
     
@@ -315,10 +315,10 @@ let ``Can compile kernel with curried instance member from inside and outside in
     Assert.NotNull(outsideResult)
     Assert.AreNotSame(None, (outsideResult.KFGRoot :?> KFGKernelNode).Module.InstanceExpr)
     
-    let log, success = TestUtil.TryCompileOpenCL((insideResult.KFGRoot :?> KFGKernelNode).Module.Code.Value)
+    let log, success = TestUtil.TryCompileOpenCL((insideResult.KFGRoot :?> KFGKernelNode).Module)
     if not success then
         Assert.Fail(log)  
-    let log, success = TestUtil.TryCompileOpenCL((outsideResult.KFGRoot :?> KFGKernelNode).Module.Code.Value)
+    let log, success = TestUtil.TryCompileOpenCL((outsideResult.KFGRoot :?> KFGKernelNode).Module)
     if not success then
         Assert.Fail(log)  
     
@@ -332,10 +332,10 @@ let ``Can compile kernel with tupled static member function called from instance
     Assert.NotNull(outsideResult)
     Assert.AreNotSame(None, (outsideResult.KFGRoot :?> KFGKernelNode).Module.InstanceExpr)
     
-    let log, success = TestUtil.TryCompileOpenCL((insideResult.KFGRoot :?> KFGKernelNode).Module.Code.Value)
+    let log, success = TestUtil.TryCompileOpenCL((insideResult.KFGRoot :?> KFGKernelNode).Module)
     if not success then
         Assert.Fail(log)  
-    let log, success = TestUtil.TryCompileOpenCL((outsideResult.KFGRoot :?> KFGKernelNode).Module.Code.Value)
+    let log, success = TestUtil.TryCompileOpenCL((outsideResult.KFGRoot :?> KFGKernelNode).Module)
     if not success then
         Assert.Fail(log)  
     
@@ -349,10 +349,10 @@ let ``Can compile kernel with curried static member function called from instanc
     Assert.NotNull(outsideResult)
     Assert.AreNotSame(None, (outsideResult.KFGRoot :?> KFGKernelNode).Module.InstanceExpr)
     
-    let log, success = TestUtil.TryCompileOpenCL((insideResult.KFGRoot :?> KFGKernelNode).Module.Code.Value)
+    let log, success = TestUtil.TryCompileOpenCL((insideResult.KFGRoot :?> KFGKernelNode).Module)
     if not success then
         Assert.Fail(log)  
-    let log, success = TestUtil.TryCompileOpenCL((outsideResult.KFGRoot :?> KFGKernelNode).Module.Code.Value)
+    let log, success = TestUtil.TryCompileOpenCL((outsideResult.KFGRoot :?> KFGKernelNode).Module)
     if not success then
         Assert.Fail(log)  
     
@@ -366,10 +366,10 @@ let ``Can compile kernel with tupled static member function called from static k
     Assert.NotNull(outsideResult)
     Assert.AreSame(None, (outsideResult.KFGRoot :?> KFGKernelNode).Module.InstanceExpr)
     
-    let log, success = TestUtil.TryCompileOpenCL((insideResult.KFGRoot :?> KFGKernelNode).Module.Code.Value)
+    let log, success = TestUtil.TryCompileOpenCL((insideResult.KFGRoot :?> KFGKernelNode).Module)
     if not success then
         Assert.Fail(log)  
-    let log, success = TestUtil.TryCompileOpenCL((outsideResult.KFGRoot :?> KFGKernelNode).Module.Code.Value)
+    let log, success = TestUtil.TryCompileOpenCL((outsideResult.KFGRoot :?> KFGKernelNode).Module)
     if not success then
         Assert.Fail(log)  
     
@@ -383,10 +383,10 @@ let ``Can compile kernel with curried static member function called from static 
     Assert.NotNull(outsideResult)
     Assert.AreSame(None, (outsideResult.KFGRoot :?> KFGKernelNode).Module.InstanceExpr)
 
-    let log, success = TestUtil.TryCompileOpenCL((insideResult.KFGRoot :?> KFGKernelNode).Module.Code.Value)
+    let log, success = TestUtil.TryCompileOpenCL((insideResult.KFGRoot :?> KFGKernelNode).Module)
     if not success then
         Assert.Fail(log)  
-    let log, success = TestUtil.TryCompileOpenCL((outsideResult.KFGRoot :?> KFGKernelNode).Module.Code.Value)
+    let log, success = TestUtil.TryCompileOpenCL((outsideResult.KFGRoot :?> KFGKernelNode).Module)
     if not success then
         Assert.Fail(log)  
     

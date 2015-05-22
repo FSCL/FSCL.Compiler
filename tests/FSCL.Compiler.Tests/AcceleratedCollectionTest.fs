@@ -31,7 +31,7 @@ let ``Can compile array.map2 collection function`` () =
     // No work item info should be stored
     Assert.AreEqual((result.KFGRoot :?> KFGKernelNode).Module.Kernel.WorkSize, None)
     Assert.AreEqual(2, (result.KFGRoot :?> KFGKernelNode).Module.Functions.Count)
-    let log, success = TestUtil.TryCompileOpenCL((result.KFGRoot :?> KFGKernelNode).Module.Code.Value)
+    let log, success = TestUtil.TryCompileOpenCL((result.KFGRoot :?> KFGKernelNode).Module)
     if not success then
         Assert.Fail(log)
     
@@ -43,7 +43,7 @@ let ``Can compile array.map2 collection function with lambda`` () =
     // No work item info should be stored
     Assert.AreEqual(None, (result.KFGRoot :?> KFGKernelNode).Module.Kernel.WorkSize)
     Assert.AreEqual(1, (result.KFGRoot :?> KFGKernelNode).Module.Functions.Count)
-    let log, success = TestUtil.TryCompileOpenCL((result.KFGRoot :?> KFGKernelNode).Module.Code.Value)
+    let log, success = TestUtil.TryCompileOpenCL((result.KFGRoot :?> KFGKernelNode).Module)
     if not success then
         Assert.Fail(log)
     
@@ -55,7 +55,7 @@ let ``Can compile array.reduce lambda`` () =
     // No work item info should be stored
     Assert.AreEqual(None, (result.KFGRoot :?> KFGKernelNode).Module.Kernel.WorkSize)
     Assert.AreEqual(1, (result.KFGRoot :?> KFGKernelNode).Module.Functions.Count)
-    let log, success = TestUtil.TryCompileOpenCL((result.KFGRoot :?> KFGKernelNode).Module.Code.Value)
+    let log, success = TestUtil.TryCompileOpenCL((result.KFGRoot :?> KFGKernelNode).Module)
     if not success then
         Assert.Fail(log)
     
@@ -68,7 +68,7 @@ let ``Can compile array.reduce with record data-type`` () =
     // No work item info should be stored
     Assert.AreEqual(None, (result.KFGRoot :?> KFGKernelNode).Module.Kernel.WorkSize)
     Assert.AreEqual(2, (result.KFGRoot :?> KFGKernelNode).Module.Functions.Count)
-    let log, success = TestUtil.TryCompileOpenCL((result.KFGRoot :?> KFGKernelNode).Module.Code.Value)
+    let log, success = TestUtil.TryCompileOpenCL((result.KFGRoot :?> KFGKernelNode).Module)
     if not success then
         Assert.Fail(log)
     
@@ -83,7 +83,7 @@ let ``Can compile array.reduce lambda with record data-type`` () =
     //printf "%s\n" (result.Code.Value.ToString())
     Assert.AreEqual(None, (result.KFGRoot :?> KFGKernelNode).Module.Kernel.WorkSize)
     Assert.AreEqual(1, (result.KFGRoot :?> KFGKernelNode).Module.Functions.Count)
-    let log, success = TestUtil.TryCompileOpenCL((result.KFGRoot :?> KFGKernelNode).Module.Code.Value)
+    let log, success = TestUtil.TryCompileOpenCL((result.KFGRoot :?> KFGKernelNode).Module)
     if not success then
         Assert.Fail(log)
     
