@@ -81,7 +81,7 @@ module QuotationAnalysis =
                     let attrFunction = mi.GetCustomAttribute<MetadataFunctionAttribute>()
 
                     if attrFunction <> null then
-                        if attrFunction.Target = MetadataFunctionTarget.KernelFunction then
+                        if attrFunction.Target = MetadataFunctionTarget.KernelParameter then
                             // Get attribute type
                             let attrType = attrFunction.Metadata
                             // First n - 1 args are the parameters to instantiate attribute, last is one is target (forwarded)

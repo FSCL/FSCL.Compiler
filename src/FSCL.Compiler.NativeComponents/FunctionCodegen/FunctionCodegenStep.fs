@@ -84,7 +84,7 @@ type FunctionCodegenStep(tm: TypeManager,
         let processedSignature = this.Process(this.FunctionInfo.Name, this.FunctionInfo.Parameters, opts)
         let processedBody = this.Process(this.FunctionInfo.Body, opts)
         this.FunctionInfo.SignatureCode <- processedSignature
-        this.FunctionInfo.Code <- processedSignature + "{\n" + processedBody + "\n}"
+        this.FunctionInfo.Code <- processedSignature + "{\n" + processedBody + ";\n}"
     ///
     ///<summary>
     ///The method called to execute the step
