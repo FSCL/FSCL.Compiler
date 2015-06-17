@@ -49,8 +49,6 @@ Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "FSCL.Compiler.Util", "src\F
 EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "FSCL.Compiler.NativeComponents", "src\FSCL.Compiler.NativeComponents\FSCL.Compiler.NativeComponents.fsproj", "{CCF44AF6-BB48-462B-9F82-5D8478244A64}"
 EndProject
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "ConsoleApplication1", "ConsoleApplication1\ConsoleApplication1.fsproj", "{8042F832-96E5-49B5-8098-EA57B2E3EE58}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -81,10 +79,6 @@ Global
 		{CCF44AF6-BB48-462B-9F82-5D8478244A64}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{CCF44AF6-BB48-462B-9F82-5D8478244A64}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{CCF44AF6-BB48-462B-9F82-5D8478244A64}.Release|Any CPU.Build.0 = Release|Any CPU
-		{8042F832-96E5-49B5-8098-EA57B2E3EE58}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{8042F832-96E5-49B5-8098-EA57B2E3EE58}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{8042F832-96E5-49B5-8098-EA57B2E3EE58}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{8042F832-96E5-49B5-8098-EA57B2E3EE58}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -62,6 +62,9 @@ ipch/
 *.vsp
 *.vspx
 
+# Other Visual Studio data
+.vs/
+
 # Guidance Automation Toolkit
 *.gpState
 
@@ -165,7 +168,7 @@ $RECYCLE.BIN/
 packages/
 
 # Generated documentation folder
-# docs/output/
+docs/output/
 
 # Temp folder used for publishing docs
 temp/
@@ -175,3 +178,11 @@ TestResults.xml
 
 # Nuget outputs
 nuget/*.nupkg
+release.cmd
+release.sh
+localpackages/
+paket-files
+*.orig
+.paket/paket.exe
+docs/content/license.md
+docs/content/release-notes.md

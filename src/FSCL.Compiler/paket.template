@@ -1,0 +1,21 @@
+type project
+owners
+    FSCL
+authors 
+    FSCL
+projectUrl
+    http://github.com/FSCL/FSCL.Compiler
+iconUrl
+    https://avatars1.githubusercontent.com/u/8271254
+licenseUrl
+    http://github.com/FSCL/FSCL.Compiler/blob/master/LICENSE.txt
+requireLicenseAcceptance
+    true
+tags
+    Meta-Programming Compiler Compilation OpenCL Parallel-programming Heterogenous-computing F# Quotations
+summary
+    F# to OpenCL compiler
+description
+    FSCL Compiler is a source-to-source compiler to program OpenCL from within F# using functional composition of functions, methods, lambdas and collection functions. The compiler is able to produce the OpenCL C99 source code out of quoted expressions, where expressions can contain a reference or a call to an FSCL kernel, a lambda, a collection function (e.g. Array.reduce) or a regular function
+
+

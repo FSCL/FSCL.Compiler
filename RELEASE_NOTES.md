@@ -1,5 +1,8 @@
-### 2.0 - 24 February 2015
-* New FSCL language. Collection functions can be used of any order. Collection functions of lowest order are translated into OpenCL kernels, the ones of higher orders encodes multi-thread coordination of (sub)kernels. Kernel-FlowGraph creation inside the compiler (previously was built from within the FSCL.Runtime).
+### 2.0.1 - 17 July 2015
+* Updated Scaffold files
+
+### 2.0 - 17 July 2015
+* New FSCL language. Collection functions can be used of any order. Collection functions of lowest order are translated into OpenCL kernels, the ones of higher orders encodes multi-thread coordination of (sub)kernels. Kernel-FlowGraph creation inside the compiler (previously was built from within the FSCL.Runtime). Double precision correctly handled generating appropriate OpenCL directives
 
 ### 1.5.5 - 29 October 2014
 * Bug fix in parsing compositions
