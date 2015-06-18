@@ -314,6 +314,17 @@ Target "ReleaseDocs" (fun _ ->
     Branches.push tempDocsDir
 )
 
+Target "ReleaseWiki" (fun _ ->
+    let tempDocsDir = "temp/wiki"
+    CleanDir tempDocsDir
+    Repository.cloneSingleBranch "" (gitHome + "/" + gitName + ".wiki.git") "master" tempDocsDir
+
+    CopyRecursive "docs/wiki" tempDocsDir true |> tracefn "%A"
+    StageAll tempDocsDir
+    Git.Commit.Commit tempDocsDir (sprintf "Update generated wiki for version %s" release.NugetVersion)
+    Branches.push tempDocsDir
+)
+
 #load "paket-files/fsharp/FAKE/modules/Octokit/Octokit.fsx"
 open Octokit
 
@@ -347,6 +358,7 @@ Target "All" DoNothing
   ==> "RunTests"
   //==> "GenerateReferenceDocs"
   ==> "GenerateDocs"
+  ==> "ReleaseWiki"
   ==> "All"
   =?> ("ReleaseDocs",isLocalBuild)
 
