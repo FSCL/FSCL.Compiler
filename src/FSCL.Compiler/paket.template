@@ -12,7 +12,7 @@ licenseUrl
 requireLicenseAcceptance
     true
 tags
-    Meta-Programming Compiler Compilation OpenCL Parallel-programming Heterogenous-computing F# Quotations
+    GPGPU Meta-Programming Compiler Compilation OpenCL Parallel-programming Heterogenous-computing F# Quotations
 summary
     F# to OpenCL compiler
 description

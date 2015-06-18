@@ -54,7 +54,7 @@ Note that the FSCL runtime is a separate project hosted on gihub: [FSCL runtime 
 
 ###At a glance
 
-FSCL.Compiler is an F# to OpenCL compiler that allows programmers to develop OpenCL kernels inside .NET, with all the benefits of 
+FSCL.Compiler is an F# to OpenCL compiler to enhance GPGPU, allowing programmers to develop OpenCL kernels inside .NET, with all the benefits of 
 code-completion, type-checking and many other facilities provided by the .NET visual machine environment.
 FSCL.Compiler currently supports all the features of OpenCL Specification v1.2 except for the image-related processing, which is under development.
 
