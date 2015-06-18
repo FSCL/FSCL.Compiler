@@ -35,13 +35,13 @@ A lambda doesn't require particular solutions to mark it as a kernel. A lambda r
 ```F#
 // This is a kernel
 let vecAddKernel = <@ 
-					fun(a:float32[], b:float32[], c:float32[], wi:WorkItemInfo) =
+					fun(a:float32[], b:float32[], c:float32[], wi:WorkItemInfo) ->
 						// Do something
 					@>
 	
 // This is not a kernel (no WorkItemInfo parameter)
 let vecAddNormal = <@ 
-					fun(a:float32[], b:float32[], c:float32[]) =
+					fun(a:float32[], b:float32[], c:float32[]) ->
 						// Do something
 					@>
 ```
