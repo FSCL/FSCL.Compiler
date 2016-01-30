@@ -199,4 +199,18 @@ let ``Can compile kernel with reference cells`` () =
     let log, success = TestUtil.TryCompileOpenCL((result.KFGRoot :?> KFGKernelNode).Module)
     if not success then
         Assert.Fail(log)
-   
+
+[<ReflectedDefinition; Kernel>]
+let sinIt(a: float32[], b:float32[], wi:WorkItemInfo) =
+    let i = wi.GlobalID 0
+    b.[i] <- sin a.[i]
+
+[<Test>]
+let ``compile in a maths sin``() =
+    let compiler = new Compiler()
+    let a = Array.zeroCreate<float32> 10
+    let b = Array.zeroCreate<float32> 10
+    let ws = WorkSize(10L)
+    let result = compiler.Compile(<@ sinIt(a,b,ws) @>) :?> IKernelExpression
+    let code = (result.KFGRoot :?> KFGKernelNode).Module.Code.Value
+    Assert.That(code, Contains.Substring("sin(a[i])"))
