@@ -106,7 +106,10 @@ module QuotationComparison =
     
     let ComputeHashCode(e:Expr) =
         hashC Set.empty e
-         
+
+/// <summary>
+/// Encapsulates information about the current thread
+/// </summary>
 type WorkItemInfo = 
     interface
         abstract member GlobalID: int -> int

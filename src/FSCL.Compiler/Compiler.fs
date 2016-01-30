@@ -56,14 +56,14 @@ type Compiler =
     static member DefaultConfigurationComponentsRoot = Path.Combine(Compiler.DefaultConfigurationRoot, Compiler.DefaultConfigurationComponentsFolder)
 
     static member private defComponentsAssemply = 
-        [| typeof<FunctionPreprocessingStep>; 
-           typeof<FunctionTransformationStep>; 
-           typeof<FunctionCodegenStep>; 
-           typeof<ModuleParsingStep>; 
-           typeof<ModulePreprocessingStep>; 
-           typeof<ModuleCodegenStep>;
-           typeof<FunctionPostprocessingStep>;
-           typeof<AcceleratedArrayParser>;
+        [| typeof<FunctionPreprocessingStep> 
+           typeof<FunctionTransformationStep> 
+           typeof<FunctionCodegenStep> 
+           typeof<ModuleParsingStep> 
+           typeof<ModulePreprocessingStep> 
+           typeof<ModuleCodegenStep>
+           typeof<FunctionPostprocessingStep>
+           typeof<AcceleratedArrayParser>
            typeof<DefaultTypeHandler> |]
     
     val mutable cache: KernelCache 
@@ -82,16 +82,16 @@ type Compiler =
     ///In addition of the 0 or more components found, the native components are always loaded (if no configuration file is found in the first step)
     ///</remarks>
     ///
-    new(entryCreator) as this = 
-        { inherit Pipeline(Compiler.DefaultConfigurationRoot, Compiler.DefaultConfigurationComponentsFolder, Compiler.defComponentsAssemply)
+    new (entryCreator: IKernelModule -> KernelCacheEntry) as this = 
+        { inherit Pipeline (Compiler.DefaultConfigurationRoot, Compiler.DefaultConfigurationComponentsFolder, Compiler.defComponentsAssemply)
           cache = null
           cacheEntryCreator = entryCreator
         }
         then
-            this.cache <- new KernelCache(this.IsInvariantToMetaCollection, entryCreator)
-    new() = 
-        new Compiler(fun m -> new KernelCacheEntry(m))
-    
+            this.cache <- KernelCache(this.IsInvariantToMetaCollection, entryCreator)
+    new () = 
+        Compiler (fun m -> KernelCacheEntry m)
+
     ///
     ///<summary>
     ///The constructor to instantiate a compiler with a file-based configuration
@@ -101,15 +101,15 @@ type Compiler =
     ///An instance of the compiler configured with the input file
     ///</returns>
     ///
-    new(file: string, entryCreator) as this = 
+    new (file: string, entryCreator) as this = 
         { inherit Pipeline(Compiler.DefaultConfigurationRoot, Compiler.DefaultConfigurationComponentsFolder, Compiler.defComponentsAssemply, file)
           cache = null
           cacheEntryCreator = entryCreator
         }
         then
-            this.cache <- new KernelCache(this.IsInvariantToMetaCollection, entryCreator)
+            this.cache <- KernelCache(this.IsInvariantToMetaCollection, entryCreator)
     new(file: string) = 
-        new Compiler(file, fun m -> new KernelCacheEntry(m))
+        Compiler (file, fun m -> KernelCacheEntry m)
     ///
     ///<summary>
     ///The constructor to instantiate a compiler with an object-based configuration
@@ -119,22 +119,25 @@ type Compiler =
     ///An instance of the compiler configured with the input configuration object
     ///</returns>
     ///
-    new(conf: PipelineConfiguration, entryCreator) as this =
+    new (conf: PipelineConfiguration, entryCreator) as this =
         { inherit Pipeline(Compiler.DefaultConfigurationRoot, Compiler.DefaultConfigurationComponentsFolder, Compiler.defComponentsAssemply, conf)
           cache = null
           cacheEntryCreator = entryCreator
         }
         then
-            this.cache <- new KernelCache(this.IsInvariantToMetaCollection, entryCreator)
-    new(conf: PipelineConfiguration) =
-        new Compiler(conf, fun m -> new KernelCacheEntry(m))
+            this.cache <- KernelCache(this.IsInvariantToMetaCollection, entryCreator)
+    new (conf: PipelineConfiguration) =
+        Compiler(conf, fun m -> KernelCacheEntry m)
         
     member this.Compile(input, 
                         opts:Map<string,obj>) =                        
-        this.Run((box input, this.cache), opts)
+        this.Run ((box input, this.cache), opts)
                 
-    member this.Compile(input) =
-        this.Compile(input, Map.empty)
+    member this.Compile input =
+        this.Compile (input, Map.empty)
+
+    member this.Compile<'T> input =
+        this.Compile (input, Map.empty) :?> 'T
 
     member this.CacheEntryCreator 
         with get() =

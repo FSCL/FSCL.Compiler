@@ -73,7 +73,7 @@ let VectorAddWithNestedUtility(a: float32[], b:float32[], c:float32[], wi:WorkIt
 //[<Test>]
 let ``Can compile tupled kernel reference`` () =
     let compiler = new Compiler()
-    let result = compiler.Compile(<@ VectorAdd @>) :?> IKernelExpression
+    let result = compiler.Compile<IKernelExpression>(<@ VectorAdd @>)
     //printf "%s\n" (result.Code.Value.ToString())
     // No work item info should be stored
     Assert.AreEqual((result.KFGRoot :?> KFGKernelNode).Module.Kernel.WorkSize, None)
@@ -86,7 +86,7 @@ let ``Can compile tupled kernel reference`` () =
 //[<Test>]
 let ``Can compile curried kernel reference`` () =
     let compiler = new Compiler()
-    let result = compiler.Compile(<@ VectorAddCurried @>) :?> IKernelExpression
+    let result = compiler.Compile<IKernelExpression>(<@ VectorAddCurried @>)
     //printf "%s\n" (result.Code.Value.ToString())
     // No work item info should be stored
     Assert.AreEqual(None, (result.KFGRoot :?> KFGKernelNode).Module.Kernel.WorkSize)
@@ -99,7 +99,7 @@ let ``Can compile curried kernel reference`` () =
 [<Test>]
 let ``Can compile tupled kernel call`` () =
     let compiler, a, b, c, size = TestUtil.GetVectorSampleData()
-    let result = compiler.Compile(<@ VectorAdd(a, b, c, size) @>) :?> IKernelExpression
+    let result = compiler.Compile<IKernelExpression>(<@ VectorAdd(a, b, c, size) @>) 
     //printf "%s\n" (result.Code.Value.ToString())
     let wInfo = (result.KFGRoot :?> KFGKernelNode).Module.Kernel.WorkSize.Value
     // Work item info should be stored
@@ -113,7 +113,7 @@ let ``Can compile tupled kernel call`` () =
 [<Test>]
 let ``Can compile curried kernel call`` () =
     let compiler, a, b, c, size = TestUtil.GetVectorSampleData()
-    let result = compiler.Compile(<@ VectorAddCurried a b c size @>) :?> IKernelExpression
+    let result = compiler.Compile<IKernelExpression>(<@ VectorAddCurried a b c size @>) 
     let wInfo = (result.KFGRoot :?> KFGKernelNode).Module.Kernel.WorkSize.Value
     // Work item info should be stored
     let log, success = TestUtil.TryCompileOpenCL((result.KFGRoot :?> KFGKernelNode).Module)
@@ -123,7 +123,7 @@ let ``Can compile curried kernel call`` () =
 [<Test>]
 let ``Can compile kernel with utility functions`` () =
     let compiler, a, b, c, size = TestUtil.GetVectorSampleData()
-    let result = compiler.Compile(<@ VectorAddWithUtility(a, b, c, size) @>) :?> IKernelExpression
+    let result = compiler.Compile<IKernelExpression>(<@ VectorAddWithUtility(a, b, c, size) @>) 
     //printf "%s\n" (result.Code.Value.ToString())
     let wInfo = (result.KFGRoot :?> KFGKernelNode).Module.Kernel.WorkSize.Value
     // Work item info should be stored
@@ -148,7 +148,7 @@ let ``Can compile kernel with utility functions`` () =
 [<Test>]
 let ``Can compile kernel with inline and nested utility functions`` () =
     let compiler, a, b, c, size = TestUtil.GetVectorSampleData()
-    let result = compiler.Compile(<@ VectorAddWithNestedUtility(a, b, c, size) @>) :?> IKernelExpression
+    let result = compiler.Compile<IKernelExpression>(<@ VectorAddWithNestedUtility(a, b, c, size) @>)
     //printf "%s\n" (result.Code.Value.ToString())
     let wInfo = (result.KFGRoot :?> KFGKernelNode).Module.Kernel.WorkSize.Value
     // Work item info should be stored
@@ -169,7 +169,7 @@ let ``Can compile kernel with inline and nested utility functions`` () =
 [<Test>]
 let ``Can compile kernel returning a parameter`` () =
     let compiler, a, b, c, size = TestUtil.GetVectorSampleData()
-    let result = compiler.Compile(<@ VectorAddWithReturnParameter(a, b, c, size) @>) :?> IKernelExpression
+    let result = compiler.Compile<IKernelExpression>(<@ VectorAddWithReturnParameter(a, b, c, size) @>) 
     //printf "%s\n" (result.Code.Value.ToString())
     let wInfo = (result.KFGRoot :?> KFGKernelNode).Module.Kernel.WorkSize.Value
     // Work item info should be stored
@@ -183,7 +183,7 @@ let ``Can compile kernel with reference cells`` () =
     let compiler, a, b, c, size = TestUtil.GetVectorSampleData()
     let r = ref 2.0f
 
-    let result = compiler.Compile(<@ VectorAddWithRefCell(a, b, c, r, size) @>) :?> IKernelExpression
+    let result = compiler.Compile<IKernelExpression>(<@ VectorAddWithRefCell(a, b, c, r, size) @>)
     //printf "%s\n" (result.Code.Value.ToString())
     let wInfo = (result.KFGRoot :?> KFGKernelNode).Module.Kernel.WorkSize.Value
     // Work item info should be stored
