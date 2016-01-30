@@ -1,5 +1,6 @@
 FSharp to OpenCL Compiler
 ===========================
+[![NuGet Status](http://img.shields.io/nuget/v/FSCL.Compiler.svg?style=flat)](https://www.nuget.org/packages/FSCL.Compiler/)
 
 FSCL.Compiler is an F# to OpenCL C99 compiler to enhance GPGPU and raise abstraction over heterogeneous programming, allowing programmers to develop and compose OpenCL kernels inside .NET, with all the benefits of code-completion, type-checking and many other facilities provided by the .NET visual machine environment.
 FSCL.Compiler currently supports all the features of OpenCL Specification v1.2 except for the image-related processing, which is under development.
