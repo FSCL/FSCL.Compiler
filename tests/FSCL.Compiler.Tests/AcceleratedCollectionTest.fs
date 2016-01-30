@@ -26,7 +26,7 @@ let RecordSum(a: MyRecord) (b: MyRecord) =
 [<Test>]
 let ``Can compile array.map2 collection function`` () =
     let compiler, a, b, _, _ = TestUtil.GetVectorSampleData()
-    let result = compiler.Compile(<@ Array.map2 FloatSum a b @>) :?> IKernelExpression
+    let result = compiler.Compile<IKernelExpression>(<@ Array.map2 FloatSum a b @>)
     //printf "%s\n" (result.Code.Value.ToString())
     // No work item info should be stored
     Assert.AreEqual((result.KFGRoot :?> KFGKernelNode).Module.Kernel.WorkSize, None)
@@ -38,7 +38,7 @@ let ``Can compile array.map2 collection function`` () =
 [<Test>]
 let ``Can compile array.map2 collection function with lambda`` () =
     let compiler, a, b, _, _ = TestUtil.GetVectorSampleData()
-    let result = compiler.Compile(<@ Array.map2 (fun e1 e2 -> e1 + e2) a b @>) :?> IKernelExpression
+    let result = compiler.Compile<IKernelExpression>(<@ Array.map2 (fun e1 e2 -> e1 + e2) a b @>) 
     //printf "%s\n" (result.Code.Value.ToString())
     // No work item info should be stored
     Assert.AreEqual(None, (result.KFGRoot :?> KFGKernelNode).Module.Kernel.WorkSize)
@@ -50,7 +50,7 @@ let ``Can compile array.map2 collection function with lambda`` () =
 [<Test>]
 let ``Can compile array.reduce lambda`` () =
     let compiler, a, b, _, _ = TestUtil.GetVectorSampleData()
-    let result = compiler.Compile(<@ Array.reduce (fun e1 e2 -> e1 + e2) a @>) :?> IKernelExpression
+    let result = compiler.Compile<IKernelExpression>(<@ Array.reduce (fun e1 e2 -> e1 + e2) a @>)
     //printf "%s\n" (result.Code.Value.ToString())
     // No work item info should be stored
     Assert.AreEqual(None, (result.KFGRoot :?> KFGKernelNode).Module.Kernel.WorkSize)
@@ -63,7 +63,7 @@ let ``Can compile array.reduce lambda`` () =
 let ``Can compile array.reduce with record data-type`` () =
     let compiler = new Compiler()
     let a = Array.create 64 { x = 1.0f; y = 2.0f }
-    let result = compiler.Compile(<@ Array.reduce RecordSum a @>) :?> IKernelExpression
+    let result = compiler.Compile<IKernelExpression>(<@ Array.reduce RecordSum a @>) 
     //printf "%s\n" (result.Code.Value.ToString())
     // No work item info should be stored
     Assert.AreEqual(None, (result.KFGRoot :?> KFGKernelNode).Module.Kernel.WorkSize)
@@ -76,9 +76,9 @@ let ``Can compile array.reduce with record data-type`` () =
 let ``Can compile array.reduce lambda with record data-type`` () =
     let compiler = new Compiler()
     let a = Array.create 64 { x = 1.0f; y = 2.0f }
-    let result = compiler.Compile(<@ Array.reduce (fun el1 el2 -> 
+    let result = compiler.Compile<IKernelExpression>(<@ Array.reduce (fun el1 el2 -> 
                                                         let v = { x = el1.x + el2.x; y = el1.y + el2.y }
-                                                        v) a @>) :?> IKernelExpression
+                                                        v) a @>) 
     // No work item info should be stored
     //printf "%s\n" (result.Code.Value.ToString())
     Assert.AreEqual(None, (result.KFGRoot :?> KFGKernelNode).Module.Kernel.WorkSize)

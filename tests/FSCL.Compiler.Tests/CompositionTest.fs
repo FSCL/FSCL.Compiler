@@ -70,6 +70,7 @@ let ``Can compile kernel composition for Newton's approximation of matrix invers
     let compiler, matA, normalization, ws = GetData()
     
     let result = 
+        compiler.Compile<IKernelExpression>
            <@ [| 0 .. 9 |] |>
                 Array.fold(fun X it ->
                                 Map2 ws 
@@ -81,7 +82,7 @@ let ``Can compile kernel composition for Newton's approximation of matrix invers
                             (matA |> 
                             MatTransp ws |> 
                             Array2D.map(fun it -> it * normalization)) 
-            @> |> compiler.Compile :?> IKernelExpression
+            @> 
     Assert.NotNull(result)
     // Check root is a composition
     Assert.IsTrue(result.KFGRoot :? KFGCollectionCompositionNode)
