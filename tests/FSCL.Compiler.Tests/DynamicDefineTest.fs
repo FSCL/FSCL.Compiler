@@ -149,12 +149,12 @@ let ``Can compile module kernel using module field from inside and outside modul
     let compiler, a, b, c, size, wrapper = GetData()
 
     let insideResult = KernelModule.Compile(compiler, size, a, b, c)
-    Assert.NotNull(insideResult)
-    Assert.IsNotEmpty((insideResult.KFGRoot :?> KFGKernelNode).Module.ConstantDefines)
+    Assert.IsNotNull(insideResult)
+    Assert.IsFalse((insideResult.KFGRoot :?> KFGKernelNode).Module.ConstantDefines.Count = 0)
     Assert.AreEqual(FirstConstDefineValue(insideResult, None), 10.0f)
     let outsideResult = compiler.Compile<IKernelExpression>(<@ KernelModule.VectorAddModule(size, a, b, c) @>) 
-    Assert.NotNull(outsideResult)
-    Assert.IsNotEmpty((outsideResult.KFGRoot :?> KFGKernelNode).Module.ConstantDefines)
+    Assert.IsNotNull(outsideResult)
+    Assert.IsFalse((outsideResult.KFGRoot :?> KFGKernelNode).Module.ConstantDefines.Count = 0)
     Assert.AreEqual(FirstConstDefineValue(outsideResult, None), 10.0f)
 
     let log, success = TestUtil.TryCompileOpenCL((insideResult.KFGRoot :?> KFGKernelNode).Module)
@@ -170,7 +170,7 @@ let ``Can compile kernel using instance field from inside and outside instance``
     let compiler, a, b, c, size, wrapper = GetData()
 
     let insideResult = wrapper.CompileVectorAddUsingField(compiler, size, a, b, c)
-    Assert.IsNotEmpty((insideResult.KFGRoot :?> KFGKernelNode).Module.ConstantDefines)
+    Assert.IsFalse((insideResult.KFGRoot :?> KFGKernelNode).Module.ConstantDefines.Count = 0)
     Assert.AreEqual(FirstConstDefineValue(insideResult, Some(wrapper)), 10.0f)
     let outsideResult = compiler.Compile<IKernelExpression>(<@ wrapper.VectorAddUsingField(size, a, b, c) @>) 
     Assert.IsNotEmpty((outsideResult.KFGRoot :?> KFGKernelNode).Module.ConstantDefines)

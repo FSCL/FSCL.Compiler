@@ -211,6 +211,6 @@ let ``compile in a maths sin``() =
     let a = Array.zeroCreate<float32> 10
     let b = Array.zeroCreate<float32> 10
     let ws = WorkSize(10L)
-    let result = compiler.Compile(<@ sinIt(a,b,ws) @>) :?> IKernelExpression
+    let result = compiler.Compile<IKernelExpression>(<@ sinIt(a,b,ws) @>)
     let code = (result.KFGRoot :?> KFGKernelNode).Module.Code.Value
     Assert.That(code, Contains.Substring("sin(a[i])"))
